@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
@@ -10,9 +11,14 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { user, signOut } = useAuth();
+  const pathname = usePathname();
 
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  const isActive = (path: string) => {
+    return pathname === path;
   };
 
   return (
@@ -35,35 +41,55 @@ export default function DashboardLayout({
             <nav className="flex-1 px-4 py-6 space-y-2">
               <Link
                 href="/dashboard"
-                className="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-purple-50 hover:text-purple-600 transition-colors"
+                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+                  isActive("/dashboard")
+                    ? "bg-purple-100 text-purple-700 font-semibold"
+                    : "text-gray-700 hover:bg-purple-50 hover:text-purple-600"
+                }`}
               >
                 <span className="mr-3">📊</span>
                 Dashboard
               </Link>
               <Link
                 href="/dashboard/agents"
-                className="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-purple-50 hover:text-purple-600 transition-colors"
+                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+                  isActive("/dashboard/agents")
+                    ? "bg-purple-100 text-purple-700 font-semibold"
+                    : "text-gray-700 hover:bg-purple-50 hover:text-purple-600"
+                }`}
               >
                 <span className="mr-3">🤖</span>
                 AI Agents
               </Link>
               <Link
                 href="/dashboard/integrations"
-                className="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-purple-50 hover:text-purple-600 transition-colors"
+                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+                  isActive("/dashboard/integrations")
+                    ? "bg-purple-100 text-purple-700 font-semibold"
+                    : "text-gray-700 hover:bg-purple-50 hover:text-purple-600"
+                }`}
               >
                 <span className="mr-3">🔗</span>
                 Integrations
               </Link>
               <Link
                 href="/dashboard/analytics"
-                className="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-purple-50 hover:text-purple-600 transition-colors"
+                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+                  isActive("/dashboard/analytics")
+                    ? "bg-purple-100 text-purple-700 font-semibold"
+                    : "text-gray-700 hover:bg-purple-50 hover:text-purple-600"
+                }`}
               >
                 <span className="mr-3">📈</span>
                 Analytics
               </Link>
               <Link
                 href="/dashboard/settings"
-                className="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-purple-50 hover:text-purple-600 transition-colors"
+                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+                  isActive("/dashboard/settings")
+                    ? "bg-purple-100 text-purple-700 font-semibold"
+                    : "text-gray-700 hover:bg-purple-50 hover:text-purple-600"
+                }`}
               >
                 <span className="mr-3">⚙️</span>
                 Settings

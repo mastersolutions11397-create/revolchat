@@ -1,6 +1,132 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useAuth } from "@/lib/auth-context";
+import { profileAPI, UserProfile, UserProfileUpdate } from "@/lib/api/profile";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
+  const { user, signOut } = useAuth();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
+    company: "",
+    phone: "",
+    email: "",
+  });
+  const [notificationPrefs, setNotificationPrefs] = useState({
+    email: true,
+    sms: false,
+    push: true,
+  });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+
+      try {
+        setLoading(true);
+        const profileData = await profileAPI.getProfile();
+        setProfile(profileData);
+        setFormData({
+          first_name: profileData.first_name || "",
+          last_name: profileData.last_name || "",
+          company: profileData.company || "",
+          phone: profileData.phone || "",
+          email: user.email || "",
+        });
+        setNotificationPrefs(
+          profileData.notification_preferences || {
+            email: true,
+            sms: false,
+            push: true,
+          }
+        );
+      } catch (err: any) {
+        console.error("Error fetching profile:", err);
+        // If profile doesn't exist, use user metadata
+        setFormData({
+          first_name: user.user_metadata?.first_name || "",
+          last_name: user.user_metadata?.last_name || "",
+          company: user.user_metadata?.company || "",
+          phone: user.user_metadata?.phone || "",
+          email: user.email || "",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
+
+    try {
+      const updateData: UserProfileUpdate = {
+        first_name: formData.first_name || undefined,
+        last_name: formData.last_name || undefined,
+        company: formData.company || undefined,
+        phone: formData.phone || undefined,
+        notification_preferences: notificationPrefs,
+      };
+
+      const updatedProfile = await profileAPI.updateProfile(updateData);
+      setProfile(updatedProfile);
+      alert("Profile updated successfully!");
+    } catch (err: any) {
+      console.error("Error updating profile:", err);
+      setError(err.message || "Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/auth/login");
+  };
+
+  const getInitials = () => {
+    if (formData.first_name && formData.last_name) {
+      return `${formData.first_name[0]}${formData.last_name[0]}`.toUpperCase();
+    }
+    if (formData.first_name) {
+      return formData.first_name[0].toUpperCase();
+    }
+    return user?.email?.[0]?.toUpperCase() || "U";
+  };
+
+  const getUserName = () => {
+    if (formData.first_name && formData.last_name) {
+      return `${formData.first_name} ${formData.last_name}`;
+    }
+    if (formData.first_name) {
+      return formData.first_name;
+    }
+    return user?.email?.split("@")[0] || "User";
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-50">
       {/* Navigation */}
@@ -28,7 +154,10 @@ export default function ProfilePage() {
               >
                 Workspaces
               </Link>
-              <button className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+              <button
+                onClick={handleSignOut}
+                className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              >
                 Sign Out
               </button>
             </div>
@@ -47,6 +176,12 @@ export default function ProfilePage() {
           </p>
         </div>
 
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Profile Info */}
           <div className="lg:col-span-2 space-y-8">
@@ -55,7 +190,7 @@ export default function ProfilePage() {
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 Personal Information
               </h2>
-              <form className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label
@@ -67,7 +202,10 @@ export default function ProfilePage() {
                     <input
                       type="text"
                       id="firstName"
-                      defaultValue="John"
+                      value={formData.first_name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, first_name: e.target.value })
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     />
                   </div>
@@ -81,7 +219,10 @@ export default function ProfilePage() {
                     <input
                       type="text"
                       id="lastName"
-                      defaultValue="Doe"
+                      value={formData.last_name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, last_name: e.target.value })
+                      }
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     />
                   </div>
@@ -96,9 +237,13 @@ export default function ProfilePage() {
                   <input
                     type="email"
                     id="email"
-                    defaultValue="john@example.com"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    value={formData.email}
+                    disabled
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Email cannot be changed
+                  </p>
                 </div>
                 <div>
                   <label
@@ -110,7 +255,10 @@ export default function ProfilePage() {
                   <input
                     type="text"
                     id="company"
-                    defaultValue="Acme Corporation"
+                    value={formData.company}
+                    onChange={(e) =>
+                      setFormData({ ...formData, company: e.target.value })
+                    }
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   />
                 </div>
@@ -124,94 +272,21 @@ export default function ProfilePage() {
                   <input
                     type="tel"
                     id="phone"
-                    defaultValue="+1 (555) 123-4567"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"
+                  disabled={saving}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50"
                 >
-                  Save Changes
+                  {saving ? "Saving..." : "Save Changes"}
                 </button>
               </form>
-            </div>
-
-            {/* Security Settings */}
-            <div className="yeti-card rounded-2xl p-8 yeti-shadow">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                Security
-              </h2>
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    Change Password
-                  </h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label
-                        htmlFor="currentPassword"
-                        className="block text-sm font-medium text-gray-700 mb-2"
-                      >
-                        Current Password
-                      </label>
-                      <input
-                        type="password"
-                        id="currentPassword"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="newPassword"
-                        className="block text-sm font-medium text-gray-700 mb-2"
-                      >
-                        New Password
-                      </label>
-                      <input
-                        type="password"
-                        id="newPassword"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="confirmPassword"
-                        className="block text-sm font-medium text-gray-700 mb-2"
-                      >
-                        Confirm New Password
-                      </label>
-                      <input
-                        type="password"
-                        id="confirmPassword"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                      />
-                    </div>
-                    <button className="bg-gray-900 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-all">
-                      Update Password
-                    </button>
-                  </div>
-                </div>
-
-                <div className="border-t border-gray-200 pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Two-Factor Authentication
-                  </h3>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-gray-700">
-                        Add an extra layer of security to your account
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        Currently disabled
-                      </p>
-                    </div>
-                    <button className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all">
-                      Enable 2FA
-                    </button>
-                  </div>
-                </div>
-              </div>
             </div>
 
             {/* Notification Preferences */}
@@ -232,7 +307,13 @@ export default function ProfilePage() {
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
-                      defaultChecked
+                      checked={notificationPrefs.email}
+                      onChange={(e) =>
+                        setNotificationPrefs({
+                          ...notificationPrefs,
+                          email: e.target.checked,
+                        })
+                      }
                       className="sr-only peer"
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
@@ -248,7 +329,17 @@ export default function ProfilePage() {
                     </p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" />
+                    <input
+                      type="checkbox"
+                      checked={notificationPrefs.sms}
+                      onChange={(e) =>
+                        setNotificationPrefs({
+                          ...notificationPrefs,
+                          sms: e.target.checked,
+                        })
+                      }
+                      className="sr-only peer"
+                    />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                   </label>
                 </div>
@@ -264,12 +355,38 @@ export default function ProfilePage() {
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
-                      defaultChecked
+                      checked={notificationPrefs.push}
+                      onChange={(e) =>
+                        setNotificationPrefs({
+                          ...notificationPrefs,
+                          push: e.target.checked,
+                        })
+                      }
                       className="sr-only peer"
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
                   </label>
                 </div>
+                <button
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    setSaving(true);
+                    try {
+                      await profileAPI.updateProfile({
+                        notification_preferences: notificationPrefs,
+                      });
+                      alert("Notification preferences updated!");
+                    } catch (err: any) {
+                      setError(err.message || "Failed to update preferences");
+                    } finally {
+                      setSaving(false);
+                    }
+                  }}
+                  disabled={saving}
+                  className="mt-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50"
+                >
+                  {saving ? "Saving..." : "Save Preferences"}
+                </button>
               </div>
             </div>
           </div>
@@ -279,12 +396,14 @@ export default function ProfilePage() {
             {/* Profile Picture */}
             <div className="yeti-card rounded-2xl p-8 yeti-shadow text-center">
               <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-white text-2xl font-bold">JD</span>
+                <span className="text-white text-2xl font-bold">
+                  {getInitials()}
+                </span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                John Doe
+                {getUserName()}
               </h3>
-              <p className="text-gray-600 mb-4">john@example.com</p>
+              <p className="text-gray-600 mb-4">{formData.email}</p>
               <button className="text-purple-600 hover:text-purple-500 font-medium">
                 Change Photo
               </button>
@@ -298,7 +417,7 @@ export default function ProfilePage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-700">Plan</span>
-                  <span className="font-semibold text-gray-900">Pro</span>
+                  <span className="font-semibold text-gray-900">Free</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-700">Status</span>
@@ -306,25 +425,23 @@ export default function ProfilePage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-700">Member Since</span>
-                  <span className="font-semibold text-gray-900">Jan 2024</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-700">Messages Used</span>
                   <span className="font-semibold text-gray-900">
-                    12,543 / 50,000
+                    {user?.created_at
+                      ? new Date(user.created_at).toLocaleDateString("en-US", {
+                          month: "short",
+                          year: "numeric",
+                        })
+                      : "—"}
                   </span>
                 </div>
               </div>
               <div className="mt-6">
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full"
-                    style={{ width: "25%" }}
-                  ></div>
-                </div>
-                <p className="text-sm text-gray-500 mt-2">
-                  25% of monthly limit used
-                </p>
+                <Link
+                  href="/plans"
+                  className="block w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all text-center"
+                >
+                  Upgrade Plan
+                </Link>
               </div>
             </div>
 
@@ -334,12 +451,6 @@ export default function ProfilePage() {
                 Quick Actions
               </h3>
               <div className="space-y-3">
-                <Link
-                  href="/plans"
-                  className="block w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all text-center"
-                >
-                  Upgrade Plan
-                </Link>
                 <Link
                   href="/dashboard"
                   className="block w-full border-2 border-purple-200 text-purple-700 py-3 px-4 rounded-lg font-semibold hover:bg-purple-50 transition-all text-center"
