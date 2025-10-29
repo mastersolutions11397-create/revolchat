@@ -50,3 +50,11 @@ body {
 .yeti-shadow {
   box-shadow: 0 10px 30px rgba(108, 92, 231, 0.1);
 }
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

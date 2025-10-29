@@ -58,8 +58,8 @@ export default function DashboardLayout({
                     : "text-gray-700 hover:bg-purple-50 hover:text-purple-600"
                 }`}
               >
-                <span className="mr-3">🤖</span>
-                AI Agents
+                <span className="mr-3">📚</span>
+                Knowledge Base
               </Link>
               <Link
                 href="/dashboard/integrations"

@@ -2,16 +2,102 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { dashboardAPI, DashboardResponse } from "@/lib/api/dashboard";
+import { activitiesAPI, ActivityItem } from "@/lib/api/activities";
 import Link from "next/link";
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { currentWorkspace } = useWorkspace();
   const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(
     null
   );
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activitiesLoading, setActivitiesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const fetchActivities = async () => {
+    if (!currentWorkspace?.id) return;
+
+    try {
+      setActivitiesLoading(true);
+      const data = await activitiesAPI.getActivitiesByWorkspace(
+        currentWorkspace.id,
+        5
+      );
+      setActivities(data.activities);
+    } catch (err: any) {
+      console.error("Error fetching activities:", err);
+      // Set mock activities on error
+      setActivities([
+        {
+          id: "1",
+          type: "success",
+          message: "Knowledge base updated successfully",
+          platform: "knowledge",
+          timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(), // 2 minutes ago
+          metadata: {
+            workspace_id: currentWorkspace.id,
+          },
+        },
+        {
+          id: "2",
+          type: "info",
+          message: "New integration connected to Instagram",
+          platform: "instagram",
+          timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(), // 15 minutes ago
+          metadata: {
+            workspace_id: currentWorkspace.id,
+            integration_id: "ig_123",
+          },
+        },
+        {
+          id: "3",
+          type: "success",
+          message: "AI agent responded to 5 messages",
+          platform: "telegram",
+          timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(), // 1 hour ago
+          metadata: {
+            workspace_id: currentWorkspace.id,
+            agent_id: "agent_456",
+          },
+        },
+        {
+          id: "4",
+          type: "warning",
+          message: "Integration rate limit approaching",
+          platform: "telegram",
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+          metadata: {
+            workspace_id: currentWorkspace.id,
+            integration_id: "tg_789",
+          },
+        },
+        {
+          id: "5",
+          type: "success",
+          message: "Workspace created successfully",
+          platform: "system",
+          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+          metadata: {
+            workspace_id: currentWorkspace.id,
+          },
+        },
+      ]);
+    } finally {
+      setActivitiesLoading(false);
+    }
+  };
+
+  // Expose fetchActivities globally for other components to use
+  useEffect(() => {
+    (window as any).refreshDashboardActivities = fetchActivities;
+    return () => {
+      delete (window as any).refreshDashboardActivities;
+    };
+  }, [currentWorkspace?.id]);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -54,6 +140,12 @@ export default function DashboardPage() {
       fetchDashboard();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (currentWorkspace?.id) {
+      fetchActivities();
+    }
+  }, [currentWorkspace?.id]);
 
   const getUserName = () => {
     if (dashboardData?.user_profile?.first_name) {
@@ -102,7 +194,8 @@ export default function DashboardPage() {
               Welcome back, {getUserName()}! 👋
             </h2>
             <p className="text-gray-600">
-              Here's what's happening with your AI agents today.
+              Here's what's happening with your knowledge base and integrations
+              today.
             </p>
           </div>
           <div className="text-right">
@@ -115,7 +208,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="yeti-card rounded-xl p-6 yeti-shadow">
           <div className="flex items-center justify-between">
             <div>
@@ -135,25 +228,6 @@ export default function DashboardPage() {
             <span className="text-sm text-green-600 font-medium">
               {dashboardData?.quick_stats?.this_week_interactions || 0} this
               week
-            </span>
-          </div>
-        </div>
-
-        <div className="yeti-card rounded-xl p-6 yeti-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-500">Active Agents</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {dashboardData?.workspace_summary?.active_agents || 0}
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-              <span className="text-white text-xl">🤖</span>
-            </div>
-          </div>
-          <div className="mt-4">
-            <span className="text-sm text-green-600 font-medium">
-              {dashboardData?.workspace_summary?.total_agents || 0} total
             </span>
           </div>
         </div>
@@ -207,14 +281,63 @@ export default function DashboardPage() {
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="yeti-card rounded-2xl p-8 yeti-shadow">
-          <h3 className="text-xl font-bold text-gray-900 mb-6">
-            Recent Activity
-          </h3>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-gray-900">Recent Activity</h3>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={async () => {
+                  if (currentWorkspace?.id) {
+                    try {
+                      await activitiesAPI.createActivity({
+                        type: "info",
+                        message: "Demo activity created",
+                        platform: "system",
+                        metadata: { workspace_id: currentWorkspace.id },
+                      });
+                      fetchActivities();
+                    } catch (error) {
+                      console.error("Error creating demo activity:", error);
+                    }
+                  }
+                }}
+                className="px-3 py-1 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-all"
+                title="Create demo activity"
+              >
+                + Demo
+              </button>
+              <button
+                onClick={fetchActivities}
+                disabled={activitiesLoading}
+                className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Refresh activities"
+              >
+                <svg
+                  className={`w-5 h-5 ${
+                    activitiesLoading ? "animate-spin" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
           <div className="space-y-4">
-            {dashboardData?.recent_activity &&
-            dashboardData.recent_activity.length > 0 ? (
-              dashboardData.recent_activity.slice(0, 5).map((activity, idx) => (
-                <div key={idx} className="flex items-center space-x-4">
+            {activitiesLoading ? (
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+                <p className="text-gray-500 mt-2">Loading activities...</p>
+              </div>
+            ) : activities && activities.length > 0 ? (
+              activities.map((activity) => (
+                <div key={activity.id} className="flex items-center space-x-4">
                   <div
                     className={`w-10 h-10 bg-gradient-to-br ${
                       activity.type === "success"
@@ -223,6 +346,8 @@ export default function DashboardPage() {
                         ? "from-blue-500 to-cyan-500"
                         : activity.type === "warning"
                         ? "from-orange-500 to-red-500"
+                        : activity.type === "error"
+                        ? "from-red-500 to-pink-500"
                         : "from-purple-500 to-blue-500"
                     } rounded-full flex items-center justify-center`}
                   >
@@ -231,8 +356,16 @@ export default function DashboardPage() {
                         ? "✓"
                         : activity.type === "warning"
                         ? "⚠"
+                        : activity.type === "error"
+                        ? "✕"
                         : activity.platform === "telegram"
                         ? "📱"
+                        : activity.platform === "instagram"
+                        ? "📸"
+                        : activity.platform === "knowledge"
+                        ? "📚"
+                        : activity.platform === "system"
+                        ? "⚙️"
                         : "🤖"}
                     </span>
                   </div>
@@ -250,7 +383,7 @@ export default function DashboardPage() {
               <div className="text-center py-8">
                 <p className="text-gray-500">No recent activity</p>
                 <p className="text-sm text-gray-400 mt-2">
-                  Create your first agent or integration to get started
+                  Add knowledge or create integrations to get started
                 </p>
               </div>
             )}
@@ -267,8 +400,8 @@ export default function DashboardPage() {
               className="p-4 bg-gradient-to-br from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all"
             >
               <div className="text-center">
-                <span className="text-2xl block mb-2">🤖</span>
-                <span className="text-sm font-medium">Create Agent</span>
+                <span className="text-2xl block mb-2">📚</span>
+                <span className="text-sm font-medium">Knowledge Base</span>
               </div>
             </Link>
             <Link

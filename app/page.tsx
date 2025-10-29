@@ -23,10 +23,22 @@ export default function Home() {
                   Features
                 </Link>
                 <Link
-                  href="#pricing"
+                  href="/pricing"
                   className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   Pricing
+                </Link>
+                <Link
+                  href="/help"
+                  className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Help
+                </Link>
+                <Link
+                  href="/about"
+                  className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  About
                 </Link>
                 <Link
                   href="/auth/login"
