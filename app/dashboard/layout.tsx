@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
+import { useEffect } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function DashboardLayout({
@@ -12,6 +14,8 @@ export default function DashboardLayout({
 }) {
   const { user, signOut } = useAuth();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { selectWorkspace, selectedWorkspaceId } = useWorkspace();
 
   const handleSignOut = async () => {
     await signOut();
@@ -20,6 +24,33 @@ export default function DashboardLayout({
   const isActive = (path: string) => {
     return pathname === path;
   };
+
+  // Helper to build links with workspace ID
+  const buildLink = (path: string) => {
+    // Try to get workspace ID from context first, then from URL params, then from localStorage
+    let workspaceId = selectedWorkspaceId || searchParams.get("ws");
+    if (!workspaceId && typeof window !== "undefined") {
+      try {
+        const val = localStorage.getItem("selectedWorkspaceId");
+        if (val && val !== "undefined" && val !== "null") {
+          workspaceId = val;
+        }
+      } catch {}
+    }
+    if (workspaceId) {
+      return `${path}?ws=${encodeURIComponent(workspaceId)}`;
+    }
+    return path;
+  };
+
+  // Capture workspace id from query and ensure it's selected/persisted
+  // This helps after fresh navigations or reloads
+  useEffect(() => {
+    const ws = searchParams.get("ws");
+    if (ws) {
+      selectWorkspace(ws).catch((err) => console.error("Failed to select workspace:", err));
+    }
+  }, [searchParams, selectWorkspace]);
 
   return (
     <ProtectedRoute>
@@ -40,7 +71,7 @@ export default function DashboardLayout({
             {/* Navigation */}
             <nav className="flex-1 px-4 py-6 space-y-2">
               <Link
-                href="/dashboard"
+                href={buildLink("/dashboard")}
                 className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
                   isActive("/dashboard")
                     ? "bg-purple-100 text-purple-700 font-semibold"
@@ -51,9 +82,20 @@ export default function DashboardLayout({
                 Dashboard
               </Link>
               <Link
-                href="/dashboard/agents"
+                href={buildLink("/dashboard/chat")}
                 className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
-                  isActive("/dashboard/agents")
+                  isActive("/dashboard/chat")
+                    ? "bg-purple-100 text-purple-700 font-semibold"
+                    : "text-gray-700 hover:bg-purple-50 hover:text-purple-600"
+                }`}
+              >
+                <span className="mr-3">💬</span>
+                Chat
+              </Link>
+              <Link
+                href={buildLink("/dashboard/knowledge-base")}
+                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+                  isActive("/dashboard/knowledge-base")
                     ? "bg-purple-100 text-purple-700 font-semibold"
                     : "text-gray-700 hover:bg-purple-50 hover:text-purple-600"
                 }`}
@@ -62,7 +104,7 @@ export default function DashboardLayout({
                 Knowledge Base
               </Link>
               <Link
-                href="/dashboard/integrations"
+                href={buildLink("/dashboard/integrations")}
                 className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
                   isActive("/dashboard/integrations")
                     ? "bg-purple-100 text-purple-700 font-semibold"
@@ -73,7 +115,7 @@ export default function DashboardLayout({
                 Integrations
               </Link>
               <Link
-                href="/dashboard/analytics"
+                href={buildLink("/dashboard/analytics")}
                 className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
                   isActive("/dashboard/analytics")
                     ? "bg-purple-100 text-purple-700 font-semibold"
@@ -84,7 +126,7 @@ export default function DashboardLayout({
                 Analytics
               </Link>
               <Link
-                href="/dashboard/settings"
+                href={buildLink("/dashboard/settings")}
                 className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
                   isActive("/dashboard/settings")
                     ? "bg-purple-100 text-purple-700 font-semibold"

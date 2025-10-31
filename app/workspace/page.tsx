@@ -40,19 +40,14 @@ export default function WorkspaceSelectionPage() {
       console.log("Selecting workspace:", workspaceId);
       await selectWorkspace(workspaceId);
       console.log("Workspace selected successfully, navigating to dashboard");
-      router.push("/dashboard");
+      router.push(`/dashboard?ws=${encodeURIComponent(workspaceId)}`);
     } catch (err) {
       console.error("Failed to select workspace:", err);
       setSelectingWorkspace(null);
     }
   };
 
-  // Fetch workspaces when component mounts
-  useEffect(() => {
-    if (user?.id) {
-      fetchWorkspaces();
-    }
-  }, [user?.id, fetchWorkspaces]);
+  // Provider handles initial fetch on user availability
 
   const handleCreateWorkspace = async (e: React.FormEvent) => {
     e.preventDefault();

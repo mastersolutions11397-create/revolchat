@@ -54,7 +54,20 @@ async function apiRequest<T>(
     let errorMessage = `Request failed with status ${response.status}`;
     try {
       const errorData = await response.json();
-      errorMessage = errorData.detail || errorData.message || errorMessage;
+      const detail = (errorData && (errorData.detail ?? errorData.message ?? errorData.error));
+      if (typeof detail === "string") {
+        errorMessage = detail;
+      } else if (Array.isArray(detail)) {
+        errorMessage = detail
+          .map((d) => (typeof d === "string" ? d : JSON.stringify(d)))
+          .join(", ");
+      } else if (typeof errorData === "string") {
+        errorMessage = errorData;
+      } else if (errorData) {
+        errorMessage = JSON.stringify(errorData);
+      } else {
+        errorMessage = response.statusText || errorMessage;
+      }
     } catch {
       // If response is not JSON, use status text
       errorMessage = response.statusText || errorMessage;

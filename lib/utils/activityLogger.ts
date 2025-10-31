@@ -19,8 +19,9 @@ export class ActivityLogger {
         platform,
         metadata,
       });
-    } catch (error) {
-      console.error("Failed to log activity:", error);
+    } catch (error: any) {
+      const message = error?.message || (typeof error === "string" ? error : JSON.stringify(error));
+      console.error("Failed to log activity:", message);
     }
   }
 
@@ -84,4 +85,6 @@ export class ActivityLogger {
     );
   }
 }
+
+
 

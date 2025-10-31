@@ -396,7 +396,7 @@ export default function DashboardPage() {
           </h3>
           <div className="grid grid-cols-2 gap-4">
             <Link
-              href="/dashboard/agents"
+              href="/dashboard/knowledge-base"
               className="p-4 bg-gradient-to-br from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all"
             >
               <div className="text-center">
