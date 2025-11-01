@@ -21,13 +21,13 @@ const INTEGRATION_PLATFORMS = [
     name: "WhatsApp",
     icon: "📱",
     color: "from-green-500 to-emerald-500",
-    available: true,
+    available: false,
   },
   {
     name: "Discord",
     icon: "💜",
     color: "from-indigo-500 to-purple-500",
-    available: true,
+    available: false,
   },
   {
     name: "Twitter",

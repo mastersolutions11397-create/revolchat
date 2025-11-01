@@ -6,6 +6,11 @@ import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { ActivityLogger } from "@/lib/utils/activityLogger";
 import { knowledgeAPI } from "@/lib/api/knowledge";
 import type { KnowledgeRecord, KnowledgeImportance } from "@/lib/api/knowledge";
+import {
+  googleSheetsAPI,
+  extractSheetIdFromUrl,
+  type GoogleSheet,
+} from "@/lib/api/google-sheets";
 
 export default function KnowledgePage() {
   const { user } = useAuth();
@@ -50,6 +55,42 @@ export default function KnowledgePage() {
   const [isProcessingPdfs, setIsProcessingPdfs] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [sheetsConnected, setSheetsConnected] = useState(false);
+  const [clickedTemplateIndex, setClickedTemplateIndex] = useState<
+    number | null
+  >(null);
+  const [showLinkInput, setShowLinkInput] = useState(false);
+  const [googleSheetLink, setGoogleSheetLink] = useState("");
+  const [linkInputError, setLinkInputError] = useState<string | null>(null);
+  const [googleSheets, setGoogleSheets] = useState<GoogleSheet[]>([]);
+  const [sheetsLoading, setSheetsLoading] = useState(false);
+  const [sheetsError, setSheetsError] = useState<string | null>(null);
+  const [submittingSheet, setSubmittingSheet] = useState(false);
+  const [showTemplateCards, setShowTemplateCards] = useState(false);
+
+  const cardLinks = [
+    "https://docs.google.com/spreadsheets/d/1aQz9uW585_1u8u_ElIrfmO5ybazwxt53jTRh12LRif8/edit?usp=share_link",
+    "https://docs.google.com/spreadsheets/d/1bUCXkEr0kNJjW89VmtLN6tdhjd1z6mGZJhDARJiNvd8/edit?gid=1602948167#gid=1602948167",
+    "https://docs.google.com/spreadsheets/d/1jXh9PxqJRI-6JvNrO7ZHD116POlg5KeBmVymyyxyX3o/edit?gid=1602948167#gid=1602948167",
+    "https://docs.google.com/spreadsheets/d/1gnhRyFTSZgcS5yCwaJxheXlZfLYGL5PKnnql1Ok0GnM/edit?gid=1966269518#gid=1966269518",
+  ];
+
+  const templateCards = [
+    "Conversational Template",
+    "Order Fulfillment Template",
+    "Lead Generating Template",
+    "Appointment Booking Template",
+  ];
+
+  // Map template index to sheet_type
+  const getSheetTypeFromTemplate = (index: number): string => {
+    const types = [
+      "conversational",
+      "order_fulfillment",
+      "lead_generating",
+      "appointment_booking",
+    ];
+    return types[index] || "general";
+  };
 
   const textDocumentsCount = knowledgeItems.filter((item) => {
     const type = item.file_type?.toLowerCase();
@@ -59,7 +100,8 @@ export default function KnowledgePage() {
     const type = item.file_type?.toLowerCase();
     return type === "pdf";
   }).length;
-  const connectedSheetsCount = sheetsConnected ? 1 : 0;
+  const connectedSheetsCount = googleSheets.length > 0 ? 1 : 0; // Only one sheet allowed per workspace
+  const hasGoogleSheet = googleSheets.length > 0;
 
   const formatDateTime = (value?: string | null, emptyFallback = "Unknown") => {
     if (!value) {
@@ -88,16 +130,38 @@ export default function KnowledgePage() {
     }
   }, []);
 
+  const loadGoogleSheets = useCallback(async (id: string) => {
+    setSheetsLoading(true);
+    setSheetsError(null);
+    try {
+      const response = await googleSheetsAPI.getGoogleSheets(id);
+      setGoogleSheets(response?.data ?? []);
+      setSheetsConnected(response?.data && response.data.length > 0);
+    } catch (error: any) {
+      setSheetsError(
+        error?.message || "Failed to fetch Google Sheets for this workspace"
+      );
+      setGoogleSheets([]);
+      setSheetsConnected(false);
+    } finally {
+      setSheetsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!workspaceId) {
       setKnowledgeItems([]);
       setKnowledgeLoading(false);
       setKnowledgeError(null);
+      setGoogleSheets([]);
+      setSheetsLoading(false);
+      setSheetsError(null);
       return;
     }
 
     loadKnowledge(workspaceId);
-  }, [workspaceId, loadKnowledge]);
+    loadGoogleSheets(workspaceId);
+  }, [workspaceId, loadKnowledge, loadGoogleSheets]);
 
   const handleRefreshKnowledge = useCallback(() => {
     if (workspaceId) {
@@ -145,6 +209,249 @@ export default function KnowledgePage() {
       return `${uploadedFiles.length} PDF documents`;
     });
   }, [uploadedFiles]);
+
+  // Detect when user returns from Google Sheet
+  useEffect(() => {
+    if (clickedTemplateIndex === null) return;
+
+    let wasBlurred = false;
+
+    const handleBlur = () => {
+      wasBlurred = true;
+    };
+
+    const handleFocus = () => {
+      if (wasBlurred && !showLinkInput) {
+        // Small delay to ensure the window has fully focused
+        setTimeout(() => {
+          setShowLinkInput(true);
+        }, 500);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (
+        document.visibilityState === "visible" &&
+        wasBlurred &&
+        !showLinkInput
+      ) {
+        setTimeout(() => {
+          setShowLinkInput(true);
+        }, 500);
+      }
+    };
+
+    window.addEventListener("blur", handleBlur);
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("blur", handleBlur);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [clickedTemplateIndex, showLinkInput]);
+
+  const handleTemplateClick = (index: number) => {
+    setClickedTemplateIndex(index);
+    window.open(cardLinks[index], "_blank");
+  };
+
+  const validateGoogleSheetsLink = (
+    link: string
+  ): { isValid: boolean; error?: string } => {
+    if (!link.trim()) {
+      return { isValid: false, error: "Please enter a Google Sheets link" };
+    }
+
+    // Try to create a URL object to validate format
+    let url: URL;
+    try {
+      url = new URL(link.trim());
+    } catch {
+      return { isValid: false, error: "Please enter a valid URL" };
+    }
+
+    // Check if it's a Google domain
+    if (
+      url.hostname !== "docs.google.com" &&
+      url.hostname !== "drive.google.com"
+    ) {
+      return {
+        isValid: false,
+        error: "Link must be from Google Docs or Google Drive",
+      };
+    }
+
+    // Check if it's specifically a Google Sheets link
+    const pathname = url.pathname;
+    const isSpreadsheet = pathname.includes("/spreadsheets/");
+
+    if (!isSpreadsheet) {
+      // Check if it's a Google Drive link that points to a spreadsheet
+      if (pathname.includes("/file/d/") || pathname.includes("/file/d/")) {
+        // Drive link might be a spreadsheet, but we can't verify without opening
+        // We'll allow it but warn it might need to be the direct spreadsheet link
+      } else {
+        return {
+          isValid: false,
+          error:
+            "Link must be a Google Sheets URL (docs.google.com/spreadsheets/...)",
+        };
+      }
+    }
+
+    // Additional validation: check if it has a spreadsheet ID pattern
+    const spreadsheetIdPattern = /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/;
+    const match = link.match(spreadsheetIdPattern);
+
+    if (isSpreadsheet && !match) {
+      return {
+        isValid: false,
+        error:
+          "Link appears to be malformed. Please use a valid Google Sheets share link",
+      };
+    }
+
+    return { isValid: true };
+  };
+
+  const handleSubmitLink = async () => {
+    const validation = validateGoogleSheetsLink(googleSheetLink);
+
+    if (!validation.isValid) {
+      setLinkInputError(
+        validation.error || "Please enter a valid Google Sheets link"
+      );
+      return;
+    }
+
+    setLinkInputError(null);
+
+    if (!workspaceId || clickedTemplateIndex === null) {
+      setLinkInputError("Workspace or template information missing");
+      return;
+    }
+
+    // Check if a sheet already exists
+    if (googleSheets.length > 0) {
+      setLinkInputError(
+        "Only one Google Sheet can be connected per workspace. Please disconnect the existing sheet first."
+      );
+      return;
+    }
+
+    // Extract sheet ID from URL
+    const sheetId = extractSheetIdFromUrl(googleSheetLink);
+    if (!sheetId) {
+      setLinkInputError("Could not extract sheet ID from URL");
+      return;
+    }
+
+    setSubmittingSheet(true);
+
+    try {
+      const sheetType = getSheetTypeFromTemplate(clickedTemplateIndex);
+
+      // Save to backend
+      await googleSheetsAPI.createGoogleSheet(workspaceId, {
+        sheet_id: sheetId,
+        sheet_type: sheetType,
+      });
+
+      // Log activity
+      await ActivityLogger.logIntegrationEvent(
+        workspaceId,
+        "google_sheets",
+        "connected",
+        `Connected ${templateCards[clickedTemplateIndex]}: ${googleSheetLink}`
+      );
+
+      // Refresh Google Sheets list
+      await loadGoogleSheets(workspaceId);
+
+      // Refresh dashboard activities
+      if ((window as any).refreshDashboardActivities) {
+        (window as any).refreshDashboardActivities();
+      }
+
+      // Reset states
+      setGoogleSheetLink("");
+      setShowLinkInput(false);
+      setClickedTemplateIndex(null);
+      setShowTemplateCards(false);
+    } catch (error: any) {
+      setLinkInputError(error?.message || "Failed to save Google Sheet link");
+      console.error("Error saving Google Sheet link:", error);
+    } finally {
+      setSubmittingSheet(false);
+    }
+  };
+
+  const handleDeleteSheet = async (sheetId: string) => {
+    if (!workspaceId) return;
+
+    if (!confirm("Are you sure you want to disconnect this Google Sheet?")) {
+      return;
+    }
+
+    try {
+      await googleSheetsAPI.deleteGoogleSheet(workspaceId, sheetId);
+
+      // Log activity
+      await ActivityLogger.logIntegrationEvent(
+        workspaceId,
+        "google_sheets",
+        "disconnected",
+        `Disconnected Google Sheet: ${sheetId}`
+      );
+
+      // Refresh Google Sheets list
+      await loadGoogleSheets(workspaceId);
+
+      // Refresh dashboard activities
+      if ((window as any).refreshDashboardActivities) {
+        (window as any).refreshDashboardActivities();
+      }
+    } catch (error: any) {
+      setSheetsError(error?.message || "Failed to delete Google Sheet");
+      console.error("Error deleting Google Sheet:", error);
+    }
+  };
+
+  const handleDeleteKnowledge = async (knowledgeId: string, title: string) => {
+    if (!workspaceId) return;
+
+    if (
+      !confirm(
+        `Are you sure you want to delete "${title}"? This action cannot be undone.`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await knowledgeAPI.deleteKnowledge(workspaceId, knowledgeId);
+
+      // Log activity
+      await ActivityLogger.logKnowledgeUpdate(
+        workspaceId,
+        "text",
+        `Deleted knowledge entry: ${title}`
+      );
+
+      // Refresh knowledge list
+      await loadKnowledge(workspaceId);
+
+      // Refresh dashboard activities
+      if ((window as any).refreshDashboardActivities) {
+        (window as any).refreshDashboardActivities();
+      }
+    } catch (error: any) {
+      setKnowledgeError(error?.message || "Failed to delete knowledge entry");
+      console.error("Error deleting knowledge entry:", error);
+    }
+  };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (isProcessingPdfs) {
@@ -411,10 +718,17 @@ export default function KnowledgePage() {
             if (activeTab === "sheets") {
               setActiveTab(null);
               setSheetsConnected(false);
+              setClickedTemplateIndex(null);
+              setShowLinkInput(false);
+              setGoogleSheetLink("");
             } else {
               // switching from another tab clears previous state
               resetTextForm();
               resetPdfForm();
+              setSheetsConnected(false);
+              setClickedTemplateIndex(null);
+              setShowLinkInput(false);
+              setGoogleSheetLink("");
               setActiveTab("sheets");
             }
           }}
@@ -913,82 +1227,231 @@ export default function KnowledgePage() {
                   Connect Google Sheets
                 </h3>
                 <button
-                  onClick={() => setActiveTab(null)}
+                  onClick={() => {
+                    setActiveTab(null);
+                    setSheetsConnected(false);
+                    setClickedTemplateIndex(null);
+                    setShowLinkInput(false);
+                    setGoogleSheetLink("");
+                    setShowTemplateCards(false);
+                  }}
                   className="text-gray-500 hover:text-gray-700 text-2xl"
                 >
                   ×
                 </button>
               </div>
 
-              {!sheetsConnected ? (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-3xl text-white">📊</span>
-                  </div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                    Connect Your Google Sheets
-                  </h4>
-                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                    Connect your Google Sheets to automatically sync data and
-                    keep your knowledge base up to date.
-                  </p>
-
-                  <button
-                    onClick={handleGoogleSheetsConnect}
-                    className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition-all"
-                  >
-                    Connect Google Sheets
-                  </button>
-                </div>
-              ) : (
+              {googleSheets.length > 0 && !showTemplateCards ? (
                 <div className="space-y-4">
-                  <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg">
-                    <span className="text-green-500 text-xl">✅</span>
-                    <span className="text-green-700 font-medium">
-                      Google Sheets Connected Successfully
-                    </span>
+                  {sheetsError && (
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+                      {sheetsError}
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg flex-1">
+                      <span className="text-green-500 text-xl">✅</span>
+                      <span className="text-green-700 font-medium">
+                        Google Sheet Connected
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-500 px-3">
+                      Only one sheet allowed per workspace
+                    </div>
+                  </div>
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-700">
+                      ℹ️ You can view and manage your connected Google Sheet in
+                      the Knowledge Library below.
+                    </p>
                   </div>
 
                   <div className="space-y-3">
                     <h4 className="text-lg font-semibold text-gray-900">
-                      Available Sheets
+                      Connected Sheets
                     </h4>
+                    {sheetsLoading && (
+                      <div className="flex items-center justify-center py-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+                        <span className="ml-2 text-sm text-gray-600">
+                          Refreshing...
+                        </span>
+                      </div>
+                    )}
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <span className="text-green-500">📊</span>
-                          <span className="text-sm font-medium text-gray-900">
-                            Knowledge Base Data
-                          </span>
-                        </div>
-                        <span className="text-xs text-gray-500">
-                          Last synced: 2 minutes ago
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <span className="text-green-500">📊</span>
-                          <span className="text-sm font-medium text-gray-900">
-                            FAQ Database
-                          </span>
-                        </div>
-                        <span className="text-xs text-gray-500">
-                          Last synced: 1 hour ago
-                        </span>
-                      </div>
+                      {googleSheets.map((sheet) => {
+                        const sheetTypeLabel = sheet.sheet_type
+                          ? sheet.sheet_type
+                              .split("_")
+                              .map(
+                                (word) =>
+                                  word.charAt(0).toUpperCase() + word.slice(1)
+                              )
+                              .join(" ")
+                          : "General";
+                        const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheet.sheet_id}/edit`;
+
+                        return (
+                          <div
+                            key={sheet.id}
+                            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                          >
+                            <div className="flex items-center space-x-3 flex-1">
+                              <span className="text-green-500 text-xl">📊</span>
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <a
+                                    href={sheetUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm font-medium text-gray-900 hover:text-green-600 transition-colors"
+                                  >
+                                    {sheetTypeLabel} Sheet
+                                  </a>
+                                  <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded">
+                                    {sheet.sheet_type || "general"}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  Sheet ID: {sheet.sheet_id}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  Connected: {formatDateTime(sheet.created_at)}
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleDeleteSheet(sheet.id)}
+                              className="ml-4 px-3 py-1.5 text-sm bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
+                              title="Disconnect this sheet"
+                            >
+                              Disconnect
+                            </button>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
-                  <div className="flex gap-4">
-                    <button className="bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition-all">
-                      Sync Now
-                    </button>
-                    <button
-                      onClick={() => setSheetsConnected(false)}
-                      className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all"
+                  {googleSheets.length === 0 && (
+                    <div className="pt-4 border-t border-gray-200">
+                      <button
+                        onClick={() => {
+                          setShowTemplateCards(true);
+                        }}
+                        className="w-full px-6 py-3 border-2 border-dashed border-gray-300 text-gray-700 rounded-lg font-medium hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-all"
+                      >
+                        + Add Another Google Sheet
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {sheetsError && googleSheets.length === 0 && (
+                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-700">
+                      ⚠️ {sheetsError} You can still connect a new sheet below.
+                    </div>
+                  )}
+                  {sheetsLoading && googleSheets.length === 0 && (
+                    <div className="flex items-center justify-center py-2 text-sm text-gray-500">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2"></div>
+                      Loading connected sheets...
+                    </div>
+                  )}
+                  {hasGoogleSheet && (
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
+                      <p className="text-sm text-yellow-800">
+                        ⚠️ A Google Sheet is already connected to this
+                        workspace. You can only connect one sheet per workspace.
+                        To add a different sheet, please disconnect the existing
+                        one first.
+                      </p>
+                    </div>
+                  )}
+                  {googleSheets.length > 0 && (
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-lg font-semibold text-gray-900">
+                        Select a Template
+                      </h4>
+                      <button
+                        onClick={() => {
+                          setShowTemplateCards(false);
+                        }}
+                        className="text-sm text-gray-600 hover:text-gray-900"
+                      >
+                        ← Back to Sheet
+                      </button>
+                    </div>
+                  )}
+                  <div
+                    className={`grid grid-cols-1 lg:grid-cols-2 gap-8 ${
+                      hasGoogleSheet ? "pointer-events-none opacity-50" : ""
+                    }`}
+                  >
+                    {/* Template Cards Grid */}
+                    <div className="grid grid-cols-2 gap-4">
+                      {templateCards.map((template, index) => (
+                        <div
+                          key={index}
+                          onClick={
+                            hasGoogleSheet
+                              ? undefined
+                              : () => handleTemplateClick(index)
+                          }
+                          className={`bg-gray-900 border border-cyan-400/30 rounded-lg p-6 ${
+                            hasGoogleSheet
+                              ? ""
+                              : "cursor-pointer hover:border-cyan-400 hover:shadow-lg hover:shadow-cyan-500/20"
+                          } transition-all group`}
+                        >
+                          <div className="text-center text-white">
+                            <h4 className="text-lg font-semibold group-hover:text-cyan-300 transition-colors">
+                              {template}
+                            </h4>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Instruction Panel */}
+                    <div
+                      className={`bg-teal-500 rounded-lg p-6 text-white ${
+                        hasGoogleSheet ? "opacity-50" : ""
+                      }`}
                     >
-                      Disconnect
-                    </button>
+                      <div className="space-y-6">
+                        {/* Make a Copy Section */}
+                        <div>
+                          <h4 className="text-lg font-bold mb-3">
+                            Make a Copy
+                          </h4>
+                          <p className="text-sm leading-relaxed">
+                            Open this template sheet. Click File → Make a copy
+                            to save it to your own Google Drive.
+                          </p>
+                        </div>
+
+                        {/* Share With the AI Agent Section */}
+                        <div>
+                          <h4 className="text-lg font-bold mb-3">
+                            Share With the AI Agent
+                          </h4>
+                          <p className="text-sm leading-relaxed">
+                            Share your copy with:{" "}
+                            <a
+                              href="mailto:ai.agent.dispatch@gmail.com"
+                              className="underline hover:text-teal-100 transition-colors"
+                            >
+                              ai.agent.dispatch@gmail.com
+                            </a>
+                            <br />
+                            Make sure to give Edit Access so the AI can update
+                            results.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -1033,11 +1496,17 @@ export default function KnowledgePage() {
             <p className="text-sm text-gray-500">
               {!workspaceId
                 ? "Select a workspace to load knowledge"
-                : knowledgeLoading && knowledgeItems.length === 0
+                : knowledgeLoading &&
+                  knowledgeItems.length === 0 &&
+                  googleSheets.length === 0
                 ? "Loading knowledge..."
-                : knowledgeItems.length === 1
-                ? "1 item available"
-                : `${knowledgeItems.length} items available`}
+                : (() => {
+                    const totalItems =
+                      knowledgeItems.length + googleSheets.length;
+                    if (totalItems === 0) return "No items available";
+                    if (totalItems === 1) return "1 item available";
+                    return `${totalItems} items available`;
+                  })()}
             </p>
           </div>
           {workspaceId && (
@@ -1061,9 +1530,10 @@ export default function KnowledgePage() {
           </div>
         ) : knowledgeLoading && knowledgeItems.length === 0 ? (
           <div className="text-sm text-gray-500">Loading knowledge...</div>
-        ) : knowledgeItems.length === 0 ? (
+        ) : knowledgeItems.length === 0 && googleSheets.length === 0 ? (
           <div className="p-6 border border-dashed border-gray-200 rounded-xl text-sm text-gray-500 text-center">
-            No knowledge items yet. Add text or upload PDFs to get started.
+            No knowledge items yet. Add text, upload PDFs, or connect a Google
+            Sheet to get started.
           </div>
         ) : (
           <div className="space-y-4">
@@ -1161,15 +1631,107 @@ export default function KnowledgePage() {
                           View file
                         </a>
                       )}
-                      <button
-                        onClick={() => {
-                          if (navigator?.clipboard?.writeText) {
-                            navigator.clipboard.writeText(item.id);
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            if (navigator?.clipboard?.writeText) {
+                              navigator.clipboard.writeText(item.id);
+                            }
+                          }}
+                          className="text-xs text-gray-500 hover:text-gray-700"
+                        >
+                          Copy ID
+                        </button>
+                        <button
+                          onClick={() =>
+                            handleDeleteKnowledge(
+                              item.entry_id || item.id,
+                              item.title
+                            )
                           }
-                        }}
-                        className="text-xs text-gray-500 hover:text-gray-700"
+                          className="text-sm font-medium text-red-600 hover:text-red-700"
+                          title="Delete this knowledge entry"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Display Google Sheets in Knowledge Library */}
+            {googleSheets.map((sheet) => {
+              const sheetTypeLabel = sheet.sheet_type
+                ? sheet.sheet_type
+                    .split("_")
+                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(" ")
+                : "General";
+              const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheet.sheet_id}/edit`;
+
+              return (
+                <div
+                  key={sheet.id}
+                  className="border border-gray-200 rounded-xl bg-white/80 p-5 shadow-sm"
+                >
+                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h4 className="text-lg font-semibold text-gray-900">
+                          {sheetTypeLabel} Google Sheet
+                        </h4>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                          GOOGLE SHEETS
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                        <span className="inline-flex items-center gap-1">
+                          <span className="font-medium text-gray-600">
+                            Sheet ID:
+                          </span>
+                          <code className="px-1.5 py-0.5 bg-gray-100 rounded text-xs">
+                            {sheet.sheet_id}
+                          </code>
+                        </span>
+                        {sheet.sheet_type && (
+                          <span className="inline-flex items-center gap-1 capitalize">
+                            <span className="font-medium text-gray-600">
+                              Type:
+                            </span>
+                            {sheetTypeLabel}
+                          </span>
+                        )}
+                        <span className="inline-flex items-center gap-1">
+                          <span className="font-medium text-gray-600">
+                            Connected:
+                          </span>
+                          {formatDateTime(sheet.created_at)}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <span className="font-medium text-gray-600">
+                            Updated:
+                          </span>
+                          {formatDateTime(sheet.updated_at)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 md:flex-col md:items-end">
+                      <a
+                        href={sheetUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium text-green-600 hover:text-green-700"
                       >
-                        Copy ID
+                        Open Sheet →
+                      </a>
+                      <button
+                        onClick={() => handleDeleteSheet(sheet.id)}
+                        className="text-sm font-medium text-red-600 hover:text-red-700"
+                        title="Disconnect this sheet"
+                      >
+                        Disconnect
                       </button>
                     </div>
                   </div>
@@ -1179,6 +1741,135 @@ export default function KnowledgePage() {
           </div>
         )}
       </div>
+
+      {/* Link Input Modal */}
+      {showLinkInput && clickedTemplateIndex !== null && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-gray-900">
+                Share Your Google Sheet
+              </h3>
+              <button
+                onClick={() => {
+                  setShowLinkInput(false);
+                  setGoogleSheetLink("");
+                  setLinkInputError(null);
+                }}
+                className="text-gray-500 hover:text-gray-700 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <p className="text-sm text-gray-600">
+              Please paste the link to your copied Google Sheet for{" "}
+              <strong>{templateCards[clickedTemplateIndex]}</strong>
+            </p>
+
+            {linkInputError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+                {linkInputError}
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Google Sheets Link
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={googleSheetLink}
+                  onChange={(e) => {
+                    setGoogleSheetLink(e.target.value);
+                    // Real-time validation feedback
+                    if (e.target.value.trim()) {
+                      const validation = validateGoogleSheetsLink(
+                        e.target.value
+                      );
+                      if (!validation.isValid) {
+                        setLinkInputError(validation.error || "");
+                      } else {
+                        setLinkInputError(null);
+                      }
+                    } else {
+                      setLinkInputError(null);
+                    }
+                  }}
+                  placeholder="https://docs.google.com/spreadsheets/d/..."
+                  className={`w-full px-4 py-3 pr-10 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${
+                    googleSheetLink.trim() && !linkInputError
+                      ? validateGoogleSheetsLink(googleSheetLink).isValid
+                        ? "border-green-500 focus:border-green-500"
+                        : "border-gray-300"
+                      : linkInputError
+                      ? "border-red-300 focus:border-red-500"
+                      : "border-gray-300"
+                  }`}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleSubmitLink();
+                    }
+                  }}
+                />
+                {googleSheetLink.trim() &&
+                  validateGoogleSheetsLink(googleSheetLink).isValid && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <svg
+                        className="w-5 h-5 text-green-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                  )}
+              </div>
+              {linkInputError && (
+                <p className="mt-1 text-xs text-red-600">{linkInputError}</p>
+              )}
+              {googleSheetLink.trim() &&
+                validateGoogleSheetsLink(googleSheetLink).isValid && (
+                  <p className="mt-1 text-xs text-green-600">
+                    ✓ Valid Google Sheets link
+                  </p>
+                )}
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                onClick={handleSubmitLink}
+                disabled={
+                  submittingSheet ||
+                  !validateGoogleSheetsLink(googleSheetLink).isValid
+                }
+                className="flex-1 bg-gradient-to-r from-teal-600 to-cyan-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-teal-700 hover:to-cyan-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {submittingSheet ? "Connecting..." : "Connect"}
+              </button>
+              <button
+                onClick={() => {
+                  setShowLinkInput(false);
+                  setGoogleSheetLink("");
+                  setLinkInputError(null);
+                  setClickedTemplateIndex(null);
+                }}
+                disabled={submittingSheet}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

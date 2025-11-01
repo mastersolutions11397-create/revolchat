@@ -158,6 +158,18 @@ class KnowledgeAPI {
       return responseText as unknown as PdfKnowledgeResponse;
     }
   }
+
+  async deleteKnowledge(
+    workspaceId: string,
+    knowledgeId: string
+  ): Promise<void> {
+    return apiRequest<void>(
+      `/api/yetti/workspaces/${workspaceId}/knowledge/${knowledgeId}`,
+      {
+        method: "DELETE",
+      }
+    );
+  }
 }
 
 export const knowledgeAPI = new KnowledgeAPI();
