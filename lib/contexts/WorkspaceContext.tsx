@@ -1,70 +1,226 @@
 "use client";
 
-import * as React from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+  ReactNode,
+  useCallback,
+  useMemo,
+} from "react";
+import { useAuth } from "@/lib/auth-context";
+import {
+  workspaceAPI,
+  WorkspaceResponse,
+  WorkspaceCreateData,
+  WorkspaceListResponse,
+} from "@/lib/api/workspace";
 
-export interface Workspace {
-  id: string;
-  name: string;
-  agent_count: number;
-  member_count: number;
-  description?: string;
-}
-
-export interface UseWorkspaceResult {
-  workspaces: Workspace[];
-  currentWorkspace: Workspace | null;
-  createWorkspace: (input: {
-    name: string;
-    description?: string;
-    workspace_type?: string;
-  }) => Promise<void>;
-  selectWorkspace: (workspaceId: string) => Promise<void>;
+interface WorkspaceContextType {
+  workspaces: WorkspaceListResponse["workspaces"];
+  currentWorkspace: WorkspaceResponse | null;
+  selectedWorkspaceId: string | null;
   loading: boolean;
   error: string | null;
+  createWorkspace: (data: WorkspaceCreateData) => Promise<WorkspaceResponse>;
+  fetchWorkspaces: () => Promise<void>;
+  selectWorkspace: (workspaceId: string) => Promise<void>;
 }
 
-// Lightweight client-only stub so UI compiles and can demo flows without backend
-export function useWorkspace(): UseWorkspaceResult {
-  const [workspaces, setWorkspaces] = React.useState<Workspace[]>([]);
-  const [currentWorkspace, setCurrentWorkspace] = React.useState<Workspace | null>(null);
-  const [loading, setLoading] = React.useState(false);
-  const [error] = React.useState<string | null>(null);
+const WorkspaceContext = createContext<WorkspaceContextType | undefined>(
+  undefined
+);
 
-  const createWorkspace = React.useCallback(
-    async ({ name, description }: { name: string; description?: string; workspace_type?: string }) => {
-      setLoading(true);
-      try {
-        // Simulate a short async operation
-        await new Promise((r) => setTimeout(r, 200));
-        const newWorkspace: Workspace = {
-          id: `${Date.now()}`,
-          name,
-          description,
-          agent_count: 0,
-          member_count: 1,
-        };
-        setWorkspaces((prev) => [newWorkspace, ...prev]);
-        setCurrentWorkspace(newWorkspace);
-      } finally {
-        setLoading(false);
+export function WorkspaceProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const [workspaces, setWorkspaces] = useState<
+    WorkspaceListResponse["workspaces"]
+  >([]);
+  const [currentWorkspace, setCurrentWorkspace] =
+    useState<WorkspaceResponse | null>(null);
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(
+    typeof window !== "undefined"
+      ? (() => {
+          try {
+            const val = localStorage.getItem("selectedWorkspaceId");
+            if (!val || val === "undefined" || val === "null") return null;
+            return val;
+          } catch {
+            return null;
+          }
+        })()
+      : null
+  );
+  const hasLoadedWorkspace = useRef(false);
+
+  // Sync from localStorage on mount and cross-tab updates
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const val = localStorage.getItem("selectedWorkspaceId");
+      if (val && val !== "undefined" && val !== "null") {
+        setSelectedWorkspaceId(val);
       }
-    },
-    []
+    } catch {}
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "selectedWorkspaceId") {
+        const v = e.newValue;
+        if (v && v !== "undefined" && v !== "null") {
+          setSelectedWorkspaceId(v);
+        }
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const getPersistedWorkspaceId = () => {
+    try {
+      if (typeof window === "undefined") return null;
+      const val = localStorage.getItem("selectedWorkspaceId");
+      if (!val || val === "undefined" || val === "null") return null;
+      return val;
+    } catch {
+      return null;
+    }
+  };
+
+  const persistWorkspaceId = (workspaceId: string) => {
+    try {
+      if (typeof window === "undefined") return;
+      localStorage.setItem("selectedWorkspaceId", workspaceId);
+      setSelectedWorkspaceId(workspaceId);
+    } catch {
+      // ignore persistence errors
+    }
+  };
+
+  const fetchWorkspaces = useCallback(async () => {
+    if (!user?.id) return;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await workspaceAPI.getWorkspaces();
+      setWorkspaces(data.workspaces);
+
+      // Only set workspace if none has been loaded yet
+      if (data.workspaces.length > 0 && !hasLoadedWorkspace.current) {
+        const persistedId = getPersistedWorkspaceId();
+        const targetId =
+          persistedId && data.workspaces.some((w) => w.id === persistedId)
+            ? persistedId
+            : data.workspaces[0].id;
+        const target = await workspaceAPI.getWorkspace(targetId);
+        setCurrentWorkspace(target);
+        persistWorkspaceId(target.id);
+        hasLoadedWorkspace.current = true;
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to fetch workspaces");
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
+  const createWorkspace = useCallback(async (
+    data: WorkspaceCreateData
+  ): Promise<WorkspaceResponse> => {
+    if (!user?.id) {
+      throw new Error("User not authenticated");
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const workspace = await workspaceAPI.createWorkspace({
+        ...data,
+        workspace_type: data.workspace_type || "personal",
+      });
+
+      // Refresh workspaces list
+      await fetchWorkspaces();
+
+      // Set newly created workspace as current
+      setCurrentWorkspace(workspace);
+      persistWorkspaceId(workspace.id);
+      hasLoadedWorkspace.current = true;
+
+      return workspace;
+    } catch (err: any) {
+      const errorMessage = err.message || "Failed to create workspace";
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id, fetchWorkspaces]);
+
+  const selectWorkspace = useCallback(async (workspaceId: string) => {
+    if (!user?.id) return;
+
+    setLoading(true);
+    setError(null);
+    try {
+      const workspace = await workspaceAPI.getWorkspace(workspaceId);
+      setCurrentWorkspace(workspace);
+      setSelectedWorkspaceId(workspaceId);
+      persistWorkspaceId(workspaceId);
+      hasLoadedWorkspace.current = true;
+    } catch (err: any) {
+      setError(err.message || "Failed to load workspace");
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
+  // Fetch workspaces when user is available
+  useEffect(() => {
+    if (user?.id) {
+      fetchWorkspaces();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  const value: WorkspaceContextType = useMemo(
+    () => ({
+      workspaces,
+      currentWorkspace,
+      selectedWorkspaceId,
+      loading,
+      error,
+      createWorkspace,
+      fetchWorkspaces,
+      selectWorkspace,
+    }),
+    [
+      workspaces,
+      currentWorkspace,
+      selectedWorkspaceId,
+      loading,
+      error,
+      createWorkspace,
+      fetchWorkspaces,
+      selectWorkspace,
+    ]
   );
 
-  const selectWorkspace = React.useCallback(async (workspaceId: string) => {
-    const found = workspaces.find((w) => w.id === workspaceId) || null;
-    setCurrentWorkspace(found);
-  }, [workspaces]);
-
-  return {
-    workspaces,
-    currentWorkspace,
-    createWorkspace,
-    selectWorkspace,
-    loading,
-    error,
-  };
+  return (
+    <WorkspaceContext.Provider value={value}>
+      {children}
+    </WorkspaceContext.Provider>
+  );
 }
 
-
+export function useWorkspace() {
+  const context = useContext(WorkspaceContext);
+  if (context === undefined) {
+    throw new Error("useWorkspace must be used within a WorkspaceProvider");
+  }
+  return context;
+}

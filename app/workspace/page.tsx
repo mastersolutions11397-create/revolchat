@@ -2,27 +2,17 @@
 
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import { useState } from "react";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Building2, Plus, Loader2 } from "lucide-react";
-// import { PromoCard } from "@/components/ui/card-9";
-// import { AnimatePresence } from "framer-motion";
-import { WorkspaceCard } from "@/components/ui/workspace-card";
-import Modal from "@/components/ui/modal-drop";
-// import { ShimmerGradient } from "@/components/ui/shimmer-gradient";
-import { Skeleton } from "@/components/ui/skeleton";
-import Image from "next/image";
-import type { Workspace } from "@/lib/contexts/WorkspaceContext";
 
 export default function WorkspaceSelectionPage() {
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const {
     workspaces,
     createWorkspace,
+    fetchWorkspaces,
     selectWorkspace,
     loading,
     error,
@@ -30,16 +20,34 @@ export default function WorkspaceSelectionPage() {
   const router = useRouter();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // const [isPromoVisible, setIsPromoVisible] = useState(true);
   const [workspaceName, setWorkspaceName] = useState("");
   const [workspaceDescription, setWorkspaceDescription] = useState("");
   const [localError, setLocalError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectingWorkspace, setSelectingWorkspace] = useState<string | null>(null);
+  const [selectingWorkspace, setSelectingWorkspace] = useState<string | null>(
+    null
+  );
 
   const handleSignOut = async () => {
     await signOut();
   };
+
+  const handleWorkspaceSelect = async (workspaceId: string) => {
+    if (selectingWorkspace) return; // Prevent multiple clicks
+
+    try {
+      setSelectingWorkspace(workspaceId);
+      console.log("Selecting workspace:", workspaceId);
+      await selectWorkspace(workspaceId);
+      console.log("Workspace selected successfully, navigating to dashboard");
+      router.push(`/dashboard?ws=${encodeURIComponent(workspaceId)}`);
+    } catch (err) {
+      console.error("Failed to select workspace:", err);
+      setSelectingWorkspace(null);
+    }
+  };
+
+  // Provider handles initial fetch on user availability
 
   const handleCreateWorkspace = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,26 +81,12 @@ export default function WorkspaceSelectionPage() {
 
       // Redirect to dashboard after successful creation
       router.push("/dashboard");
-    } catch (err: unknown) {
+    } catch (err: any) {
       const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "An error occurred while creating workspace";
+        err.message || "An error occurred while creating workspace";
       setLocalError(errorMessage);
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleWorkspaceSelect = async (workspaceId: string) => {
-    try {
-      setSelectingWorkspace(workspaceId);
-      await selectWorkspace(workspaceId);
-      router.push("/dashboard");
-    } catch (err) {
-      console.error("Error selecting workspace:", err);
-    } finally {
-      setSelectingWorkspace(null);
     }
   };
 
@@ -106,173 +100,161 @@ export default function WorkspaceSelectionPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-linear-to-br from-gray-900 to-gray-950">
+      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-50">
         {/* Navigation */}
-        <nav className="absolute top-0 w-full z-40 border-b border-gray-200/60 bg-white backdrop-blur-xl">
+        <nav className="bg-white/80 backdrop-blur-md border-b border-purple-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
-              <Link href="/" className="flex items-center gap-3">
-                <span className="text-2xl font-extrabold tracking-tight text-gray-900">
-                  YETTI<span className="text-gray-400">.AI</span>
-                </span>
+              <div className="flex items-center">
+                <Link
+                  href="/"
+                  className="text-2xl font-bold yeti-gradient bg-clip-text text-transparent"
+                >
+                  🧊 Yeti AI
                 </Link>
-              <div className="flex items-center gap-3">
+              </div>
+              <div className="flex items-center space-x-4">
                 <Link
                   href="/profile"
-                  className="px-3 py-2 rounded-md text-sm text-gray-700 hover:text-gray-900 transition-colors"
+                  className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   Profile
                 </Link>
-                <Button variant="outline" onClick={handleSignOut} className="h-9">
+                <button
+                  onClick={handleSignOut}
+                  className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
                   Sign Out
-                </Button>
+                </button>
               </div>
             </div>
           </div>
         </nav>
 
-        {/* Header */}
-       
-
         {/* Main Content */}
-        <main className="pb-16 flex flex-col items-center justify-center h-screen ">
-           <header className="relative pt-28 sm:pt-32 pb-10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
               Your Workspaces
             </h1>
-              <p className="mt-3 text-gray-300 max-w-2xl mx-auto">
-                Select a workspace to continue or create a new one.
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Select an existing workspace or create a new one to get started
             </p>
-            
-            </div>
           </div>
-        </header>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Promo Card */}
 
           {/* Error Display */}
-          {(error || localError) && (
-              <div className="mb-8">
-                <Card className="border-red-200 bg-red-50">
-                  <CardContent className="py-4">
-                    <p className="text-red-700 text-sm text-center">{error || localError}</p>
-                  </CardContent>
-                </Card>
+          {error && (
+            <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg max-w-2xl mx-auto">
+              <p className="text-red-600 text-center">{error}</p>
             </div>
           )}
 
           {/* Loading State */}
-            {loading && workspaces.length === 0 ? (
-              <div className="py-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {[0, 1, 2].map((i) => (
-                    <div key={i} className="rounded-2xl border bg-card w-[350px] p-6">
-                      <div className="flex items-start gap-10 justify-between">
-                        <Skeleton className="h-12 w-12 rounded-xl" />
-                        <div className="space-y-2 w-24">
-                          <Skeleton className="h-3 w-full" />
-                          <Skeleton className="h-3 w-3/4" />
-                        </div>
-                      </div>
-                      <Skeleton className="h-5 w-3/4 mt-4 rounded-md" />
-                      <Skeleton className="h-3 w-full mt-2" />
-                      <Skeleton className="h-3 w-2/3 mt-2" />
-                      <Skeleton className="h-3 w-32 mt-4" />
-                    </div>
-                  ))}
-                </div>
-              </div>
+          {loading && workspaces.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+              <p className="mt-4 text-gray-600">Loading your workspaces...</p>
+            </div>
           ) : (
             <>
-                {workspaces.length > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {workspaces.map((workspace: Workspace) => {
-                      const isSelecting = selectingWorkspace === workspace.id;
-                      return (
-                        <WorkspaceCard
+              {/* Workspaces Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                {/* Existing Workspaces */}
+                {workspaces.map((workspace) => (
+                  <div
                     key={workspace.id}
-                          name={workspace.name}
-                          agents={workspace.agent_count}
-                          members={workspace.member_count}
-                          isSelecting={isSelecting}
-                          onOpen={() => handleWorkspaceSelect(workspace.id)}
-                        />
-                      );
-                    })}
-                    {/* Add New Workspace */}
-                    <Card
-                      onClick={() => setIsModalOpen(true)}
-                      className="border rounded-2xl! hover:border-[#5170ff] group cursor-pointer transition-colors"
-                    >
-                      <CardContent className="p-6 h-full flex flex-col items-center justify-center text-center">
-                        <div className="w-12 h-12 rounded-xl bg-gray-900 group-hover:bg-[#5170ff] text-white flex items-center justify-center">
-                          <Plus className="w-6 h-6 " />
+                    onClick={() => handleWorkspaceSelect(workspace.id)}
+                    className={`yeti-card rounded-2xl p-6 yeti-shadow hover:shadow-xl transition-all cursor-pointer group ${
+                      selectingWorkspace === workspace.id
+                        ? "opacity-75 pointer-events-none"
+                        : ""
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                        {selectingWorkspace === workspace.id ? (
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                        ) : (
+                          <span className="text-2xl text-white">🏢</span>
+                        )}
                       </div>
-                        <h3 className="mt-3 text-lg font-semibold text-gray-900 group-hover:text-[#5170ff]">
-                          Create New Workspace
+                      <div className="text-right text-sm text-gray-500">
+                        <div>{workspace.agent_count} agents</div>
+                        <div>{workspace.member_count} members</div>
+                      </div>
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-purple-600 transition-colors">
+                      {workspace.name}
                     </h3>
-                        <p className="mt-1 text-sm text-gray-600 max-w-xs">
-                          Start fresh with a new personal workspace for your AI agent projects.
-                        </p>
-                      </CardContent>
-                    </Card>
+                    {workspace.description && (
+                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                        {workspace.description}
+                      </p>
+                    )}
+                    <div className="text-xs text-gray-500">
+                      Created{" "}
+                      {new Date(workspace.created_at).toLocaleDateString()}
+                    </div>
                   </div>
-                )}
+                ))}
+
+                {/* Add New Workspace Card */}
+                <div
+                  onClick={() => setIsModalOpen(true)}
+                  className="yeti-card rounded-2xl p-6 yeti-shadow hover:shadow-xl transition-all cursor-pointer group border-2 border-dashed border-gray-300 hover:border-purple-400"
+                >
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <span className="text-2xl text-white">➕</span>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2 text-center group-hover:text-purple-600 transition-colors">
+                    Create New Workspace
+                  </h3>
+                  <p className="text-gray-600 text-sm text-center">
+                    Start fresh with a new personal workspace for your AI agent
+                    projects
+                  </p>
+                </div>
+              </div>
 
               {/* Empty State */}
               {workspaces.length === 0 && !loading && (
-                  <div className="py-16 flex items-center justify-center">
-                    <Card className="max-w-xl w-full p-6">
-                      <CardContent className="p-8 text-center">
-                        <div className="w-16 h-16 rounded-2xl bg-gray-900 text-white flex items-center justify-center mx-auto shadow-md">
-                          <Building2 className="w-8 h-8" />
+                <div className="text-center py-12">
+                  <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <span className="text-5xl text-gray-400">🏢</span>
                   </div>
-                        <h3 className="mt-6 text-2xl font-semibold text-gray-900">
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-4">
                     No workspaces yet
                   </h3>
-                        <p className="mt-2 text-gray-600">
-                          Create your first workspace to start building and managing your AI agents.
-                        </p>
-                        <div className="mt-6">
-                          <Button onClick={() => setIsModalOpen(true)} className="px-6 h-11">
-                            <Plus className="w-4 h-4 mr-2" /> Create your first workspace
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
+                  <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                    Create your first workspace to start building and managing
+                    your AI agents
+                  </p>
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"
+                  >
+                    Create Your First Workspace
+                  </button>
                 </div>
               )}
             </>
           )}
         </div>
-        </main>
       </div>
 
-      {/* Create Workspace Modal via modal-drop with two-column layout */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        animationType="scale"
-        type="overlay"
-        disablePadding
-        className="sm:max-w-4xl md:max-w-5xl lg:max-w-6xl p-0 overflow-hidden"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2">
-          {/* Left visual */}
-          <div className="relative hidden md:block bg-white p-2">
-            <div className="relative h-full min-h-[460px] rounded-2xl overflow-hidden bg-[radial-gradient(900px_400px_at_60%_-20%,#6e7bff_0%,#0b1220_70%)]">
-              <Image src="/yetti/yetti_laying.png" alt="Yetti resting" fill className="object-contain p-6" />
-            </div>
-          </div>
+      {/* Create Workspace Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="yeti-card rounded-2xl p-8 yeti-shadow max-w-md w-full">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Create Personal Workspace
+            </h2>
 
-          {/* Right form */}
-          <div className="p-6 md:p-8 bg-background">
-            <div className="mb-4">
-              <h2 className="text-2xl font-bold text-foreground">Create Personal Workspace</h2>
-              <p className="text-sm text-muted-foreground">Set a name and optional description to begin.</p>
-            </div>
+            {(localError || error) && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">{localError || error}</p>
+              </div>
+            )}
 
             <form onSubmit={handleCreateWorkspace} className="space-y-4">
               <div>
@@ -290,7 +272,7 @@ export default function WorkspaceSelectionPage() {
                   placeholder="e.g., My Personal Workspace"
                   required
                   minLength={3}
-                  className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                 />
               </div>
 
@@ -307,27 +289,31 @@ export default function WorkspaceSelectionPage() {
                   onChange={(e) => setWorkspaceDescription(e.target.value)}
                   placeholder="Describe your workspace"
                   rows={3}
-                  className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent transition-all resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
                 />
               </div>
 
               <div className="flex gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={handleCloseModal} disabled={isSubmitting} className="flex-1 h-11">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  disabled={isSubmitting}
+                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all disabled:opacity-50"
+                >
                   Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting || !workspaceName.trim()} className="flex-1 h-11">
-                  {isSubmitting ? (
-                    <span className="inline-flex items-center"><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating…</span>
-                  ) : (
-                    "Create Workspace"
-                  )}
-                </Button>
-
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !workspaceName.trim()}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? "Creating..." : "Create Workspace"}
+                </button>
               </div>
             </form>
           </div>
         </div>
-      </Modal>
+      )}
     </ProtectedRoute>
   );
 }

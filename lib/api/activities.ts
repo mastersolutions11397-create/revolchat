@@ -1,40 +1,49 @@
-export type ActivityType = "success" | "info" | "warning" | "error";
+import { apiRequest } from "./client";
 
 export interface ActivityItem {
   id: string;
-  type: ActivityType;
+  type: "success" | "info" | "warning" | "error";
   message: string;
-  platform: "knowledge" | "instagram" | "telegram" | "system" | string;
+  platform?: string;
   timestamp: string;
-  metadata?: Record<string, unknown>;
+  metadata?: {
+    workspace_id?: string;
+    agent_id?: string;
+    integration_id?: string;
+    user_id?: string;
+  };
 }
 
-export const activitiesAPI = {
-  async getActivitiesByWorkspace(
-    workspaceId: string,
-    limit = 5
-  ): Promise<{ activities: ActivityItem[] }> {
-    // Return a small mock list for demo
-    const now = Date.now();
-    const activities: ActivityItem[] = [
-      {
-        id: "a1",
-        type: "success",
-        message: "Workspace initialized",
-        platform: "system",
-        timestamp: new Date(now - 60_000).toISOString(),
-        metadata: { workspace_id: workspaceId },
-      },
-    ].slice(0, limit);
-    return { activities };
-  },
+export interface ActivitiesResponse {
+  activities: ActivityItem[];
+  total_count: number;
+  has_more: boolean;
+}
 
-  async createActivity(
-    _input: Omit<ActivityItem, "id" | "timestamp"> & {
-      metadata?: Record<string, unknown>;
-    }
-  ): Promise<void> {
-    // No-op mock
-    return;
-  },
-};
+class ActivitiesAPI {
+  async getRecentActivities(limit: number = 10): Promise<ActivitiesResponse> {
+    return apiRequest<ActivitiesResponse>(`/api/yetti/activities?limit=${limit}`, {
+      method: "GET",
+    });
+  }
+
+  async getActivitiesByWorkspace(workspaceId: string, limit: number = 10): Promise<ActivitiesResponse> {
+    return apiRequest<ActivitiesResponse>(`/api/yetti/activities/workspace/${workspaceId}?limit=${limit}`, {
+      method: "GET",
+    });
+  }
+
+  async createActivity(activity: Omit<ActivityItem, "id" | "timestamp">): Promise<ActivityItem> {
+    return apiRequest<ActivityItem>("/api/yetti/activities", {
+      method: "POST",
+      body: JSON.stringify(activity),
+    });
+  }
+}
+
+export const activitiesAPI = new ActivitiesAPI();
+
+
+
+
+
