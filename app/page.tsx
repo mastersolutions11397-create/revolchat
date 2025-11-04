@@ -15,6 +15,7 @@ import {
   Quote,
 } from "lucide-react";
 import { Caveat } from "next/font/google";
+import Footer from "@/components/Footer";
 
 const caveat = Caveat({ subsets: ["latin"], weight: "700" });
 
@@ -625,24 +626,7 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="py-10 border-t border-gray-200 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-gray-500">
-            © {new Date().getFullYear()} Yetti.ai. All rights reserved.
-          </p>
-          <div className="flex items-center gap-6 text-gray-600">
-            <Link href="#features" className="hover:text-gray-900">
-              Features
-            </Link>
-            <Link href="#integrations" className="hover:text-gray-900">
-              Integrations
-            </Link>
-            <Link href="#pricing" className="hover:text-gray-900">
-              Pricing
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <Footer variant="light" />
     </div>
   );
 }
