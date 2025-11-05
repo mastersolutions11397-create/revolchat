@@ -250,7 +250,7 @@ const Modal: React.FC<ModalProps> = ({
                       onClick={onClose}
                       aria-label="Close modal"
                     >
-                      <X size={20} weight="bold" />
+                      <X size={20} />
                     </button>
                   </div>
                 )}
@@ -268,7 +268,7 @@ const Modal: React.FC<ModalProps> = ({
                     onClick={onClose}
                     aria-label="Close modal"
                   >
-                    <X size={20} weight="bold" />
+                    <X size={20} />
                   </button>
                 </div>
               )

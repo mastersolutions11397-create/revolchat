@@ -16,7 +16,7 @@ import Modal from "@/components/ui/modal-drop";
 // import { ShimmerGradient } from "@/components/ui/shimmer-gradient";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
-import type { Workspace } from "@/lib/contexts/WorkspaceContext";
+import type { WorkspaceListResponse } from "@/lib/api/workspace";
 
 export default function WorkspaceSelectionPage() {
   const { signOut } = useAuth();
@@ -188,7 +188,7 @@ export default function WorkspaceSelectionPage() {
             <>
                 {workspaces.length > 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {workspaces.map((workspace: Workspace) => {
+                    {workspaces.map((workspace: WorkspaceListResponse["workspaces"][0]) => {
                       const isSelecting = selectingWorkspace === workspace.id;
                       return (
                         <WorkspaceCard

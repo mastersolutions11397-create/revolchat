@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -17,15 +17,27 @@ import {
   User as UserIcon,
 } from "lucide-react";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function WorkspaceSelector() {
+  const searchParams = useSearchParams();
+  const { selectWorkspace } = useWorkspace();
+
+  useEffect(() => {
+    const ws = searchParams.get("ws");
+    if (ws) {
+      selectWorkspace(ws).catch((err) =>
+        console.error("Failed to select workspace:", err)
+      );
+    }
+  }, [searchParams, selectWorkspace]);
+
+  return null;
+}
+
+function DashboardContent({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { selectWorkspace, selectedWorkspaceId } = useWorkspace();
+  const { selectedWorkspaceId } = useWorkspace();
 
   const handleSignOut = async () => {
     await signOut();
@@ -47,17 +59,7 @@ export default function DashboardLayout({
     return path;
   };
 
-  useEffect(() => {
-    const ws = searchParams.get("ws");
-    if (ws) {
-      selectWorkspace(ws).catch((err) =>
-        console.error("Failed to select workspace:", err)
-      );
-    }
-  }, [searchParams, selectWorkspace]);
-
   return (
-    <ProtectedRoute>
       <div className="min-h-screen bg-white">
         {/* Sidebar */}
         <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white/90 backdrop-blur-md border-r border-gray-200">
@@ -188,6 +190,20 @@ export default function DashboardLayout({
           <main className="p-6">{children}</main>
         </div>
       </div>
+  );
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <ProtectedRoute>
+      <Suspense fallback={<div>Loading...</div>}>
+        <WorkspaceSelector />
+        <DashboardContent>{children}</DashboardContent>
+      </Suspense>
     </ProtectedRoute>
   );
 }

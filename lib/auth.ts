@@ -45,13 +45,10 @@ export const authService = {
   },
 
   async signIn(email: string, password: string, rememberMe?: boolean) {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-      options: {
-        persistSession: true,
-      },
-    });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
     
     // Store preference for future sessions
     if (rememberMe !== undefined) {

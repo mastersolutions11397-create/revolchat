@@ -41,13 +41,11 @@ export default function ProfilePage() {
           phone: profileData.phone || "",
           email: user.email || "",
         });
-        setNotificationPrefs(
-          profileData.notification_preferences || {
-            email: true,
-            sms: false,
-            push: true,
-          }
-        );
+        setNotificationPrefs({
+          email: profileData.notification_preferences?.email ?? true,
+          sms: profileData.notification_preferences?.sms ?? false,
+          push: profileData.notification_preferences?.push ?? true,
+        });
       } catch (err: any) {
         console.error("Error fetching profile:", err);
         // If profile doesn't exist, use user metadata
