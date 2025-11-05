@@ -14,6 +14,9 @@ import {
   ShieldCheck,
   MoveRight,
   PhoneCall,
+  Infinity,
+  Link2 as Link2Icon,
+  Lock,
 } from "lucide-react";
 import { Caveat } from "next/font/google";
 import Footer from "@/components/Footer";
@@ -22,6 +25,7 @@ import { FAQ } from "@/components/ui/faq-section";
 import Testimonials from "@/components/ui/testimonials";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import NewsletterSignup from "@/components/NewsletterSignup";
 
 const caveat = Caveat({ subsets: ["latin"], weight: "700" });
 
@@ -35,21 +39,23 @@ function CTA() {
           </div>
           <div className="flex flex-col gap-2">
             <h3 className="text-3xl md:text-5xl tracking-tighter max-w-xl font-regular">
-              Try our platform today!
+              Ready to Scale Your Conversations?
             </h3>
             <p className="text-lg leading-relaxed tracking-tight text-white/70 max-w-xl">
-              Managing a small business today is already tough. Avoid further
-              complications by ditching outdated, tedious trade methods. Our goal
-              is to streamline SMB trade, making it easier and faster than ever.
+              Join thousands of businesses using Yetti 24/7. Stop losing sales to slow responses. Start converting today.
             </p>
           </div>
           <div className="flex flex-row gap-4">
-            <Button className="gap-4  text-black!" variant="outline">
-              Jump on a call <PhoneCall className="w-4 h-4" />
-            </Button>
-            <Button className="gap-4  ">
-              Sign up here <MoveRight className="w-4 h-4" />
-            </Button>
+            <Link href="/contact">
+              <Button className="gap-4 text-black" variant="outline">
+                Schedule a Demo <PhoneCall className="w-4 h-4" />
+              </Button>
+            </Link>
+            <Link href="/auth/signup">
+              <Button className="gap-4">
+                Start Free Trial <MoveRight className="w-4 h-4" />
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
@@ -126,10 +132,10 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-12">
             <div>
               <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">
-                Deploy an AI Agent that runs your store while you sleep
+                Your AI Agent That Never Sleeps
             </h1>
               <p className="mt-6 text-lg md:text-xl text-gray-300">
-                Yetti responds on your behalf across Instagram, Facebook Messenger, and Telegram. Train with PDF, text, and Google Sheets. Build flows in Sheets—Yetti follows them perfectly.
+                Handle customer conversations 24/7 on Instagram, Messenger, and Telegram. Train with PDFs, build workflows in Sheets—no coding required.
               </p>
               <div className="mt-8 flex flex-col sm:flex-row gap-4">
                 <Link
@@ -143,9 +149,18 @@ export default function Home() {
               </Link>
               </div>
               <div className="mt-8 flex items-center gap-6 text-sm text-gray-300">
-                <div className="flex items-center gap-2"><span>⚡</span><span>Unlimited usage credits</span></div>
-                <div className="flex items-center gap-2"><span>🔗</span><span>Plug-and-play setup</span></div>
-                <div className="flex items-center gap-2"><span>🔒</span><span>Secure by default</span></div>
+                <div className="flex items-center gap-2">
+                  <Infinity className="w-4 h-4" />
+                  <span>Unlimited conversations</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Link2Icon className="w-4 h-4" />
+                  <span>5-minute setup</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Lock className="w-4 h-4" />
+                  <span>Enterprise-grade security</span>
+                </div>
               </div>
             </div>
             <div className="relative w-full max-w-md lg:ml-auto">
@@ -176,9 +191,14 @@ export default function Home() {
           <div className="absolute bottom-[-200px] left-1/2 -translate-x-1/2 w-[1200px] h-[600px] rounded-full bg-linear-to-br from-slate-200/50 to-transparent blur-3xl" />
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <h2 className="text-center text-3xl md:text-5xl font-extrabold tracking-tight text-gray-900">
-            Meet Yetti — your 24/7 ecommerce copilot
+          <div className="text-center max-w-4xl mx-auto">
+            <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-gray-900">
+              Meet Yetti — Your AI That Understands Your Business
             </h2>
+            <p className="mt-6 text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
+              No coding required. Train with your content, build workflows in Sheets, and let Yetti handle conversations like your best team member.
+            </p>
+          </div>
           <div className="mt-10 relative flex items-center justify-center">
             <div className="relative w-[min(520px,90vw)] aspect-square">
               <Image src="/yetti/yetti_laptop.png" alt="Yetti sitting with laptop" fill className="object-contain" sizes="(max-width: 1024px) 90vw, 520px" />
@@ -190,8 +210,8 @@ export default function Home() {
                 <div className="flex items-center gap-3">
                   <div className="flex-none w-8 aspect-square rounded-lg bg-gray-900 text-white flex items-center justify-center"><FileText size={18} /></div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">PDF & Text</p>
-                    <p className="text-xs text-gray-600">Train in minutes</p>
+                    <p className="text-sm font-semibold text-gray-900">Train with Content</p>
+                    <p className="text-xs text-gray-600">PDFs or text—done in 5 minutes</p>
                   </div>
                 </div>
               </div>
@@ -202,9 +222,9 @@ export default function Home() {
                   <div className="flex-none w-8 aspect-square rounded-lg bg-gray-900 text-white flex items-center justify-center"><Sheet size={18} /></div>
                   <div>
                     <p className="text-sm font-semibold text-gray-900">
-                      Google Sheets 
+                      Workflows in Sheets
                     </p>
-                    <p className="text-xs text-gray-600">No code required</p>
+                    <p className="text-xs text-gray-600">No coding required</p>
                   </div>
                 </div>
               </div>
@@ -215,10 +235,10 @@ export default function Home() {
                   <div className="flex-none w-8 aspect-square rounded-lg bg-gray-900 text-white flex items-center justify-center"><MessageSquare size={18} /></div>
                   <div>
                     <p className="text-sm font-semibold text-gray-900">
-                      Multi-channels
+                      Deploy Everywhere
                     </p>
                     <p className="text-xs text-gray-600">
-                      Insta, Messenger, Telegram
+                      One agent, multiple platforms
                     </p>
                   </div>
                 </div>
@@ -229,8 +249,8 @@ export default function Home() {
                 <div className="flex items-center gap-3">
                   <div className="flex-none w-8 aspect-square rounded-lg bg-gray-900 text-white flex items-center justify-center"><BarChart3 size={18} /></div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">Analytics & Credits</p>
-                    <p className="text-xs text-gray-600">Track impact live</p>
+                    <p className="text-sm font-semibold text-gray-900">Real-Time Insights</p>
+                    <p className="text-xs text-gray-600">Track performance live</p>
                   </div>
                 </div>
               </div>
@@ -239,10 +259,10 @@ export default function Home() {
 
           {/* Mobile callouts */}
           <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4 md:hidden">
-            <div className="yeti-card rounded-xl border border-gray-200 bg-white p-4 flex items-center gap-3"><div className="flex-none w-10 aspect-square rounded-lg bg-gray-900 text-white flex items-center justify-center"><FileText size={18} /></div><span className="text-sm text-gray-800 font-medium">PDF & Text — Train in minutes</span></div>
-            <div className="yeti-card rounded-xl border border-gray-200 bg-white p-4 flex items-center gap-3"><div className="flex-none w-10 aspect-square rounded-lg bg-gray-900 text-white flex items-center justify-center"><Sheet size={18} /></div><span className="text-sm text-gray-800 font-medium">Google Sheets Flows — No code</span></div>
-            <div className="yeti-card rounded-xl border border-gray-200 bg-white p-4 flex items-center gap-3"><div className="flex-none w-10 aspect-square rounded-lg bg-gray-900 text-white flex items-center justify-center"><MessageSquare size={18} /></div><span className="text-sm text-gray-800 font-medium">Omnichannel Deploy</span></div>
-            <div className="yeti-card rounded-xl border border-gray-200 bg-white p-4 flex items-center gap-3"><div className="flex-none w-10 aspect-square rounded-lg bg-gray-900 text-white flex items-center justify-center"><BarChart3 size={18} /></div><span className="text-sm text-gray-800 font-medium">Analytics & Credits</span></div>
+            <div className="yeti-card rounded-xl border border-gray-200 bg-white p-4 flex items-center gap-3"><div className="flex-none w-10 aspect-square rounded-lg bg-gray-900 text-white flex items-center justify-center"><FileText size={18} /></div><span className="text-sm text-gray-800 font-medium">Train with Content — 5 minutes</span></div>
+            <div className="yeti-card rounded-xl border border-gray-200 bg-white p-4 flex items-center gap-3"><div className="flex-none w-10 aspect-square rounded-lg bg-gray-900 text-white flex items-center justify-center"><Sheet size={18} /></div><span className="text-sm text-gray-800 font-medium">Workflows in Sheets — No coding</span></div>
+            <div className="yeti-card rounded-xl border border-gray-200 bg-white p-4 flex items-center gap-3"><div className="flex-none w-10 aspect-square rounded-lg bg-gray-900 text-white flex items-center justify-center"><MessageSquare size={18} /></div><span className="text-sm text-gray-800 font-medium">Deploy Everywhere — Multiple platforms</span></div>
+            <div className="yeti-card rounded-xl border border-gray-200 bg-white p-4 flex items-center gap-3"><div className="flex-none w-10 aspect-square rounded-lg bg-gray-900 text-white flex items-center justify-center"><BarChart3 size={18} /></div><span className="text-sm text-gray-800 font-medium">Real-Time Analytics — Track performance</span></div>
           </div>
         </div>
       </section>
@@ -253,17 +273,17 @@ export default function Home() {
       <section id="features" className="py-20 min-h-screen flex items-center justify-center bg-[#0b1220] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold">Everything you need to scale conversations</h2>
-            <p className="mt-4 text-white/70">Automate replies, recover abandoned carts, and route complex chats to flows you design.</p>
+            <h2 className="text-3xl md:text-4xl font-bold">Turn Conversations Into Revenue</h2>
+            <p className="mt-4 text-white/70">Instant replies, cart recovery, custom workflows—all without coding.</p>
           </div>
           <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {[
-              { Icon: Brain, title: "Agent Brain", desc: "Train with PDFs, text, and Google Sheets in minutes." },
-              { Icon: GitBranch, title: "Flows in Sheets", desc: "Model your business logic and FAQs—no code required." },
-              { Icon: BarChart3, title: "Analytics", desc: "Dashboard tracks traffic, responses, and credit usage." },
-              { Icon: Plug, title: "Plug‑ins", desc: "Connect catalogs, order systems, and custom APIs." },
-              { Icon: Zap, title: "Real‑time", desc: "Instant responses across channels with safe fallbacks." },
-              { Icon: ShieldCheck, title: "Safe & On‑brand", desc: "Guardrails ensure answers stay accurate and on‑brand." },
+              { Icon: Brain, title: "Smart Training", desc: "Upload PDFs or connect Sheets. Yetti learns your brand in minutes." },
+              { Icon: GitBranch, title: "Workflow Builder", desc: "Build conversation flows in Google Sheets—no coding required." },
+              { Icon: BarChart3, title: "Real-Time Analytics", desc: "Track response times, conversions, and revenue impact in one dashboard." },
+              { Icon: Plug, title: "Easy Integrations", desc: "Connect ecommerce, CRM, and APIs. Yetti becomes your central hub." },
+              { Icon: Zap, title: "Instant Responses", desc: "Millisecond replies boost satisfaction and sales." },
+              { Icon: ShieldCheck, title: "Always On-Brand", desc: "Built-in guardrails keep responses accurate and trustworthy." },
             ].map((f) => (
               <div key={f.title} className="group rounded-2xl border border-white/10 bg-white/5 p-6 transition-all hover:border-[#5170ff] hover:bg-white/10">
                 <div className="flex items-start gap-4">
@@ -285,14 +305,14 @@ export default function Home() {
       <section id="integrations" className="py-16 sm:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Deploy Yetti where your customers are</h2>
-            <p className="mt-4 text-gray-600">Instagram, Facebook Messenger, and Telegram—set up in minutes.</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Deploy Where Your Customers Are</h2>
+            <p className="mt-4 text-lg text-gray-600">Instagram, Messenger, and Telegram—Yetti engages 24/7 with quality you can trust.</p>
           </div>
           <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
             <div className="rounded-2xl p-6  text-white bg-[linear-gradient(115deg,#f9ce34,#ee2a7b,#6228d7)]">
               <h3 className="text-3xl font-bold">Instagram</h3>
-              <p className="mt-1 text-white/90">
-                DMs, comments, stories—fully automated, always on‑brand.
+              <p className="mt-2 text-white/90 leading-relaxed">
+                Automate DMs, comments, and stories. Convert followers into customers—automatically.
               </p>
               <div className="relative w-full aspect-square rounded-xl overflow-hidden mt-4">
                 <Image
@@ -306,8 +326,8 @@ export default function Home() {
             </div>
             <div className="rounded-2xl p-6 text-white bg-[linear-gradient(135deg,#0766ff,#0045cc)]">
               <h3 className="text-3xl font-bold">Messenger</h3>
-              <p className="mt-1 text-white/90">
-                Recover carts, answer FAQs, and route to human when needed.
+              <p className="mt-2 text-white/90 leading-relaxed">
+                Recover abandoned carts, answer FAQs instantly, and route complex issues to your team.
               </p>
               <div className="relative w-full aspect-square rounded-xl overflow-hidden mt-4">
                 <Image
@@ -321,8 +341,8 @@ export default function Home() {
             </div>
             <div className="rounded-2xl p-6 text-white bg-[linear-gradient(135deg,#00a8e8,#0088cc)]">
               <h3 className="text-3xl font-bold">Telegram</h3>
-              <p className="mt-1 text-white/90">
-                High-volume conversations handled safely and instantly.
+              <p className="mt-2 text-white/90 leading-relaxed">
+                Handle thousands of conversations simultaneously. Enterprise capacity at startup prices.
               </p>
               <div className="relative w-full aspect-square rounded-xl overflow-hidden mt-4">
                 <Image
@@ -352,6 +372,21 @@ export default function Home() {
 
       {/* Final CTA */}
       <CTA />
+
+      {/* Newsletter Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="rounded-2xl bg-white p-12 shadow-lg border border-gray-200 text-center">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              Stay Updated
+            </h2>
+            <p className="text-lg text-gray-600 mb-8">
+              Get AI agent tips, new features, and insights delivered to your inbox.
+            </p>
+            <NewsletterSignup />
+          </div>
+        </div>
+      </section>
 
       {/* Footer */}
       <Footer variant="light" />

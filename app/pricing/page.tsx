@@ -1,4 +1,8 @@
 import Link from "next/link";
+import Image from "next/image";
+import Footer from "@/components/Footer";
+import Navigation from "@/components/Navigation";
+import { Check } from "lucide-react";
 
 export default function PricingPage() {
   const plans = [
@@ -63,87 +67,73 @@ export default function PricingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-50">
-      {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-purple-100">
+    <div className="min-h-screen bg-white">
+      <Navigation />
+
+      {/* Hero Section */}
+      <section className="relative min-h-[50vh] flex items-center justify-center pt-28 sm:pt-32 pb-16 overflow-hidden bg-linear-to-br from-[#0b1220] to-[#0b1220]/90 text-white">
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute inset-0 bg-[radial-gradient(1200px_500px_at_50%_-120px,rgba(255,255,255,0.15),transparent_70%)]" />
+        </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Link
-                href="/"
-                className="text-2xl font-bold yeti-gradient bg-clip-text text-transparent"
-              >
-                🧊 Yeti AI
-              </Link>
+          <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-12">
+            <div className="text-center lg:text-left">
+              <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">
+                Simple, Transparent Pricing
+              </h1>
+              <p className="text-lg md:text-xl text-gray-300 max-w-3xl">
+                Choose the perfect plan for your AI integration needs. Start free
+                and scale as you grow.
+              </p>
             </div>
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/about"
-                className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                About
-              </Link>
-              <Link
-                href="/contact"
-                className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Contact
-              </Link>
-              <Link
-                href="/pricing"
-                className="text-purple-600 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Pricing
-              </Link>
-              <Link
-                href="/auth/login"
-                className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"
-              >
-                Sign In
-              </Link>
+            <div className="relative w-full max-w-md mx-auto lg:ml-auto">
+              <div className="relative w-full aspect-square">
+                <Image
+                  src="/yetti/yetting_holding_dollar_sign.png"
+                  alt="Yeti Pricing"
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 1024px) 100vw, 400px"
+                />
+              </div>
             </div>
           </div>
         </div>
-      </nav>
+      </section>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            Simple, Transparent Pricing
-          </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Choose the perfect plan for your AI integration needs. Start free
-            and scale as you grow.
-          </p>
-
-          {/* Billing Toggle */}
-          <div className="flex items-center justify-center space-x-4">
-            <span className="text-gray-600">Monthly</span>
-            <div className="relative">
-              <input type="checkbox" className="sr-only" />
-              <div className="w-12 h-6 bg-gray-200 rounded-full shadow-inner"></div>
-              <div className="absolute top-0 left-0 w-6 h-6 bg-white rounded-full shadow transform transition-transform"></div>
+      {/* Pricing Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            {/* Billing Toggle */}
+            <div className="flex items-center justify-center space-x-4">
+              <span className="text-gray-600">Monthly</span>
+              <div className="relative">
+                <input type="checkbox" className="sr-only" />
+                <div className="w-12 h-6 bg-gray-200 rounded-full shadow-inner"></div>
+                <div className="absolute top-0 left-0 w-6 h-6 bg-white rounded-full shadow transform transition-transform"></div>
+              </div>
+              <span className="text-gray-600">
+                Annual{" "}
+                <span className="text-green-600 font-semibold">(Save 20%)</span>
+              </span>
             </div>
-            <span className="text-gray-600">
-              Annual{" "}
-              <span className="text-green-600 font-semibold">(Save 20%)</span>
-            </span>
           </div>
-        </div>
 
         {/* Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
           {plans.map((plan, index) => (
             <div
               key={index}
-              className={`yeti-card rounded-2xl p-8 yeti-shadow relative ${
-                plan.popular ? "ring-2 ring-purple-500 scale-105" : ""
+              className={`rounded-2xl bg-white p-8 shadow-lg border ${
+                plan.popular
+                  ? "border-2 border-[#5170ff] relative scale-105"
+                  : "border-gray-200"
               }`}
             >
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold">
+                  <span className="bg-[#5170ff] text-white px-4 py-1 rounded-full text-sm font-medium">
                     Most Popular
                   </span>
                 </div>
@@ -165,11 +155,15 @@ export default function PricingPage() {
               <ul className="space-y-4 mb-8">
                 {plan.features.map((feature, featureIndex) => (
                   <li key={featureIndex} className="flex items-start">
-                    <div
-                      className={`w-5 h-5 bg-gradient-to-r ${plan.gradient} rounded-full flex items-center justify-center flex-shrink-0 mr-3 mt-0.5`}
-                    >
-                      <span className="text-white text-xs">✓</span>
-                    </div>
+                    <Check
+                      className={`w-5 h-5 flex-shrink-0 mr-3 mt-0.5 ${
+                        plan.popular
+                          ? "text-[#5170ff]"
+                          : plan.name === "Starter"
+                          ? "text-green-500"
+                          : "text-green-500"
+                      }`}
+                    />
                     <span className="text-gray-700">{feature}</span>
                   </li>
                 ))}
@@ -177,20 +171,20 @@ export default function PricingPage() {
 
               <Link
                 href={plan.name === "Enterprise" ? "/contact" : "/auth/signup"}
-                className={`w-full block text-center py-3 px-6 rounded-lg font-semibold transition-all ${
+                className={`w-full block text-center py-3 px-6 rounded-xl font-semibold transition-all ${
                   plan.popular
-                    ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700"
-                    : "border-2 border-gray-300 text-gray-700 hover:border-purple-500 hover:text-purple-600"
+                    ? "bg-[#5170ff] hover:bg-[#4a68f0] text-white shadow-[0_8px_30px_rgba(81,112,255,0.35)]"
+                    : "border-2 border-gray-300 text-gray-700 hover:border-[#5170ff] hover:text-[#5170ff]"
                 }`}
               >
                 {plan.cta}
               </Link>
             </div>
           ))}
-        </div>
+          </div>
 
-        {/* FAQ Section */}
-        <div className="yeti-card rounded-2xl p-12 yeti-shadow mb-16">
+          {/* FAQ Section */}
+          <div className="rounded-2xl bg-white p-12 shadow-lg border border-gray-200 mb-16">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-6">
               Frequently Asked Questions
@@ -259,137 +253,36 @@ export default function PricingPage() {
               </p>
             </div>
           </div>
-        </div>
+          </div>
 
-        {/* CTA Section */}
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">
-            Ready to Get Started?
-          </h2>
-          <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Join thousands of businesses already using Yeti AI to connect their
-            AI agents to the world.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/auth/signup"
-              className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all"
-            >
-              Start Free Trial
-            </Link>
-            <Link
-              href="/contact"
-              className="border border-purple-600 text-purple-600 px-8 py-4 rounded-lg font-semibold hover:bg-purple-50 transition-all"
-            >
-              Contact Sales
-            </Link>
+          {/* CTA Section */}
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">
+              Ready to Get Started?
+            </h2>
+            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+              Join thousands of businesses already using Yeti AI to connect their
+              AI agents to the world.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/auth/signup"
+                className="px-8 py-4 rounded-xl text-white bg-[#5170ff] hover:bg-[#4a68f0] transition-colors shadow-[0_8px_30px_rgba(81,112,255,0.35)] font-semibold"
+              >
+                Start Free Trial
+              </Link>
+              <Link
+                href="/contact"
+                className="px-8 py-4 rounded-xl border-2 border-gray-300 text-gray-700 hover:bg-gray-50 transition-all font-semibold"
+              >
+                Contact Sales
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="text-2xl font-bold mb-4">🧊 Yeti AI</div>
-              <p className="text-gray-400">
-                Connecting AI agents to the world's most popular platforms.
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Product</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link
-                    href="/pricing"
-                    className="hover:text-white transition-colors"
-                  >
-                    Pricing
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/features"
-                    className="hover:text-white transition-colors"
-                  >
-                    Features
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/integrations"
-                    className="hover:text-white transition-colors"
-                  >
-                    Integrations
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Company</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link
-                    href="/about"
-                    className="hover:text-white transition-colors"
-                  >
-                    About
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/contact"
-                    className="hover:text-white transition-colors"
-                  >
-                    Contact
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/careers"
-                    className="hover:text-white transition-colors"
-                  >
-                    Careers
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-4">Legal</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link
-                    href="/privacy"
-                    className="hover:text-white transition-colors"
-                  >
-                    Privacy Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/terms"
-                    className="hover:text-white transition-colors"
-                  >
-                    Terms of Service
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/cookies"
-                    className="hover:text-white transition-colors"
-                  >
-                    Cookie Policy
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Yeti AI. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer variant="light" />
     </div>
   );
 }

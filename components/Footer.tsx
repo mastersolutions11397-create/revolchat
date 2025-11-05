@@ -1,4 +1,5 @@
 import Link from "next/link";
+import NewsletterSignup from "./NewsletterSignup";
 
 interface FooterProps {
   variant?: "dark" | "light";
@@ -10,13 +11,26 @@ export default function Footer({ variant = "dark" }: FooterProps) {
   return (
     <footer className={`py-12 ${isDark ? "bg-gray-900 text-white" : "bg-white border-t border-gray-200"}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
           {/* Brand */}
-          <div>
-            <div className="text-2xl font-bold mb-4">🧊 Yeti AI</div>
-            <p className={isDark ? "text-gray-400" : "text-gray-600"}>
+          <div className="md:col-span-2">
+            <div className="text-2xl font-bold mb-4">
+              {isDark ? (
+                <>
+                  <span className="text-white">YETTI</span>
+                  <span className="text-gray-400">.AI</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-gray-900">YETTI</span>
+                  <span className="text-gray-400">.AI</span>
+                </>
+              )}
+            </div>
+            <p className={`mb-4 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
               Connecting AI agents to the world's most popular platforms.
             </p>
+            {!isDark && <NewsletterSignup />}
           </div>
 
           {/* Product */}
@@ -26,8 +40,10 @@ export default function Footer({ variant = "dark" }: FooterProps) {
               <li>
                 <Link
                   href="/pricing"
-                  className={`hover:${isDark ? "text-white" : "text-gray-900"} transition-colors ${
-                    isDark ? "text-gray-400" : "text-gray-600"
+                  className={`transition-colors ${
+                    isDark
+                      ? "text-gray-400 hover:text-white"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   Pricing
@@ -36,8 +52,10 @@ export default function Footer({ variant = "dark" }: FooterProps) {
               <li>
                 <Link
                   href="/plans"
-                  className={`hover:${isDark ? "text-white" : "text-gray-900"} transition-colors ${
-                    isDark ? "text-gray-400" : "text-gray-600"
+                  className={`transition-colors ${
+                    isDark
+                      ? "text-gray-400 hover:text-white"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   Plans
@@ -46,8 +64,10 @@ export default function Footer({ variant = "dark" }: FooterProps) {
               <li>
                 <Link
                   href="/help"
-                  className={`hover:${isDark ? "text-white" : "text-gray-900"} transition-colors ${
-                    isDark ? "text-gray-400" : "text-gray-600"
+                  className={`transition-colors ${
+                    isDark
+                      ? "text-gray-400 hover:text-white"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   Help Center
@@ -63,8 +83,10 @@ export default function Footer({ variant = "dark" }: FooterProps) {
               <li>
                 <Link
                   href="/about"
-                  className={`hover:${isDark ? "text-white" : "text-gray-900"} transition-colors ${
-                    isDark ? "text-gray-400" : "text-gray-600"
+                  className={`transition-colors ${
+                    isDark
+                      ? "text-gray-400 hover:text-white"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   About Us
@@ -73,8 +95,10 @@ export default function Footer({ variant = "dark" }: FooterProps) {
               <li>
                 <Link
                   href="/contact"
-                  className={`hover:${isDark ? "text-white" : "text-gray-900"} transition-colors ${
-                    isDark ? "text-gray-400" : "text-gray-600"
+                  className={`transition-colors ${
+                    isDark
+                      ? "text-gray-400 hover:text-white"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   Contact
@@ -90,8 +114,10 @@ export default function Footer({ variant = "dark" }: FooterProps) {
               <li>
                 <Link
                   href="/privacy"
-                  className={`hover:${isDark ? "text-white" : "text-gray-900"} transition-colors ${
-                    isDark ? "text-gray-400" : "text-gray-600"
+                  className={`transition-colors ${
+                    isDark
+                      ? "text-gray-400 hover:text-white"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   Privacy Policy
@@ -100,8 +126,10 @@ export default function Footer({ variant = "dark" }: FooterProps) {
               <li>
                 <Link
                   href="/terms"
-                  className={`hover:${isDark ? "text-white" : "text-gray-900"} transition-colors ${
-                    isDark ? "text-gray-400" : "text-gray-600"
+                  className={`transition-colors ${
+                    isDark
+                      ? "text-gray-400 hover:text-white"
+                      : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   Terms of Service
@@ -111,11 +139,16 @@ export default function Footer({ variant = "dark" }: FooterProps) {
           </div>
         </div>
         <div
-          className={`mt-8 pt-8 text-center ${
-            isDark ? "border-t border-gray-800 text-gray-400" : "border-t border-gray-200 text-gray-500"
+          className={`mt-8 pt-8 ${
+            isDark ? "border-t border-gray-800" : "border-t border-gray-200"
           }`}
         >
-          <p>&copy; {new Date().getFullYear()} Yeti AI. All rights reserved.</p>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className={isDark ? "text-gray-400" : "text-gray-500"}>
+              &copy; {new Date().getFullYear()} Yeti AI. All rights reserved.
+            </p>
+            {isDark && <NewsletterSignup />}
+          </div>
         </div>
       </div>
     </footer>

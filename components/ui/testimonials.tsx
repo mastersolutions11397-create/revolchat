@@ -6,40 +6,34 @@ export default function Testimonials() {
         <section className="py-16 md:py-32">
             <div className="mx-auto max-w-6xl space-y-8 px-6 md:space-y-16">
                 <div className="relative z-10 mx-auto max-w-xl space-y-6 text-center md:space-y-12">
-                    <h2 className="text-4xl font-medium lg:text-5xl">Build by makers, loved by thousand developers</h2>
-                    <p>Gemini is evolving to be more than just the models. It supports an entire to the APIs and platforms helping developers and businesses innovate.</p>
+                    <h2 className="text-4xl font-medium lg:text-5xl">Loved by Businesses Worldwide</h2>
+                    <p>Thousands of businesses trust Yetti to handle their customer conversations 24/7. See what they're saying.</p>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-rows-2">
                     <Card className="grid grid-rows-[auto_1fr] gap-8 sm:col-span-2 sm:p-6 lg:row-span-2">
                         <CardHeader>
-                            <img
-                                className="h-6 w-fit dark:invert"
-                                src="https://html.tailus.io/blocks/customers/nike.svg"
-                                alt="Nike Logo"
-                                height="24"
-                                width="auto"
-                            />
+                            <div className="text-2xl font-bold text-gray-900">YETTI<span className="text-gray-400">.AI</span></div>
                         </CardHeader>
                         <CardContent>
                             <blockquote className="grid h-full grid-rows-[1fr_auto] gap-6">
-                                <p className="text-xl font-medium">Tailus has transformed the way I develop web applications. Their extensive collection of UI components, blocks, and templates has significantly accelerated my workflow. The flexibility to customize every aspect allows me to create unique user experiences. Tailus is a game-changer for modern web development</p>
+                                <p className="text-xl font-medium">Yetti has completely transformed how we handle customer service. We went from missing 40% of DMs to responding to every customer in seconds. Sales have increased 35% since we deployed Yetti on Instagram and Messenger. The best part? It took us less than 30 minutes to set up.</p>
 
                                 <div className="grid grid-cols-[auto_1fr] items-center gap-3">
                                     <Avatar className="size-12">
                                         <AvatarImage
                                             src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop"
-                                            alt="Shekinah Tshiokufila"
+                                            alt="Sarah Chen"
                                             height={400}
                                             width={400}
                                             loading="lazy"
                                         />
-                                        <AvatarFallback>ST</AvatarFallback>
+                                        <AvatarFallback>SC</AvatarFallback>
                                     </Avatar>
 
                                     <div>
-                                        <cite className="text-sm font-medium">Shekinah Tshiokufila</cite>
-                                        <span className="text-muted-foreground block text-sm">Software Ingineer</span>
+                                        <cite className="text-sm font-medium">Sarah Chen</cite>
+                                        <span className="text-muted-foreground block text-sm">Founder, Bloom Boutique</span>
                                     </div>
                                 </div>
                             </blockquote>
@@ -48,22 +42,22 @@ export default function Testimonials() {
                     <Card className="md:col-span-2">
                         <CardContent className="h-full pt-6">
                             <blockquote className="grid h-full grid-rows-[1fr_auto] gap-6">
-                                <p className="text-xl font-medium">Tailus is really extraordinary and very practical, no need to break your head. A real gold mine.</p>
+                                <p className="text-xl font-medium">We were losing sales because we couldn't respond to customer questions fast enough. Yetti handles everything automatically now. Cart recovery alone has paid for the subscription ten times over.</p>
 
                                 <div className="grid grid-cols-[auto_1fr] items-center gap-3">
                                     <Avatar className="size-12">
                                         <AvatarImage
                                             src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=400&auto=format&fit=crop"
-                                            alt="Jonathan Yombo"
+                                            alt="Marcus Rodriguez"
                                             height={400}
                                             width={400}
                                             loading="lazy"
                                         />
-                                        <AvatarFallback>JY</AvatarFallback>
+                                        <AvatarFallback>MR</AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <cite className="text-sm font-medium">Jonathan Yombo</cite>
-                                        <span className="text-muted-foreground block text-sm">Software Ingineer</span>
+                                        <cite className="text-sm font-medium">Marcus Rodriguez</cite>
+                                        <span className="text-muted-foreground block text-sm">CEO, TechGear Store</span>
                                     </div>
                                 </div>
                             </blockquote>
@@ -72,22 +66,22 @@ export default function Testimonials() {
                     <Card>
                         <CardContent className="h-full pt-6">
                             <blockquote className="grid h-full grid-rows-[1fr_auto] gap-6">
-                                <p>Great work on tailfolio template. This is one of the best personal website that I have seen so far!</p>
+                                <p>Setup was incredibly easy. I uploaded our product catalog, set up a few workflows in Sheets, and Yetti was handling customer conversations the same day. Game changer.</p>
 
                                 <div className="grid items-center gap-3 grid-cols-[auto_1fr]">
                                     <Avatar className="size-12">
                                         <AvatarImage
                                             src="https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=400&auto=format&fit=crop"
-                                            alt="Yucel Faruksahan"
+                                            alt="Emma Thompson"
                                             height={400}
                                             width={400}
                                             loading="lazy"
                                         />
-                                        <AvatarFallback>YF</AvatarFallback>
+                                        <AvatarFallback>ET</AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <cite className="text-sm font-medium">Yucel Faruksahan</cite>
-                                        <span className="text-muted-foreground block text-sm">Creator, Tailkits</span>
+                                        <cite className="text-sm font-medium">Emma Thompson</cite>
+                                        <span className="text-muted-foreground block text-sm">Operations Manager, StyleCo</span>
                                     </div>
                                 </div>
                             </blockquote>
@@ -96,22 +90,22 @@ export default function Testimonials() {
                     <Card className="card variant-mixed">
                         <CardContent className="h-full pt-6">
                             <blockquote className="grid h-full grid-rows-[1fr_auto] gap-6">
-                                <p>Great work on tailfolio template. This is one of the best personal website that I have seen so far!</p>
+                                <p>Yetti understands our brand voice perfectly. Customers can't tell they're talking to an AI. Response quality is consistently excellent.</p>
 
                                 <div className="grid grid-cols-[auto_1fr] gap-3">
                                     <Avatar className="size-12">
                                         <AvatarImage
                                             src="https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=400&auto=format&fit=crop"
-                                            alt="Rodrigo Aguilar"
+                                            alt="David Kim"
                                             height={400}
                                             width={400}
                                             loading="lazy"
                                         />
-                                        <AvatarFallback>YF</AvatarFallback>
+                                        <AvatarFallback>DK</AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <p className="text-sm font-medium">Rodrigo Aguilar</p>
-                                        <span className="text-muted-foreground block text-sm">Creator, TailwindAwesome</span>
+                                        <p className="text-sm font-medium">David Kim</p>
+                                        <span className="text-muted-foreground block text-sm">Marketing Director, FreshMarket</span>
                                     </div>
                                 </div>
                             </blockquote>

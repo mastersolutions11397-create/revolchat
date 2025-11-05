@@ -44,10 +44,39 @@ export const authService = {
     return { data, error };
   },
 
-  async signIn(email: string, password: string) {
+  async signIn(email: string, password: string, rememberMe?: boolean) {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
+      options: {
+        persistSession: true,
+      },
+    });
+    
+    // Store preference for future sessions
+    if (rememberMe !== undefined) {
+      if (typeof window !== 'undefined') {
+        if (rememberMe) {
+          localStorage.setItem('rememberMe', 'true');
+        } else {
+          localStorage.removeItem('rememberMe');
+        }
+      }
+    }
+    
+    return { data, error };
+  },
+
+  async signInWithGoogle() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      },
     });
     return { data, error };
   },
