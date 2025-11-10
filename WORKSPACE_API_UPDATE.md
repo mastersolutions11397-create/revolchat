@@ -181,7 +181,7 @@ export default function WorkspaceSelectionPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-50">
+      <div className="min-h-screen bg-gradient-to-br from-white via-sky-50 to-purple-50">
         {/* Navigation */}
         <nav className="bg-white/80 backdrop-blur-md border-b border-purple-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -229,7 +229,7 @@ export default function WorkspaceSelectionPage() {
               onClick={() => setIsModalOpen(true)}
               className="yeti-card rounded-2xl p-12 yeti-shadow hover:shadow-xl transition-all cursor-pointer group inline-block"
             >
-              <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+              <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-sky-500 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
                 <span className="text-5xl text-white">➕</span>
               </div>
               <h3 className="text-2xl font-semibold text-gray-900 mb-4">
@@ -310,7 +310,7 @@ export default function WorkspaceSelectionPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-sky-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-sky-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? "Creating..." : "Create Workspace"}
                 </button>

@@ -165,7 +165,7 @@ export default function SettingsPage() {
         <button
           onClick={handleSave}
           disabled={loading}
-          className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50"
+          className="bg-gradient-to-r from-purple-600 to-sky-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-sky-700 transition-all disabled:opacity-50"
         >
           {loading ? "Saving..." : "Save Settings"}
         </button>
