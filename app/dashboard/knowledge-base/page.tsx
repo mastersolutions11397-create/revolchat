@@ -19,6 +19,7 @@ import {
 } from "@/lib/api/google-sheets";
 import { chatAPI } from "@/lib/api/chat";
 import ReactMarkdown from "react-markdown";
+import Image from "next/image";
 import {
   Eye,
   ExternalLink,
@@ -707,105 +708,100 @@ export default function KnowledgePage() {
 
   return (
     <div className="flex flex-col gap-6 lg:min-h-[calc(100vh-8rem)]">
-      {/* Header */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Knowledge Base</h1>
-          <p className="mt-1 text-gray-600">
-            Curate knowledge and chat with your data in one place.
-          </p>
-          {/* <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-500">
-            <span>
-              Workspace:
-              {currentWorkspace?.name
-                ? ` ${currentWorkspace.name}`
-                : workspaceId
-                ? " (loading...)"
-                : " None"}
-            </span>
-            {workspaceId ? (
-              <>
-                <span className="rounded border border-gray-200 bg-gray-100 px-2 py-0.5 text-gray-700">
-                  {workspaceId}
-                </span>
-                <button
-                  onClick={() => navigator.clipboard.writeText(workspaceId ?? "")}
-                  className="ml-1 rounded border border-gray-300 px-2 py-0.5 text-gray-600 transition hover:bg-gray-50"
-                >
-                  Copy ID
-                </button>
-              </>
-            ) : (
-              <span className="text-red-600">No workspace selected</span>
-            )}
-          </div> */}
-        </div>
-        <div className="relative w-full sm:w-auto" ref={addMenuRef}>
-          <button
-            type="button"
-            onClick={() => setIsAddMenuOpen((prev) => !prev)}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1"
-          >
-            <Plus className="h-4 w-4" />
-            Add Knowledge
-          </button>
-          {isAddMenuOpen && (
-            <div className="absolute right-0 top-full z-20 mt-2 w-64 rounded-xl border border-gray-200 bg-white p-2">
-              <div className="space-y-1">
-                <button
-                  type="button"
-                  onClick={openTextForm}
-                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-gray-50"
-                >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
-                    <FileText className="h-4 w-4 text-blue-600" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">
-                      Text Document
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Write or paste knowledge
-                    </div>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={openPdfForm}
-                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-gray-50"
-                >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-rose-50">
-                    <FileDown className="h-4 w-4 text-rose-600" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">
-                      PDF Upload
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Import multi-page documents
-                    </div>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={openSheetsForm}
-                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-gray-50"
-                >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50">
-                    <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">
-                      Google Sheet
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Sync structured data
-                    </div>
-                  </div>
-                </button>
-              </div>
+      {/* Header - Navy Banner */}
+      <div className="rounded-2xl border border-[#1e2a4a] bg-[#0b1220] px-6 py-5 shadow-sm ">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            {/* Collapsed/compact mark - shows on narrow/\"collapsed\" scenarios */}
+            <div className="shrink-0 md:hidden">
+              <Image
+                src="/yetti/15.png"
+                alt="Yetti"
+                width={40}
+                height={40}
+                className="h-10 w-10"
+                priority
+              />
             </div>
-          )}
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-100 text-sky-700">
+              <FileText className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-extrabold text-white">
+                Knowledge base
+              </h1>
+              <p className="mt-0.5 hidden text-sm text-white/70 sm:block">
+                Curate knowledge and chat with your data in one place.
+              </p>
+            </div>
+          </div>
+          <div className="relative w-auto" ref={addMenuRef}>
+            <button
+              type="button"
+              onClick={() => setIsAddMenuOpen((prev) => !prev)}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-cyan-600 px-4 py-2 text-sm font-semibold text-white transition hover:from-sky-700 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 focus:ring-offset-[#0b1220]"
+            >
+              <Plus className="h-4 w-4" />
+              Add Knowledge
+            </button>
+            {isAddMenuOpen && (
+              <div className="absolute right-0 top-full z-20 mt-2 w-64 rounded-xl border border-gray-200 bg-white p-2">
+                <div className="space-y-1">
+                  <button
+                    type="button"
+                    onClick={openTextForm}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-gray-50"
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-50">
+                      <FileText className="h-4 w-4 text-sky-600" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">
+                        Text Document
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Write or paste knowledge
+                      </div>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={openPdfForm}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-gray-50"
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-rose-50">
+                      <FileDown className="h-4 w-4 text-rose-600" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">
+                        PDF Upload
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Import multi-page documents
+                      </div>
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={openSheetsForm}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-gray-50"
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50">
+                      <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-900">
+                        Google Sheet
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Sync structured data
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -833,56 +829,70 @@ export default function KnowledgePage() {
                     })()}
               </p>
             </div>
-            {workspaceId && (
-              <button
-                onClick={handleRefreshKnowledge}
-                disabled={knowledgeLoading}
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {knowledgeLoading ? "Refreshing..." : "Refresh"}
-              </button>
-            )}
+            <div className="flex items-center gap-4">
+              <div className="hidden xl:flex items-center gap-6">
+                <div className="flex items-center gap-2 text-gray-700">
+                  <FileText className="h-4 w-4 text-sky-600" />
+                  <span className="text-sm">Text Docs</span>
+                  <div className="flex items-center gap-2 size-8 justify-center rounded-full bg-sky-50 px-2 py-1 shrink-0">
+                    <span className="text-sm font-semibold text-sky-700">{textDocumentsCount}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <FileDown className="h-4 w-4 text-sky-600" />
+                  <span className="text-sm">PDF Files</span>
+                <div className="flex items-center gap-2  size-8 justify-center rounded-full bg-sky-50 px-2 py-1 shrink-0">
+                    <span className="text-sm font-semibold text-sky-700">{pdfFilesCount}</span>
+                </div>
+                </div>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <FileSpreadsheet className="h-4 w-4 text-sky-600" />
+                  <span className="text-sm">Google Sheets</span>
+                  <div className="flex items-center gap-2 size-8 justify-center rounded-full bg-sky-50 px-2 py-1 shrink-0">
+                    <span className="text-sm font-semibold text-sky-700">{connectedSheetsCount}</span>
+                  </div>
+                </div>
+              </div>
+              {workspaceId && (
+                <button
+                  onClick={handleRefreshKnowledge}
+                  disabled={knowledgeLoading}
+                  className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {knowledgeLoading ? "Refreshing..." : "Refresh"}
+                </button>
+              )}
+            </div>
           </div>
-          <div className="border-b border-gray-100 px-6 py-3">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div className="flex items-center gap-3 rounded-xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-indigo-100 px-4 py-3 shadow-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-indigo-600 shadow-inner">
-                  <FileText className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-indigo-700">
-                    {textDocumentsCount}
-                  </div>
-                  <div className="text-xs text-gray-600">Text Docs</div>
+          {/* On small screens, keep summary below as a grid */}
+          <div className="border-b border-gray-100 px-6 py-3 xl:hidden">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <div className="flex items-center gap-2 text-gray-700">
+                <FileText className="h-4 w-4 text-sky-600" />
+                <span className="text-sm">Text Docs</span>
+                <div className="flex items-center gap-2 size-8 justify-center rounded-full bg-sky-50 px-2 py-1 shrink-0">
+                  <span className="text-sm font-semibold text-sky-700">{textDocumentsCount}</span>
                 </div>
               </div>
-              <div className="flex items-center gap-3 rounded-xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-indigo-100 px-4 py-3 shadow-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-indigo-600 shadow-inner">
-                  <FileDown className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-indigo-700">
-                    {pdfFilesCount}
-                  </div>
-                  <div className="text-xs text-gray-600">PDF Files</div>
+              <div className="flex items-center gap-2 text-gray-700">
+                <FileDown className="h-4 w-4 text-sky-600" />
+                <span className="text-sm">PDF Files</span>
+                <div className="flex items-center gap-2 size-8 justify-center rounded-full bg-sky-50 px-2 py-1 shrink-0">
+                  <span className="text-sm font-semibold text-sky-700">{pdfFilesCount}</span>
                 </div>
               </div>
-              <div className="flex items-center gap-3 rounded-xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-indigo-100 px-4 py-3 shadow-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-indigo-600 shadow-inner">
-                  <FileSpreadsheet className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-indigo-700">
-                    {connectedSheetsCount}
-                  </div>
-                  <div className="text-xs text-gray-600">Google Sheets</div>
+              <div className="flex items-center gap-2 text-gray-700">
+                <FileSpreadsheet className="h-4 w-4 text-sky-600" />
+                <span className="text-sm">Google Sheets</span>
+                <div className="flex items-center gap-2 size-8 justify-center rounded-full bg-sky-50 px-2 py-1 shrink-0">
+                  <span className="text-sm font-semibold text-sky-700">{connectedSheetsCount}</span>
                 </div>
               </div>
             </div>
           </div>
-          <div className="h-[420px] overflow-hidden">
+          <div className="h-full overflow-hidden">
             <div className="flex h-full flex-col">
-              <div className="flex-1 overflow-y-auto px-6 py-4">
+              <div className="flex-1 overflow-y-auto ">
                 {!workspaceId ? (
                   <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
                     Choose a workspace to view its knowledge items.
@@ -898,14 +908,14 @@ export default function KnowledgePage() {
                     No knowledge items yet. Use Add Knowledge to get started.
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {knowledgeLoading && (
-                      <div className="text-xs text-gray-500">Refreshing...</div>
-                    )}
-                    <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
-                      <div className="grid grid-cols-[minmax(0,1fr),auto] items-center border-b border-gray-100 bg-gray-50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                  <div className="">
+                    
+                    <div className="overflow-hidden border border-gray-100 bg-white shadow-sm">
+                      <div className="grid grid-cols-[minmax(0,1fr),auto] items-center border-b border-gray-100 bg-gray-50 px-6 py-2 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                      <div className="flex items-center justify-between gap-3">
                         <div>File</div>
-                        <div className="text-right">Actions</div>
+                        <div>Actions</div>
+                      </div>
                       </div>
                       <div className="divide-y divide-gray-100">
                         {tableRows.map((row) => {
@@ -921,14 +931,15 @@ export default function KnowledgePage() {
                           return (
                             <div
                               key={`${row.kind}-${row.id}`}
-                              className={`grid grid-cols-[minmax(0,1fr),auto] h-[60px] items-center gap-3 px-3 py-1.5 text-xs transition ${
+                              className={`grid grid-cols-[minmax(0,1fr),auto] h-[60px] items-center gap-3 px-3  text-xs transition ${
                                 isSelected
-                                  ? "border-l-2 border-indigo-400 bg-indigo-50/70"
+                                  ? "border-l-2 border-sky-400 bg-sky-50/70"
                                   : "hover:bg-gray-50"
                               }`}
                             >
-                              <div className="flex items-center gap-3">
-                                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 shadow-inner">
+                              <div className="flex items-center justify-between">
+                                 <div className="flex py-2 items-center gap-3">
+                                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600 shadow-inner">
                                   <Icon className="h-4 w-4" />
                                 </div>
                                 <div className="min-w-0">
@@ -940,7 +951,7 @@ export default function KnowledgePage() {
                                   </p>
                                 </div>
                               </div>
-                              <div className="flex items-center justify-end gap-1.5">
+                              <div className="flex items-center justify-end gap-1.5 py-2">
                                 <button
                                   type="button"
                                   onClick={() =>
@@ -950,7 +961,7 @@ export default function KnowledgePage() {
                                         : { kind: "sheet", item: row.sheet }
                                     )
                                   }
-                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:border-indigo-200 hover:text-indigo-600"
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:border-sky-200 hover:text-sky-600"
                                   title="Preview"
                                 >
                                   <Eye className="h-3.5 w-3.5" />
@@ -960,7 +971,7 @@ export default function KnowledgePage() {
                                     href={row.link}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:border-indigo-200 hover:text-indigo-600"
+                                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:border-sky-200 hover:text-sky-600"
                                     title="Open in new tab"
                                   >
                                     <ExternalLink className="h-3.5 w-3.5" />
@@ -982,6 +993,8 @@ export default function KnowledgePage() {
                                   <Trash2 className="h-3.5 w-3.5" />
                                 </button>
                               </div>
+                              </div>
+                             
                             </div>
                           );
                         })}
@@ -991,179 +1004,180 @@ export default function KnowledgePage() {
                 )}
               </div>
               {previewItem && (
-                <div className="border-t border-gray-100 bg-indigo-50/40 px-6 py-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-900">
-                      {previewItem.kind === "knowledge"
-                        ? previewItem.item.title
-                        : `${
-                            previewItem.item.sheet_type
-                              ? previewItem.item.sheet_type
-                                  .split("_")
-                                  .map(
-                                    (word) =>
-                                      word.charAt(0).toUpperCase() +
-                                      word.slice(1)
-                                  )
-                                  .join(" ")
-                              : "Google Sheet"
-                          }`}
-                    </h4>
-                    <p className="text-xs text-gray-600">
-                      {previewItem.kind === "knowledge"
-                        ? (previewItem.item.file_type || "Text").toUpperCase()
-                        : "GOOGLE SHEET"}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setPreviewItem(null)}
-                    className="rounded-full border border-transparent p-1 text-gray-500 transition hover:border-gray-300 hover:text-gray-700"
-                    title="Close preview"
+                <div
+                  className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+                  onClick={() => setPreviewItem(null)}
+                >
+                  <div
+                    className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white shadow-xl"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-                <div className="mt-4 grid gap-4 text-sm text-gray-700 md:grid-cols-2">
-                  {previewItem.kind === "knowledge" ? (
-                    <>
+                    <div className="flex items-start justify-between gap-3 border-b border-gray-100 px-4 py-3">
                       <div>
-                        <p className="text-xs uppercase text-gray-500">
-                          Category
-                        </p>
-                        <p className="font-medium">
-                          {previewItem.item.category || "—"}
+                        <h4 className="text-lg font-semibold text-gray-900">
+                          {previewItem.kind === "knowledge"
+                            ? previewItem.item.title
+                            : `${
+                                previewItem.item.sheet_type
+                                  ? previewItem.item.sheet_type
+                                      .split("_")
+                                      .map(
+                                        (word) =>
+                                          word.charAt(0).toUpperCase() +
+                                          word.slice(1)
+                                      )
+                                      .join(" ")
+                                  : "Google Sheet"
+                              }`}
+                        </h4>
+                        <p className="text-xs text-gray-600">
+                          {previewItem.kind === "knowledge"
+                            ? (previewItem.item.file_type || "Text").toUpperCase()
+                            : "GOOGLE SHEET"}
                         </p>
                       </div>
-                      <div>
-                        <p className="text-xs uppercase text-gray-500">
-                          Importance
-                        </p>
-                        <p className="font-medium capitalize">
-                          {previewItem.item.importance || "Normal"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs uppercase text-gray-500">
-                          Created
-                        </p>
-                        <p className="font-medium">
-                          {formatDateTime(previewItem.item.created_at)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs uppercase text-gray-500">
-                          Last Used
-                        </p>
-                        <p className="font-medium">
-                          {formatDateTime(
-                            previewItem.item.last_used_at,
-                            "Never"
-                          )}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs uppercase text-gray-500">Usage</p>
-                        <p className="font-medium">
-                          {typeof previewItem.item.usage_count === "number"
-                            ? previewItem.item.usage_count
-                            : "—"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs uppercase text-gray-500">ID</p>
-                        <p className="font-medium break-all">
-                          {previewItem.item.entry_id || previewItem.item.id}
-                        </p>
-                      </div>
-                      {previewItem.item.tags && previewItem.item.tags.length > 0 && (
-                        <div className="md:col-span-2">
-                          <p className="text-xs uppercase text-gray-500">
-                            Tags
-                          </p>
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {previewItem.item.tags.map((tag, index) => (
-                              <span
-                                key={`${tag}-${index}`}
-                                className="rounded-full bg-white px-3 py-1 text-xs font-medium text-indigo-600 shadow-sm"
-                              >
-                                #{tag}
-                              </span>
-                            ))}
+                      <button
+                        type="button"
+                        onClick={() => setPreviewItem(null)}
+                        className="rounded-full border border-transparent p-1 text-gray-500 transition hover:border-gray-300 hover:text-gray-700"
+                        title="Close preview"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="grid gap-4 p-4 text-sm text-gray-700 md:grid-cols-2">
+                      {previewItem.kind === "knowledge" ? (
+                        <>
+                          <div>
+                            <p className="text-xs uppercase text-gray-500">Category</p>
+                            <p className="font-medium">
+                              {previewItem.item.category || "—"}
+                            </p>
                           </div>
-                        </div>
+                          <div>
+                            <p className="text-xs uppercase text-gray-500">Importance</p>
+                            <p className="font-medium capitalize">
+                              {previewItem.item.importance || "Normal"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase text-gray-500">Created</p>
+                            <p className="font-medium">
+                              {formatDateTime(previewItem.item.created_at)}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase text-gray-500">Last Used</p>
+                            <p className="font-medium">
+                              {formatDateTime(
+                                previewItem.item.last_used_at,
+                                "Never"
+                              )}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase text-gray-500">Usage</p>
+                            <p className="font-medium">
+                              {typeof previewItem.item.usage_count === "number"
+                                ? previewItem.item.usage_count
+                                : "—"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase text-gray-500">ID</p>
+                            <p className="break-all font-medium">
+                              {previewItem.item.entry_id || previewItem.item.id}
+                            </p>
+                          </div>
+                          {previewItem.item.tags &&
+                            previewItem.item.tags.length > 0 && (
+                              <div className="md:col-span-2">
+                                <p className="text-xs uppercase text-gray-500">
+                                  Tags
+                                </p>
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                  {previewItem.item.tags.map((tag, index) => (
+                                    <span
+                                      key={`${tag}-${index}`}
+                                      className="rounded-full bg-white px-3 py-1 text-xs font-medium text-sky-600 shadow-sm"
+                                    >
+                                      #{tag}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          {previewItem.item.file_url && (
+                            <div className="md:col-span-2">
+                              <a
+                                href={previewItem.item.file_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm font-semibold text-sky-600 transition hover:border-sky-300 hover:text-sky-700"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                                Open Source Document
+                              </a>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <div>
+                            <p className="text-xs uppercase text-gray-500">
+                              Sheet ID
+                            </p>
+                            <p className="break-all font-medium">
+                              {previewItem.item.sheet_id}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase text-gray-500">
+                              Sheet Type
+                            </p>
+                            <p className="font-medium">
+                              {previewItem.item.sheet_type
+                                ? previewItem.item.sheet_type
+                                    .split("_")
+                                    .map(
+                                      (word) =>
+                                        word.charAt(0).toUpperCase() + word.slice(1)
+                                    )
+                                    .join(" ")
+                                : "General"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase text-gray-500">
+                              Connected
+                            </p>
+                            <p className="font-medium">
+                              {formatDateTime(previewItem.item.created_at)}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase text-gray-500">
+                              Updated
+                            </p>
+                            <p className="font-medium">
+                              {formatDateTime(previewItem.item.updated_at)}
+                            </p>
+                          </div>
+                          <div className="md:col-span-2">
+                            <a
+                              href={`https://docs.google.com/spreadsheets/d/${previewItem.item.sheet_id}/edit`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm font-semibold text-sky-600 transition hover:border-sky-300 hover:text-sky-700"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              Open Google Sheet
+                            </a>
+                          </div>
+                        </>
                       )}
-                      {previewItem.item.file_url && (
-                        <div className="md:col-span-2">
-                          <a
-                            href={previewItem.item.file_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-semibold text-indigo-600 transition hover:border-indigo-300 hover:text-indigo-700"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            Open Source Document
-                          </a>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <div>
-                        <p className="text-xs uppercase text-gray-500">
-                          Sheet ID
-                        </p>
-                        <p className="font-medium break-all">
-                          {previewItem.item.sheet_id}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs uppercase text-gray-500">
-                          Sheet Type
-                        </p>
-                        <p className="font-medium">
-                          {previewItem.item.sheet_type
-                            ? previewItem.item.sheet_type
-                                .split("_")
-                                .map(
-                                  (word) =>
-                                    word.charAt(0).toUpperCase() + word.slice(1)
-                                )
-                                .join(" ")
-                            : "General"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs uppercase text-gray-500">
-                          Connected
-                        </p>
-                        <p className="font-medium">
-                          {formatDateTime(previewItem.item.created_at)}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs uppercase text-gray-500">
-                          Updated
-                        </p>
-                        <p className="font-medium">
-                          {formatDateTime(previewItem.item.updated_at)}
-                        </p>
-                      </div>
-                      <div className="md:col-span-2">
-                        <a
-                          href={`https://docs.google.com/spreadsheets/d/${previewItem.item.sheet_id}/edit`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-semibold text-indigo-600 transition hover:border-indigo-300 hover:text-indigo-700"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                          Open Google Sheet
-                        </a>
-                      </div>
-                    </>
-                  )}
-                </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -1216,7 +1230,7 @@ export default function KnowledgePage() {
                   value={textTitle}
                   onChange={(e) => setTextTitle(e.target.value)}
                   placeholder="e.g., Brand Guidelines"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                 />
               </div>
 
@@ -1230,7 +1244,7 @@ export default function KnowledgePage() {
                   onChange={(e) => setTextContent(e.target.value)}
                   placeholder="Enter your knowledge content here... You can paste articles, documentation, FAQs, or any text-based information that your AI agents should know."
                   rows={12}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all resize-none"
                 />
                 <p
                   className={`text-sm mt-2 ${
@@ -1254,7 +1268,7 @@ export default function KnowledgePage() {
                   <select
                     value={textCategory}
                     onChange={(e) => setTextCategory(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all bg-white"
                   >
                     <option value="branding">Branding</option>
                     <option value="products">Products</option>
@@ -1332,7 +1346,7 @@ export default function KnowledgePage() {
                     }
                   }}
                   placeholder="Type a tag and press Enter"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                 />
               </div>
 
@@ -1392,7 +1406,7 @@ export default function KnowledgePage() {
                   disabled={
                     submittingText || !textTitle.trim() || !textContent.trim()
                   }
-                  className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-gradient-to-r from-sky-600 to-cyan-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-cyan-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submittingText ? "Saving..." : "Add to Knowledge Base"}
                 </button>
@@ -1685,8 +1699,8 @@ export default function KnowledgePage() {
                       Only one sheet allowed per workspace
                     </div>
                   </div>
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-sm text-blue-700">
+                  <div className="p-3 bg-sky-50 border border-sky-200 rounded-lg">
+                    <p className="text-sm text-sky-700">
                       ℹ️ You can view and manage your connected Google Sheet in
                       the Knowledge Library below.
                     </p>
@@ -2185,7 +2199,7 @@ function ChatPanel({
               <div
                 className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                   message.role === "user"
-                    ? "rounded-br-sm bg-blue-600 text-white"
+                    ? "rounded-br-sm bg-sky-600 text-white"
                     : "rounded-bl-sm border border-gray-200 bg-white text-gray-800"
                 }`}
               >
@@ -2256,13 +2270,13 @@ function ChatPanel({
             placeholder="Type a message..."
             rows={1}
             disabled={!!disabledReason}
-            className="flex-1 resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100"
+            className="flex-1 resize-none rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:cursor-not-allowed disabled:bg-gray-100"
           />
           <button
             type="button"
             onClick={handleSend}
             disabled={!input.trim() || sending || !!disabledReason}
-            className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {sending ? "Sending..." : "Send"}
           </button>

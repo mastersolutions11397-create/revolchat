@@ -126,7 +126,7 @@ export default function Home() {
         <div className="absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-[radial-gradient(1200px_500px_at_50%_-120px,rgba(255,255,255,0.15),transparent_70%)]" />
           <div className="absolute -top-24 -right-24 w-[520px] h-[520px] rounded-full bg-linear-to-br from-slate-300/20 via-slate-200/10 to-transparent blur-3xl" />
-          <div className="absolute -bottom-24 -left-24 w-[520px] h-[520px] rounded-full bg-linear-to-br from-indigo-300/10 via-blue-200/10 to-transparent blur-3xl" />
+          <div className="absolute -bottom-24 -left-24 w-[520px] h-[520px] rounded-full bg-linear-to-br from-sky-300/10 via-sky-200/10 to-transparent blur-3xl" />
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-12">

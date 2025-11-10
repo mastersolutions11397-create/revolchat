@@ -40,7 +40,7 @@ export default function PricingPage() {
       ],
       cta: "Start Free Trial",
       popular: true,
-      gradient: "from-purple-500 to-blue-500",
+      gradient: "from-purple-500 to-sky-500",
     },
     {
       name: "Enterprise",

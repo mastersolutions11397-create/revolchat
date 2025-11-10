@@ -20,9 +20,9 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-white via-sky-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-sky-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
             <span className="text-white text-2xl">🧊</span>
           </div>
           <p className="text-gray-600">Loading...</p>

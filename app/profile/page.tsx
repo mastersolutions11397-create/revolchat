@@ -116,7 +116,7 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-white via-sky-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading profile...</p>
@@ -126,7 +126,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-white via-sky-50 to-purple-50">
       {/* Navigation */}
       <nav className="bg-white/80 backdrop-blur-md border-b border-purple-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -280,7 +280,7 @@ export default function ProfilePage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50"
+                  className="bg-gradient-to-r from-purple-600 to-sky-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-sky-700 transition-all disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Save Changes"}
                 </button>
@@ -381,7 +381,7 @@ export default function ProfilePage() {
                     }
                   }}
                   disabled={saving}
-                  className="mt-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all disabled:opacity-50"
+                  className="mt-4 bg-gradient-to-r from-purple-600 to-sky-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-sky-700 transition-all disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Save Preferences"}
                 </button>
@@ -393,7 +393,7 @@ export default function ProfilePage() {
           <div className="space-y-8">
             {/* Profile Picture */}
             <div className="yeti-card rounded-2xl p-8 yeti-shadow text-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-sky-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-white text-2xl font-bold">
                   {getInitials()}
                 </span>
@@ -436,7 +436,7 @@ export default function ProfilePage() {
               <div className="mt-6">
                 <Link
                   href="/plans"
-                  className="block w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all text-center"
+                  className="block w-full bg-gradient-to-r from-purple-600 to-sky-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-purple-700 hover:to-sky-700 transition-all text-center"
                 >
                   Upgrade Plan
                 </Link>
