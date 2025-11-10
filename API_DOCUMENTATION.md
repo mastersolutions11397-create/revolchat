@@ -73,6 +73,21 @@ CREATE TABLE yetti_workspace_members (
 );
 ```
 
+### yetti_workspace_hours
+
+```sql
+CREATE TABLE yetti_workspace_hours (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id UUID NOT NULL UNIQUE REFERENCES yetti_workspaces(id) ON DELETE CASCADE,
+    timezone TEXT NOT NULL DEFAULT 'UTC',
+    schedule JSONB NOT NULL DEFAULT '{}'::jsonb,
+    respect_schedule BOOLEAN NOT NULL DEFAULT TRUE,
+    workspace_online BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
+
 ### yetti_ai_agents
 
 ```sql
@@ -288,6 +303,18 @@ Update workspace
 #### DELETE /api/yetti/workspaces/{workspace_id}
 
 Delete workspace
+
+#### GET /api/yetti/workspaces/{workspace_id}/hours
+
+Fetch the working hours configuration for a workspace. Returns timezone, schedule blocks per weekday, and the current override status.
+
+#### PUT /api/yetti/workspaces/{workspace_id}/hours
+
+Create or replace the working hours configuration. Accepts a `timezone`, `schedule` keyed by weekday, `respect_schedule`, and the `workspace_online` override flag.
+
+#### PATCH /api/yetti/workspaces/{workspace_id}/hours/status
+
+Toggle the manual override that forces the workspace online/offline regardless of the saved schedule.
 
 #### POST /api/yetti/workspaces/{workspace_id}/members
 

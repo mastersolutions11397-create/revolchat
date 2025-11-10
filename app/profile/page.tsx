@@ -443,25 +443,25 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="yeti-card rounded-2xl p-8 yeti-shadow">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6">
-                Quick Actions
+            {/* Discord Invite */}
+            <div className="yeti-card rounded-2xl p-8 yeti-shadow text-center">
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                Join the YETTI Community
               </h3>
-              <div className="space-y-3">
-                <Link
-                  href="/dashboard"
-                  className="block w-full border-2 border-purple-200 text-purple-700 py-3 px-4 rounded-lg font-semibold hover:bg-purple-50 transition-all text-center"
-                >
-                  Go to Dashboard
-                </Link>
-                <button className="block w-full border-2 border-gray-200 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-50 transition-all">
-                  Download Data
-                </button>
-                <button className="block w-full border-2 border-red-200 text-red-700 py-3 px-4 rounded-lg font-semibold hover:bg-red-50 transition-all">
-                  Delete Account
-                </button>
-              </div>
+              <p className="text-sm text-gray-600 mb-6">
+                Connect with fellow builders, share tips, and get direct support in our Discord server.
+              </p>
+              <Link
+                href="https://discord.gg/your-invite-code"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 w-full bg-[#5865F2] text-white py-3 px-4 rounded-lg font-semibold transition-all hover:bg-[#4752C4]"
+              >
+                <span role="img" aria-label="Discord">
+                  💬
+                </span>
+                Join our Discord
+              </Link>
             </div>
           </div>
         </div>

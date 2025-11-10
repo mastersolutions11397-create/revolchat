@@ -14,7 +14,8 @@ from app.controllers import (
     interaction_controller,
     integration_controller,
     webhook_controller,
-    workspace_controller  # Add this import
+    workspace_controller,
+    workspace_hours_controller,  # Add this import
 )
 
 app = FastAPI(
@@ -34,7 +35,9 @@ app.add_middleware(
 
 # Include routers
 app.include_router(dashboard_controller.router)
-app.include_router(workspace_controller.router)  # Add this line
+app.include_router(workspace_controller.router)
+app.include_router(workspace_hours_controller.router)  # Add this line
+app.include_router(workspace_hours_controller.router)  # Add this line
 app.include_router(analytics_controller.router)
 app.include_router(interaction_controller.router)
 app.include_router(integration_controller.router)
@@ -362,3 +365,90 @@ curl -X GET "http://localhost:8000/api/yetti/workspaces" \
 ✅ **Database Integration** - Creates workspace and membership records
 
 The workspace creation API is now fully functional and integrated with your frontend!
+
+## Workspace Hours API (app/controllers/workspace_hours_controller.py)
+
+The workspace hours controller exposes endpoints for configuring weekly availability and manual overrides:
+
+### Database Table
+
+```sql
+CREATE TABLE IF NOT EXISTS yetti_workspace_hours (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id UUID NOT NULL UNIQUE REFERENCES yetti_workspaces(id) ON DELETE CASCADE,
+    timezone TEXT NOT NULL DEFAULT 'UTC',
+    schedule JSONB NOT NULL DEFAULT '{}'::jsonb,
+    respect_schedule BOOLEAN NOT NULL DEFAULT TRUE,
+    workspace_online BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+### GET /api/yetti/workspaces/{workspace_id}/hours
+
+Fetch the saved working hours for a workspace.
+
+**Response**
+
+```json
+{
+  "workspace_id": "uuid",
+  "timezone": "Asia/Karachi",
+  "schedule": {
+    "monday": [
+      { "start": "09:00", "end": "17:00" }
+    ],
+    "tuesday": [
+      { "start": "09:00", "end": "17:00" }
+    ]
+  },
+  "respect_schedule": true,
+  "workspace_online": true,
+  "created_at": "2025-01-10T12:00:00Z",
+  "updated_at": "2025-01-10T12:00:00Z"
+}
+```
+
+### PUT /api/yetti/workspaces/{workspace_id}/hours
+
+Create or update the weekly schedule, timezone, and current override flag.
+
+**Request**
+
+```json
+{
+  "timezone": "Asia/Karachi",
+  "schedule": {
+    "monday": [
+      { "start": "09:00", "end": "17:00" }
+    ],
+    "friday": [
+      { "start": "10:00", "end": "14:00" },
+      { "start": "16:00", "end": "19:00" }
+    ]
+  },
+  "respect_schedule": true,
+  "workspace_online": true
+}
+```
+
+**Response**
+
+Returns the same payload as `GET`, reflecting the latest data.
+
+### PATCH /api/yetti/workspaces/{workspace_id}/hours/status
+
+Toggle the workspace on/off regardless of the saved schedule.
+
+**Request**
+
+```json
+{
+  "workspace_online": false
+}
+```
+
+**Response**
+
+Returns the updated configuration including schedule and timezone.

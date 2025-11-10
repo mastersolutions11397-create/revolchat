@@ -1,18 +1,42 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { dashboardAPI, type DashboardResponse } from "@/lib/api";
+import {
+  dashboardAPI,
+  type DashboardResponse,
+  workspaceHoursAPI,
+  workspaceAPI,
+} from "@/lib/api";
 import Link from "next/link";
-import { MessageSquare, Link2, Zap, CheckCircle2 } from "lucide-react";
+import {
+  MessageSquare,
+  Link2,
+  Zap,
+  CheckCircle2,
+  Loader2,
+  Power,
+} from "lucide-react";
+import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { currentWorkspace, selectedWorkspaceId, workspaces } = useWorkspace();
   const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(
     null
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [workspaceOnline, setWorkspaceOnline] = useState<boolean | null>(null);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState<string | null>(
+    null
+  );
+  const [workspaceName, setWorkspaceName] = useState<string>("Workspace");
+  const workspaceId = useMemo(
+    () => selectedWorkspaceId || currentWorkspace?.id || null,
+    [selectedWorkspaceId, currentWorkspace?.id]
+  );
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -58,6 +82,86 @@ export default function DashboardPage() {
     }
   }, [user]);
 
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      if (!workspaceId) {
+        setWorkspaceOnline(null);
+        return;
+      }
+      setAvailabilityLoading(true);
+      setAvailabilityError(null);
+      try {
+        const result = await workspaceHoursAPI.getWorkingHours(workspaceId);
+        setWorkspaceOnline(result.workspace_online);
+      } catch (err: any) {
+        if (err?.message?.includes("404")) {
+          setWorkspaceOnline(true);
+        } else {
+          console.error("Failed to load workspace availability", err);
+          setAvailabilityError(
+            err?.message || "Failed to load workspace availability"
+          );
+        }
+      } finally {
+        setAvailabilityLoading(false);
+      }
+    };
+    fetchAvailability();
+  }, [workspaceId]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const derivedName =
+      currentWorkspace?.name ||
+      workspaces.find((w) => w.id === workspaceId)?.name;
+
+    if (derivedName) {
+      setWorkspaceName(derivedName);
+    } else if (workspaceId) {
+      const loadWorkspaceName = async () => {
+        try {
+          const workspace = await workspaceAPI.getWorkspace(workspaceId);
+          if (!cancelled && workspace?.name) {
+            setWorkspaceName(workspace.name);
+          }
+        } catch (err) {
+          console.error("Failed to load workspace details", err);
+          if (!cancelled) {
+            setWorkspaceName("Workspace");
+          }
+        }
+      };
+      loadWorkspaceName();
+    } else {
+      setWorkspaceName("Workspace");
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [workspaceId, currentWorkspace?.name, workspaces]);
+
+  const handleToggleWorkspace = async () => {
+    if (!workspaceId || workspaceOnline === null) return;
+    setAvailabilityLoading(true);
+    setAvailabilityError(null);
+    try {
+      const response = await workspaceHoursAPI.updateWorkspaceOnlineStatus(
+        workspaceId,
+        !workspaceOnline
+      );
+      setWorkspaceOnline(response.workspace_online);
+    } catch (err: any) {
+      console.error("Failed to update workspace status", err);
+      setAvailabilityError(
+        err?.message || "Failed to update workspace availability"
+      );
+    } finally {
+      setAvailabilityLoading(false);
+    }
+  };
+
   const getUserName = () => {
     if (dashboardData?.user_profile?.first_name) {
       return dashboardData.user_profile.first_name;
@@ -90,12 +194,48 @@ export default function DashboardPage() {
             <p className="text-white/70">
               Overview of your knowledge base, integrations, and performance.
             </p>
+            <p className="mt-1 text-sm font-medium text-[#cce068]">
+              Working in {workspaceName}
+            </p>
           </div>
           <div className="text-right">
             <p className="text-sm text-white/60">Last updated</p>
             <p className="text-lg font-semibold text-white">
               {dashboardData?.quick_stats ? "Just now" : "—"}
             </p>
+          </div>
+          <div className="flex flex-col items-end gap-3">
+            <div className="text-right">
+              <p className="text-sm text-white/60">Last updated</p>
+              <p className="text-lg font-semibold text-white">
+                {dashboardData?.quick_stats ? "Just now" : "—"}
+              </p>
+            </div>
+            <button
+              onClick={handleToggleWorkspace}
+              disabled={
+                availabilityLoading || workspaceOnline === null || !workspaceId
+              }
+              className={`inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white transition ${
+                availabilityLoading || !workspaceId
+                  ? "cursor-not-allowed opacity-50"
+                  : "hover:bg-white/20"
+              }`}
+            >
+              {availabilityLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Power
+                  className={`h-4 w-4 ${
+                    workspaceOnline ? "text-green-400" : "text-red-400"
+                  }`}
+                />
+              )}
+              {workspaceOnline ? "Workspace Online" : "Workspace Offline"}
+            </button>
+            {availabilityError && (
+              <p className="text-xs text-red-300">{availabilityError}</p>
+            )}
           </div>
         </div>
         <div className="mt-6 flex flex-wrap gap-3">

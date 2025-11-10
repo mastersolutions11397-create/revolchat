@@ -13,6 +13,7 @@ import {
   Settings,
   Bell,
   User as UserIcon,
+  CalendarClock,
 } from "lucide-react";
 
 function WorkspaceSelector() {
@@ -173,6 +174,29 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                   } overflow-hidden`}
                 >
                   Settings
+                </span>
+              </Link>
+              <Link
+                href={buildLink("/dashboard/workspace-hours")}
+                className={`flex items-center rounded-lg px-3 py-3 transition-colors ${
+                  isActive("/dashboard/workspace-hours")
+                    ? "bg-blue-100 text-blue-700 font-semibold"
+                    : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                }`}
+              >
+                <CalendarClock
+                  className={`h-5 w-5 flex-shrink-0 ${
+                    sidebarExpanded ? "mr-3" : "mx-auto"
+                  }`}
+                />
+                <span
+                  className={`text-sm font-medium transition-all duration-200 ${
+                    sidebarExpanded
+                      ? "max-w-[12rem] opacity-100"
+                      : "max-w-0 opacity-0"
+                  } overflow-hidden`}
+                >
+                  Working Hours
                 </span>
               </Link>
             </nav>

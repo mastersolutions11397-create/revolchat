@@ -10,7 +10,6 @@ import {
 } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
-import { ActivityLogger } from "@/lib/utils/activityLogger";
 import { knowledgeAPI } from "@/lib/api/knowledge";
 import type { KnowledgeRecord, KnowledgeImportance } from "@/lib/api/knowledge";
 import {
@@ -541,21 +540,8 @@ export default function KnowledgePage() {
         sheet_type: sheetType,
       });
 
-      // Log activity
-      await ActivityLogger.logIntegrationEvent(
-        workspaceId,
-        "google_sheets",
-        "connected",
-        `Connected ${templateCards[clickedTemplateIndex]}: ${googleSheetLink}`
-      );
-
       // Refresh Google Sheets list
       await loadGoogleSheets(workspaceId);
-
-      // Refresh dashboard activities
-      if ((window as any).refreshDashboardActivities) {
-        (window as any).refreshDashboardActivities();
-      }
 
       // Reset states
       setGoogleSheetLink("");
@@ -580,21 +566,8 @@ export default function KnowledgePage() {
     try {
       await googleSheetsAPI.deleteGoogleSheet(workspaceId, sheetId);
 
-      // Log activity
-      await ActivityLogger.logIntegrationEvent(
-        workspaceId,
-        "google_sheets",
-        "disconnected",
-        `Disconnected Google Sheet: ${sheetId}`
-      );
-
       // Refresh Google Sheets list
       await loadGoogleSheets(workspaceId);
-
-      // Refresh dashboard activities
-      if ((window as any).refreshDashboardActivities) {
-        (window as any).refreshDashboardActivities();
-      }
     } catch (error: any) {
       setSheetsError(error?.message || "Failed to delete Google Sheet");
       console.error("Error deleting Google Sheet:", error);
@@ -615,20 +588,8 @@ export default function KnowledgePage() {
     try {
       await knowledgeAPI.deleteKnowledge(workspaceId, knowledgeId);
 
-      // Log activity
-      await ActivityLogger.logKnowledgeUpdate(
-        workspaceId,
-        "text",
-        `Deleted knowledge entry: ${title}`
-      );
-
       // Refresh knowledge list
       await loadKnowledge(workspaceId);
-
-      // Refresh dashboard activities
-      if ((window as any).refreshDashboardActivities) {
-        (window as any).refreshDashboardActivities();
-      }
     } catch (error: any) {
       setKnowledgeError(error?.message || "Failed to delete knowledge entry");
       console.error("Error deleting knowledge entry:", error);
@@ -710,16 +671,6 @@ export default function KnowledgePage() {
               .slice(0, 3)
               .join(", ")}${uploadedNames.length > 3 ? ", …" : ""})`;
 
-      await ActivityLogger.logKnowledgeUpdate(
-        activeWorkspaceId,
-        "pdf",
-        summary
-      );
-
-      if ((window as any).refreshDashboardActivities) {
-        (window as any).refreshDashboardActivities();
-      }
-
       await loadKnowledge(activeWorkspaceId);
 
       setPdfSuccessMessage(`${summary} successfully.`);
@@ -739,47 +690,11 @@ export default function KnowledgePage() {
     }
   };
 
-  const handleGoogleSheetsConnect = async () => {
-    if (currentWorkspace?.id) {
-      try {
-        // Simulate Google Sheets connection
-        setSheetsConnected(true);
-
-        // Log activity
-        await ActivityLogger.logIntegrationEvent(
-          currentWorkspace.id,
-          "google_sheets",
-          "connected",
-          "Google Sheets integration established"
-        );
-
-        // Refresh dashboard activities
-        if ((window as any).refreshDashboardActivities) {
-          (window as any).refreshDashboardActivities();
-        }
-      } catch (error) {
-        console.error("Error connecting Google Sheets:", error);
-      }
-    }
-  };
-
   const handleTextSubmit = async () => {
     if (textContent.trim() && currentWorkspace?.id) {
       try {
         // Handle text knowledge submission
         console.log("Text knowledge submitted:", textContent);
-
-        // Log activity
-        await ActivityLogger.logKnowledgeUpdate(
-          currentWorkspace.id,
-          "text",
-          `Added ${textContent.length} characters of text knowledge`
-        );
-
-        // Refresh dashboard activities
-        if ((window as any).refreshDashboardActivities) {
-          (window as any).refreshDashboardActivities();
-        }
 
         // Clear form
         resetTextForm();
@@ -1458,15 +1373,7 @@ export default function KnowledgePage() {
                         importance,
                         tags,
                       });
-                      await ActivityLogger.logKnowledgeUpdate(
-                        activeWorkspaceId,
-                        "text",
-                        `Added text knowledge: ${textTitle.trim()}`
-                      );
                       await loadKnowledge(activeWorkspaceId);
-                      if ((window as any).refreshDashboardActivities) {
-                        (window as any).refreshDashboardActivities();
-                      }
                       setTextTitle("");
                       setTextContent("");
                       setTextCategory("branding");
