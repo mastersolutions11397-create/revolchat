@@ -2,16 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import {
   LayoutDashboard,
-  MessageSquare,
   BookOpen,
   Link2,
-  BarChart3,
   Settings,
   Bell,
   User as UserIcon,
@@ -38,6 +36,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { selectedWorkspaceId } = useWorkspace();
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -62,103 +61,151 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   return (
       <div className="min-h-screen bg-white">
         {/* Sidebar */}
-        <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white/90 backdrop-blur-md border-r border-gray-200">
-          <div className="flex flex-col h-full">
+        <div
+          className={`fixed inset-y-0 left-0 z-50 bg-white/90 backdrop-blur-md border-r border-gray-200 transition-all duration-300 ease-in-out ${
+            sidebarExpanded ? "w-64" : "w-20"
+          }`}
+          onMouseEnter={() => setSidebarExpanded(true)}
+          onMouseLeave={() => setSidebarExpanded(false)}
+        >
+          <div className="flex h-full flex-col">
             {/* Logo */}
-            <div className="flex items-center h-16 px-6 border-b border-gray-200">
+            <div className="flex h-16 items-center justify-center border-b border-gray-200 px-4">
               <Link
                 href="/"
-                className="text-xl font-extrabold tracking-tight text-gray-900"
+                className={`text-xl font-extrabold tracking-tight text-gray-900 transition-opacity duration-300 ${
+                  sidebarExpanded ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}
               >
                 YETTI<span className="text-gray-400">.AI</span>
               </Link>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 px-4 py-6 space-y-2">
+            <nav className="flex-1 space-y-2 px-2 py-6">
               <Link
                 href={buildLink("/dashboard")}
-                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+                className={`flex items-center rounded-lg px-3 py-3 transition-colors ${
                   isActive("/dashboard")
-                    ? "bg-purple-100 text-purple-700 font-semibold"
-                    : "text-gray-700 hover:bg-purple-50 hover:text-purple-600"
+                    ? "bg-blue-100 text-blue-700 font-semibold"
+                    : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
                 }`}
               >
-                <LayoutDashboard className="w-4 h-4 mr-3" /> Dashboard
-              </Link>
-              <Link
-                href={buildLink("/dashboard/chat")}
-                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
-                  isActive("/dashboard/chat")
-                    ? "bg-purple-100 text-purple-700 font-semibold"
-                    : "text-gray-700 hover:bg-purple-50 hover:text-purple-600"
-                }`}
-              >
-                <MessageSquare className="w-4 h-4 mr-3" /> Chat
+                <LayoutDashboard
+                  className={`h-5 w-5 flex-shrink-0 ${
+                    sidebarExpanded ? "mr-3" : "mx-auto"
+                  }`}
+                />
+                <span
+                  className={`text-sm font-medium transition-all duration-200 ${
+                    sidebarExpanded
+                      ? "max-w-[12rem] opacity-100"
+                      : "max-w-0 opacity-0"
+                  } overflow-hidden`}
+                >
+                  Dashboard
+                </span>
               </Link>
               <Link
                 href={buildLink("/dashboard/knowledge-base")}
-                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+                className={`flex items-center rounded-lg px-3 py-3 transition-colors ${
                   isActive("/dashboard/knowledge-base")
-                    ? "bg-purple-100 text-purple-700 font-semibold"
-                    : "text-gray-700 hover:bg-purple-50 hover:text-purple-600"
+                    ? "bg-blue-100 text-blue-700 font-semibold"
+                    : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
                 }`}
               >
-                <BookOpen className="w-4 h-4 mr-3" /> Knowledge Base
+                <BookOpen
+                  className={`h-5 w-5 flex-shrink-0 ${
+                    sidebarExpanded ? "mr-3" : "mx-auto"
+                  }`}
+                />
+                <span
+                  className={`text-sm font-medium transition-all duration-200 ${
+                    sidebarExpanded
+                      ? "max-w-[12rem] opacity-100"
+                      : "max-w-0 opacity-0"
+                  } overflow-hidden`}
+                >
+                  Knowledge Base
+                </span>
               </Link>
               <Link
                 href={buildLink("/dashboard/integrations")}
-                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+                className={`flex items-center rounded-lg px-3 py-3 transition-colors ${
                   isActive("/dashboard/integrations")
-                    ? "bg-purple-100 text-purple-700 font-semibold"
-                    : "text-gray-700 hover:bg-purple-50 hover:text-purple-600"
+                    ? "bg-blue-100 text-blue-700 font-semibold"
+                    : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
                 }`}
               >
-                <Link2 className="w-4 h-4 mr-3" /> Integrations
-              </Link>
-              <Link
-                href={buildLink("/dashboard/analytics")}
-                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
-                  isActive("/dashboard/analytics")
-                    ? "bg-purple-100 text-purple-700 font-semibold"
-                    : "text-gray-700 hover:bg-purple-50 hover:text-purple-600"
-                }`}
-              >
-                <BarChart3 className="w-4 h-4 mr-3" /> Analytics
+                <Link2
+                  className={`h-5 w-5 flex-shrink-0 ${
+                    sidebarExpanded ? "mr-3" : "mx-auto"
+                  }`}
+                />
+                <span
+                  className={`text-sm font-medium transition-all duration-200 ${
+                    sidebarExpanded
+                      ? "max-w-[12rem] opacity-100"
+                      : "max-w-0 opacity-0"
+                  } overflow-hidden`}
+                >
+                  Integrations
+                </span>
               </Link>
               <Link
                 href={buildLink("/dashboard/settings")}
-                className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+                className={`flex items-center rounded-lg px-3 py-3 transition-colors ${
                   isActive("/dashboard/settings")
-                    ? "bg-purple-100 text-purple-700 font-semibold"
-                    : "text-gray-700 hover:bg-purple-50 hover:text-purple-600"
+                    ? "bg-blue-100 text-blue-700 font-semibold"
+                    : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
                 }`}
               >
-                <Settings className="w-4 h-4 mr-3" /> Settings
+                <Settings
+                  className={`h-5 w-5 flex-shrink-0 ${
+                    sidebarExpanded ? "mr-3" : "mx-auto"
+                  }`}
+                />
+                <span
+                  className={`text-sm font-medium transition-all duration-200 ${
+                    sidebarExpanded
+                      ? "max-w-[12rem] opacity-100"
+                      : "max-w-0 opacity-0"
+                  } overflow-hidden`}
+                >
+                  Settings
+                </span>
               </Link>
             </nav>
 
             {/* User Profile */}
-            <div className="p-4 border-t border-gray-200">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center font-semibold text-sm">
+            <div className="border-t border-gray-200 p-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-900 text-sm font-semibold text-white">
                   {(user?.user_metadata?.first_name?.[0] ||
                     user?.email?.[0]?.toUpperCase() ||
                     "U") as string}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
+                <div
+                  className={`min-w-0 transition-all duration-200 ${
+                    sidebarExpanded
+                      ? "max-w-[10rem] opacity-100"
+                      : "max-w-0 opacity-0"
+                  } overflow-hidden`}
+                >
+                  <p className="truncate text-sm font-medium text-gray-900">
                     {user?.user_metadata?.first_name &&
                     user?.user_metadata?.last_name
                       ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
                       : user?.email}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                  <p className="truncate text-xs text-gray-500">{user?.email}</p>
                 </div>
               </div>
               <button
                 onClick={handleSignOut}
-                className="w-full mt-3 text-left px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                className={`mt-3 w-full rounded-lg px-3 py-2 text-left text-sm text-gray-600 transition-colors hover:bg-red-50 hover:text-red-600 ${
+                  sidebarExpanded ? "opacity-100" : "opacity-0 pointer-events-none"
+                }`}
               >
                 Sign Out
               </button>
@@ -167,9 +214,13 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Main Content */}
-        <div className="pl-64">
+        <div
+          className={`transition-all duration-300 ease-in-out ${
+            sidebarExpanded ? "pl-64" : "pl-20"
+          }`}
+        >
           {/* Top Navigation */}
-          <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 h-16 flex items-center justify-between px-6">
+          <header className="flex h-16 items-center justify-between border-b border-gray-200 bg-white/80 px-6 backdrop-blur-md">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
             </div>
@@ -187,7 +238,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           </header>
 
           {/* Page Content */}
-          <main className="p-6">{children}</main>
+          <main className="p-6 transition-all duration-300">{children}</main>
         </div>
       </div>
   );

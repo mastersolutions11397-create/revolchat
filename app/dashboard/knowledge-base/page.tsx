@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ElementType,
+} from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { ActivityLogger } from "@/lib/utils/activityLogger";
@@ -11,6 +18,52 @@ import {
   extractSheetIdFromUrl,
   type GoogleSheet,
 } from "@/lib/api/google-sheets";
+import { chatAPI } from "@/lib/api/chat";
+import ReactMarkdown from "react-markdown";
+import {
+  Eye,
+  ExternalLink,
+  FileDown,
+  FileSpreadsheet,
+  FileText,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
+
+type PreviewTarget =
+  | { kind: "knowledge"; item: KnowledgeRecord }
+  | { kind: "sheet"; item: GoogleSheet };
+
+type KnowledgeTableRow =
+  | {
+      kind: "knowledge";
+      id: string;
+      title: string;
+      typeDisplay: string;
+      icon: ElementType;
+      category: string;
+      usage: string;
+      updated: string;
+      importance: string | null;
+      link: string | null;
+      deleteId: string;
+      item: KnowledgeRecord;
+    }
+  | {
+      kind: "sheet";
+      id: string;
+      title: string;
+      typeDisplay: string;
+      icon: ElementType;
+      category: string;
+      usage: string;
+      updated: string;
+      importance: null;
+      link: string | null;
+      deleteId: string;
+      sheet: GoogleSheet;
+    };
 
 export default function KnowledgePage() {
   const { user } = useAuth();
@@ -66,6 +119,9 @@ export default function KnowledgePage() {
   const [sheetsError, setSheetsError] = useState<string | null>(null);
   const [submittingSheet, setSubmittingSheet] = useState(false);
   const [showTemplateCards, setShowTemplateCards] = useState(false);
+  const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
+  const addMenuRef = useRef<HTMLDivElement | null>(null);
+  const [previewItem, setPreviewItem] = useState<PreviewTarget | null>(null);
 
   const cardLinks = [
     "https://docs.google.com/spreadsheets/d/1aQz9uW585_1u8u_ElIrfmO5ybazwxt53jTRh12LRif8/edit?usp=share_link",
@@ -102,7 +158,7 @@ export default function KnowledgePage() {
   }).length;
   const connectedSheetsCount = googleSheets.length > 0 ? 1 : 0; // Only one sheet allowed per workspace
   const hasGoogleSheet = googleSheets.length > 0;
-
+  const hasKnowledge = knowledgeItems.length > 0 || googleSheets.length > 0;
   const formatDateTime = (value?: string | null, emptyFallback = "Unknown") => {
     if (!value) {
       return emptyFallback;
@@ -113,6 +169,65 @@ export default function KnowledgePage() {
     }
     return date.toLocaleString();
   };
+
+  const tableRows = useMemo<KnowledgeTableRow[]>(() => {
+    const knowledgeRows = knowledgeItems.map((item) => {
+      const normalizedType =
+        (item.file_type ?? "").trim().toLowerCase() || "text";
+      const typeDisplay =
+        normalizedType.charAt(0).toUpperCase() + normalizedType.slice(1);
+      const icon: ElementType =
+        normalizedType === "pdf" ? FileDown : FileText;
+
+      return {
+        kind: "knowledge" as const,
+        id: item.id,
+        title: item.title,
+        typeDisplay,
+        icon,
+        category: item.category || "—",
+        usage:
+          typeof item.usage_count === "number"
+            ? item.usage_count.toString()
+            : "—",
+        updated: formatDateTime(
+          item.last_used_at || (item as any).updated_at || item.created_at,
+          "Never"
+        ),
+        importance: item.importance ?? null,
+        link: item.file_url || null,
+        deleteId: item.entry_id || item.id,
+        item,
+      };
+    });
+
+    const sheetRows = googleSheets.map((sheet) => {
+      const sheetTypeLabel = sheet.sheet_type
+        ? sheet.sheet_type
+            .split("_")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ")
+        : "Google Sheet";
+      const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheet.sheet_id}/edit`;
+
+      return {
+        kind: "sheet" as const,
+        id: sheet.id,
+        title: `${sheetTypeLabel}`,
+        typeDisplay: "Google Sheet",
+        icon: FileSpreadsheet as ElementType,
+        category: sheetTypeLabel,
+        usage: "—",
+        updated: formatDateTime(sheet.updated_at),
+        importance: null,
+        link: sheetUrl,
+        deleteId: sheet.id,
+        sheet,
+      };
+    });
+
+    return [...knowledgeRows, ...sheetRows];
+  }, [knowledgeItems, googleSheets]);
 
   const loadKnowledge = useCallback(async (id: string) => {
     setKnowledgeLoading(true);
@@ -163,6 +278,37 @@ export default function KnowledgePage() {
     loadGoogleSheets(workspaceId);
   }, [workspaceId, loadKnowledge, loadGoogleSheets]);
 
+  useEffect(() => {
+    if (!isAddMenuOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        addMenuRef.current &&
+        event.target instanceof Node &&
+        !addMenuRef.current.contains(event.target)
+      ) {
+        setIsAddMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isAddMenuOpen]);
+
+  useEffect(() => {
+    if (!previewItem) return;
+    if (
+      (previewItem.kind === "knowledge" &&
+        !knowledgeItems.some((item) => item.id === previewItem.item.id)) ||
+      (previewItem.kind === "sheet" &&
+        !googleSheets.some((sheet) => sheet.id === previewItem.item.id))
+    ) {
+      setPreviewItem(null);
+    }
+  }, [previewItem, knowledgeItems, googleSheets]);
+
   const handleRefreshKnowledge = useCallback(() => {
     if (workspaceId) {
       loadKnowledge(workspaceId);
@@ -189,6 +335,42 @@ export default function KnowledgePage() {
     setPdfError(null);
     setPdfSuccessMessage(null);
     setIsProcessingPdfs(false);
+  };
+
+  const closeActiveTab = () => {
+    setActiveTab(null);
+    setIsAddMenuOpen(false);
+  };
+
+  const openTextForm = () => {
+    resetPdfForm();
+    setSheetsConnected(false);
+    setClickedTemplateIndex(null);
+    setShowLinkInput(false);
+    setGoogleSheetLink("");
+    setActiveTab("text");
+    setIsAddMenuOpen(false);
+  };
+
+  const openPdfForm = () => {
+    resetTextForm();
+    setSheetsConnected(false);
+    setClickedTemplateIndex(null);
+    setShowLinkInput(false);
+    setGoogleSheetLink("");
+    setActiveTab("pdf");
+    setIsAddMenuOpen(false);
+  };
+
+  const openSheetsForm = () => {
+    resetTextForm();
+    resetPdfForm();
+    setSheetsConnected(false);
+    setClickedTemplateIndex(null);
+    setShowLinkInput(false);
+    setGoogleSheetLink("");
+    setActiveTab("sheets");
+    setIsAddMenuOpen(false);
   };
 
   useEffect(() => {
@@ -600,8 +782,8 @@ export default function KnowledgePage() {
         }
 
         // Clear form
-        setTextContent("");
-        setActiveTab(null);
+        resetTextForm();
+        closeActiveTab();
       } catch (error) {
         console.error("Error submitting text knowledge:", error);
       }
@@ -609,15 +791,15 @@ export default function KnowledgePage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-6 lg:min-h-[calc(100vh-8rem)]">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Knowledge Base</h1>
-          <p className="text-gray-600 mt-2">
-            Add knowledge to your AI agents from various sources
+          <p className="mt-1 text-gray-600">
+            Curate knowledge and chat with your data in one place.
           </p>
-          <div className="mt-1 text-xs text-gray-500 flex items-center gap-2">
+          {/* <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-500">
             <span>
               Workspace:
               {currentWorkspace?.name
@@ -627,134 +809,465 @@ export default function KnowledgePage() {
                 : " None"}
             </span>
             {workspaceId ? (
-              <span className="px-2 py-0.5 rounded bg-gray-100 border border-gray-200 text-gray-700">
-                {workspaceId}
-              </span>
+              <>
+                <span className="rounded border border-gray-200 bg-gray-100 px-2 py-0.5 text-gray-700">
+                  {workspaceId}
+                </span>
+                <button
+                  onClick={() => navigator.clipboard.writeText(workspaceId ?? "")}
+                  className="ml-1 rounded border border-gray-300 px-2 py-0.5 text-gray-600 transition hover:bg-gray-50"
+                >
+                  Copy ID
+                </button>
+              </>
             ) : (
               <span className="text-red-600">No workspace selected</span>
             )}
-            {workspaceId && (
-              <button
-                onClick={() => navigator.clipboard.writeText(workspaceId ?? "")}
-                className="ml-1 px-2 py-0.5 border border-gray-300 rounded text-gray-600 hover:bg-gray-50"
-              >
-                Copy ID
-              </button>
-            )}
-          </div>
+          </div> */}
+        </div>
+        <div className="relative w-full sm:w-auto" ref={addMenuRef}>
+          <button
+            type="button"
+            onClick={() => setIsAddMenuOpen((prev) => !prev)}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-800 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1"
+          >
+            <Plus className="h-4 w-4" />
+            Add Knowledge
+          </button>
+          {isAddMenuOpen && (
+            <div className="absolute right-0 top-full z-20 mt-2 w-64 rounded-xl border border-gray-200 bg-white p-2">
+              <div className="space-y-1">
+                <button
+                  type="button"
+                  onClick={openTextForm}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-gray-50"
+                >
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
+                    <FileText className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">
+                      Text Document
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Write or paste knowledge
+                    </div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={openPdfForm}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-gray-50"
+                >
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-rose-50">
+                    <FileDown className="h-4 w-4 text-rose-600" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">
+                      PDF Upload
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Import multi-page documents
+                    </div>
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={openSheetsForm}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-gray-50"
+                >
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50">
+                    <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">
+                      Google Sheet
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Sync structured data
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Knowledge Source Options */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Text Input Option */}
-        <div
-          onClick={() => {
-            if (activeTab === "text") {
-              setActiveTab(null);
-              resetTextForm();
-            } else {
-              // switching from another tab clears previous state
-              resetPdfForm();
-              setSheetsConnected(false);
-              setActiveTab("text");
-            }
-          }}
-          className={`yeti-card rounded-2xl p-8 yeti-shadow hover:shadow-xl transition-all group ${
-            activeTab && activeTab !== "text"
-              ? "opacity-50 pointer-events-none cursor-not-allowed"
-              : "cursor-pointer"
-          } ${activeTab === "text" ? "ring-2 ring-blue-500" : ""}`}
-        >
-          <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-              <span className="text-3xl text-white">📝</span>
+      {/* Knowledge & Chat Layout */}
+      <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
+        <div className="flex h-[520px] flex-1 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-100 px-6 py-4">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">
+                Knowledge Library
+              </h3>
+              <p className="text-sm text-gray-500">
+                {!workspaceId
+                  ? "Select a workspace to load knowledge"
+                  : knowledgeLoading &&
+                    knowledgeItems.length === 0 &&
+                    googleSheets.length === 0
+                  ? "Loading knowledge..."
+                  : (() => {
+                      const totalItems =
+                        knowledgeItems.length + googleSheets.length;
+                      if (totalItems === 0) return "No items available";
+                      if (totalItems === 1) return "1 item available";
+                      return `${totalItems} items available`;
+                    })()}
+              </p>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-              Text Knowledge
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Add knowledge by typing or pasting text directly
-            </p>
+            {workspaceId && (
+              <button
+                onClick={handleRefreshKnowledge}
+                disabled={knowledgeLoading}
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {knowledgeLoading ? "Refreshing..." : "Refresh"}
+              </button>
+            )}
+          </div>
+          <div className="border-b border-gray-100 px-6 py-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="flex items-center gap-3 rounded-xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-indigo-100 px-4 py-3 shadow-sm">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-indigo-600 shadow-inner">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-indigo-700">
+                    {textDocumentsCount}
+                  </div>
+                  <div className="text-xs text-gray-600">Text Docs</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 rounded-xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-indigo-100 px-4 py-3 shadow-sm">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-indigo-600 shadow-inner">
+                  <FileDown className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-indigo-700">
+                    {pdfFilesCount}
+                  </div>
+                  <div className="text-xs text-gray-600">PDF Files</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 rounded-xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-indigo-100 px-4 py-3 shadow-sm">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-indigo-600 shadow-inner">
+                  <FileSpreadsheet className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-indigo-700">
+                    {connectedSheetsCount}
+                  </div>
+                  <div className="text-xs text-gray-600">Google Sheets</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="h-[420px] overflow-hidden">
+            <div className="flex h-full flex-col">
+              <div className="flex-1 overflow-y-auto px-6 py-4">
+                {!workspaceId ? (
+                  <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
+                    Choose a workspace to view its knowledge items.
+                  </div>
+                ) : knowledgeError ? (
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">
+                    {knowledgeError}
+                  </div>
+                ) : knowledgeLoading && tableRows.length === 0 ? (
+                  <div className="text-sm text-gray-500">Loading knowledge...</div>
+                ) : tableRows.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
+                    No knowledge items yet. Use Add Knowledge to get started.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {knowledgeLoading && (
+                      <div className="text-xs text-gray-500">Refreshing...</div>
+                    )}
+                    <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+                      <div className="grid grid-cols-[minmax(0,1fr),auto] items-center border-b border-gray-100 bg-gray-50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                        <div>File</div>
+                        <div className="text-right">Actions</div>
+                      </div>
+                      <div className="divide-y divide-gray-100">
+                        {tableRows.map((row) => {
+                          const Icon = row.icon;
+                          const isSelected =
+                            (previewItem?.kind === "knowledge" &&
+                              row.kind === "knowledge" &&
+                              previewItem.item.id === row.id) ||
+                            (previewItem?.kind === "sheet" &&
+                              row.kind === "sheet" &&
+                              previewItem.item.id === row.id);
+
+                          return (
+                            <div
+                              key={`${row.kind}-${row.id}`}
+                              className={`grid grid-cols-[minmax(0,1fr),auto] h-[60px] items-center gap-3 px-3 py-1.5 text-xs transition ${
+                                isSelected
+                                  ? "border-l-2 border-indigo-400 bg-indigo-50/70"
+                                  : "hover:bg-gray-50"
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 shadow-inner">
+                                  <Icon className="h-4 w-4" />
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="truncate font-medium text-gray-900">
+                                    {row.title}
+                                  </p>
+                                  <p className="text-[10px] text-gray-500">
+                                    {row.typeDisplay}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setPreviewItem(
+                                      row.kind === "knowledge"
+                                        ? { kind: "knowledge", item: row.item }
+                                        : { kind: "sheet", item: row.sheet }
+                                    )
+                                  }
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:border-indigo-200 hover:text-indigo-600"
+                                  title="Preview"
+                                >
+                                  <Eye className="h-3.5 w-3.5" />
+                                </button>
+                                {row.link && (
+                                  <a
+                                    href={row.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:border-indigo-200 hover:text-indigo-600"
+                                    title="Open in new tab"
+                                  >
+                                    <ExternalLink className="h-3.5 w-3.5" />
+                                  </a>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    row.kind === "knowledge"
+                                      ? handleDeleteKnowledge(
+                                          row.deleteId,
+                                          row.item.title
+                                        )
+                                      : handleDeleteSheet(row.deleteId)
+                                  }
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:border-red-200 hover:text-red-600"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {previewItem && (
+                <div className="border-t border-gray-100 bg-indigo-50/40 px-6 py-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900">
+                      {previewItem.kind === "knowledge"
+                        ? previewItem.item.title
+                        : `${
+                            previewItem.item.sheet_type
+                              ? previewItem.item.sheet_type
+                                  .split("_")
+                                  .map(
+                                    (word) =>
+                                      word.charAt(0).toUpperCase() +
+                                      word.slice(1)
+                                  )
+                                  .join(" ")
+                              : "Google Sheet"
+                          }`}
+                    </h4>
+                    <p className="text-xs text-gray-600">
+                      {previewItem.kind === "knowledge"
+                        ? (previewItem.item.file_type || "Text").toUpperCase()
+                        : "GOOGLE SHEET"}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewItem(null)}
+                    className="rounded-full border border-transparent p-1 text-gray-500 transition hover:border-gray-300 hover:text-gray-700"
+                    title="Close preview"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="mt-4 grid gap-4 text-sm text-gray-700 md:grid-cols-2">
+                  {previewItem.kind === "knowledge" ? (
+                    <>
+                      <div>
+                        <p className="text-xs uppercase text-gray-500">
+                          Category
+                        </p>
+                        <p className="font-medium">
+                          {previewItem.item.category || "—"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase text-gray-500">
+                          Importance
+                        </p>
+                        <p className="font-medium capitalize">
+                          {previewItem.item.importance || "Normal"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase text-gray-500">
+                          Created
+                        </p>
+                        <p className="font-medium">
+                          {formatDateTime(previewItem.item.created_at)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase text-gray-500">
+                          Last Used
+                        </p>
+                        <p className="font-medium">
+                          {formatDateTime(
+                            previewItem.item.last_used_at,
+                            "Never"
+                          )}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase text-gray-500">Usage</p>
+                        <p className="font-medium">
+                          {typeof previewItem.item.usage_count === "number"
+                            ? previewItem.item.usage_count
+                            : "—"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase text-gray-500">ID</p>
+                        <p className="font-medium break-all">
+                          {previewItem.item.entry_id || previewItem.item.id}
+                        </p>
+                      </div>
+                      {previewItem.item.tags && previewItem.item.tags.length > 0 && (
+                        <div className="md:col-span-2">
+                          <p className="text-xs uppercase text-gray-500">
+                            Tags
+                          </p>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {previewItem.item.tags.map((tag, index) => (
+                              <span
+                                key={`${tag}-${index}`}
+                                className="rounded-full bg-white px-3 py-1 text-xs font-medium text-indigo-600 shadow-sm"
+                              >
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {previewItem.item.file_url && (
+                        <div className="md:col-span-2">
+                          <a
+                            href={previewItem.item.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-semibold text-indigo-600 transition hover:border-indigo-300 hover:text-indigo-700"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                            Open Source Document
+                          </a>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <p className="text-xs uppercase text-gray-500">
+                          Sheet ID
+                        </p>
+                        <p className="font-medium break-all">
+                          {previewItem.item.sheet_id}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase text-gray-500">
+                          Sheet Type
+                        </p>
+                        <p className="font-medium">
+                          {previewItem.item.sheet_type
+                            ? previewItem.item.sheet_type
+                                .split("_")
+                                .map(
+                                  (word) =>
+                                    word.charAt(0).toUpperCase() + word.slice(1)
+                                )
+                                .join(" ")
+                            : "General"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase text-gray-500">
+                          Connected
+                        </p>
+                        <p className="font-medium">
+                          {formatDateTime(previewItem.item.created_at)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase text-gray-500">
+                          Updated
+                        </p>
+                        <p className="font-medium">
+                          {formatDateTime(previewItem.item.updated_at)}
+                        </p>
+                      </div>
+                      <div className="md:col-span-2">
+                        <a
+                          href={`https://docs.google.com/spreadsheets/d/${previewItem.item.sheet_id}/edit`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-semibold text-indigo-600 transition hover:border-indigo-300 hover:text-indigo-700"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          Open Google Sheet
+                        </a>
+                      </div>
+                    </>
+                  )}
+                </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* PDF Upload Option */}
-        <div
-          onClick={() => {
-            if (activeTab === "pdf") {
-              setActiveTab(null);
-              resetPdfForm();
-            } else {
-              // switching from another tab clears previous state
-              resetTextForm();
-              setSheetsConnected(false);
-              resetPdfForm();
-              setActiveTab("pdf");
-            }
-          }}
-          className={`yeti-card rounded-2xl p-8 yeti-shadow hover:shadow-xl transition-all group ${
-            activeTab && activeTab !== "pdf"
-              ? "opacity-50 pointer-events-none cursor-not-allowed"
-              : "cursor-pointer"
-          } ${activeTab === "pdf" ? "ring-2 ring-red-500" : ""}`}
-        >
-          <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-              <span className="text-3xl text-white">📄</span>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-red-600 transition-colors">
-              PDF Documents
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Upload PDF files to extract and process knowledge
-            </p>
-          </div>
-        </div>
-
-        {/* Google Sheets Option */}
-        <div
-          onClick={() => {
-            if (activeTab === "sheets") {
-              setActiveTab(null);
-              setSheetsConnected(false);
-              setClickedTemplateIndex(null);
-              setShowLinkInput(false);
-              setGoogleSheetLink("");
-            } else {
-              // switching from another tab clears previous state
-              resetTextForm();
-              resetPdfForm();
-              setSheetsConnected(false);
-              setClickedTemplateIndex(null);
-              setShowLinkInput(false);
-              setGoogleSheetLink("");
-              setActiveTab("sheets");
-            }
-          }}
-          className={`yeti-card rounded-2xl p-8 yeti-shadow hover:shadow-xl transition-all group ${
-            activeTab && activeTab !== "sheets"
-              ? "opacity-50 pointer-events-none cursor-not-allowed"
-              : "cursor-pointer"
-          } ${activeTab === "sheets" ? "ring-2 ring-green-500" : ""}`}
-        >
-          <div className="text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-              <span className="text-3xl text-white">📊</span>
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">
-              Google Sheets
-            </h3>
-            <p className="text-gray-600 text-sm">
-              Connect and sync data from Google Sheets
-            </p>
-          </div>
+        <div className="h-[520px] xl:w-[360px] xl:flex-shrink-0">
+          <ChatPanel
+            workspaceId={workspaceId}
+            workspaceName={currentWorkspace?.name ?? null}
+            hasKnowledge={hasKnowledge}
+          />
         </div>
       </div>
 
       {/* Active Tab Content */}
       {activeTab && (
-        <div className="yeti-card rounded-2xl p-8 yeti-shadow">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4 py-6">
+          <div className="w-full max-h-[90vh] max-w-4xl overflow-y-auto rounded-2xl border border-gray-200 bg-white p-8">
           {activeTab === "text" && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
@@ -762,7 +1275,10 @@ export default function KnowledgePage() {
                   Add Text Knowledge
                 </h3>
                 <button
-                  onClick={() => setActiveTab(null)}
+                  onClick={() => {
+                    resetTextForm();
+                    closeActiveTab();
+                  }}
                   className="text-gray-500 hover:text-gray-700 text-2xl"
                 >
                   ×
@@ -957,7 +1473,7 @@ export default function KnowledgePage() {
                       setImportanceLevel(2);
                       setTags([]);
                       setTagInput("");
-                      setActiveTab(null);
+                      closeActiveTab();
                     } catch (error: any) {
                       setSubmitError(
                         error?.message || "Failed to add text knowledge"
@@ -992,7 +1508,10 @@ export default function KnowledgePage() {
                   Upload PDF Documents
                 </h3>
                 <button
-                  onClick={() => setActiveTab(null)}
+                  onClick={() => {
+                    resetPdfForm();
+                    closeActiveTab();
+                  }}
                   className="text-gray-500 hover:text-gray-700 text-2xl"
                 >
                   ×
@@ -1228,12 +1747,12 @@ export default function KnowledgePage() {
                 </h3>
                 <button
                   onClick={() => {
-                    setActiveTab(null);
                     setSheetsConnected(false);
                     setClickedTemplateIndex(null);
                     setShowLinkInput(false);
                     setGoogleSheetLink("");
                     setShowTemplateCards(false);
+                    closeActiveTab();
                   }}
                   className="text-gray-500 hover:text-gray-700 text-2xl"
                 >
@@ -1457,295 +1976,14 @@ export default function KnowledgePage() {
               )}
             </div>
           )}
+          </div>
         </div>
       )}
-
-      {/* Knowledge Base Summary */}
-      <div className="yeti-card rounded-2xl p-8 yeti-shadow">
-        <h3 className="text-xl font-bold text-gray-900 mb-6">
-          Knowledge Base Summary
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-blue-600 mb-2">
-              {textDocumentsCount}
-            </div>
-            <div className="text-sm text-gray-600">Text Documents</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-red-600 mb-2">
-              {pdfFilesCount}
-            </div>
-            <div className="text-sm text-gray-600">PDF Files</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-green-600 mb-2">
-              {connectedSheetsCount}
-            </div>
-            <div className="text-sm text-gray-600">Connected Sheets</div>
-          </div>
-        </div>
-      </div>
-
-      <div className="yeti-card rounded-2xl p-8 yeti-shadow">
-        <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
-          <div>
-            <h3 className="text-xl font-bold text-gray-900">
-              Knowledge Library
-            </h3>
-            <p className="text-sm text-gray-500">
-              {!workspaceId
-                ? "Select a workspace to load knowledge"
-                : knowledgeLoading &&
-                  knowledgeItems.length === 0 &&
-                  googleSheets.length === 0
-                ? "Loading knowledge..."
-                : (() => {
-                    const totalItems =
-                      knowledgeItems.length + googleSheets.length;
-                    if (totalItems === 0) return "No items available";
-                    if (totalItems === 1) return "1 item available";
-                    return `${totalItems} items available`;
-                  })()}
-            </p>
-          </div>
-          {workspaceId && (
-            <button
-              onClick={handleRefreshKnowledge}
-              disabled={knowledgeLoading}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {knowledgeLoading ? "Refreshing..." : "Refresh"}
-            </button>
-          )}
-        </div>
-
-        {!workspaceId ? (
-          <div className="p-6 border border-dashed border-gray-200 rounded-xl text-sm text-gray-500 text-center">
-            Choose a workspace to view its knowledge items.
-          </div>
-        ) : knowledgeError ? (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-            {knowledgeError}
-          </div>
-        ) : knowledgeLoading && knowledgeItems.length === 0 ? (
-          <div className="text-sm text-gray-500">Loading knowledge...</div>
-        ) : knowledgeItems.length === 0 && googleSheets.length === 0 ? (
-          <div className="p-6 border border-dashed border-gray-200 rounded-xl text-sm text-gray-500 text-center">
-            No knowledge items yet. Add text, upload PDFs, or connect a Google
-            Sheet to get started.
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {knowledgeLoading && (
-              <div className="text-xs text-gray-500">Refreshing...</div>
-            )}
-            {knowledgeItems.map((item) => {
-              const normalizedType =
-                (item.file_type ?? "").trim().toLowerCase() || "text";
-              const typeLabel = normalizedType.toUpperCase();
-              const typeDisplay =
-                normalizedType.charAt(0).toUpperCase() +
-                normalizedType.slice(1);
-
-              return (
-                <div
-                  key={item.id}
-                  className="border border-gray-200 rounded-xl bg-white/80 p-5 shadow-sm"
-                >
-                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h4 className="text-lg font-semibold text-gray-900">
-                          {item.title}
-                        </h4>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
-                          {typeLabel}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                        <span className="inline-flex items-center gap-1">
-                          <span className="font-medium text-gray-600">
-                            File type:
-                          </span>
-                          {typeDisplay}
-                        </span>
-                        {item.category && (
-                          <span className="inline-flex items-center gap-1">
-                            <span className="font-medium text-gray-600">
-                              Category:
-                            </span>
-                            {item.category}
-                          </span>
-                        )}
-                        {item.importance && (
-                          <span className="inline-flex items-center gap-1 capitalize">
-                            <span className="font-medium text-gray-600">
-                              Importance:
-                            </span>
-                            {item.importance}
-                          </span>
-                        )}
-                        {typeof item.usage_count === "number" && (
-                          <span className="inline-flex items-center gap-1">
-                            <span className="font-medium text-gray-600">
-                              Usage:
-                            </span>
-                            {item.usage_count}
-                          </span>
-                        )}
-                        <span className="inline-flex items-center gap-1">
-                          <span className="font-medium text-gray-600">
-                            Created:
-                          </span>
-                          {formatDateTime(item.created_at)}
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <span className="font-medium text-gray-600">
-                            Last used:
-                          </span>
-                          {formatDateTime(item.last_used_at, "Never")}
-                        </span>
-                      </div>
-                      {item.tags && item.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {item.tags.map((tag, idx) => (
-                            <span
-                              key={`${item.id}-tag-${idx}`}
-                              className="px-2.5 py-1 bg-gray-100 text-gray-700 rounded-full text-xs"
-                            >
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3 md:flex-col md:items-end">
-                      {item.file_url && (
-                        <a
-                          href={item.file_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm font-medium text-purple-600 hover:text-purple-700"
-                        >
-                          View file
-                        </a>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => {
-                            if (navigator?.clipboard?.writeText) {
-                              navigator.clipboard.writeText(item.id);
-                            }
-                          }}
-                          className="text-xs text-gray-500 hover:text-gray-700"
-                        >
-                          Copy ID
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleDeleteKnowledge(
-                              item.entry_id || item.id,
-                              item.title
-                            )
-                          }
-                          className="text-sm font-medium text-red-600 hover:text-red-700"
-                          title="Delete this knowledge entry"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-
-            {/* Display Google Sheets in Knowledge Library */}
-            {googleSheets.map((sheet) => {
-              const sheetTypeLabel = sheet.sheet_type
-                ? sheet.sheet_type
-                    .split("_")
-                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(" ")
-                : "General";
-              const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheet.sheet_id}/edit`;
-
-              return (
-                <div
-                  key={sheet.id}
-                  className="border border-gray-200 rounded-xl bg-white/80 p-5 shadow-sm"
-                >
-                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h4 className="text-lg font-semibold text-gray-900">
-                          {sheetTypeLabel} Google Sheet
-                        </h4>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                          GOOGLE SHEETS
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                        <span className="inline-flex items-center gap-1">
-                          <span className="font-medium text-gray-600">
-                            Sheet ID:
-                          </span>
-                          <code className="px-1.5 py-0.5 bg-gray-100 rounded text-xs">
-                            {sheet.sheet_id}
-                          </code>
-                        </span>
-                        {sheet.sheet_type && (
-                          <span className="inline-flex items-center gap-1 capitalize">
-                            <span className="font-medium text-gray-600">
-                              Type:
-                            </span>
-                            {sheetTypeLabel}
-                          </span>
-                        )}
-                        <span className="inline-flex items-center gap-1">
-                          <span className="font-medium text-gray-600">
-                            Connected:
-                          </span>
-                          {formatDateTime(sheet.created_at)}
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <span className="font-medium text-gray-600">
-                            Updated:
-                          </span>
-                          {formatDateTime(sheet.updated_at)}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 md:flex-col md:items-end">
-                      <a
-                        href={sheetUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm font-medium text-green-600 hover:text-green-700"
-                      >
-                        Open Sheet →
-                      </a>
-                      <button
-                        onClick={() => handleDeleteSheet(sheet.id)}
-                        className="text-sm font-medium text-red-600 hover:text-red-700"
-                        title="Disconnect this sheet"
-                      >
-                        Disconnect
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
 
       {/* Link Input Modal */}
       {showLinkInput && clickedTemplateIndex !== null && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full space-y-4">
+          <div className="w-full max-w-md space-y-4 rounded-2xl border border-gray-200 bg-white p-6">
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-bold text-gray-900">
                 Share Your Google Sheet
@@ -1873,3 +2111,257 @@ export default function KnowledgePage() {
     </div>
   );
 }
+
+type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
+type ChatPanelProps = {
+  workspaceId: string | null;
+  workspaceName: string | null;
+  hasKnowledge: boolean;
+};
+
+function ChatPanel({
+  workspaceId,
+  workspaceName,
+  hasKnowledge,
+}: ChatPanelProps) {
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => [
+    {
+      role: "assistant",
+      content: hasKnowledge
+        ? "Hi! Ask me anything about your knowledge library."
+        : "Add knowledge to enable the chat.",
+    },
+  ]);
+  const [input, setInput] = useState("");
+  const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    if (listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    setMessages([
+      {
+        role: "assistant",
+        content: hasKnowledge
+          ? "Hi! Ask me anything about your knowledge library."
+          : "Add knowledge to enable the chat.",
+      },
+    ]);
+    setInput("");
+  }, [workspaceId]);
+
+  useEffect(() => {
+    setMessages((prev) => {
+      if (prev.length === 1 && prev[0].role === "assistant") {
+        const content = hasKnowledge
+          ? "Hi! Ask me anything about your knowledge library."
+          : "Add knowledge to enable the chat.";
+        if (prev[0].content === content) {
+          return prev;
+        }
+        return [{ role: "assistant", content }];
+      }
+      return prev;
+    });
+  }, [hasKnowledge]);
+
+  const disabledReason = !workspaceId
+    ? "Select a workspace to start chatting."
+    : !hasKnowledge
+    ? "Add knowledge to enable chat."
+    : null;
+
+  const handleSend = async () => {
+    const text = input.trim();
+    if (!text || sending || !workspaceId || !hasKnowledge) {
+      return;
+    }
+
+    setSending(true);
+    setMessages((prev) => [...prev, { role: "user", content: text }]);
+    setInput("");
+
+    try {
+      const response = await chatAPI.sendMessage(workspaceId, {
+        message: text,
+      });
+
+      let content = "";
+      try {
+        if (response && typeof response.answer === "string") {
+          const match = response.answer.match(/content='([\s\S]*?)'/);
+
+          if (match && match[1]) {
+            content = match[1]
+              .replace(/\\n/g, "\n")
+              .replace(/\\t/g, "\t")
+              .replace(/\\\\/g, "\\")
+              .replace(/\\"/g, '"');
+          } else {
+            content = response.answer;
+          }
+        } else if (
+          response &&
+          response.answer &&
+          typeof response.answer === "object" &&
+          "content" in response.answer &&
+          typeof (response.answer as { content?: unknown }).content === "string"
+        ) {
+          content = (response.answer as { content: string }).content;
+        } else {
+          content = JSON.stringify(response);
+        }
+      } catch (error) {
+        console.error("Error extracting assistant content:", error);
+        const fallbackAnswer = response?.answer;
+        content =
+          typeof fallbackAnswer === "string"
+            ? fallbackAnswer
+            : JSON.stringify(fallbackAnswer ?? "");
+      }
+
+      setMessages((prev) => [...prev, { role: "assistant", content }]);
+    } catch (error: any) {
+      console.error("Error sending message:", error);
+      const errorMessage =
+        error?.message || "Failed to send message. Please try again.";
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: `Error: ${errorMessage}` },
+      ]);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      if (!disabledReason) {
+        handleSend();
+      }
+    }
+  };
+
+  return (
+    <div className="sticky top-6 flex h-full max-h-[calc(100vh-8rem)] min-h-[28rem] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div className="border-b border-gray-200 px-6 py-4">
+        <h3 className="text-xl font-semibold text-gray-900">Chat</h3>
+        <p className="text-xs text-gray-500">
+          {workspaceName
+            ? `Workspace: ${workspaceName}`
+            : workspaceId
+            ? `Workspace ID: ${workspaceId}`
+            : "Select a workspace to chat"}
+        </p>
+      </div>
+      <div className="relative flex-1 bg-gray-50/60">
+        <div
+          ref={listRef}
+          className="flex h-full flex-col space-y-4 overflow-y-auto px-6 py-4"
+        >
+          {messages.map((message, index) => (
+            <div
+              key={`${index}-${message.role}`}
+              className={`flex ${
+                message.role === "user" ? "justify-end" : "justify-start"
+              }`}
+            >
+              <div
+                className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                  message.role === "user"
+                    ? "rounded-br-sm bg-blue-600 text-white"
+                    : "rounded-bl-sm border border-gray-200 bg-white text-gray-800"
+                }`}
+              >
+                {message.role === "assistant" ? (
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => (
+                        <p className="mb-2 last:mb-0">{children}</p>
+                      ),
+                      ul: ({ children }) => (
+                        <ul className="mb-2 list-disc list-inside space-y-1">
+                          {children}
+                        </ul>
+                      ),
+                      ol: ({ children }) => (
+                        <ol className="mb-2 list-decimal list-inside space-y-1">
+                          {children}
+                        </ol>
+                      ),
+                      li: ({ children }) => (
+                        <li className="ml-2">{children}</li>
+                      ),
+                      h1: ({ children }) => (
+                        <h1 className="mb-2 text-lg font-bold">{children}</h1>
+                      ),
+                      h2: ({ children }) => (
+                        <h2 className="mb-2 text-base font-bold">{children}</h2>
+                      ),
+                      h3: ({ children }) => (
+                        <h3 className="mb-2 text-sm font-bold">{children}</h3>
+                      ),
+                      strong: ({ children }) => (
+                        <strong className="font-semibold">{children}</strong>
+                      ),
+                      em: ({ children }) => (
+                        <em className="italic">{children}</em>
+                      ),
+                      code: ({ children }) => (
+                        <code className="rounded bg-gray-100 px-1 py-0.5 text-xs font-mono">
+                          {children}
+                        </code>
+                      ),
+                    }}
+                  >
+                    {message.content}
+                  </ReactMarkdown>
+                ) : (
+                  message.content
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+        {disabledReason && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/85 backdrop-blur">
+            <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600">
+              {disabledReason}
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="border-t border-gray-200 px-6 py-4">
+        <div className="flex items-end gap-3">
+          <textarea
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type a message..."
+            rows={1}
+            disabled={!!disabledReason}
+            className="flex-1 resize-none rounded-xl border border-gray-300 px-4 py-3 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100"
+          />
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={!input.trim() || sending || !!disabledReason}
+            className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {sending ? "Sending..." : "Send"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+

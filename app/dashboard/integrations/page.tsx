@@ -1,170 +1,105 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useAuth } from "@/lib/auth-context";
-import Link from "next/link";
+import Image from "next/image";
 
-const INTEGRATION_PLATFORMS = [
-  {
-    name: "Instagram",
-    icon: "📷",
-    color: "from-pink-500 to-purple-500",
-    available: true,
-  },
+const CHANNELS = [
   {
     name: "Telegram",
-    icon: "💬",
-    color: "from-blue-500 to-cyan-500",
-    available: true,
+    description:
+      "Connect Telegram Bot to provide real-time support when customers reach out.",
+    icon: "/integrations/telegram.png",
+    fallbackIcon: "✈️",
+    gradient: "from-[#e8f1ff] via-white to-white",
   },
   {
-    name: "WhatsApp",
-    icon: "📱",
-    color: "from-green-500 to-emerald-500",
-    available: false,
+    name: "Viber",
+    description:
+      "Connect Viber Bot to enable customer support and engagement on Viber.",
+    icon: "/integrations/viber.png",
+    fallbackIcon: "📞",
+    gradient: "from-[#f2ecff] via-white to-white",
   },
   {
-    name: "Discord",
-    icon: "💜",
-    color: "from-indigo-500 to-purple-500",
-    available: false,
+    name: "LINE",
+    description:
+      "Connect LINE Official Account to provide timely support to your customers.",
+    icon: "/integrations/line.png",
+    fallbackIcon: "💬",
+    gradient: "from-[#ecfff1] via-white to-white",
   },
   {
-    name: "Twitter",
-    icon: "🐦",
-    color: "from-blue-400 to-blue-600",
-    available: false,
+    name: "WhatsApp Cloud API",
+    description:
+      "Connect WhatsApp Cloud API and manage your messages easily in one place.",
+    icon: "/integrations/whatsapp.png",
+    fallbackIcon: "📱",
+    gradient: "from-[#ebf1ff] via-white to-white",
   },
   {
-    name: "Facebook Messenger",
-    icon: "💙",
-    color: "from-blue-600 to-blue-800",
-    available: false,
+    name: "Custom Channel",
+    description:
+      "Connect any channels not natively available to expand your customer reach.",
+    icon: "/integrations/custom.png",
+    fallbackIcon: "🧩",
+    gradient: "from-[#fff6eb] via-white to-white",
   },
 ];
 
 export default function IntegrationsPage() {
-  const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [integrations, setIntegrations] = useState<any[]>([]);
-
-  useEffect(() => {
-    // TODO: Fetch integrations from API
-    setLoading(false);
-  }, []);
-
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Integrations</h1>
-          <p className="text-gray-600 mt-2">
-            Connect your AI agents to messaging platforms
-          </p>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Integrations</h1>
+        <p className="text-gray-600 mt-2">
+          Deploy your agent across the channels your customers already use.
+        </p>
       </div>
 
-      {/* Connected Integrations */}
-      {integrations.length > 0 && (
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Connected</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {integrations.map((integration) => (
-              <div
-                key={integration.id}
-                className="yeti-card rounded-xl p-6 yeti-shadow"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div
-                      className={`w-12 h-12 bg-gradient-to-br ${
-                        integration.color || "from-gray-500 to-gray-600"
-                      } rounded-lg flex items-center justify-center`}
-                    >
-                      <span className="text-2xl">{integration.icon}</span>
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-gray-900">
-                        {integration.platform}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        {integration.name}
-                      </p>
-                    </div>
-                  </div>
-                  <span
-                    className={`w-3 h-3 rounded-full ${
-                      integration.is_active ? "bg-green-500" : "bg-gray-400"
-                    }`}
-                  ></span>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {CHANNELS.map((channel) => (
+          <div
+            key={channel.name}
+            className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-lg"
+          >
+            <div
+              className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${channel.gradient} opacity-90`}
+            />
+            <div className="relative h-full p-6 flex flex-col">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    {channel.name}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-gray-600">
+                    {channel.description}
+                  </p>
                 </div>
-                <div className="flex gap-2">
-                  <button className="flex-1 text-sm px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                    Configure
-                  </button>
-                  <button className="flex-1 text-sm px-4 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors">
-                    Disconnect
-                  </button>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-gray-200">
+                  <Image
+                    src={channel.icon}
+                    alt={channel.name}
+                    width={32}
+                    height={32}
+                    className="h-8 w-8 object-contain"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      target.style.display = "none";
+                      target.nextElementSibling?.classList.remove("hidden");
+                    }}
+                  />
+                  <span className="hidden text-xl" aria-hidden>
+                    {channel.fallbackIcon}
+                  </span>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Available Integrations */}
-      <div>
-        <h2 className="text-xl font-bold text-gray-900 mb-4">
-          Available Platforms
-        </h2>
-        {loading ? (
-          <div className="flex items-center justify-center h-96">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading integrations...</p>
+              <div className="mt-auto flex justify-end pt-6">
+                <button className="rounded-lg border border-gray-200 bg-white px-5 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:border-gray-300 hover:bg-gray-50">
+                  Connect
+                </button>
+              </div>
             </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {INTEGRATION_PLATFORMS.map((platform) => (
-              <div
-                key={platform.name}
-                className={`yeti-card rounded-xl p-6 yeti-shadow transition-all ${
-                  platform.available
-                    ? "hover:shadow-lg cursor-pointer"
-                    : "opacity-60"
-                }`}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div
-                    className={`w-12 h-12 bg-gradient-to-br ${platform.color} rounded-lg flex items-center justify-center`}
-                  >
-                    <span className="text-2xl">{platform.icon}</span>
-                  </div>
-                  {!platform.available && (
-                    <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded">
-                      Coming Soon
-                    </span>
-                  )}
-                </div>
-                <h3 className="font-bold text-gray-900 mb-2">
-                  {platform.name}
-                </h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  {platform.available
-                    ? "Connect your account to start using"
-                    : "Integration will be available soon"}
-                </p>
-                {platform.available && (
-                  <button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all text-sm">
-                    Connect
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+        ))}
       </div>
     </div>
   );
