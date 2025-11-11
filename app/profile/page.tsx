@@ -452,7 +452,7 @@ export default function ProfilePage() {
                 Connect with fellow builders, share tips, and get direct support in our Discord server.
               </p>
               <Link
-                href="https://discord.gg/your-invite-code"
+                href="https://discord.gg/hN8r5Tep"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center gap-2 w-full bg-[#5865F2] text-white py-3 px-4 rounded-lg font-semibold transition-all hover:bg-[#4752C4]"

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
+import type { ChangeEvent } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import {
@@ -11,8 +12,11 @@ import {
   Link2,
   Settings,
   Bell,
+  Loader2,
   User as UserIcon,
 } from "lucide-react";
+import { yettiOnboardingAPI } from "@/lib/api";
+import WorkspaceOnboardingModal from "@/components/workspace/WorkspaceOnboardingModal";
 
 function WorkspaceSelector() {
   const searchParams = useSearchParams();
@@ -34,8 +38,28 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { selectedWorkspaceId } = useWorkspace();
+  const {
+    selectedWorkspaceId,
+    workspaces,
+    selectWorkspace,
+    fetchWorkspaces,
+    loading: workspaceLoading,
+    error: workspaceError,
+  } = useWorkspace();
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
+  const [localWorkspaceSelection, setLocalWorkspaceSelection] = useState<string>(
+    selectedWorkspaceId ?? ""
+  );
+  const [switchingWorkspace, setSwitchingWorkspace] = useState(false);
+  const [workspaceSwitchError, setWorkspaceSwitchError] = useState<string | null>(
+    null
+  );
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+  const [pendingWorkspace, setPendingWorkspace] = useState<{
+    id: string;
+    name?: string;
+  } | null>(null);
+  const previousWorkspaceIdRef = useRef<string | null>(selectedWorkspaceId);
 
   const handleSignOut = async () => {
     await signOut();
@@ -55,6 +79,82 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     }
     if (workspaceId) return `${path}?ws=${encodeURIComponent(workspaceId)}`;
     return path;
+  };
+
+  useEffect(() => {
+    setLocalWorkspaceSelection(selectedWorkspaceId ?? "");
+    previousWorkspaceIdRef.current = selectedWorkspaceId ?? null;
+  }, [selectedWorkspaceId]);
+
+  const handleWorkspaceChange = async (
+    event: ChangeEvent<HTMLSelectElement>
+  ) => {
+    const newWorkspaceId = event.target.value;
+    const previousWorkspaceId = previousWorkspaceIdRef.current;
+
+    setLocalWorkspaceSelection(newWorkspaceId);
+    setWorkspaceSwitchError(null);
+
+    if (!newWorkspaceId) {
+      return;
+    }
+
+    setSwitchingWorkspace(true);
+    try {
+      await selectWorkspace(newWorkspaceId);
+      const status = await yettiOnboardingAPI
+        .getOnboardingStatus(newWorkspaceId)
+        .catch((err: unknown) => {
+          if (
+            err instanceof Error &&
+            (err.message.includes("404") ||
+              err.message.toLowerCase().includes("not found"))
+          ) {
+            return null;
+          }
+          throw err;
+        });
+
+      if (!status || !status.is_onboarded) {
+        const selectedWorkspace = workspaces.find(
+          (workspace) => workspace.id === newWorkspaceId
+        );
+        setPendingWorkspace({
+          id: newWorkspaceId,
+          name: selectedWorkspace?.name,
+        });
+        setShowOnboardingModal(true);
+      } else {
+        setPendingWorkspace(null);
+        setShowOnboardingModal(false);
+      }
+      previousWorkspaceIdRef.current = newWorkspaceId;
+    } catch (err: any) {
+      console.error("Failed to switch workspace", err);
+      setWorkspaceSwitchError(
+        err?.message || "Unable to switch workspace. Please try again."
+      );
+      setLocalWorkspaceSelection(previousWorkspaceId ?? "");
+      previousWorkspaceIdRef.current = previousWorkspaceId ?? null;
+    } finally {
+      setSwitchingWorkspace(false);
+    }
+  };
+
+  const handleOnboardingModalClose = () => {
+    setShowOnboardingModal(false);
+    setPendingWorkspace(null);
+  };
+
+  const handleOnboardingCompleted = async () => {
+    setShowOnboardingModal(false);
+    setPendingWorkspace(null);
+    setWorkspaceSwitchError(null);
+    try {
+      await fetchWorkspaces();
+    } catch (err) {
+      console.error("Failed to refresh workspaces after onboarding", err);
+    }
   };
 
   return (
@@ -212,21 +312,70 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           <div className="flex items-center space-x-4">
             <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
           </div>
-          <div className="flex items-center space-x-4">
-            <button className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700">
-              <Bell className="h-5 w-5" />
-            </button>
-            <Link
-              href="/profile"
-              className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
-            >
-              <UserIcon className="h-5 w-5" />
-            </Link>
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <select
+                  id="dashboard-header-workspace-select"
+                  value={localWorkspaceSelection}
+                  onChange={handleWorkspaceChange}
+                  disabled={
+                    switchingWorkspace ||
+                    workspaceLoading ||
+                    workspaces.length === 0
+                  }
+                  className="appearance-none rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-9 text-sm font-medium text-gray-700 shadow-sm transition focus:border-[#5170ff] focus:outline-none focus:ring-2 focus:ring-[#5170ff]/20 disabled:cursor-not-allowed disabled:bg-gray-100"
+                  aria-label="Select workspace"
+                >
+                  {workspaces.length === 0 ? (
+                    <option value="">
+                      {workspaceLoading
+                        ? "Loading workspaces..."
+                        : "No workspaces available"}
+                    </option>
+                  ) : (
+                    workspaces.map((workspace) => (
+                      <option key={workspace.id} value={workspace.id}>
+                        {workspace.name || "Untitled workspace"}
+                      </option>
+                    ))
+                  )}
+                </select>
+                {(switchingWorkspace || workspaceLoading) && (
+                  <Loader2 className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-gray-400" />
+                )}
+              </div>
+              <button
+                className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                aria-label="Notifications"
+              >
+                <Bell className="h-5 w-5" />
+              </button>
+              <Link
+                href="/profile"
+                className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                aria-label="Profile"
+              >
+                <UserIcon className="h-5 w-5" />
+              </Link>
+            </div>
+            {(workspaceSwitchError || workspaceError) && (
+              <p className="text-xs text-red-500">
+                {workspaceSwitchError || workspaceError}
+              </p>
+            )}
           </div>
         </header>
 
         {/* Page Content */}
         <main className="p-6 transition-all duration-300">{children}</main>
+        <WorkspaceOnboardingModal
+          isOpen={showOnboardingModal}
+          workspaceId={pendingWorkspace?.id ?? null}
+          workspaceName={pendingWorkspace?.name}
+          onClose={handleOnboardingModalClose}
+          onCompleted={handleOnboardingCompleted}
+        />
       </div>
     </div>
   );

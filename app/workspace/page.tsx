@@ -17,6 +17,8 @@ import Modal from "@/components/ui/modal-drop";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 import type { WorkspaceListResponse } from "@/lib/api/workspace";
+import { yettiOnboardingAPI } from "@/lib/api";
+import WorkspaceOnboardingModal from "@/components/workspace/WorkspaceOnboardingModal";
 
 export default function WorkspaceSelectionPage() {
   const { signOut } = useAuth();
@@ -24,6 +26,7 @@ export default function WorkspaceSelectionPage() {
     workspaces,
     createWorkspace,
     selectWorkspace,
+    fetchWorkspaces,
     loading,
     error,
   } = useWorkspace();
@@ -36,6 +39,11 @@ export default function WorkspaceSelectionPage() {
   const [localError, setLocalError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectingWorkspace, setSelectingWorkspace] = useState<string | null>(null);
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+  const [pendingWorkspace, setPendingWorkspace] = useState<{
+    id: string;
+    name?: string;
+  } | null>(null);
 
   const handleSignOut = async () => {
     await signOut();
@@ -65,14 +73,18 @@ export default function WorkspaceSelectionPage() {
     setIsSubmitting(true);
 
     try {
-      await createWorkspace({
+      const workspace = await createWorkspace({
         name: trimmedName,
         description: workspaceDescription.trim() || undefined,
         workspace_type: "personal",
       });
 
-      // Redirect to dashboard after successful creation
-      router.push("/dashboard");
+      handleCloseModal();
+      setPendingWorkspace({
+        id: workspace.id,
+        name: workspace.name,
+      });
+      setShowOnboardingModal(true);
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error
@@ -84,16 +96,57 @@ export default function WorkspaceSelectionPage() {
     }
   };
 
-  const handleWorkspaceSelect = async (workspaceId: string) => {
+  const handleWorkspaceSelect = async (
+    workspaceId: string,
+    workspaceName?: string
+  ) => {
     try {
+      setLocalError("");
       setSelectingWorkspace(workspaceId);
       await selectWorkspace(workspaceId);
+
+      const status = await yettiOnboardingAPI
+        .getOnboardingStatus(workspaceId)
+        .catch((err: unknown) => {
+          if (
+            err instanceof Error &&
+            (err.message.includes("404") ||
+              err.message.toLowerCase().includes("not found"))
+          ) {
+            return null;
+          }
+          throw err;
+        });
+
+      if (!status || !status.is_onboarded) {
+        setPendingWorkspace({ id: workspaceId, name: workspaceName });
+        setShowOnboardingModal(true);
+        return;
+      }
+
       router.push("/dashboard");
     } catch (err) {
       console.error("Error selecting workspace:", err);
+      const message =
+        err instanceof Error
+          ? err.message
+          : "An error occurred while selecting workspace";
+      setLocalError(message);
     } finally {
       setSelectingWorkspace(null);
     }
+  };
+
+  const handleOnboardingModalClose = () => {
+    setShowOnboardingModal(false);
+    setPendingWorkspace(null);
+  };
+
+  const handleOnboardingCompleted = () => {
+    setShowOnboardingModal(false);
+    setPendingWorkspace(null);
+    void fetchWorkspaces();
+    router.push("/dashboard");
   };
 
   const handleCloseModal = () => {
@@ -197,7 +250,9 @@ export default function WorkspaceSelectionPage() {
                           agents={workspace.agent_count}
                           members={workspace.member_count}
                           isSelecting={isSelecting}
-                          onOpen={() => handleWorkspaceSelect(workspace.id)}
+                          onOpen={() =>
+                            handleWorkspaceSelect(workspace.id, workspace.name)
+                          }
                         />
                       );
                     })}
@@ -328,6 +383,13 @@ export default function WorkspaceSelectionPage() {
           </div>
         </div>
       </Modal>
+      <WorkspaceOnboardingModal
+        isOpen={showOnboardingModal}
+        workspaceId={pendingWorkspace?.id ?? null}
+        workspaceName={pendingWorkspace?.name}
+        onClose={handleOnboardingModalClose}
+        onCompleted={handleOnboardingCompleted}
+      />
     </ProtectedRoute>
   );
 }
