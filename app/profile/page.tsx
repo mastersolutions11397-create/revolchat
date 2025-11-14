@@ -116,9 +116,9 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-white via-sky-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-white via-sky-50 to- sky-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border- sky-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading profile...</p>
         </div>
       </div>
@@ -126,35 +126,35 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-sky-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-white via-sky-50 to- sky-50">
       {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border-purple-100">
+      <nav className="bg-white/80 backdrop-blur-md border-b border- sky-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <Link
                 href="/"
-                className="text-2xl font-bold yeti-gradient bg-clip-text text-transparent"
+                className="text-2xl font-bold yetti-gradient bg-clip-text text-transparent"
               >
-                🧊 Yeti AI
+                🧊 yetti AI
               </Link>
             </div>
             <div className="flex items-center space-x-4">
               <Link
                 href="/dashboard"
-                className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-700 hover:text- sky-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Dashboard
               </Link>
               <Link
                 href="/workspace"
-                className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-700 hover:text- sky-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Workspaces
               </Link>
               <button
                 onClick={handleSignOut}
-                className="text-gray-700 hover:text-purple-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-700 hover:text- sky-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Sign Out
               </button>
@@ -184,7 +184,7 @@ export default function ProfilePage() {
           {/* Profile Info */}
           <div className="lg:col-span-2 space-y-8">
             {/* Personal Information */}
-            <div className="yeti-card rounded-2xl p-8 yeti-shadow">
+            <div className="yetti-card rounded-2xl p-8 yetti-shadow">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 Personal Information
               </h2>
@@ -204,7 +204,7 @@ export default function ProfilePage() {
                       onChange={(e) =>
                         setFormData({ ...formData, first_name: e.target.value })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring- sky-500 focus:border-transparent transition-all"
                     />
                   </div>
                   <div>
@@ -221,7 +221,7 @@ export default function ProfilePage() {
                       onChange={(e) =>
                         setFormData({ ...formData, last_name: e.target.value })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring- sky-500 focus:border-transparent transition-all"
                     />
                   </div>
                 </div>
@@ -257,7 +257,7 @@ export default function ProfilePage() {
                     onChange={(e) =>
                       setFormData({ ...formData, company: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring- sky-500 focus:border-transparent transition-all"
                   />
                 </div>
                 <div>
@@ -274,13 +274,13 @@ export default function ProfilePage() {
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring- sky-500 focus:border-transparent transition-all"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="bg-gradient-to-r from-purple-600 to-sky-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-sky-700 transition-all disabled:opacity-50"
+                  className="bg-gradient-to-r from- sky-600 to-sky-600 text-white px-6 py-3 rounded-lg font-semibold hover:from- sky-700 hover:to-sky-700 transition-all disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Save Changes"}
                 </button>
@@ -288,7 +288,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Notification Preferences */}
-            <div className="yeti-card rounded-2xl p-8 yeti-shadow">
+            <div className="yetti-card rounded-2xl p-8 yetti-shadow">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 Notification Preferences
               </h2>
@@ -314,7 +314,7 @@ export default function ProfilePage() {
                       }
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring- sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg- sky-600"></div>
                   </label>
                 </div>
                 <div className="flex items-center justify-between">
@@ -338,7 +338,7 @@ export default function ProfilePage() {
                       }
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring- sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg- sky-600"></div>
                   </label>
                 </div>
                 <div className="flex items-center justify-between">
@@ -362,7 +362,7 @@ export default function ProfilePage() {
                       }
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring- sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg- sky-600"></div>
                   </label>
                 </div>
                 <button
@@ -381,7 +381,7 @@ export default function ProfilePage() {
                     }
                   }}
                   disabled={saving}
-                  className="mt-4 bg-gradient-to-r from-purple-600 to-sky-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-sky-700 transition-all disabled:opacity-50"
+                  className="mt-4 bg-gradient-to-r from- sky-600 to-sky-600 text-white px-6 py-3 rounded-lg font-semibold hover:from- sky-700 hover:to-sky-700 transition-all disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Save Preferences"}
                 </button>
@@ -392,8 +392,8 @@ export default function ProfilePage() {
           {/* Sidebar */}
           <div className="space-y-8">
             {/* Profile Picture */}
-            <div className="yeti-card rounded-2xl p-8 yeti-shadow text-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-sky-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="yetti-card rounded-2xl p-8 yetti-shadow text-center">
+              <div className="w-24 h-24 bg-gradient-to-br from- sky-500 to-sky-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-white text-2xl font-bold">
                   {getInitials()}
                 </span>
@@ -402,13 +402,13 @@ export default function ProfilePage() {
                 {getUserName()}
               </h3>
               <p className="text-gray-600 mb-4">{formData.email}</p>
-              <button className="text-purple-600 hover:text-purple-500 font-medium">
+              <button className="text- sky-600 hover:text- sky-500 font-medium">
                 Change Photo
               </button>
             </div>
 
             {/* Account Status */}
-            <div className="yeti-card rounded-2xl p-8 yeti-shadow">
+            <div className="yetti-card rounded-2xl p-8 yetti-shadow">
               <h3 className="text-xl font-semibold text-gray-900 mb-6">
                 Account Status
               </h3>
@@ -436,7 +436,7 @@ export default function ProfilePage() {
               <div className="mt-6">
                 <Link
                   href="/plans"
-                  className="block w-full bg-gradient-to-r from-purple-600 to-sky-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-purple-700 hover:to-sky-700 transition-all text-center"
+                  className="block w-full bg-gradient-to-r from- sky-600 to-sky-600 text-white py-3 px-4 rounded-lg font-semibold hover:from- sky-700 hover:to-sky-700 transition-all text-center"
                 >
                   Upgrade Plan
                 </Link>
@@ -444,7 +444,7 @@ export default function ProfilePage() {
             </div>
 
             {/* Discord Invite */}
-            <div className="yeti-card rounded-2xl p-8 yeti-shadow text-center">
+            <div className="yetti-card rounded-2xl p-8 yetti-shadow text-center">
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
                 Join the YETTI Community
               </h3>

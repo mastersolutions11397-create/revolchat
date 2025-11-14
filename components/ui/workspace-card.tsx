@@ -68,7 +68,7 @@ export function WorkspaceCard({
         </div>
 
         <div className="mt-4 flex justify-end shrink-0">
-          <Button className="bg-[#5170ff]! rounded-lg!" onClick={onOpen} disabled={isSelecting}>
+          <Button className="bg-sky-500! rounded-lg!" onClick={onOpen} disabled={isSelecting}>
             {isSelecting ? (
               <span className="inline-flex items-center"><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Opening…</span>
             ) : (

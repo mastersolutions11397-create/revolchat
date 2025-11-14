@@ -5,8 +5,10 @@ import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/lib/auth";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 
 export default function SignupPage() {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -50,7 +52,7 @@ export default function SignupPage() {
           router.push("/auth/login");
         }, 2000);
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setLoading(false);
@@ -91,8 +93,8 @@ export default function SignupPage() {
                   YETTI<span className="text-gray-400">.AI</span>
                 </span>
               </Link>
-              <h2 className="mt-4 text-3xl font-bold text-gray-900">Create your account</h2>
-              <p className="mt-1 text-sm text-gray-600">Start your free trial today</p>
+              <h2 className="mt-4 text-3xl font-bold text-gray-900">{t("signup.createAccount")}</h2>
+              <p className="mt-1 text-sm text-gray-600">{t("signup.startTrial")}</p>
             </div>
 
             <div className="rounded-2xl p-0">
@@ -109,7 +111,7 @@ export default function SignupPage() {
                   htmlFor="firstName"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  First name
+                  {t("signup.firstName")}
                 </label>
                 <input
                   id="firstName"
@@ -118,7 +120,7 @@ export default function SignupPage() {
                   required
                   value={formData.firstName}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring- sky-500 focus:border-transparent transition-all"
                   placeholder="John"
                 />
               </div>
@@ -127,7 +129,7 @@ export default function SignupPage() {
                   htmlFor="lastName"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  Last name
+                  {t("signup.lastName")}
                 </label>
                 <input
                   id="lastName"
@@ -136,7 +138,7 @@ export default function SignupPage() {
                   required
                   value={formData.lastName}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring- sky-500 focus:border-transparent transition-all"
                   placeholder="Doe"
                 />
               </div>
@@ -147,7 +149,7 @@ export default function SignupPage() {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Email address
+                {t("signup.email")}
               </label>
               <input
                 id="email"
@@ -157,7 +159,7 @@ export default function SignupPage() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring- sky-500 focus:border-transparent transition-all"
                 placeholder="john@example.com"
               />
             </div>
@@ -167,7 +169,7 @@ export default function SignupPage() {
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Password
+                {t("signup.password")}
               </label>
               <input
                 id="password"
@@ -177,7 +179,7 @@ export default function SignupPage() {
                 required
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring- sky-500 focus:border-transparent transition-all"
                 placeholder="Create a strong password"
               />
             </div>
@@ -190,7 +192,7 @@ export default function SignupPage() {
                 name="terms"
                 type="checkbox"
                 required
-                className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                className="h-4 w-4 text- sky-600 focus:ring- sky-500 border-gray-300 rounded"
               />
               <label
                 htmlFor="terms"
@@ -199,14 +201,14 @@ export default function SignupPage() {
                 I agree to the{" "}
                 <Link
                   href="/terms"
-                  className="text-purple-600 hover:text-purple-500 font-medium"
+                  className="text- sky-600 hover:text- sky-500 font-medium"
                 >
                   Terms of Service
                 </Link>{" "}
                 and{" "}
                 <Link
                   href="/privacy"
-                  className="text-purple-600 hover:text-purple-500 font-medium"
+                  className="text- sky-600 hover:text- sky-500 font-medium"
                 >
                   Privacy Policy
                 </Link>
@@ -217,20 +219,20 @@ export default function SignupPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#5170ff] hover:bg-[#4a68f0] text-white py-3 px-4 rounded-xl font-semibold transition-colors shadow-[0_8px_30px_rgba(81,112,255,0.35)] disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full bg-sky-500 hover:bg-sky-600 text-white py-3 px-4 rounded-xl font-semibold transition-colors   disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {loading ? "Creating account..." : "Create account"}
+                {loading ? t("signup.creatingAccount") : t("signup.createAccountButton")}
               </button>
             </div>
 
             <div className="text-center">
               <span className="text-sm text-gray-600">
-                Already have an account?{" "}
+                {t("signup.haveAccount")}{" "}
                 <Link
                   href="/auth/login"
-                  className="text-purple-600 hover:text-purple-500 font-medium"
+                  className="text- sky-600 hover:text- sky-500 font-medium"
                 >
-                  Sign in
+                  {t("signup.signIn")}
                 </Link>
               </span>
             </div>
@@ -243,7 +245,7 @@ export default function SignupPage() {
                   <div className="w-full border-t border-gray-300" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                  <span className="px-2 bg-white text-gray-500">{t("signup.orContinueWith")}</span>
                 </div>
               </div>
 
@@ -259,7 +261,7 @@ export default function SignupPage() {
                         setError(error.message);
                         setGoogleLoading(false);
                       }
-                    } catch (err) {
+                    } catch {
                       setError("An unexpected error occurred");
                       setGoogleLoading(false);
                     }
@@ -273,7 +275,7 @@ export default function SignupPage() {
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                   </svg>
-                  <span>{googleLoading ? "Signing up..." : "Google"}</span>
+                  <span>{googleLoading ? t("signup.signingUp") : "Google"}</span>
                 </button>
               </div>
             </div>
@@ -282,7 +284,7 @@ export default function SignupPage() {
           {/* Right - Visual */}
           <div className="p-4 md:p-6">
             <div className="h-full w-full rounded-[28px] bg-white p-2">
-              <div className="relative h-full rounded-2xl overflow-hidden bg-[radial-gradient(1200px_600px_at_60%_-20%,#6e7bff_0%,#0b1220_60%)]">
+              <div className="relative h-full rounded-2xl overflow-hidden bg-[radial-gradient(1200px_600px_at_60%_-20%,#0ea5e9_0%,#0b1220_60%)]">
                 <Image src="/yetti/yetti_posing_for_a_pic.png" alt="Yetti posing" fill className="object-contain p-6" />
               </div>
             </div>

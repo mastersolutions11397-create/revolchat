@@ -1,5 +1,5 @@
-import { Resend } from 'resend';
-import { NextResponse } from 'next/server';
+import { Resend } from "resend";
+import { NextResponse } from "next/server";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -9,21 +9,21 @@ export async function POST(request: Request) {
     const { email } = body;
 
     // Validate email
-    if (!email || !email.includes('@')) {
+    if (!email || !email.includes("@")) {
       return NextResponse.json(
-        { error: 'Valid email is required' },
+        { error: "Valid email is required" },
         { status: 400 }
       );
     }
 
     // Send welcome email to subscriber
     await resend.emails.send({
-      from: 'Yeti AI <onboarding@resend.dev>',
+      from: "yetti AI <onboarding@resend.dev>",
       to: email,
-      subject: 'Welcome to Yeti AI Newsletter!',
+      subject: "Welcome to yetti AI Newsletter!",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #5170ff;">Welcome to Yeti AI!</h2>
+          <h2 style="color: #5170ff;">Welcome to yetti AI!</h2>
           <p>Thank you for subscribing to our newsletter. You'll receive updates about:</p>
           <ul>
             <li>New features and integrations</li>
@@ -32,16 +32,16 @@ export async function POST(request: Request) {
             <li>Product announcements</li>
           </ul>
           <p>We're excited to have you on board!</p>
-          <p>Best regards,<br>The Yeti AI Team</p>
+          <p>Best regards,<br>The yetti AI Team</p>
         </div>
       `,
     });
 
     // Notify admin about new subscriber
     await resend.emails.send({
-      from: 'Yeti AI <onboarding@resend.dev>',
-      to: process.env.CONTACT_EMAIL || 'hello@yetiai.com',
-      subject: 'New Newsletter Subscriber',
+      from: "yetti AI <onboarding@resend.dev>",
+      to: process.env.CONTACT_EMAIL || "hello@yettiai.com",
+      subject: "New Newsletter Subscriber",
       html: `
         <div style="font-family: Arial, sans-serif;">
           <h2>New Newsletter Subscriber</h2>
@@ -53,9 +53,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Newsletter signup error:', error);
+    console.error("Newsletter signup error:", error);
     return NextResponse.json(
-      { error: 'Failed to subscribe to newsletter' },
+      { error: "Failed to subscribe to newsletter" },
       { status: 500 }
     );
   }

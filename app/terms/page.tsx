@@ -17,7 +17,7 @@ export default function TermsOfServicePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-12">
             <div className="text-center lg:text-left">
-              <div className="w-20 h-20 bg-[#5170ff] rounded-full flex items-center justify-center mx-auto lg:mx-0 mb-6">
+              <div className="w-20 h-20 bg-sky-500 rounded-full flex items-center justify-center mx-auto lg:mx-0 mb-6">
                 <Scale className="w-10 h-10 text-white" />
               </div>
               <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">
@@ -31,7 +31,7 @@ export default function TermsOfServicePage() {
               <div className="relative w-full aspect-square">
                 <Image
                   src="/yetti/yetti_sheets.png"
-                  alt="Yeti Terms"
+                  alt="yetti Terms"
                   fill
                   className="object-contain"
                   sizes="(max-width: 1024px) 100vw, 400px"
@@ -49,13 +49,13 @@ export default function TermsOfServicePage() {
             <div className="prose prose-lg max-w-none">
               <section className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <CheckCircle2 className="w-6 h-6 text-[#5170ff]" />
+                  <CheckCircle2 className="w-6 h-6 text-sky-500" />
                   <h2 className="text-2xl font-bold text-gray-900">
                     1. Acceptance of Terms
                   </h2>
                 </div>
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  By accessing and using Yeti AI's services, you accept and agree
+                  By accessing and using yetti AI's services, you accept and agree
                   to be bound by the terms and provision of this agreement. If you
                   do not agree to abide by the above, please do not use this
                   service.
@@ -67,7 +67,7 @@ export default function TermsOfServicePage() {
                   2. Description of Service
                 </h2>
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  Yeti AI provides an AI integration platform that allows users to
+                  yetti AI provides an AI integration platform that allows users to
                   connect their AI agents to various social media and messaging
                   platforms including but not limited to Instagram, Telegram,
                   WhatsApp, and other third-party services.
@@ -172,7 +172,7 @@ export default function TermsOfServicePage() {
                 </h3>
                 <p className="text-gray-700 leading-relaxed mb-4">
                   The service and its original content, features, and
-                  functionality are and will remain the exclusive property of Yeti
+                  functionality are and will remain the exclusive property of yetti
                   AI and its licensors. The service is protected by copyright,
                   trademark, and other laws.
                 </p>
@@ -222,7 +222,7 @@ export default function TermsOfServicePage() {
 
               <section className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <Shield className="w-6 h-6 text-[#5170ff]" />
+                  <Shield className="w-6 h-6 text-sky-500" />
                   <h2 className="text-2xl font-bold text-gray-900">
                     7. Privacy and Data Protection
                   </h2>
@@ -251,7 +251,7 @@ export default function TermsOfServicePage() {
                   9. Limitation of Liability
                 </h2>
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  In no event shall Yeti AI, nor its directors, employees,
+                  In no event shall yetti AI, nor its directors, employees,
                   partners, agents, suppliers, or affiliates, be liable for any
                   indirect, incidental, special, consequential, or punitive
                   damages, including without limitation, loss of profits, data,
@@ -265,7 +265,7 @@ export default function TermsOfServicePage() {
                   10. Indemnification
                 </h2>
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  You agree to defend, indemnify, and hold harmless Yeti AI and
+                  You agree to defend, indemnify, and hold harmless yetti AI and
                   its licensee and licensors, and their employees, contractors,
                   agents, officers and directors, from and against any and all
                   claims, damages, obligations, losses, liabilities, costs or
@@ -320,7 +320,7 @@ export default function TermsOfServicePage() {
                 </p>
                 <div className="bg-gray-50 p-6 rounded-lg">
                   <p className="text-gray-700 mb-2">
-                    <strong>Email:</strong> legal@yetiai.com
+                    <strong>Email:</strong> legal@yettiai.com
                   </p>
                   <p className="text-gray-700 mb-2">
                     <strong>Address:</strong> 123 AI Street, San Francisco, CA

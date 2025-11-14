@@ -29,7 +29,7 @@ export default function PlansPage() {
               <div className="relative w-full aspect-square">
                 <Image
                   src="/yetti/yetting_holding_dollar_sign.png"
-                  alt="Yeti Plans"
+                  alt="yetti Plans"
                   fill
                   className="object-contain"
                   sizes="(max-width: 1024px) 100vw, 400px"
@@ -85,9 +85,9 @@ export default function PlansPage() {
             </div>
 
             {/* Pro Plan */}
-            <div className="rounded-2xl bg-white p-8 shadow-lg border-2 border-[#5170ff] relative">
+            <div className="rounded-2xl bg-white p-8 shadow-lg border-2 border-sky-500 relative">
               <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span className="bg-[#5170ff] text-white px-4 py-1 rounded-full text-sm font-medium">
+                <span className="bg-sky-500 text-white px-4 py-1 rounded-full text-sm font-medium">
                   Most Popular
                 </span>
               </div>
@@ -131,7 +131,7 @@ export default function PlansPage() {
               </ul>
               <Link
                 href="/auth/signup"
-                className="w-full bg-[#5170ff] hover:bg-[#4a68f0] text-white py-3 px-4 rounded-xl font-semibold transition-colors shadow-[0_8px_30px_rgba(81,112,255,0.35)] text-center block"
+                className="w-full bg-sky-500 hover:bg-sky-600 text-white py-3 px-4 rounded-xl font-semibold transition-colors   text-center block"
               >
                 Start Pro Trial
               </Link>
@@ -207,7 +207,7 @@ export default function PlansPage() {
             <div className="relative w-full aspect-square max-w-md mx-auto">
               <Image
                 src="/yetti/yetti_trolly.png"
-                alt="Yeti Features"
+                alt="yetti Features"
                 fill
                 className="object-contain"
                 sizes="(max-width: 1024px) 100vw, 400px"
@@ -324,13 +324,13 @@ export default function PlansPage() {
               Ready to Get Started?
             </h2>
             <p className="text-xl text-gray-600 mb-8">
-              Join thousands of businesses already using Yeti AI to automate
+              Join thousands of businesses already using yetti AI to automate
               their customer interactions
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/auth/signup"
-                className="px-8 py-4 rounded-xl text-white bg-[#5170ff] hover:bg-[#4a68f0] transition-colors shadow-[0_8px_30px_rgba(81,112,255,0.35)] text-lg font-semibold"
+                className="px-8 py-4 rounded-xl text-white bg-sky-500 hover:bg-sky-600 transition-colors   text-lg font-semibold"
               >
                 Start Your Free Trial
               </Link>

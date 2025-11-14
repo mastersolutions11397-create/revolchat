@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/lib/auth-context";
-import { WorkspaceProvider } from "@/lib/contexts/WorkspaceContext";
+import ClientProviders from "@/components/ClientProviders";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Yeti AI - AI Agent Integration Platform",
+  title: "yetti AI - AI Agent Integration Platform",
   description:
-    "Connect your AI chatbot to Instagram, Telegram, and more platforms with Yeti AI's powerful integration platform.",
+    "Connect your AI chatbot to Instagram, Telegram, and more platforms with yetti AI's powerful integration platform.",
 };
 
 export default function RootLayout({
@@ -30,9 +29,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
-          <WorkspaceProvider>{children}</WorkspaceProvider>
-        </AuthProvider>
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );

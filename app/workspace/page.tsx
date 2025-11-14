@@ -259,13 +259,13 @@ export default function WorkspaceSelectionPage() {
                     {/* Add New Workspace */}
                     <Card
                       onClick={() => setIsModalOpen(true)}
-                      className="border rounded-2xl! hover:border-[#5170ff] group cursor-pointer transition-colors"
+                      className="border rounded-2xl! py-6 hover:border-sky-500 group cursor-pointer transition-colors"
                     >
-                      <CardContent className="p-6 h-full flex flex-col items-center justify-center text-center">
-                        <div className="w-12 h-12 rounded-xl bg-gray-900 group-hover:bg-[#5170ff] text-white flex items-center justify-center">
+                      <CardContent className="p-6  h-full flex flex-col items-center justify-center text-center">
+                        <div className="w-12 h-12 rounded-xl bg-gray-900 group-hover:bg-sky-500 text-white flex items-center justify-center">
                           <Plus className="w-6 h-6 " />
                       </div>
-                        <h3 className="mt-3 text-lg font-semibold text-gray-900 group-hover:text-[#5170ff]">
+                        <h3 className="mt-3 text-lg font-semibold text-gray-900 group-hover:text-sky-500">
                           Create New Workspace
                     </h3>
                         <p className="mt-1 text-sm text-gray-600 max-w-xs">
@@ -317,7 +317,7 @@ export default function WorkspaceSelectionPage() {
         <div className="grid grid-cols-1 md:grid-cols-2">
           {/* Left visual */}
           <div className="relative hidden md:block bg-white p-2">
-            <div className="relative h-full min-h-[460px] rounded-2xl overflow-hidden bg-[radial-gradient(900px_400px_at_60%_-20%,#6e7bff_0%,#0b1220_70%)]">
+            <div className="relative h-full min-h-[460px] rounded-2xl overflow-hidden bg-[radial-gradient(900px_400px_at_60%_-20%,#0ea5e9_0%,#0b1220_70%)]">
               <Image src="/yetti/yetti_laying.png" alt="Yetti resting" fill className="object-contain p-6" />
             </div>
           </div>

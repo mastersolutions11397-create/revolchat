@@ -15,6 +15,7 @@ import {
   Loader2,
   User as UserIcon,
   CalendarClock,
+  CreditCard,
 } from "lucide-react";
 import { yettiOnboardingAPI } from "@/lib/api";
 import WorkspaceOnboardingModal from "@/components/workspace/WorkspaceOnboardingModal";
@@ -247,6 +248,27 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
               </span>
             </Link>
             <Link
+              href={buildLink("/dashboard/billing")}
+              className={`flex items-center rounded-lg px-3 py-3 transition-colors ${
+                isActive("/dashboard/billing")
+                  ? "bg-sky-100 text-sky-700 font-semibold"
+                  : "text-gray-700 hover:bg-sky-50 hover:text-sky-600"
+              }`}
+            >
+              <CreditCard
+                className={`h-5 w-5 shrink-0 ${
+                  sidebarExpanded ? "mr-3" : "mx-auto"
+                }`}
+              />
+              <span
+                className={`text-sm font-medium transition-all duration-200 ${
+                  sidebarExpanded ? "max-w-48 opacity-100" : "max-w-0 opacity-0"
+                } overflow-hidden`}
+              >
+                Billing
+              </span>
+            </Link>
+            <Link
               href={buildLink("/dashboard/settings")}
               className={`flex items-center rounded-lg px-3 py-3 transition-colors ${
                 isActive("/dashboard/settings")
@@ -346,7 +368,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                     workspaceLoading ||
                     workspaces.length === 0
                   }
-                  className="appearance-none rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-9 text-sm font-medium text-gray-700 shadow-sm transition focus:border-[#5170ff] focus:outline-none focus:ring-2 focus:ring-[#5170ff]/20 disabled:cursor-not-allowed disabled:bg-gray-100"
+                  className="appearance-none rounded-lg border border-gray-200 bg-white py-2 pl-3 pr-9 text-sm font-medium text-gray-700 shadow-sm transition focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-gray-100"
                   aria-label="Select workspace"
                 >
                   {workspaces.length === 0 ? (

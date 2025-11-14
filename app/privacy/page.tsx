@@ -17,7 +17,7 @@ export default function PrivacyPolicyPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-12">
             <div className="text-center lg:text-left">
-              <div className="w-20 h-20 bg-[#5170ff] rounded-full flex items-center justify-center mx-auto lg:mx-0 mb-6">
+              <div className="w-20 h-20 bg-sky-500 rounded-full flex items-center justify-center mx-auto lg:mx-0 mb-6">
                 <Shield className="w-10 h-10 text-white" />
               </div>
               <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">
@@ -31,7 +31,7 @@ export default function PrivacyPolicyPage() {
               <div className="relative w-full aspect-square">
                 <Image
                   src="/yetti/yetti_angry.png"
-                  alt="Yeti Privacy"
+                  alt="yetti Privacy"
                   fill
                   className="object-contain"
                   sizes="(max-width: 1024px) 100vw, 400px"
@@ -52,7 +52,7 @@ export default function PrivacyPolicyPage() {
                   1. Introduction
                 </h2>
                 <p className="text-gray-700 leading-relaxed mb-4">
-                  Yeti AI ("we," "our," or "us") is committed to protecting your
+                  yetti AI ("we," "our," or "us") is committed to protecting your
                   privacy. This Privacy Policy explains how we collect, use,
                   disclose, and safeguard your information when you use our AI
                   integration platform and services.
@@ -65,7 +65,7 @@ export default function PrivacyPolicyPage() {
 
               <section className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <FileText className="w-6 h-6 text-[#5170ff]" />
+                  <FileText className="w-6 h-6 text-sky-500" />
                   <h2 className="text-2xl font-bold text-gray-900">
                     2. Information We Collect
                   </h2>
@@ -158,7 +158,7 @@ export default function PrivacyPolicyPage() {
 
               <section className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <Lock className="w-6 h-6 text-[#5170ff]" />
+                  <Lock className="w-6 h-6 text-sky-500" />
                   <h2 className="text-2xl font-bold text-gray-900">
                     5. Data Security
                   </h2>
@@ -180,7 +180,7 @@ export default function PrivacyPolicyPage() {
 
               <section className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
-                  <Eye className="w-6 h-6 text-[#5170ff]" />
+                  <Eye className="w-6 h-6 text-sky-500" />
                   <h2 className="text-2xl font-bold text-gray-900">
                     6. Your Rights and Choices
                   </h2>
@@ -263,7 +263,7 @@ export default function PrivacyPolicyPage() {
                 </p>
                 <div className="bg-gray-50 p-6 rounded-lg">
                   <p className="text-gray-700 mb-2">
-                    <strong>Email:</strong> privacy@yetiai.com
+                    <strong>Email:</strong> privacy@yettiai.com
                   </p>
                   <p className="text-gray-700 mb-2">
                     <strong>Address:</strong> 123 AI Street, San Francisco, CA

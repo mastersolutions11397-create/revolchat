@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://yetiai.com/sitemap.xml
+Sitemap: https://yettiai.com/sitemap.xml
 
 # Disallow admin and private areas
 Disallow: /dashboard/

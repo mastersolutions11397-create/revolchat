@@ -709,28 +709,17 @@ export default function KnowledgePage() {
   return (
     <div className="flex flex-col gap-6 lg:min-h-[calc(100vh-8rem)]">
       {/* Header - Navy Banner */}
-      <div className="rounded-2xl border border-[#1e2a4a] bg-[#0b1220] px-6 py-5 shadow-sm ">
+      <div className="rounded-2xl bg-[#0b1220] p-6 text-white">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            {/* Collapsed/compact mark - shows on narrow/\"collapsed\" scenarios */}
-            <div className="shrink-0 md:hidden">
-              <Image
-                src="/yetti/15.png"
-                alt="Yetti"
-                width={40}
-                height={40}
-                className="h-10 w-10"
-                priority
-              />
-            </div>
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl  bg-sky-500/20 text-sky-400">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
               <FileText className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold text-white">
+              <h1 className="text-2xl font-bold">
                 Knowledge base
               </h1>
-              <p className="mt-0.5 hidden text-sm text-white/70 sm:block">
+              <p className="text-white/70 text-sm">
                 Curate knowledge and chat with your data in one place.
               </p>
             </div>
@@ -1827,7 +1816,7 @@ export default function KnowledgePage() {
                                   >
                                     {sheetTypeLabel} Sheet
                                   </a>
-                                  <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded">
+                                  <span className="px-2 py-0.5 text-xs bg- sky-100 text- sky-700 rounded">
                                     {sheet.sheet_type || "general"}
                                   </span>
                                 </div>

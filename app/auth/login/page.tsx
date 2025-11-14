@@ -5,8 +5,10 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/lib/auth";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 
 export default function LoginPage() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -67,7 +69,7 @@ export default function LoginPage() {
         setGoogleLoading(false);
       }
       // Note: User will be redirected to Google, so we don't need to handle success here
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred");
       setGoogleLoading(false);
     }
@@ -85,315 +87,11 @@ export default function LoginPage() {
                   YETTI<span className="text-gray-400">.AI</span>
                 </span>
               </Link>
-              <h2 className="mt-4 text-3xl font-bold text-gray-900">Welcome home</h2>
-              <p className="mt-1 text-sm text-gray-600">Please enter your details.</p>
+              <h2 className="mt-4 text-3xl font-bold text-gray-900">{t("login.welcomeBack")}</h2>
+              <p className="mt-1 text-sm text-gray-600">{t("login.enterDetails")}</p>
             </div>
 
             <div className="rounded-2xl p-0">
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        
-        
-        
-        
-            
-        
-        
-        
-        
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        
-        
-        
-        
-            
-        
-        
-        
-        
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        
-        
-        
-        
-        
-        
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        
-        
-        
-        
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        
-        
-        
-        
-            
-        
-        
-        
-        
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        
-        
-        
-        
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        
-        
-        
-        
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        
-        
-        
-        
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        
-        
-        
-        
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        
-        
-        
-        
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        
-        
-        
-        
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-        
-        
-        
-        
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-red-600 text-sm">{error}</p>
@@ -403,7 +101,7 @@ export default function LoginPage() {
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-900 mb-2">
-                Email address
+                {t("login.email")}
               </label>
               <input
                 id="email"
@@ -413,14 +111,14 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 border border-gray-300 focus:ring-2 focus:ring-[#5170ff] focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 border border-gray-300 focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                 placeholder="Enter your email"
               />
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-900 mb-2">
-                Password
+                {t("login.password")}
               </label>
               <input
                 id="password"
@@ -430,7 +128,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 border border-gray-300 focus:ring-2 focus:ring-[#5170ff] focus:border-transparent transition-all"
+                className="w-full px-4 py-3 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 border border-gray-300 focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                 placeholder="Enter your password"
               />
             </div>
@@ -443,13 +141,13 @@ export default function LoginPage() {
                   type="checkbox" 
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 bg-white text-[#5170ff] focus:ring-[#5170ff]" 
+                  className="h-4 w-4 rounded border-gray-300 bg-white text-sky-500 focus:ring-sky-500" 
                 />
-                Remember me
+                {t("login.rememberMe")}
               </label>
               <div className="text-sm">
-                <Link href="/auth/forgot-password" className="text-[#5170ff] hover:text-[#405ce6] font-medium">
-                  Forgot your password?
+                <Link href="/auth/forgot-password" className="text-sky-500 hover:text- sky-600 font-medium">
+                  {t("login.forgotPassword")}
                 </Link>
               </div>
             </div>
@@ -458,17 +156,17 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-[#5170ff] hover:bg-[#4a68f0] text-white py-3 px-4 rounded-xl font-semibold transition-colors shadow-[0_8px_30px_rgba(81,112,255,0.35)] disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full bg-sky-500 hover:bg-sky-600 text-white py-3 px-4 rounded-xl font-semibold transition-colors   disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {loading ? "Signing in..." : "Sign in"}
+                {loading ? t("login.signingIn") : t("login.signIn")}
               </button>
             </div>
 
             <div className="text-center">
               <span className="text-sm text-gray-600">
-                Don’t have an account?{" "}
-                <Link href="/auth/signup" className="text-[#5170ff] hover:text-[#405ce6] font-medium">
-                  Sign up
+                {t("login.noAccount")}{" "}
+                <Link href="/auth/signup" className="text-sky-500 hover:text- sky-600 font-medium">
+                  {t("login.signUp")}
                 </Link>
               </span>
             </div>
@@ -481,7 +179,7 @@ export default function LoginPage() {
                 <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                <span className="px-2 bg-white text-gray-500">{t("login.orContinueWith")}</span>
               </div>
             </div>
 
@@ -507,7 +205,7 @@ export default function LoginPage() {
           {/* Right: Visual */}
           <div className="p-4 md:p-6">
             <div className="h-full w-full rounded-[28px] bg-white p-2">
-              <div className="relative h-full rounded-2xl overflow-hidden bg-[radial-gradient(1200px_600px_at_60%_-20%,#6e7bff_0%,#0b1220_60%)]">
+              <div className="relative h-full rounded-2xl overflow-hidden bg-[radial-gradient(1200px_600px_at_60%_-20%,#0ea5e9_0%,#0b1220_60%)]">
                 <Image src="/yetti/yetti_laptop.png" alt="Yetti with laptop" fill className="object-contain p-6" />
               </div>
             </div>

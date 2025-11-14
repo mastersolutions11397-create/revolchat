@@ -52,14 +52,14 @@ export default function NewsletterSignup() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
             required
-            className="w-full px-4 py-2 pl-10 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#5170ff] focus:border-transparent transition-all"
+            className="w-full px-4 py-2 pl-10 rounded-lg border border-gray-300 focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
           />
           <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
         </div>
         <button
           type="submit"
           disabled={status === "loading"}
-          className="px-6 py-2 rounded-lg bg-[#5170ff] hover:bg-[#4a68f0] text-white font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+          className="px-6 py-2 rounded-lg bg-sky-500 hover:bg-sky-600 text-white font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
         >
           {status === "loading" ? (
             "..."

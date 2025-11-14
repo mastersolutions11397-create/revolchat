@@ -185,18 +185,20 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div className="rounded-2xl border border-gray-200 bg-[#0b1220] p-8">
+      <div className="rounded-2xl bg-[#0b1220] p-6 text-white">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="mb-2 text-3xl font-extrabold text-white">
-              Welcome back, {getUserName()}
-            </h2>
-            <p className="text-white/70">
-              Overview of your knowledge base, integrations, and performance.
-            </p>
-            <p className="mt-1 text-sm font-medium text-sky-300">
-              Working in {workspaceName}
-            </p>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
+              <MessageSquare className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold">
+                Welcome back, {getUserName()}
+              </h1>
+              <p className="text-white/70 text-sm">
+                Overview of your knowledge base, integrations, and performance.
+              </p>
+            </div>
           </div>
           <div className="flex flex-col items-end gap-3">
             <div className="text-right">

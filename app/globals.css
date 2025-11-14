@@ -60,12 +60,12 @@ body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
-/* Custom Yeti-themed styles */
-.yeti-gradient {
+/* Custom yetti-themed styles */
+.yetti-gradient {
   background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 50%, #74b9ff 100%);
 }
 
-.yeti-shadow {
+.yetti-shadow {
   box-shadow: 0 10px 30px rgba(108, 92, 231, 0.1);
 }
 
