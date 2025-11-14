@@ -13,11 +13,12 @@ import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { workspaceId: string } }
+  { params }: { params: Promise<{ workspaceId: string }> }
 ) {
   try {
     const user = await authenticate(request);
-    const workspaceId = normalizeWorkspaceId(params.workspaceId);
+    const { workspaceId: workspaceIdParam } = await params;
+    const workspaceId = normalizeWorkspaceId(workspaceIdParam);
     await ensureWorkspaceMembership(workspaceId, user.id);
 
     const row = await fetchWorkspaceHours(workspaceId);
@@ -40,11 +41,12 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { workspaceId: string } }
+  { params }: { params: Promise<{ workspaceId: string }> }
 ) {
   try {
     const user = await authenticate(request);
-    const workspaceId = normalizeWorkspaceId(params.workspaceId);
+    const { workspaceId: workspaceIdParam } = await params;
+    const workspaceId = normalizeWorkspaceId(workspaceIdParam);
     await ensureWorkspaceMembership(workspaceId, user.id);
 
     const body = await request.json().catch(() => null);

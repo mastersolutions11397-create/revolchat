@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { profileAPI, UserProfile, UserProfileUpdate } from "@/lib/api/profile";
+import { profileAPI, UserProfileUpdate } from "@/lib/api/profile";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -11,7 +11,6 @@ export default function ProfilePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     first_name: "",
@@ -33,7 +32,6 @@ export default function ProfilePage() {
       try {
         setLoading(true);
         const profileData = await profileAPI.getProfile();
-        setProfile(profileData);
         setFormData({
           first_name: profileData.first_name || "",
           last_name: profileData.last_name || "",
@@ -46,7 +44,7 @@ export default function ProfilePage() {
           sms: profileData.notification_preferences?.sms ?? false,
           push: profileData.notification_preferences?.push ?? true,
         });
-      } catch (err: any) {
+      } catch (err) {
         console.error("Error fetching profile:", err);
         // If profile doesn't exist, use user metadata
         setFormData({
@@ -78,12 +76,11 @@ export default function ProfilePage() {
         notification_preferences: notificationPrefs,
       };
 
-      const updatedProfile = await profileAPI.updateProfile(updateData);
-      setProfile(updatedProfile);
+      await profileAPI.updateProfile(updateData);
       alert("Profile updated successfully!");
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error updating profile:", err);
-      setError(err.message || "Failed to update profile");
+      setError(err instanceof Error ? err.message : "Failed to update profile");
     } finally {
       setSaving(false);
     }
@@ -116,9 +113,9 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-white via-sky-50 to- sky-50 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-white via-sky-50 to-sky-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border- sky-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading profile...</p>
         </div>
       </div>
@@ -126,9 +123,9 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-sky-50 to- sky-50">
+    <div className="min-h-screen bg-linear-to-br from-white via-sky-50 to-sky-50">
       {/* Navigation */}
-      <nav className="bg-white/80 backdrop-blur-md border-b border- sky-100">
+      <nav className="bg-white/80 backdrop-blur-md border-b border-sky-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
@@ -142,19 +139,19 @@ export default function ProfilePage() {
             <div className="flex items-center space-x-4">
               <Link
                 href="/dashboard"
-                className="text-gray-700 hover:text- sky-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-700 hover:text-sky-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Dashboard
               </Link>
               <Link
                 href="/workspace"
-                className="text-gray-700 hover:text- sky-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-700 hover:text-sky-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Workspaces
               </Link>
               <button
                 onClick={handleSignOut}
-                className="text-gray-700 hover:text- sky-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-700 hover:text-sky-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Sign Out
               </button>
@@ -204,7 +201,7 @@ export default function ProfilePage() {
                       onChange={(e) =>
                         setFormData({ ...formData, first_name: e.target.value })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring- sky-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                     />
                   </div>
                   <div>
@@ -221,7 +218,7 @@ export default function ProfilePage() {
                       onChange={(e) =>
                         setFormData({ ...formData, last_name: e.target.value })
                       }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring- sky-500 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                     />
                   </div>
                 </div>
@@ -257,7 +254,7 @@ export default function ProfilePage() {
                     onChange={(e) =>
                       setFormData({ ...formData, company: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring- sky-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                   />
                 </div>
                 <div>
@@ -274,13 +271,13 @@ export default function ProfilePage() {
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring- sky-500 focus:border-transparent transition-all"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="bg-gradient-to-r from- sky-600 to-sky-600 text-white px-6 py-3 rounded-lg font-semibold hover:from- sky-700 hover:to-sky-700 transition-all disabled:opacity-50"
+                  className="bg-linear-to-r from-sky-600 to-sky-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-700 transition-all disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Save Changes"}
                 </button>
@@ -314,7 +311,7 @@ export default function ProfilePage() {
                       }
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring- sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg- sky-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
                   </label>
                 </div>
                 <div className="flex items-center justify-between">
@@ -338,7 +335,7 @@ export default function ProfilePage() {
                       }
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring- sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg- sky-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
                   </label>
                 </div>
                 <div className="flex items-center justify-between">
@@ -362,7 +359,7 @@ export default function ProfilePage() {
                       }
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring- sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg- sky-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
                   </label>
                 </div>
                 <button
@@ -374,14 +371,14 @@ export default function ProfilePage() {
                         notification_preferences: notificationPrefs,
                       });
                       alert("Notification preferences updated!");
-                    } catch (err: any) {
-                      setError(err.message || "Failed to update preferences");
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : "Failed to update preferences");
                     } finally {
                       setSaving(false);
                     }
                   }}
                   disabled={saving}
-                  className="mt-4 bg-gradient-to-r from- sky-600 to-sky-600 text-white px-6 py-3 rounded-lg font-semibold hover:from- sky-700 hover:to-sky-700 transition-all disabled:opacity-50"
+                  className="mt-4 bg-linear-to-r from-sky-600 to-sky-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-700 transition-all disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Save Preferences"}
                 </button>
@@ -393,7 +390,7 @@ export default function ProfilePage() {
           <div className="space-y-8">
             {/* Profile Picture */}
             <div className="yetti-card rounded-2xl p-8 yetti-shadow text-center">
-              <div className="w-24 h-24 bg-gradient-to-br from- sky-500 to-sky-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-24 h-24 bg-linear-to-br from-sky-500 to-sky-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-white text-2xl font-bold">
                   {getInitials()}
                 </span>
@@ -402,7 +399,7 @@ export default function ProfilePage() {
                 {getUserName()}
               </h3>
               <p className="text-gray-600 mb-4">{formData.email}</p>
-              <button className="text- sky-600 hover:text- sky-500 font-medium">
+              <button className="text-sky-600 hover:text-sky-500 font-medium">
                 Change Photo
               </button>
             </div>
@@ -436,7 +433,7 @@ export default function ProfilePage() {
               <div className="mt-6">
                 <Link
                   href="/plans"
-                  className="block w-full bg-gradient-to-r from- sky-600 to-sky-600 text-white py-3 px-4 rounded-lg font-semibold hover:from- sky-700 hover:to-sky-700 transition-all text-center"
+                  className="block w-full bg-linear-to-r from-sky-600 to-sky-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-700 transition-all text-center"
                 >
                   Upgrade Plan
                 </Link>

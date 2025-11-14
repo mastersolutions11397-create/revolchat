@@ -218,7 +218,7 @@ export default function PlansPage() {
                 Compare All Features
               </h2>
               <p className="text-xl text-gray-600">
-                See what's included in each plan
+                See what&apos;s included in each plan
               </p>
             </div>
           </div>

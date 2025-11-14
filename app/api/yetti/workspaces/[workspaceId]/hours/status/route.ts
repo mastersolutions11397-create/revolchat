@@ -11,11 +11,12 @@ import {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { workspaceId: string } }
+  { params }: { params: Promise<{ workspaceId: string }> }
 ) {
   try {
     const user = await authenticate(request);
-    const workspaceId = normalizeWorkspaceId(params.workspaceId);
+    const { workspaceId: workspaceIdParam } = await params;
+    const workspaceId = normalizeWorkspaceId(workspaceIdParam);
     await ensureWorkspaceMembership(workspaceId, user.id);
 
     const body = await request.json().catch(() => null);

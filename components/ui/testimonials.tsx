@@ -10,8 +10,8 @@ export default function Testimonials() {
     return (
         <section className="py-16 md:py-32">
             <div className="mx-auto max-w-6xl space-y-8 px-6 md:space-y-16">
-                <div className="relative z-10 mx-auto max-w-xl space-y-6 text-center md:space-y-12">
-                    <h2 className="text-4xl font-medium lg:text-5xl">{t("testimonials.title")}</h2>
+                <div className="relative z-10 mx-auto max-w-xl space-y-6 text-center ">
+                    <h2 className="text-4xl font-semibold lg:text-5xl">{t("testimonials.title")}</h2>
                     <p>{t("testimonials.subtitle")}</p>
                 </div>
 
@@ -71,7 +71,7 @@ export default function Testimonials() {
                     <Card>
                         <CardContent className="h-full pt-6">
                             <blockquote className="grid h-full grid-rows-[1fr_auto] gap-6">
-                                <p>{t("testimonials.testimonial3.text")}</p>
+                                <p className="text-xl font-medium">{t("testimonials.testimonial3.text")}</p>
 
                                 <div className="grid items-center gap-3 grid-cols-[auto_1fr]">
                                     <Avatar className="size-12">
@@ -95,7 +95,7 @@ export default function Testimonials() {
                     <Card className="card variant-mixed">
                         <CardContent className="h-full pt-6">
                             <blockquote className="grid h-full grid-rows-[1fr_auto] gap-6">
-                                <p>{t("testimonials.testimonial4.text")}</p>
+                                <p className="text-xl font-medium">{t("testimonials.testimonial4.text")}</p>
 
                                 <div className="grid grid-cols-[auto_1fr] gap-3">
                                     <Avatar className="size-12">

@@ -74,7 +74,7 @@ async function apiRequest<T>(
 
   if (!response.ok) {
     let errorMessage = `Request failed with status ${response.status}`;
-    let errorData: unknown;
+    let errorData: any;
     try {
       errorData = await response.json();
       const detail = (errorData && (errorData.detail ?? errorData.message ?? errorData.error));
@@ -82,7 +82,7 @@ async function apiRequest<T>(
         errorMessage = detail;
       } else if (Array.isArray(detail)) {
         errorMessage = detail
-          .map((d) => (typeof d === "string" ? d : JSON.stringify(d)))
+          .map((d: any) => (typeof d === "string" ? d : JSON.stringify(d)))
           .join(", ");
       } else if (typeof errorData === "string") {
         errorMessage = errorData;

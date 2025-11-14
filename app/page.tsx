@@ -37,10 +37,10 @@ function CTA() {
       <div className="container mx-auto">
         <div className="flex flex-col text-center rounded-2xl p-4 lg:p-14 gap-8 items-center bg-[#0b1220]">
           <div>
-            <Badge className="" variant="outline">{t("cta.badge")}</Badge>
+            <Badge className="text-white" variant="outline">{t("cta.badge")}</Badge>
           </div>
           <div className="flex flex-col gap-2">
-            <h3 className="text-3xl md:text-5xl tracking-tighter max-w-xl font-regular">
+            <h3 className="text-3xl font-semibold md:text-5xl tracking-tighter max-w-xl ">
               {t("cta.title")}
             </h3>
             <p className="text-lg leading-relaxed tracking-tight text-white/70 max-w-xl">
