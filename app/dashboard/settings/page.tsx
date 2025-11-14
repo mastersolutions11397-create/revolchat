@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
+import { Settings as SettingsIcon } from "lucide-react";
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
@@ -31,16 +32,23 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-600 mt-2">
-          Manage your account settings and preferences
-        </p>
+      {/* Banner */}
+      <div className="rounded-2xl bg-[#0b1220] p-6 text-white">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
+            <SettingsIcon className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Settings</h1>
+            <p className="text-white/70 text-sm">
+              Manage your account preferences and notifications.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* General Settings */}
-      <div className="yeti-card rounded-2xl p-8 yeti-shadow">
+      <div className="rounded-2xl border border-gray-200 bg-white p-8">
         <h2 className="text-xl font-bold text-gray-900 mb-6">General</h2>
         <div className="space-y-6">
           <div>
@@ -52,7 +60,7 @@ export default function SettingsPage() {
               onChange={(e) =>
                 setFormData({ ...formData, timezone: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
             >
               <option value="UTC">UTC</option>
               <option value="America/New_York">Eastern Time</option>
@@ -65,7 +73,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Notification Settings */}
-      <div className="yeti-card rounded-2xl p-8 yeti-shadow">
+      <div className="rounded-2xl border border-gray-200 bg-white p-8">
         <h2 className="text-xl font-bold text-gray-900 mb-6">Notifications</h2>
         <div className="space-y-6">
           <div className="flex items-center justify-between">
@@ -87,7 +95,7 @@ export default function SettingsPage() {
                 }
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
             </label>
           </div>
           <div className="flex items-center justify-between">
@@ -111,7 +119,7 @@ export default function SettingsPage() {
                 }
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
             </label>
           </div>
           <div className="flex items-center justify-between">
@@ -135,19 +143,19 @@ export default function SettingsPage() {
                 }
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
             </label>
           </div>
         </div>
       </div>
 
       {/* Account Actions */}
-      <div className="yeti-card rounded-2xl p-8 yeti-shadow">
+      <div className="rounded-2xl border border-gray-200 bg-white p-8">
         <h2 className="text-xl font-bold text-gray-900 mb-6">Account</h2>
         <div className="space-y-4">
           <button
             onClick={() => router.push("/profile")}
-            className="w-full text-left px-6 py-4 border-2 border-purple-200 text-purple-700 rounded-lg font-semibold hover:bg-purple-50 transition-all"
+            className="w-full text-left px-6 py-4 border-2 border-sky-200 text-sky-700 rounded-lg font-semibold hover:bg-sky-50 transition-all"
           >
             Edit Profile
           </button>
@@ -165,7 +173,7 @@ export default function SettingsPage() {
         <button
           onClick={handleSave}
           disabled={loading}
-          className="bg-gradient-to-r from-purple-600 to-sky-600 text-white px-8 py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-sky-700 transition-all disabled:opacity-50"
+          className="bg-gradient-to-r from-sky-600 to-sky-700 text-white px-8 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-800 transition-all disabled:opacity-50"
         >
           {loading ? "Saving..." : "Save Settings"}
         </button>

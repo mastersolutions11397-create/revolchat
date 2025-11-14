@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Plus, Trash2, Loader2, Globe2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Plus,
+  Trash2,
+  Loader2,
+  Globe2,
+  CalendarClock,
+  ChevronDown,
+} from "lucide-react";
 import {
   workspaceHoursAPI,
   type DayKey,
@@ -105,6 +112,89 @@ const sanitizeTimeZone = (tz?: string, options?: string[]) => {
 
   return "UTC";
 };
+
+function TimezoneDropdown({
+  value,
+  options,
+  onChange,
+  disabled,
+}: {
+  value: string;
+  options: string[];
+  onChange: (val: string) => void;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelect = (tz: string) => {
+    onChange(tz);
+    setOpen(false);
+  };
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <button
+        type="button"
+        disabled={!!disabled}
+        onClick={() => setOpen((v) => !v)}
+        className={`w-full rounded-lg border border-gray-300 px-4 py-3 text-left text-sm font-medium text-gray-700 ${
+          disabled ? "bg-gray-100 cursor-not-allowed opacity-70" : "bg-white"
+        }`}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <div className="flex items-center justify-between">
+          <span className="truncate">{value}</span>
+          <ChevronDown
+            className={`h-4 w-4 text-gray-500 transition-transform ${
+              open ? "rotate-180" : ""
+            }`}
+          />
+        </div>
+      </button>
+      {open && (
+        <div
+          className="absolute z-10 mt-2 max-h-64 w-full overflow-auto rounded-lg border border-gray-200 bg-white"
+          role="listbox"
+        >
+          {options.map((tz) => {
+            const selected = tz === value;
+            return (
+              <button
+                key={tz}
+                type="button"
+                onClick={() => handleSelect(tz)}
+                className={`flex w-full items-center px-3 py-2 text-left text-sm ${
+                  selected
+                    ? "bg-sky-100 text-sky-700"
+                    : "text-gray-700 hover:bg-sky-50"
+                }`}
+                role="option"
+                aria-selected={selected}
+              >
+                <span className="truncate">{tz}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function WorkspaceHoursPage() {
   const { selectedWorkspaceId, currentWorkspace } = useWorkspace();
@@ -280,122 +370,83 @@ export default function WorkspaceHoursPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Working Hours</h1>
-        <p className="text-gray-600 mt-2 max-w-2xl">
-          Configure when your workspace is available. Set weekly working hours,
-          choose a default time zone, and override availability with a quick
-          toggle.
-        </p>
-      </div>
-
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
-      {success && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {success}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="xl:col-span-2 space-y-6">
-          <div className="yeti-card rounded-2xl p-8 yeti-shadow">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Workspace Availability
-                </h2>
-                <p className="text-gray-600 text-sm mt-1">
-                  Turn the workspace on or off instantly. When off, it remains
-                  unavailable even during scheduled hours.
-                </p>
-              </div>
-              <label className="relative inline-flex cursor-pointer items-center">
-                <input
-                  type="checkbox"
-                  className="peer sr-only"
-                  checked={workspaceOnline}
-                  onChange={(event) =>
-                    handleWorkspaceOnlineToggle(event.target.checked)
-                  }
-                  disabled={statusSaving || loading}
-                />
-                <span className="h-7 w-12 rounded-full bg-gray-200 transition-all peer-checked:bg-purple-600 peer-disabled:opacity-50"></span>
-                <span className="absolute left-1 top-1 h-5 w-5 rounded-full bg-white transition-all peer-checked:translate-x-5 shadow" />
-              </label>
-            </div>
-            {statusSaving && (
-              <div className="mt-4 inline-flex items-center gap-2 rounded-lg bg-purple-50 px-3 py-1 text-sm text-purple-700">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Updating status…
-              </div>
-            )}
+      <div className="rounded-2xl bg-[#0b1220] p-6 text-white">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
+            <CalendarClock className="h-5 w-5" />
           </div>
-
-          <div className="yeti-card rounded-2xl p-8 yeti-shadow">
-            <div className="flex items-center gap-3 pb-6 border-b border-gray-100 mb-6">
-              <Globe2 className="h-5 w-5 text-purple-500" />
-              <div>
-                <h2 className="text-xl font-semibold text-gray-900">
-                  Time Zone
-                </h2>
-                <p className="text-gray-600 text-sm">
-                  Meetings and automations will follow this timezone.
-                </p>
-              </div>
-            </div>
-            <select
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-500"
-              value={timezone}
-              onChange={(event) => setTimezone(event.target.value)}
-              disabled={loading}
-            >
-              {timezones.map((tz) => (
-                <option key={tz} value={tz}>
-                  {tz}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="yeti-card rounded-2xl p-8 yeti-shadow">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Workspace Summary
-            </h2>
-            <p className="text-sm text-gray-600 mt-2">
-              Overview of your workspace availability settings.
-            </p>
-            <dl className="mt-6 space-y-4 text-sm text-gray-700">
-              <div className="flex justify-between">
-                <dt>Status</dt>
-                <dd className="font-semibold">
-                  {workspaceOnline ? "Online" : "Offline"}
-                </dd>
-              </div>
-              <div className="flex justify-between">
-                <dt>Timezone</dt>
-                <dd className="font-medium text-gray-900">{timezone}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt>Workspace</dt>
-                <dd className="font-medium text-gray-900">
-                  {currentWorkspace?.name || "—"}
-                </dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-      </div>
-
-      <div className="yeti-card rounded-2xl p-8 yeti-shadow">
-        <div className="flex items-start justify-between mb-8">
           <div>
+            <h1 className="text-2xl font-bold">Working Hours</h1>
+            <p className="text-white/70 text-sm">
+              Set workspace availability, timezone and weekly schedules.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-8">
+        {error && (
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            {success}
+          </div>
+        )}
+
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">
+              Workspace Availability
+            </h2>
+            <p className="text-gray-600 text-sm mt-1">
+              Turn the workspace on or off instantly. When off, it remains
+              unavailable even during scheduled hours.
+            </p>
+          </div>
+          <label className="relative inline-flex cursor-pointer items-center">
+            <input
+              type="checkbox"
+              className="peer sr-only"
+              checked={workspaceOnline}
+              onChange={(event) =>
+                handleWorkspaceOnlineToggle(event.target.checked)
+              }
+              disabled={statusSaving || loading}
+            />
+            <span className="h-7 w-12 rounded-full bg-gray-200 transition-all peer-checked:bg-sky-600 peer-disabled:opacity-50"></span>
+            <span className="absolute left-1 top-1 h-5 w-5 rounded-full bg-white transition-all peer-checked:translate-x-5" />
+          </label>
+        </div>
+        {statusSaving && (
+          <div className="mt-2 inline-flex items-center gap-2 rounded-lg bg-sky-50 px-3 py-1 text-sm text-sky-700">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Updating status…
+          </div>
+        )}
+
+        <div className="border-t border-gray-100 pt-6">
+          <div className="flex items-center gap-3 pb-4">
+            <Globe2 className="h-5 w-5 text-sky-500" />
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Time Zone</h2>
+              <p className="text-gray-600 text-sm">
+                Meetings and automations will follow this timezone.
+              </p>
+            </div>
+          </div>
+          <TimezoneDropdown
+            value={timezone}
+            options={timezones}
+            onChange={(val) => setTimezone(val)}
+            disabled={loading}
+          />
+        </div>
+
+        <div className="border-t border-gray-100 pt-6">
+          <div className="mb-4">
             <h2 className="text-xl font-semibold text-gray-900">
               Weekly working hours
             </h2>
@@ -404,123 +455,120 @@ export default function WorkspaceHoursPage() {
               day as unavailable.
             </p>
           </div>
-        </div>
-        {loading ? (
-          <div className="flex items-center justify-center py-16 text-gray-500">
-            <Loader2 className="h-6 w-6 animate-spin mr-2" />
-            Loading working hours…
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {DAYS.map((day) => {
-              const ranges = schedule[day.key] || [];
-              const dayEnabled = ranges.length > 0;
-              return (
-                <div
-                  key={day.key}
-                  className="rounded-xl border border-gray-200 bg-white px-6 py-5 hover:border-purple-200 transition"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {day.label}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        {dayEnabled
-                          ? `${ranges.length} time window${
-                              ranges.length > 1 ? "s" : ""
-                            }`
-                          : "Marked as unavailable"}
-                      </p>
+          {loading ? (
+            <div className="flex items-center justify-center py-16 text-gray-500">
+              <Loader2 className="h-6 w-6 animate-spin mr-2" />
+              Loading working hours…
+            </div>
+          ) : (
+            <div className="rounded-xl border border-gray-200 bg-white divide-y divide-gray-200">
+              {DAYS.map((day) => {
+                const ranges = schedule[day.key] || [];
+                const dayEnabled = ranges.length > 0;
+                return (
+                  <div key={day.key} className="px-4 py-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-40">
+                        <h3 className="text-sm font-semibold text-gray-900">
+                          {day.label}
+                        </h3>
+                        <p className="text-xs text-gray-600">
+                          {dayEnabled
+                            ? `${ranges.length} window${ranges.length > 1 ? "s" : ""}`
+                            : "Unavailable"}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <label className="relative inline-flex cursor-pointer items-center">
+                          <input
+                            type="checkbox"
+                            className="peer sr-only"
+                            checked={dayEnabled}
+                            onChange={(event) =>
+                              handleToggleDay(day.key, event.target.checked)
+                            }
+                          />
+                          <span className="h-6 w-11 rounded-full bg-gray-200 transition-all peer-checked:bg-sky-600"></span>
+                          <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-all peer-checked:translate-x-5" />
+                        </label>
+                      </div>
                     </div>
-                    <label className="relative inline-flex cursor-pointer items-center">
-                      <input
-                        type="checkbox"
-                        className="peer sr-only"
-                        checked={dayEnabled}
-                        onChange={(event) =>
-                          handleToggleDay(day.key, event.target.checked)
-                        }
-                      />
-                      <span className="h-6 w-11 rounded-full bg-gray-200 transition-all peer-checked:bg-purple-600"></span>
-                      <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-all peer-checked:translate-x-5 shadow" />
-                    </label>
-                  </div>
-                  {dayEnabled && (
-                    <div className="mt-5 space-y-4">
-                      {ranges.map((range, index) => (
-                        <div
-                          key={`${day.key}-${index}`}
-                          className="flex flex-wrap items-center gap-3"
+                    {dayEnabled && (
+                      <div className="mt-3 flex flex-wrap items-center gap-3">
+                        {ranges.map((range, index) => (
+                          <div
+                            key={`${day.key}-${index}`}
+                            className="flex items-center gap-2"
+                          >
+                            <input
+                              type="time"
+                              value={range.start}
+                              onChange={(event) =>
+                                handleTimeChange(
+                                  day.key,
+                                  index,
+                                  "start",
+                                  event.target.value
+                                )
+                              }
+                              className="w-28 rounded-md border border-gray-300 px-2 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-sky-500"
+                            />
+                            <span className="text-xs font-medium text-gray-500">
+                              to
+                            </span>
+                            <input
+                              type="time"
+                              value={range.end}
+                              onChange={(event) =>
+                                handleTimeChange(
+                                  day.key,
+                                  index,
+                                  "end",
+                                  event.target.value
+                                )
+                              }
+                              className="w-28 rounded-md border border-gray-300 px-2 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-sky-500"
+                            />
+                            {ranges.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveRange(day.key, index)}
+                                className="inline-flex items-center gap-1 rounded-md border border-red-200 px-2 py-2 text-xs font-medium text-red-600"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                Remove
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => handleAddRange(day.key)}
+                          className="inline-flex items-center gap-2 rounded-md border border-dashed border-sky-300 px-2 py-2 text-xs font-medium text-sky-600"
                         >
-                          <input
-                            type="time"
-                            value={range.start}
-                            onChange={(event) =>
-                              handleTimeChange(
-                                day.key,
-                                index,
-                                "start",
-                                event.target.value
-                              )
-                            }
-                            className="w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
-                          />
-                          <span className="text-sm font-medium text-gray-500">
-                            to
-                          </span>
-                          <input
-                            type="time"
-                            value={range.end}
-                            onChange={(event) =>
-                              handleTimeChange(
-                                day.key,
-                                index,
-                                "end",
-                                event.target.value
-                              )
-                            }
-                            className="w-32 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-purple-500"
-                          />
-                          {ranges.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveRange(day.key, index)}
-                              className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                              Remove
-                            </button>
-                          )}
-                        </div>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={() => handleAddRange(day.key)}
-                        className="inline-flex items-center gap-2 rounded-lg border border-dashed border-purple-300 px-3 py-2 text-sm font-medium text-purple-600 transition hover:bg-purple-50"
-                      >
-                        <Plus className="h-4 w-4" />
-                        Add time window
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                          <Plus className="h-4 w-4" />
+                          Add window
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving || loading || statusSaving || !workspaceId}
-          className="inline-flex items-center gap-2 rounded-lg bg-linear-to-r from-purple-600 to-blue-600 px-6 py-3 text-sm font-semibold text-white transition hover:from-purple-700 hover:to-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-          Save changes
-        </button>
+        <div className="flex justify-end pt-2">
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving || loading || statusSaving || !workspaceId}
+            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-600 to-sky-700 px-6 py-3 text-sm font-semibold text-white transition hover:from-sky-700 hover:to-sky-800 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+            Save changes
+          </button>
+        </div>
       </div>
     </div>
   );

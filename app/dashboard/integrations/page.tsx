@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { Link2 } from "lucide-react";
 
 const CHANNELS = [
   {
@@ -48,23 +49,28 @@ const CHANNELS = [
 export default function IntegrationsPage() {
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Integrations</h1>
-        <p className="text-gray-600 mt-2">
-          Deploy your agent across the channels your customers already use.
-        </p>
+      {/* Banner */}
+      <div className="rounded-2xl bg-[#0b1220] p-6 text-white">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
+            <Link2 className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Integrations</h1>
+            <p className="text-white/70 text-sm">
+              Deploy your agent across the channels your customers already use.
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {CHANNELS.map((channel) => (
           <div
             key={channel.name}
-            className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-lg"
+            className="relative overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-sky-50/50 to-white p-6"
           >
-            <div
-              className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${channel.gradient} opacity-90`}
-            />
-            <div className="relative h-full p-6 flex flex-col">
+            <div className="relative h-full flex flex-col">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">
@@ -74,7 +80,7 @@ export default function IntegrationsPage() {
                     {channel.description}
                   </p>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-gray-200">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white ring-1 ring-gray-200">
                   <Image
                     src={channel.icon}
                     alt={channel.name}
@@ -93,7 +99,7 @@ export default function IntegrationsPage() {
                 </div>
               </div>
               <div className="mt-auto flex justify-end pt-6">
-                <button className="rounded-lg border border-gray-200 bg-white px-5 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:border-gray-300 hover:bg-gray-50">
+                <button className="rounded-lg border border-gray-200 bg-white px-5 py-2 text-sm font-semibold text-sky-700 transition-colors hover:bg-gray-50">
                   Connect
                 </button>
               </div>

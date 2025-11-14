@@ -93,13 +93,13 @@ export default function DashboardPage() {
       try {
         const result = await workspaceHoursAPI.getWorkingHours(workspaceId);
         setWorkspaceOnline(result.workspace_online);
-      } catch (err: any) {
-        if (err?.message?.includes("404")) {
+      } catch (err: unknown) {
+        if (err instanceof Error && err.message.includes("404")) {
           setWorkspaceOnline(true);
         } else {
           console.error("Failed to load workspace availability", err);
           setAvailabilityError(
-            err?.message || "Failed to load workspace availability"
+            err instanceof Error ? err.message : "Failed to load workspace availability"
           );
         }
       } finally {
@@ -152,10 +152,10 @@ export default function DashboardPage() {
         !workspaceOnline
       );
       setWorkspaceOnline(response.workspace_online);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to update workspace status", err);
       setAvailabilityError(
-        err?.message || "Failed to update workspace availability"
+        err instanceof Error ? err.message : "Failed to update workspace availability"
       );
     } finally {
       setAvailabilityLoading(false);
@@ -176,7 +176,7 @@ export default function DashboardPage() {
     return (
       <div className="flex h-96 items-center justify-center">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-[#5170ff]" />
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-sky-600" />
           <p className="text-gray-600">Loading dashboard...</p>
         </div>
       </div>
@@ -185,7 +185,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div className="rounded-2xl border bg-[#0b1220] p-8 shadow-sm">
+      <div className="rounded-2xl border border-gray-200 bg-[#0b1220] p-8">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="mb-2 text-3xl font-extrabold text-white">
@@ -194,14 +194,8 @@ export default function DashboardPage() {
             <p className="text-white/70">
               Overview of your knowledge base, integrations, and performance.
             </p>
-            <p className="mt-1 text-sm font-medium text-[#cce068]">
+            <p className="mt-1 text-sm font-medium text-sky-300">
               Working in {workspaceName}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-white/60">Last updated</p>
-            <p className="text-lg font-semibold text-white">
-              {dashboardData?.quick_stats ? "Just now" : "—"}
             </p>
           </div>
           <div className="flex flex-col items-end gap-3">
@@ -227,7 +221,7 @@ export default function DashboardPage() {
               ) : (
                 <Power
                   className={`h-4 w-4 ${
-                    workspaceOnline ? "text-green-400" : "text-red-400"
+                    workspaceOnline ? "text-sky-400" : "text-sky-400"
                   }`}
                 />
               )}
@@ -238,14 +232,6 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <span className="rounded-full border border-[#5170ff]/30 bg-[#5170ff]/20 px-3 py-1 text-sm font-medium text-[#cce068]">
-            Live
-          </span>
-          <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm font-medium text-white">
-            Light theme
-          </span>
-        </div>
       </div>
 
       {error && (
@@ -255,60 +241,60 @@ export default function DashboardPage() {
       )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-xl bg-[#5170ff] p-6 text-white shadow-md">
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-white/80">
+              <p className="text-sm font-medium text-gray-600">
                 Monthly Messages
               </p>
-              <p className="text-2xl font-bold text-white">
+              <p className="text-2xl font-bold text-gray-900">
                 {dashboardData?.quick_stats?.this_month_interactions?.toLocaleString() ??
                   "0"}
               </p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/20 text-white">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
               <MessageSquare className="h-5 w-5" />
             </div>
           </div>
-          <div className="mt-4 text-sm font-medium text-white/90">
+          <div className="mt-4 text-sm font-medium text-gray-700">
             {dashboardData?.quick_stats?.this_week_interactions ?? 0} this week
           </div>
         </div>
 
-        <div className="rounded-xl bg-[#cce068] p-6 shadow-md">
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-800">Integrations</p>
+              <p className="text-sm font-medium text-gray-600">Integrations</p>
               <p className="text-2xl font-bold text-gray-900">
                 {dashboardData?.workspace_summary?.active_integrations ?? 0}
               </p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white/40 text-gray-900">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-sky-50 text-sky-700">
               <Link2 className="h-5 w-5" />
             </div>
           </div>
-          <div className="mt-4 text-sm font-medium text-green-600">
+          <div className="mt-4 text-sm font-medium text-sky-700">
             All systems operational
           </div>
         </div>
 
-        <div className="rounded-xl bg-white p-6 shadow-md">
+        <div className="rounded-xl border border-gray-200 bg-white p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-500">Response Time</p>
               <p className="text-2xl font-bold text-gray-900">0.8s</p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#5170ff]/10 text-[#5170ff]">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
               <Zap className="h-5 w-5" />
             </div>
           </div>
-          <div className="mt-4 text-sm font-medium text-green-600">
+          <div className="mt-4 text-sm font-medium text-sky-700">
             -0.2s improvement
           </div>
         </div>
       </div>
 
-      <div className="rounded-2xl bg-white p-8 shadow-md">
+      <div className="rounded-2xl border border-gray-200 bg-white p-8">
         <h3 className="mb-6 text-xl font-bold text-gray-900">
           Platform Status
         </h3>
@@ -317,41 +303,35 @@ export default function DashboardPage() {
             <p className="mb-4 text-gray-500">No integrations yet</p>
             <Link
               href="/dashboard/integrations"
-              className="inline-block rounded-lg bg-[#5170ff] px-6 py-3 font-semibold text-white transition-colors hover:bg-[#4663e6]"
+              className="inline-block rounded-lg bg-sky-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-sky-700"
             >
               Add Integration
             </Link>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <div className="flex items-center justify-between rounded-xl bg-green-50 p-4">
+            <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4">
               <div className="flex items-center space-x-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-600 text-white">
                   <CheckCircle2 className="h-4 w-4" />
                 </div>
                 <span className="font-medium text-gray-900">System</span>
               </div>
-              <span className="text-sm font-medium text-green-600">Online</span>
+              <span className="text-sm font-medium text-sky-700">Online</span>
             </div>
-            <div className="flex items-center justify-between rounded-xl bg-yellow-50 p-4">
+            <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4">
               <div className="flex items-center space-x-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-yellow-500 text-white">
-                  ⚠
-                </div>
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-600 text-white">⚠</div>
                 <span className="font-medium text-gray-900">WhatsApp</span>
               </div>
-              <span className="text-sm font-medium text-yellow-600">
-                Issues
-              </span>
+              <span className="text-sm font-medium text-sky-700">Issues</span>
             </div>
-            <div className="flex items-center justify-between rounded-xl bg-green-50 p-4">
+            <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4">
               <div className="flex items-center space-x-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white">
-                  ✓
-                </div>
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-600 text-white">✓</div>
                 <span className="font-medium text-gray-900">Discord</span>
               </div>
-              <span className="text-sm font-medium text-green-600">Online</span>
+              <span className="text-sm font-medium text-sky-700">Online</span>
             </div>
           </div>
         )}

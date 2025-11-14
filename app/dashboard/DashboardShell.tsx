@@ -14,6 +14,7 @@ import {
   Bell,
   Loader2,
   User as UserIcon,
+  CalendarClock,
 } from "lucide-react";
 import { yettiOnboardingAPI } from "@/lib/api";
 import WorkspaceOnboardingModal from "@/components/workspace/WorkspaceOnboardingModal";
@@ -264,6 +265,27 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 } overflow-hidden`}
               >
                 Settings
+              </span>
+            </Link>
+            <Link
+              href={buildLink("/dashboard/workspace-hours")}
+              className={`flex items-center rounded-lg px-3 py-3 transition-colors ${
+                isActive("/dashboard/workspace-hours")
+                  ? "bg-sky-100 text-sky-700 font-semibold"
+                  : "text-gray-700 hover:bg-sky-50 hover:text-sky-600"
+              }`}
+            >
+              <CalendarClock
+                className={`h-5 w-5 shrink-0 ${
+                  sidebarExpanded ? "mr-3" : "mx-auto"
+                }`}
+              />
+              <span
+                className={`text-sm font-medium transition-all duration-200 ${
+                  sidebarExpanded ? "max-w-48 opacity-100" : "max-w-0 opacity-0"
+                } overflow-hidden`}
+              >
+                Workspace Hours
               </span>
             </Link>
           </nav>

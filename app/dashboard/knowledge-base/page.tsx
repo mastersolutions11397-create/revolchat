@@ -723,7 +723,7 @@ export default function KnowledgePage() {
                 priority
               />
             </div>
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-100 text-sky-700">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl  bg-sky-500/20 text-sky-400">
               <FileText className="h-5 w-5" />
             </div>
             <div>
@@ -894,18 +894,70 @@ export default function KnowledgePage() {
             <div className="flex h-full flex-col">
               <div className="flex-1 overflow-y-auto ">
                 {!workspaceId ? (
-                  <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
-                    Choose a workspace to view its knowledge items.
+                  <div className="flex h-full items-center justify-center">
+                    <div className="text-center">
+                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+                        <FileText className="h-6 w-6" />
+                      </div>
+                      <p className="text-sm font-semibold text-gray-900">
+                        Select a workspace
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        Choose a workspace to view its knowledge items.
+                      </p>
+                    </div>
                   </div>
                 ) : knowledgeError ? (
                   <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-700">
                     {knowledgeError}
                   </div>
                 ) : knowledgeLoading && tableRows.length === 0 ? (
-                  <div className="text-sm text-gray-500">Loading knowledge...</div>
+                  <div className="space-y-4">
+                    {/* Skeleton table container */}
+                    <div className="overflow-hidden border border-gray-100 bg-white">
+                      {/* Header skeleton */}
+                      <div className="border-b border-gray-100 bg-gray-50 px-6 py-3">
+                        <div className="h-3 w-24 rounded bg-gray-200 animate-pulse" />
+                      </div>
+                      {/* Rows skeleton */}
+                      <div className="divide-y divide-gray-100">
+                        {Array.from({ length: 8 }).map((_, index) => (
+                          <div
+                            key={index}
+                            className="grid grid-cols-[minmax(0,1fr),auto] items-center gap-3 px-3 py-3"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="h-8 w-8 rounded-lg bg-gray-200 animate-pulse" />
+                                <div className="min-w-0 space-y-2">
+                                  <div className="h-3 w-40 rounded bg-gray-200 animate-pulse" />
+                                  <div className="h-2 w-24 rounded bg-gray-200 animate-pulse" />
+                                </div>
+                              </div>
+                              <div className="flex items-center justify-end gap-2">
+                                <div className="h-7 w-7 rounded-md bg-gray-200 animate-pulse" />
+                                <div className="h-7 w-7 rounded-md bg-gray-200 animate-pulse" />
+                                <div className="h-7 w-7 rounded-md bg-gray-200 animate-pulse" />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 ) : tableRows.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
-                    No knowledge items yet. Use Add Knowledge to get started.
+                  <div className="flex h-full items-center justify-center">
+                    <div className="text-center">
+                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+                        <FileText className="h-6 w-6" />
+                      </div>
+                      <p className="text-sm font-semibold text-gray-900">
+                        No knowledge yet
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        Use “Add Knowledge” to get started.
+                      </p>
+                    </div>
                   </div>
                 ) : (
                   <div className="">
@@ -1199,16 +1251,25 @@ export default function KnowledgePage() {
           <div className="w-full max-h-[90vh] max-w-4xl overflow-y-auto rounded-2xl border border-gray-200 bg-white p-8">
           {activeTab === "text" && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-2xl font-bold text-gray-900">
-                  Add Text Knowledge
-                </h3>
+              <div className="rounded-xl bg-[#0b1220] text-white px-4 py-3 mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
+                    <FileText className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold">Add Text Knowledge</h3>
+                    <p className="text-xs text-white/70">
+                      Create a text entry for your library.
+                    </p>
+                  </div>
+                </div>
                 <button
                   onClick={() => {
                     resetTextForm();
                     closeActiveTab();
                   }}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                  className="rounded-md border border-transparent px-2 py-1 text-white/70 transition hover:border-white/20 hover:text-white"
+                  aria-label="Close"
                 >
                   ×
                 </button>
@@ -1291,7 +1352,7 @@ export default function KnowledgePage() {
                       onChange={(e) =>
                         setImportanceLevel(parseInt(e.target.value, 10))
                       }
-                      className="w-full"
+                      className="w-full accent-sky-600"
                     />
                     <div className="flex justify-between text-xs text-gray-500 mt-1">
                       <span>Low</span>
@@ -1312,7 +1373,7 @@ export default function KnowledgePage() {
                   {tags.map((t, i) => (
                     <span
                       key={`${t}-${i}`}
-                      className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-700"
+                      className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm bg-sky-50 text-sky-700"
                     >
                       {t}
                       <button
@@ -1320,7 +1381,7 @@ export default function KnowledgePage() {
                         onClick={() =>
                           setTags((prev) => prev.filter((_, idx) => idx !== i))
                         }
-                        className="text-purple-700 hover:text-purple-900"
+                        className="text-sky-700 hover:text-sky-900"
                         aria-label={`Remove ${t}`}
                       >
                         ×
@@ -1406,7 +1467,7 @@ export default function KnowledgePage() {
                   disabled={
                     submittingText || !textTitle.trim() || !textContent.trim()
                   }
-                  className="bg-gradient-to-r from-sky-600 to-cyan-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-cyan-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-gradient-to-r from-sky-600 to-sky-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {submittingText ? "Saving..." : "Add to Knowledge Base"}
                 </button>
@@ -1424,23 +1485,32 @@ export default function KnowledgePage() {
 
           {activeTab === "pdf" && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-2xl font-bold text-gray-900">
-                  Upload PDF Documents
-                </h3>
+              <div className="rounded-xl bg-[#0b1220] text-white px-4 py-3 mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
+                    <FileDown className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold">Upload PDF Documents</h3>
+                    <p className="text-xs text-white/70">
+                      Add multi-page documents to your library.
+                    </p>
+                  </div>
+                </div>
                 <button
                   onClick={() => {
                     resetPdfForm();
                     closeActiveTab();
                   }}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                  className="rounded-md border border-transparent px-2 py-1 text-white/70 transition hover:border-white/20 hover:text-white"
+                  aria-label="Close"
                 >
                   ×
                 </button>
               </div>
 
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-linear-to-br from-sky-500 to-sky-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-3xl text-white">📄</span>
                 </div>
                 <h4 className="text-lg font-semibold text-gray-900 mb-2">
@@ -1461,10 +1531,10 @@ export default function KnowledgePage() {
                 />
                 <label
                   htmlFor="pdf-upload"
-                  className={`bg-gradient-to-r from-red-600 to-pink-600 text-white px-6 py-3 rounded-lg font-semibold transition-all inline-block ${
+                  className={`bg-gradient-to-r from-sky-600 to-sky-700 text-white px-6 py-3 rounded-lg font-semibold transition-all inline-block ${
                     isProcessingPdfs
                       ? "opacity-50 cursor-not-allowed"
-                      : "hover:from-red-700 hover:to-pink-700 cursor-pointer"
+                      : "hover:from-sky-700 hover:to-sky-800 cursor-pointer"
                   }`}
                 >
                   {isProcessingPdfs ? "Uploading..." : "Choose PDF Files"}
@@ -1537,7 +1607,7 @@ export default function KnowledgePage() {
                         value={pdfTitle}
                         onChange={(e) => setPdfTitle(e.target.value)}
                         placeholder="e.g., Brand Guidelines"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
                       />
                       <p className="text-xs text-gray-500 mt-1">
                         This title and metadata apply to all selected files.
@@ -1552,7 +1622,7 @@ export default function KnowledgePage() {
                         <select
                           value={pdfCategory}
                           onChange={(e) => setPdfCategory(e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all bg-white"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all bg-white"
                         >
                           <option value="branding">Branding</option>
                           <option value="products">Products</option>
@@ -1577,7 +1647,7 @@ export default function KnowledgePage() {
                                 parseInt(e.target.value, 10)
                               )
                             }
-                            className="w-full accent-red-500"
+                            className="w-full accent-sky-600"
                           />
                           <div className="flex justify-between text-xs text-gray-500 mt-1">
                             <span>Low</span>
@@ -1597,7 +1667,7 @@ export default function KnowledgePage() {
                         {pdfTags.map((t, i) => (
                           <span
                             key={`${t}-${i}`}
-                            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-700"
+                            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm bg-sky-50 text-sky-700"
                           >
                             {t}
                             <button
@@ -1607,7 +1677,7 @@ export default function KnowledgePage() {
                                   prev.filter((_, idx) => idx !== i)
                                 )
                               }
-                              className="text-purple-700 hover:text-purple-900"
+                              className="text-sky-700 hover:text-sky-900"
                               aria-label={`Remove ${t}`}
                             >
                               ×
@@ -1644,7 +1714,7 @@ export default function KnowledgePage() {
                 <button
                   onClick={handleProcessPDFs}
                   disabled={uploadedFiles.length === 0 || isProcessingPdfs}
-                  className="bg-gradient-to-r from-red-600 to-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-red-700 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="bg-gradient-to-r from-sky-600 to-sky-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isProcessingPdfs
                     ? "Uploading..."
@@ -1662,10 +1732,18 @@ export default function KnowledgePage() {
 
           {activeTab === "sheets" && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-2xl font-bold text-gray-900">
-                  Connect Google Sheets
-                </h3>
+              <div className="rounded-xl bg-[#0b1220] text-white px-4 py-3 mb-2 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
+                    <FileSpreadsheet className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold">Connect Google Sheets</h3>
+                    <p className="text-xs text-white/70">
+                      Sync structured data from Google Sheets.
+                    </p>
+                  </div>
+                </div>
                 <button
                   onClick={() => {
                     setSheetsConnected(false);
@@ -1675,7 +1753,8 @@ export default function KnowledgePage() {
                     setShowTemplateCards(false);
                     closeActiveTab();
                   }}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
+                  className="rounded-md border border-transparent px-2 py-1 text-white/70 transition hover:border-white/20 hover:text-white"
+                  aria-label="Close"
                 >
                   ×
                 </button>
@@ -1689,9 +1768,9 @@ export default function KnowledgePage() {
                     </div>
                   )}
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg flex-1">
-                      <span className="text-green-500 text-xl">✅</span>
-                      <span className="text-green-700 font-medium">
+                    <div className="flex items-center space-x-3 p-4 bg-sky-50 rounded-lg flex-1 border border-sky-200">
+                      <span className="text-sky-600 text-xl">✅</span>
+                      <span className="text-sky-800 font-medium">
                         Google Sheet Connected
                       </span>
                     </div>
@@ -1800,8 +1879,8 @@ export default function KnowledgePage() {
                     </div>
                   )}
                   {hasGoogleSheet && (
-                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
-                      <p className="text-sm text-yellow-800">
+                    <div className="p-4 bg-sky-50 border border-sky-200 rounded-lg mb-4">
+                      <p className="text-sm text-sky-800">
                         ⚠️ A Google Sheet is already connected to this
                         workspace. You can only connect one sheet per workspace.
                         To add a different sheet, please disconnect the existing
@@ -1839,14 +1918,14 @@ export default function KnowledgePage() {
                               ? undefined
                               : () => handleTemplateClick(index)
                           }
-                          className={`bg-gray-900 border border-cyan-400/30 rounded-lg p-6 ${
+                          className={`bg-[#0b1220] border border-sky-400/30 rounded-lg p-6 ${
                             hasGoogleSheet
                               ? ""
-                              : "cursor-pointer hover:border-cyan-400 hover:shadow-lg hover:shadow-cyan-500/20"
+                              : "cursor-pointer hover:border-sky-400 hover:shadow-lg hover:shadow-sky-500/20"
                           } transition-all group`}
                         >
                           <div className="text-center text-white">
-                            <h4 className="text-lg font-semibold group-hover:text-cyan-300 transition-colors">
+                            <h4 className="text-lg font-semibold group-hover:text-sky-300 transition-colors">
                               {template}
                             </h4>
                           </div>
@@ -1856,7 +1935,7 @@ export default function KnowledgePage() {
 
                     {/* Instruction Panel */}
                     <div
-                      className={`bg-teal-500 rounded-lg p-6 text-white ${
+                      className={`bg-[#0b1220] rounded-lg p-6 text-white ${
                         hasGoogleSheet ? "opacity-50" : ""
                       }`}
                     >
@@ -1881,7 +1960,7 @@ export default function KnowledgePage() {
                             Share your copy with:{" "}
                             <a
                               href="mailto:ai.agent.dispatch@gmail.com"
-                              className="underline hover:text-teal-100 transition-colors"
+                              className="underline hover:text-sky-200 transition-colors"
                             >
                               ai.agent.dispatch@gmail.com
                             </a>
@@ -1905,17 +1984,21 @@ export default function KnowledgePage() {
       {showLinkInput && clickedTemplateIndex !== null && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="w-full max-w-md space-y-4 rounded-2xl border border-gray-200 bg-white p-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold text-gray-900">
-                Share Your Google Sheet
-              </h3>
+            <div className="rounded-xl bg-[#0b1220] text-white px-4 py-3 mb-2 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold">Share Your Google Sheet</h3>
+                <p className="text-xs text-white/70">
+                  Paste the sheet link for your selected template.
+                </p>
+              </div>
               <button
                 onClick={() => {
                   setShowLinkInput(false);
                   setGoogleSheetLink("");
                   setLinkInputError(null);
                 }}
-                className="text-gray-500 hover:text-gray-700 text-2xl"
+                className="rounded-md border border-transparent px-2 py-1 text-white/70 transition hover:border-white/20 hover:text-white"
+                aria-label="Close"
               >
                 ×
               </button>
@@ -1957,7 +2040,7 @@ export default function KnowledgePage() {
                     }
                   }}
                   placeholder="https://docs.google.com/spreadsheets/d/..."
-                  className={`w-full px-4 py-3 pr-10 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all ${
+                  className={`w-full px-4 py-3 pr-10 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all ${
                     googleSheetLink.trim() && !linkInputError
                       ? validateGoogleSheetsLink(googleSheetLink).isValid
                         ? "border-green-500 focus:border-green-500"
@@ -2009,7 +2092,7 @@ export default function KnowledgePage() {
                   submittingSheet ||
                   !validateGoogleSheetsLink(googleSheetLink).isValid
                 }
-                className="flex-1 bg-gradient-to-r from-teal-600 to-cyan-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-teal-700 hover:to-cyan-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-gradient-to-r from-sky-600 to-sky-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submittingSheet ? "Connecting..." : "Connect"}
               </button>
