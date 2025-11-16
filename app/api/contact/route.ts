@@ -1,7 +1,13 @@
 import { Resend } from "resend";
 import { NextResponse } from "next/server";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const getResend = () => {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error("RESEND_API_KEY is not configured");
+  }
+  return new Resend(apiKey);
+};
 
 export async function POST(request: Request) {
   try {
@@ -17,6 +23,7 @@ export async function POST(request: Request) {
     }
 
     // Send email to the company
+    const resend = getResend();
     const { data, error } = await resend.emails.send({
       from: "yetti AI <onboarding@resend.dev>",
       to: process.env.CONTACT_EMAIL || "hello@yettiai.com",
