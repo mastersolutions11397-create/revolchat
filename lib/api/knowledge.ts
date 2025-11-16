@@ -66,9 +66,7 @@ export interface KnowledgeListResponse {
 }
 
 class KnowledgeAPI {
-  async getKnowledgeList(
-    workspaceId: string
-  ): Promise<KnowledgeListResponse> {
+  async getKnowledgeList(workspaceId: string): Promise<KnowledgeListResponse> {
     return apiRequest<KnowledgeListResponse>(
       `/api/yetti/workspaces/${workspaceId}/knowledge`
     );
@@ -173,5 +171,3 @@ class KnowledgeAPI {
 }
 
 export const knowledgeAPI = new KnowledgeAPI();
-
-
