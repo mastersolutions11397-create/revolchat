@@ -116,7 +116,7 @@ export default function IntegrationsPage() {
     return () => {
       cancelled = true;
     };
-  }, [workspaceId]);
+  }, []);
 
   const handleInstagramConnect = useCallback(() => {
     if (!workspaceId) {
@@ -136,8 +136,6 @@ export default function IntegrationsPage() {
       window.location.origin
     );
     targetUrl.searchParams.set("workspace_id", workspaceId);
-
-    document.cookie = `workspace_id=${workspaceId}; path=/; max-age=${60 * 10}`;
 
     window.open(targetUrl.toString(), "_blank", "noopener,noreferrer");
   }, [workspaceId, instagramIntegration]);
