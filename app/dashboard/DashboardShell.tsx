@@ -16,6 +16,7 @@ import {
   User as UserIcon,
   CalendarClock,
   CreditCard,
+  MessageSquare,
 } from "lucide-react";
 import { yettiOnboardingAPI } from "@/lib/api";
 import WorkspaceOnboardingModal from "@/components/workspace/WorkspaceOnboardingModal";
@@ -245,6 +246,28 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 } overflow-hidden`}
               >
                 Integrations
+              </span>
+            </Link>
+            <Link
+              href={buildLink("/dashboard/messages")}
+              className={`flex items-center rounded-lg px-3 py-3 transition-colors ${
+                isActive("/dashboard/messages") ||
+                pathname.startsWith("/dashboard/messages")
+                  ? "bg-sky-100 text-sky-700 font-semibold"
+                  : "text-gray-700 hover:bg-sky-50 hover:text-sky-600"
+              }`}
+            >
+              <MessageSquare
+                className={`h-5 w-5 shrink-0 ${
+                  sidebarExpanded ? "mr-3" : "mx-auto"
+                }`}
+              />
+              <span
+                className={`text-sm font-medium transition-all duration-200 ${
+                  sidebarExpanded ? "max-w-48 opacity-100" : "max-w-0 opacity-0"
+                } overflow-hidden`}
+              >
+                Messages
               </span>
             </Link>
             <Link
