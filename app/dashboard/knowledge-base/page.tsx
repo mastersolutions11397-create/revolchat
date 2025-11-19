@@ -139,13 +139,33 @@ export default function KnowledgePage() {
 
   // Map template index to sheet_type
   const getSheetTypeFromTemplate = (index: number): string => {
-    const types = [
-      "conversational",
-      "order_fulfillment",
-      "lead_generating",
-      "appointment_booking",
-    ];
-    return types[index] || "general";
+    const types = ["1", "2", "3", "4"];
+    return types[index] || "1";
+  };
+
+  // Helper function to format sheet type label
+  const formatSheetTypeLabel = (
+    sheetType: string | null | undefined
+  ): string => {
+    if (!sheetType) return "Google Sheet";
+
+    const sheetTypeStr = String(sheetType);
+    // Check if it contains underscores (e.g., "order_fulfillment_template")
+    if (sheetTypeStr.includes("_")) {
+      return sheetTypeStr
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+    }
+
+    // Handle numeric types (e.g., "1", "2", "3")
+    const typeMap: Record<string, string> = {
+      "1": "Customer Support Template",
+      "2": "Order Fulfillment Template",
+      "3": "Lead Generating Template",
+      "4": "Appointment Booking Template",
+    };
+    return typeMap[sheetTypeStr] || "Google Sheet";
   };
 
   const textDocumentsCount = knowledgeItems.filter((item) => {
@@ -176,8 +196,7 @@ export default function KnowledgePage() {
         (item.file_type ?? "").trim().toLowerCase() || "text";
       const typeDisplay =
         normalizedType.charAt(0).toUpperCase() + normalizedType.slice(1);
-      const icon: ElementType =
-        normalizedType === "pdf" ? FileDown : FileText;
+      const icon: ElementType = normalizedType === "pdf" ? FileDown : FileText;
 
       return {
         kind: "knowledge" as const,
@@ -202,12 +221,7 @@ export default function KnowledgePage() {
     });
 
     const sheetRows = googleSheets.map((sheet) => {
-      const sheetTypeLabel = sheet.sheet_type
-        ? sheet.sheet_type
-            .split("_")
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" ")
-        : "Google Sheet";
+      const sheetTypeLabel = formatSheetTypeLabel(sheet.sheet_type);
       const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheet.sheet_id}/edit`;
 
       return {
@@ -641,10 +655,10 @@ export default function KnowledgePage() {
       pdfImportanceLevel === 1
         ? "low"
         : pdfImportanceLevel === 2
-        ? "normal"
-        : pdfImportanceLevel === 3
-        ? "high"
-        : "critical";
+          ? "normal"
+          : pdfImportanceLevel === 3
+            ? "high"
+            : "critical";
 
     const metadata = {
       title: pdfTitle.trim(),
@@ -716,9 +730,7 @@ export default function KnowledgePage() {
               <FileText className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">
-                Knowledge base
-              </h1>
+              <h1 className="text-2xl font-bold">Knowledge base</h1>
               <p className="text-white/70 text-sm">
                 Curate knowledge and chat with your data in one place.
               </p>
@@ -806,16 +818,16 @@ export default function KnowledgePage() {
                 {!workspaceId
                   ? "Select a workspace to load knowledge"
                   : knowledgeLoading &&
-                    knowledgeItems.length === 0 &&
-                    googleSheets.length === 0
-                  ? "Loading knowledge..."
-                  : (() => {
-                      const totalItems =
-                        knowledgeItems.length + googleSheets.length;
-                      if (totalItems === 0) return "No items available";
-                      if (totalItems === 1) return "1 item available";
-                      return `${totalItems} items available`;
-                    })()}
+                      knowledgeItems.length === 0 &&
+                      googleSheets.length === 0
+                    ? "Loading knowledge..."
+                    : (() => {
+                        const totalItems =
+                          knowledgeItems.length + googleSheets.length;
+                        if (totalItems === 0) return "No items available";
+                        if (totalItems === 1) return "1 item available";
+                        return `${totalItems} items available`;
+                      })()}
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -824,21 +836,27 @@ export default function KnowledgePage() {
                   <FileText className="h-4 w-4 text-sky-600" />
                   <span className="text-sm">Text Docs</span>
                   <div className="flex items-center gap-2 size-8 justify-center rounded-full bg-sky-50 px-2 py-1 shrink-0">
-                    <span className="text-sm font-semibold text-sky-700">{textDocumentsCount}</span>
+                    <span className="text-sm font-semibold text-sky-700">
+                      {textDocumentsCount}
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-gray-700">
                   <FileDown className="h-4 w-4 text-sky-600" />
                   <span className="text-sm">PDF Files</span>
-                <div className="flex items-center gap-2  size-8 justify-center rounded-full bg-sky-50 px-2 py-1 shrink-0">
-                    <span className="text-sm font-semibold text-sky-700">{pdfFilesCount}</span>
-                </div>
+                  <div className="flex items-center gap-2  size-8 justify-center rounded-full bg-sky-50 px-2 py-1 shrink-0">
+                    <span className="text-sm font-semibold text-sky-700">
+                      {pdfFilesCount}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 text-gray-700">
                   <FileSpreadsheet className="h-4 w-4 text-sky-600" />
                   <span className="text-sm">Google Sheets</span>
                   <div className="flex items-center gap-2 size-8 justify-center rounded-full bg-sky-50 px-2 py-1 shrink-0">
-                    <span className="text-sm font-semibold text-sky-700">{connectedSheetsCount}</span>
+                    <span className="text-sm font-semibold text-sky-700">
+                      {connectedSheetsCount}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -860,21 +878,27 @@ export default function KnowledgePage() {
                 <FileText className="h-4 w-4 text-sky-600" />
                 <span className="text-sm">Text Docs</span>
                 <div className="flex items-center gap-2 size-8 justify-center rounded-full bg-sky-50 px-2 py-1 shrink-0">
-                  <span className="text-sm font-semibold text-sky-700">{textDocumentsCount}</span>
+                  <span className="text-sm font-semibold text-sky-700">
+                    {textDocumentsCount}
+                  </span>
                 </div>
               </div>
               <div className="flex items-center gap-2 text-gray-700">
                 <FileDown className="h-4 w-4 text-sky-600" />
                 <span className="text-sm">PDF Files</span>
                 <div className="flex items-center gap-2 size-8 justify-center rounded-full bg-sky-50 px-2 py-1 shrink-0">
-                  <span className="text-sm font-semibold text-sky-700">{pdfFilesCount}</span>
+                  <span className="text-sm font-semibold text-sky-700">
+                    {pdfFilesCount}
+                  </span>
                 </div>
               </div>
               <div className="flex items-center gap-2 text-gray-700">
                 <FileSpreadsheet className="h-4 w-4 text-sky-600" />
                 <span className="text-sm">Google Sheets</span>
                 <div className="flex items-center gap-2 size-8 justify-center rounded-full bg-sky-50 px-2 py-1 shrink-0">
-                  <span className="text-sm font-semibold text-sky-700">{connectedSheetsCount}</span>
+                  <span className="text-sm font-semibold text-sky-700">
+                    {connectedSheetsCount}
+                  </span>
                 </div>
               </div>
             </div>
@@ -950,13 +974,12 @@ export default function KnowledgePage() {
                   </div>
                 ) : (
                   <div className="">
-                    
                     <div className="overflow-hidden border border-gray-100 bg-white shadow-sm">
                       <div className="grid grid-cols-[minmax(0,1fr),auto] items-center border-b border-gray-100 bg-gray-50 px-6 py-2 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>File</div>
-                        <div>Actions</div>
-                      </div>
+                        <div className="flex items-center justify-between gap-3">
+                          <div>File</div>
+                          <div>Actions</div>
+                        </div>
                       </div>
                       <div className="divide-y divide-gray-100">
                         {tableRows.map((row) => {
@@ -979,63 +1002,65 @@ export default function KnowledgePage() {
                               }`}
                             >
                               <div className="flex items-center justify-between">
-                                 <div className="flex py-2 items-center gap-3">
-                                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600 shadow-inner">
-                                  <Icon className="h-4 w-4" />
+                                <div className="flex py-2 items-center gap-3">
+                                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600 shadow-inner">
+                                    <Icon className="h-4 w-4" />
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="truncate font-medium text-gray-900">
+                                      {row.title}
+                                    </p>
+                                    <p className="text-[10px] text-gray-500">
+                                      {row.typeDisplay}
+                                    </p>
+                                  </div>
                                 </div>
-                                <div className="min-w-0">
-                                  <p className="truncate font-medium text-gray-900">
-                                    {row.title}
-                                  </p>
-                                  <p className="text-[10px] text-gray-500">
-                                    {row.typeDisplay}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="flex items-center justify-end gap-1.5 py-2">
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setPreviewItem(
-                                      row.kind === "knowledge"
-                                        ? { kind: "knowledge", item: row.item }
-                                        : { kind: "sheet", item: row.sheet }
-                                    )
-                                  }
-                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:border-sky-200 hover:text-sky-600"
-                                  title="Preview"
-                                >
-                                  <Eye className="h-3.5 w-3.5" />
-                                </button>
-                                {row.link && (
-                                  <a
-                                    href={row.link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                <div className="flex items-center justify-end gap-1.5 py-2">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setPreviewItem(
+                                        row.kind === "knowledge"
+                                          ? {
+                                              kind: "knowledge",
+                                              item: row.item,
+                                            }
+                                          : { kind: "sheet", item: row.sheet }
+                                      )
+                                    }
                                     className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:border-sky-200 hover:text-sky-600"
-                                    title="Open in new tab"
+                                    title="Preview"
                                   >
-                                    <ExternalLink className="h-3.5 w-3.5" />
-                                  </a>
-                                )}
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    row.kind === "knowledge"
-                                      ? handleDeleteKnowledge(
-                                          row.deleteId,
-                                          row.item.title
-                                        )
-                                      : handleDeleteSheet(row.deleteId)
-                                  }
-                                  className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:border-red-200 hover:text-red-600"
-                                  title="Delete"
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </button>
+                                    <Eye className="h-3.5 w-3.5" />
+                                  </button>
+                                  {row.link && (
+                                    <a
+                                      href={row.link}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:border-sky-200 hover:text-sky-600"
+                                      title="Open in new tab"
+                                    >
+                                      <ExternalLink className="h-3.5 w-3.5" />
+                                    </a>
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      row.kind === "knowledge"
+                                        ? handleDeleteKnowledge(
+                                            row.deleteId,
+                                            row.item.title
+                                          )
+                                        : handleDeleteSheet(row.deleteId)
+                                    }
+                                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:border-red-200 hover:text-red-600"
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
+                                </div>
                               </div>
-                              </div>
-                             
                             </div>
                           );
                         })}
@@ -1058,22 +1083,13 @@ export default function KnowledgePage() {
                         <h4 className="text-lg font-semibold text-gray-900">
                           {previewItem.kind === "knowledge"
                             ? previewItem.item.title
-                            : `${
-                                previewItem.item.sheet_type
-                                  ? previewItem.item.sheet_type
-                                      .split("_")
-                                      .map(
-                                        (word) =>
-                                          word.charAt(0).toUpperCase() +
-                                          word.slice(1)
-                                      )
-                                      .join(" ")
-                                  : "Google Sheet"
-                              }`}
+                            : formatSheetTypeLabel(previewItem.item.sheet_type)}
                         </h4>
                         <p className="text-xs text-gray-600">
                           {previewItem.kind === "knowledge"
-                            ? (previewItem.item.file_type || "Text").toUpperCase()
+                            ? (
+                                previewItem.item.file_type || "Text"
+                              ).toUpperCase()
                             : "GOOGLE SHEET"}
                         </p>
                       </div>
@@ -1090,25 +1106,33 @@ export default function KnowledgePage() {
                       {previewItem.kind === "knowledge" ? (
                         <>
                           <div>
-                            <p className="text-xs uppercase text-gray-500">Category</p>
+                            <p className="text-xs uppercase text-gray-500">
+                              Category
+                            </p>
                             <p className="font-medium">
                               {previewItem.item.category || "—"}
                             </p>
                           </div>
                           <div>
-                            <p className="text-xs uppercase text-gray-500">Importance</p>
+                            <p className="text-xs uppercase text-gray-500">
+                              Importance
+                            </p>
                             <p className="font-medium capitalize">
                               {previewItem.item.importance || "Normal"}
                             </p>
                           </div>
                           <div>
-                            <p className="text-xs uppercase text-gray-500">Created</p>
+                            <p className="text-xs uppercase text-gray-500">
+                              Created
+                            </p>
                             <p className="font-medium">
                               {formatDateTime(previewItem.item.created_at)}
                             </p>
                           </div>
                           <div>
-                            <p className="text-xs uppercase text-gray-500">Last Used</p>
+                            <p className="text-xs uppercase text-gray-500">
+                              Last Used
+                            </p>
                             <p className="font-medium">
                               {formatDateTime(
                                 previewItem.item.last_used_at,
@@ -1117,7 +1141,9 @@ export default function KnowledgePage() {
                             </p>
                           </div>
                           <div>
-                            <p className="text-xs uppercase text-gray-500">Usage</p>
+                            <p className="text-xs uppercase text-gray-500">
+                              Usage
+                            </p>
                             <p className="font-medium">
                               {typeof previewItem.item.usage_count === "number"
                                 ? previewItem.item.usage_count
@@ -1125,7 +1151,9 @@ export default function KnowledgePage() {
                             </p>
                           </div>
                           <div>
-                            <p className="text-xs uppercase text-gray-500">ID</p>
+                            <p className="text-xs uppercase text-gray-500">
+                              ID
+                            </p>
                             <p className="break-all font-medium">
                               {previewItem.item.entry_id || previewItem.item.id}
                             </p>
@@ -1177,15 +1205,9 @@ export default function KnowledgePage() {
                               Sheet Type
                             </p>
                             <p className="font-medium">
-                              {previewItem.item.sheet_type
-                                ? previewItem.item.sheet_type
-                                    .split("_")
-                                    .map(
-                                      (word) =>
-                                        word.charAt(0).toUpperCase() + word.slice(1)
-                                    )
-                                    .join(" ")
-                                : "General"}
+                              {formatSheetTypeLabel(
+                                previewItem.item.sheet_type
+                              )}
                             </p>
                           </div>
                           <div>
@@ -1238,733 +1260,737 @@ export default function KnowledgePage() {
       {activeTab && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4 py-6">
           <div className="w-full max-h-[90vh] max-w-4xl overflow-y-auto rounded-2xl border border-gray-200 bg-white p-8">
-          {activeTab === "text" && (
-            <div className="space-y-6">
-              <div className="rounded-xl bg-[#0b1220] text-white px-4 py-3 mb-2 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
-                    <FileText className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold">Add Text Knowledge</h3>
-                    <p className="text-xs text-white/70">
-                      Create a text entry for your library.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    resetTextForm();
-                    closeActiveTab();
-                  }}
-                  className="rounded-md border border-transparent px-2 py-1 text-white/70 transition hover:border-white/20 hover:text-white"
-                  aria-label="Close"
-                >
-                  ×
-                </button>
-              </div>
-
-              {submitError && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
-                  {submitError}
-                </div>
-              )}
-
-              {/* Title */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  value={textTitle}
-                  onChange={(e) => setTextTitle(e.target.value)}
-                  placeholder="e.g., Brand Guidelines"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
-                />
-              </div>
-
-              {/* Content */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Knowledge Content
-                </label>
-                <textarea
-                  value={textContent}
-                  onChange={(e) => setTextContent(e.target.value)}
-                  placeholder="Enter your knowledge content here... You can paste articles, documentation, FAQs, or any text-based information that your AI agents should know."
-                  rows={12}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all resize-none"
-                />
-                <p
-                  className={`text-sm mt-2 ${
-                    textContent.length > MAX_CONTENT_LENGTH
-                      ? "text-red-600"
-                      : "text-gray-500"
-                  }`}
-                >
-                  {textContent.length} characters
-                  {textContent.length > MAX_CONTENT_LENGTH &&
-                    ` (exceeds ${MAX_CONTENT_LENGTH} limit)`}
-                </p>
-              </div>
-
-              {/* Category and Importance */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Category
-                  </label>
-                  <select
-                    value={textCategory}
-                    onChange={(e) => setTextCategory(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all bg-white"
-                  >
-                    <option value="branding">Branding</option>
-                    <option value="products">Products</option>
-                    <option value="policies">Policies</option>
-                    <option value="support">Support</option>
-                    <option value="operations">Operations</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Importance
-                  </label>
-                  <div className="px-3 py-2 border border-gray-200 rounded-lg">
-                    <input
-                      type="range"
-                      min={1}
-                      max={4}
-                      step={1}
-                      value={importanceLevel}
-                      onChange={(e) =>
-                        setImportanceLevel(parseInt(e.target.value, 10))
-                      }
-                      className="w-full accent-sky-600"
-                    />
-                    <div className="flex justify-between text-xs text-gray-500 mt-1">
-                      <span>Low</span>
-                      <span>Normal</span>
-                      <span>High</span>
-                      <span>Critical</span>
+            {activeTab === "text" && (
+              <div className="space-y-6">
+                <div className="rounded-xl bg-[#0b1220] text-white px-4 py-3 mb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
+                      <FileText className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold">Add Text Knowledge</h3>
+                      <p className="text-xs text-white/70">
+                        Create a text entry for your library.
+                      </p>
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Tags */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tags
-                </label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {tags.map((t, i) => (
-                    <span
-                      key={`${t}-${i}`}
-                      className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm bg-sky-50 text-sky-700"
-                    >
-                      {t}
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setTags((prev) => prev.filter((_, idx) => idx !== i))
-                        }
-                        className="text-sky-700 hover:text-sky-900"
-                        aria-label={`Remove ${t}`}
-                      >
-                        ×
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <input
-                  type="text"
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (
-                      (e.key === "Enter" || e.key === ",") &&
-                      tagInput.trim()
-                    ) {
-                      e.preventDefault();
-                      const newTag = tagInput.trim();
-                      if (!tags.includes(newTag)) {
-                        setTags((prev) => [...prev, newTag]);
-                      }
-                      setTagInput("");
-                    }
-                  }}
-                  placeholder="Type a tag and press Enter"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
-                />
-              </div>
-
-              <div className="flex gap-4">
-                <button
-                  onClick={async () => {
-                    const activeWorkspaceId = workspaceId;
-                    if (!activeWorkspaceId) {
-                      setSubmitError("Please select a workspace first");
-                      return;
-                    }
-                    setSubmitError(null);
-                    const importance: KnowledgeImportance =
-                      importanceLevel === 1
-                        ? "low"
-                        : importanceLevel === 2
-                        ? "normal"
-                        : importanceLevel === 3
-                        ? "high"
-                        : "critical";
-                    if (!textTitle.trim()) {
-                      setSubmitError("Title is required");
-                      return;
-                    }
-                    if (!textContent.trim()) {
-                      setSubmitError("Content is required");
-                      return;
-                    }
-                    try {
-                      setSubmittingText(true);
-                      await knowledgeAPI.addTextKnowledge(activeWorkspaceId, {
-                        title: textTitle.trim(),
-                        content:
-                          textContent.length > MAX_CONTENT_LENGTH
-                            ? textContent.slice(0, MAX_CONTENT_LENGTH)
-                            : textContent.trim(),
-                        category: textCategory,
-                        importance,
-                        tags,
-                      });
-                      await loadKnowledge(activeWorkspaceId);
-                      setTextTitle("");
-                      setTextContent("");
-                      setTextCategory("branding");
-                      setImportanceLevel(2);
-                      setTags([]);
-                      setTagInput("");
+                  <button
+                    onClick={() => {
+                      resetTextForm();
                       closeActiveTab();
-                    } catch (error: any) {
-                      setSubmitError(
-                        error?.message || "Failed to add text knowledge"
-                      );
-                    } finally {
-                      setSubmittingText(false);
-                    }
-                  }}
-                  disabled={
-                    submittingText || !textTitle.trim() || !textContent.trim()
-                  }
-                  className="bg-gradient-to-r from-sky-600 to-sky-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {submittingText ? "Saving..." : "Add to Knowledge Base"}
-                </button>
-                <button
-                  onClick={() => {
-                    resetTextForm();
-                  }}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all"
-                >
-                  Clear
-                </button>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "pdf" && (
-            <div className="space-y-6">
-              <div className="rounded-xl bg-[#0b1220] text-white px-4 py-3 mb-2 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
-                    <FileDown className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold">Upload PDF Documents</h3>
-                    <p className="text-xs text-white/70">
-                      Add multi-page documents to your library.
-                    </p>
-                  </div>
+                    }}
+                    className="rounded-md border border-transparent px-2 py-1 text-white/70 transition hover:border-white/20 hover:text-white"
+                    aria-label="Close"
+                  >
+                    ×
+                  </button>
                 </div>
-                <button
-                  onClick={() => {
-                    resetPdfForm();
-                    closeActiveTab();
-                  }}
-                  className="rounded-md border border-transparent px-2 py-1 text-white/70 transition hover:border-white/20 hover:text-white"
-                  aria-label="Close"
-                >
-                  ×
-                </button>
-              </div>
 
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                <div className="w-16 h-16 bg-linear-to-br from-sky-500 to-sky-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-3xl text-white">📄</span>
+                {submitError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+                    {submitError}
+                  </div>
+                )}
+
+                {/* Title */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    value={textTitle}
+                    onChange={(e) => setTextTitle(e.target.value)}
+                    placeholder="e.g., Brand Guidelines"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
+                  />
                 </div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                  Upload PDF Files
-                </h4>
-                <p className="text-gray-600 mb-4">
-                  Drag and drop PDF files here, or click to browse
-                </p>
 
-                <input
-                  type="file"
-                  accept=".pdf"
-                  multiple
-                  onChange={handleFileUpload}
-                  className="hidden"
-                  id="pdf-upload"
-                  disabled={isProcessingPdfs}
-                />
-                <label
-                  htmlFor="pdf-upload"
-                  className={`bg-gradient-to-r from-sky-600 to-sky-700 text-white px-6 py-3 rounded-lg font-semibold transition-all inline-block ${
-                    isProcessingPdfs
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:from-sky-700 hover:to-sky-800 cursor-pointer"
-                  }`}
-                >
-                  {isProcessingPdfs ? "Uploading..." : "Choose PDF Files"}
-                </label>
-              </div>
-
-              {pdfError && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
-                  {pdfError}
-                </div>
-              )}
-
-              {pdfSuccessMessage && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-md text-sm text-green-700">
-                  {pdfSuccessMessage}
-                </div>
-              )}
-
-              {uploadedFiles.length > 0 && (
-                <div className="space-y-6">
-                  <div className="space-y-3">
-                    <h4 className="text-lg font-semibold text-gray-900">
-                      Uploaded Files
-                    </h4>
-                    {uploadedFiles.map((file, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <span className="text-red-500 text-xl">📄</span>
-                          <span className="text-sm font-medium text-gray-900">
-                            {file.name}
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                          </span>
-                        </div>
-                        <button
-                          onClick={() => {
-                            setUploadedFiles((prev) => {
-                              const next = prev.filter((_, i) => i !== index);
-                              if (next.length === 0) {
-                                setPdfTitle("");
-                                setPdfTags([]);
-                                setPdfTagInput("");
-                                setPdfCategory("branding");
-                                setPdfImportanceLevel(3);
-                              }
-                              return next;
-                            });
-                            setPdfError(null);
-                            setPdfSuccessMessage(null);
-                          }}
-                          className="text-red-500 hover:text-red-700 text-sm"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        value={pdfTitle}
-                        onChange={(e) => setPdfTitle(e.target.value)}
-                        placeholder="e.g., Brand Guidelines"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        This title and metadata apply to all selected files.
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Category
-                        </label>
-                        <select
-                          value={pdfCategory}
-                          onChange={(e) => setPdfCategory(e.target.value)}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all bg-white"
-                        >
-                          <option value="branding">Branding</option>
-                          <option value="products">Products</option>
-                          <option value="policies">Policies</option>
-                          <option value="support">Support</option>
-                          <option value="operations">Operations</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Importance
-                        </label>
-                        <div className="px-3 py-2 border border-gray-200 rounded-lg">
-                          <input
-                            type="range"
-                            min={1}
-                            max={4}
-                            step={1}
-                            value={pdfImportanceLevel}
-                            onChange={(e) =>
-                              setPdfImportanceLevel(
-                                parseInt(e.target.value, 10)
-                              )
-                            }
-                            className="w-full accent-sky-600"
-                          />
-                          <div className="flex justify-between text-xs text-gray-500 mt-1">
-                            <span>Low</span>
-                            <span>Normal</span>
-                            <span>High</span>
-                            <span>Critical</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Tags
-                      </label>
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {pdfTags.map((t, i) => (
-                          <span
-                            key={`${t}-${i}`}
-                            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm bg-sky-50 text-sky-700"
-                          >
-                            {t}
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setPdfTags((prev) =>
-                                  prev.filter((_, idx) => idx !== i)
-                                )
-                              }
-                              className="text-sky-700 hover:text-sky-900"
-                              aria-label={`Remove ${t}`}
-                            >
-                              ×
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                      <input
-                        type="text"
-                        value={pdfTagInput}
-                        onChange={(e) => setPdfTagInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (
-                            (e.key === "Enter" || e.key === ",") &&
-                            pdfTagInput.trim()
-                          ) {
-                            e.preventDefault();
-                            const newTag = pdfTagInput.trim();
-                            if (!pdfTags.includes(newTag)) {
-                              setPdfTags((prev) => [...prev, newTag]);
-                            }
-                            setPdfTagInput("");
-                          }
-                        }}
-                        placeholder="Type a tag and press Enter"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex gap-4">
-                <button
-                  onClick={handleProcessPDFs}
-                  disabled={uploadedFiles.length === 0 || isProcessingPdfs}
-                  className="bg-gradient-to-r from-sky-600 to-sky-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isProcessingPdfs
-                    ? "Uploading..."
-                    : "Upload to Knowledge Base"}
-                </button>
-                <button
-                  onClick={resetPdfForm}
-                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all"
-                >
-                  Clear All
-                </button>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "sheets" && (
-            <div className="space-y-6">
-              <div className="rounded-xl bg-[#0b1220] text-white px-4 py-3 mb-2 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
-                    <FileSpreadsheet className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold">Connect Google Sheets</h3>
-                    <p className="text-xs text-white/70">
-                      Sync structured data from Google Sheets.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    setSheetsConnected(false);
-                    setClickedTemplateIndex(null);
-                    setShowLinkInput(false);
-                    setGoogleSheetLink("");
-                    setShowTemplateCards(false);
-                    closeActiveTab();
-                  }}
-                  className="rounded-md border border-transparent px-2 py-1 text-white/70 transition hover:border-white/20 hover:text-white"
-                  aria-label="Close"
-                >
-                  ×
-                </button>
-              </div>
-
-              {googleSheets.length > 0 && !showTemplateCards ? (
-                <div className="space-y-4">
-                  {sheetsError && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
-                      {sheetsError}
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3 p-4 bg-sky-50 rounded-lg flex-1 border border-sky-200">
-                      <span className="text-sky-600 text-xl">✅</span>
-                      <span className="text-sky-800 font-medium">
-                        Google Sheet Connected
-                      </span>
-                    </div>
-                    <div className="text-xs text-gray-500 px-3">
-                      Only one sheet allowed per workspace
-                    </div>
-                  </div>
-                  <div className="p-3 bg-sky-50 border border-sky-200 rounded-lg">
-                    <p className="text-sm text-sky-700">
-                      ℹ️ You can view and manage your connected Google Sheet in
-                      the Knowledge Library below.
-                    </p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <h4 className="text-lg font-semibold text-gray-900">
-                      Connected Sheets
-                    </h4>
-                    {sheetsLoading && (
-                      <div className="flex items-center justify-center py-4">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-                        <span className="ml-2 text-sm text-gray-600">
-                          Refreshing...
-                        </span>
-                      </div>
-                    )}
-                    <div className="space-y-2">
-                      {googleSheets.map((sheet) => {
-                        const sheetTypeLabel = sheet.sheet_type
-                          ? sheet.sheet_type
-                              .split("_")
-                              .map(
-                                (word) =>
-                                  word.charAt(0).toUpperCase() + word.slice(1)
-                              )
-                              .join(" ")
-                          : "General";
-                        const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheet.sheet_id}/edit`;
-
-                        return (
-                          <div
-                            key={sheet.id}
-                            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                          >
-                            <div className="flex items-center space-x-3 flex-1">
-                              <span className="text-green-500 text-xl">📊</span>
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2">
-                                  <a
-                                    href={sheetUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-sm font-medium text-gray-900 hover:text-green-600 transition-colors"
-                                  >
-                                    {sheetTypeLabel} Sheet
-                                  </a>
-                                  <span className="px-2 py-0.5 text-xs bg- sky-100 text- sky-700 rounded">
-                                    {sheet.sheet_type || "general"}
-                                  </span>
-                                </div>
-                                <p className="text-xs text-gray-500 mt-1">
-                                  Sheet ID: {sheet.sheet_id}
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  Connected: {formatDateTime(sheet.created_at)}
-                                </p>
-                              </div>
-                            </div>
-                            <button
-                              onClick={() => handleDeleteSheet(sheet.id)}
-                              className="ml-4 px-3 py-1.5 text-sm bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
-                              title="Disconnect this sheet"
-                            >
-                              Disconnect
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {googleSheets.length === 0 && (
-                    <div className="pt-4 border-t border-gray-200">
-                      <button
-                        onClick={() => {
-                          setShowTemplateCards(true);
-                        }}
-                        className="w-full px-6 py-3 border-2 border-dashed border-gray-300 text-gray-700 rounded-lg font-medium hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-all"
-                      >
-                        + Add Another Google Sheet
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {sheetsError && googleSheets.length === 0 && (
-                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-700">
-                      ⚠️ {sheetsError} You can still connect a new sheet below.
-                    </div>
-                  )}
-                  {sheetsLoading && googleSheets.length === 0 && (
-                    <div className="flex items-center justify-center py-2 text-sm text-gray-500">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2"></div>
-                      Loading connected sheets...
-                    </div>
-                  )}
-                  {hasGoogleSheet && (
-                    <div className="p-4 bg-sky-50 border border-sky-200 rounded-lg mb-4">
-                      <p className="text-sm text-sky-800">
-                        ⚠️ A Google Sheet is already connected to this
-                        workspace. You can only connect one sheet per workspace.
-                        To add a different sheet, please disconnect the existing
-                        one first.
-                      </p>
-                    </div>
-                  )}
-                  {googleSheets.length > 0 && (
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-lg font-semibold text-gray-900">
-                        Select a Template
-                      </h4>
-                      <button
-                        onClick={() => {
-                          setShowTemplateCards(false);
-                        }}
-                        className="text-sm text-gray-600 hover:text-gray-900"
-                      >
-                        ← Back to Sheet
-                      </button>
-                    </div>
-                  )}
-                  <div
-                    className={`grid grid-cols-1 lg:grid-cols-2 gap-8 ${
-                      hasGoogleSheet ? "pointer-events-none opacity-50" : ""
+                {/* Content */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Knowledge Content
+                  </label>
+                  <textarea
+                    value={textContent}
+                    onChange={(e) => setTextContent(e.target.value)}
+                    placeholder="Enter your knowledge content here... You can paste articles, documentation, FAQs, or any text-based information that your AI agents should know."
+                    rows={12}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all resize-none"
+                  />
+                  <p
+                    className={`text-sm mt-2 ${
+                      textContent.length > MAX_CONTENT_LENGTH
+                        ? "text-red-600"
+                        : "text-gray-500"
                     }`}
                   >
-                    {/* Template Cards Grid */}
-                    <div className="grid grid-cols-2 gap-4">
-                      {templateCards.map((template, index) => (
+                    {textContent.length} characters
+                    {textContent.length > MAX_CONTENT_LENGTH &&
+                      ` (exceeds ${MAX_CONTENT_LENGTH} limit)`}
+                  </p>
+                </div>
+
+                {/* Category and Importance */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Category
+                    </label>
+                    <select
+                      value={textCategory}
+                      onChange={(e) => setTextCategory(e.target.value)}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all bg-white"
+                    >
+                      <option value="branding">Branding</option>
+                      <option value="products">Products</option>
+                      <option value="policies">Policies</option>
+                      <option value="support">Support</option>
+                      <option value="operations">Operations</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Importance
+                    </label>
+                    <div className="px-3 py-2 border border-gray-200 rounded-lg">
+                      <input
+                        type="range"
+                        min={1}
+                        max={4}
+                        step={1}
+                        value={importanceLevel}
+                        onChange={(e) =>
+                          setImportanceLevel(parseInt(e.target.value, 10))
+                        }
+                        className="w-full accent-sky-600"
+                      />
+                      <div className="flex justify-between text-xs text-gray-500 mt-1">
+                        <span>Low</span>
+                        <span>Normal</span>
+                        <span>High</span>
+                        <span>Critical</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tags */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tags
+                  </label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {tags.map((t, i) => (
+                      <span
+                        key={`${t}-${i}`}
+                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm bg-sky-50 text-sky-700"
+                      >
+                        {t}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setTags((prev) =>
+                              prev.filter((_, idx) => idx !== i)
+                            )
+                          }
+                          className="text-sky-700 hover:text-sky-900"
+                          aria-label={`Remove ${t}`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <input
+                    type="text"
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (
+                        (e.key === "Enter" || e.key === ",") &&
+                        tagInput.trim()
+                      ) {
+                        e.preventDefault();
+                        const newTag = tagInput.trim();
+                        if (!tags.includes(newTag)) {
+                          setTags((prev) => [...prev, newTag]);
+                        }
+                        setTagInput("");
+                      }
+                    }}
+                    placeholder="Type a tag and press Enter"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
+                  />
+                </div>
+
+                <div className="flex gap-4">
+                  <button
+                    onClick={async () => {
+                      const activeWorkspaceId = workspaceId;
+                      if (!activeWorkspaceId) {
+                        setSubmitError("Please select a workspace first");
+                        return;
+                      }
+                      setSubmitError(null);
+                      const importance: KnowledgeImportance =
+                        importanceLevel === 1
+                          ? "low"
+                          : importanceLevel === 2
+                            ? "normal"
+                            : importanceLevel === 3
+                              ? "high"
+                              : "critical";
+                      if (!textTitle.trim()) {
+                        setSubmitError("Title is required");
+                        return;
+                      }
+                      if (!textContent.trim()) {
+                        setSubmitError("Content is required");
+                        return;
+                      }
+                      try {
+                        setSubmittingText(true);
+                        await knowledgeAPI.addTextKnowledge(activeWorkspaceId, {
+                          title: textTitle.trim(),
+                          content:
+                            textContent.length > MAX_CONTENT_LENGTH
+                              ? textContent.slice(0, MAX_CONTENT_LENGTH)
+                              : textContent.trim(),
+                          category: textCategory,
+                          importance,
+                          tags,
+                        });
+                        await loadKnowledge(activeWorkspaceId);
+                        setTextTitle("");
+                        setTextContent("");
+                        setTextCategory("branding");
+                        setImportanceLevel(2);
+                        setTags([]);
+                        setTagInput("");
+                        closeActiveTab();
+                      } catch (error: any) {
+                        setSubmitError(
+                          error?.message || "Failed to add text knowledge"
+                        );
+                      } finally {
+                        setSubmittingText(false);
+                      }
+                    }}
+                    disabled={
+                      submittingText || !textTitle.trim() || !textContent.trim()
+                    }
+                    className="bg-gradient-to-r from-sky-600 to-sky-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {submittingText ? "Saving..." : "Add to Knowledge Base"}
+                  </button>
+                  <button
+                    onClick={() => {
+                      resetTextForm();
+                    }}
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "pdf" && (
+              <div className="space-y-6">
+                <div className="rounded-xl bg-[#0b1220] text-white px-4 py-3 mb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
+                      <FileDown className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold">
+                        Upload PDF Documents
+                      </h3>
+                      <p className="text-xs text-white/70">
+                        Add multi-page documents to your library.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      resetPdfForm();
+                      closeActiveTab();
+                    }}
+                    className="rounded-md border border-transparent px-2 py-1 text-white/70 transition hover:border-white/20 hover:text-white"
+                    aria-label="Close"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                  <div className="w-16 h-16 bg-linear-to-br from-sky-500 to-sky-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-3xl text-white">📄</span>
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                    Upload PDF Files
+                  </h4>
+                  <p className="text-gray-600 mb-4">
+                    Drag and drop PDF files here, or click to browse
+                  </p>
+
+                  <input
+                    type="file"
+                    accept=".pdf"
+                    multiple
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    id="pdf-upload"
+                    disabled={isProcessingPdfs}
+                  />
+                  <label
+                    htmlFor="pdf-upload"
+                    className={`bg-gradient-to-r from-sky-600 to-sky-700 text-white px-6 py-3 rounded-lg font-semibold transition-all inline-block ${
+                      isProcessingPdfs
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:from-sky-700 hover:to-sky-800 cursor-pointer"
+                    }`}
+                  >
+                    {isProcessingPdfs ? "Uploading..." : "Choose PDF Files"}
+                  </label>
+                </div>
+
+                {pdfError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+                    {pdfError}
+                  </div>
+                )}
+
+                {pdfSuccessMessage && (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-md text-sm text-green-700">
+                    {pdfSuccessMessage}
+                  </div>
+                )}
+
+                {uploadedFiles.length > 0 && (
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                      <h4 className="text-lg font-semibold text-gray-900">
+                        Uploaded Files
+                      </h4>
+                      {uploadedFiles.map((file, index) => (
                         <div
                           key={index}
-                          onClick={
-                            hasGoogleSheet
-                              ? undefined
-                              : () => handleTemplateClick(index)
-                          }
-                          className={`bg-[#0b1220] border border-sky-400/30 rounded-lg p-6 ${
-                            hasGoogleSheet
-                              ? ""
-                              : "cursor-pointer hover:border-sky-400 hover:shadow-lg hover:shadow-sky-500/20"
-                          } transition-all group`}
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                         >
-                          <div className="text-center text-white">
-                            <h4 className="text-lg font-semibold group-hover:text-sky-300 transition-colors">
-                              {template}
-                            </h4>
+                          <div className="flex items-center space-x-3">
+                            <span className="text-red-500 text-xl">📄</span>
+                            <span className="text-sm font-medium text-gray-900">
+                              {file.name}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                            </span>
                           </div>
+                          <button
+                            onClick={() => {
+                              setUploadedFiles((prev) => {
+                                const next = prev.filter((_, i) => i !== index);
+                                if (next.length === 0) {
+                                  setPdfTitle("");
+                                  setPdfTags([]);
+                                  setPdfTagInput("");
+                                  setPdfCategory("branding");
+                                  setPdfImportanceLevel(3);
+                                }
+                                return next;
+                              });
+                              setPdfError(null);
+                              setPdfSuccessMessage(null);
+                            }}
+                            className="text-red-500 hover:text-red-700 text-sm"
+                          >
+                            Remove
+                          </button>
                         </div>
                       ))}
                     </div>
 
-                    {/* Instruction Panel */}
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Title
+                        </label>
+                        <input
+                          type="text"
+                          value={pdfTitle}
+                          onChange={(e) => setPdfTitle(e.target.value)}
+                          placeholder="e.g., Brand Guidelines"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          This title and metadata apply to all selected files.
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Category
+                          </label>
+                          <select
+                            value={pdfCategory}
+                            onChange={(e) => setPdfCategory(e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all bg-white"
+                          >
+                            <option value="branding">Branding</option>
+                            <option value="products">Products</option>
+                            <option value="policies">Policies</option>
+                            <option value="support">Support</option>
+                            <option value="operations">Operations</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Importance
+                          </label>
+                          <div className="px-3 py-2 border border-gray-200 rounded-lg">
+                            <input
+                              type="range"
+                              min={1}
+                              max={4}
+                              step={1}
+                              value={pdfImportanceLevel}
+                              onChange={(e) =>
+                                setPdfImportanceLevel(
+                                  parseInt(e.target.value, 10)
+                                )
+                              }
+                              className="w-full accent-sky-600"
+                            />
+                            <div className="flex justify-between text-xs text-gray-500 mt-1">
+                              <span>Low</span>
+                              <span>Normal</span>
+                              <span>High</span>
+                              <span>Critical</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Tags
+                        </label>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                          {pdfTags.map((t, i) => (
+                            <span
+                              key={`${t}-${i}`}
+                              className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm bg-sky-50 text-sky-700"
+                            >
+                              {t}
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setPdfTags((prev) =>
+                                    prev.filter((_, idx) => idx !== i)
+                                  )
+                                }
+                                className="text-sky-700 hover:text-sky-900"
+                                aria-label={`Remove ${t}`}
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                        <input
+                          type="text"
+                          value={pdfTagInput}
+                          onChange={(e) => setPdfTagInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (
+                              (e.key === "Enter" || e.key === ",") &&
+                              pdfTagInput.trim()
+                            ) {
+                              e.preventDefault();
+                              const newTag = pdfTagInput.trim();
+                              if (!pdfTags.includes(newTag)) {
+                                setPdfTags((prev) => [...prev, newTag]);
+                              }
+                              setPdfTagInput("");
+                            }
+                          }}
+                          placeholder="Type a tag and press Enter"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-4">
+                  <button
+                    onClick={handleProcessPDFs}
+                    disabled={uploadedFiles.length === 0 || isProcessingPdfs}
+                    className="bg-gradient-to-r from-sky-600 to-sky-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isProcessingPdfs
+                      ? "Uploading..."
+                      : "Upload to Knowledge Base"}
+                  </button>
+                  <button
+                    onClick={resetPdfForm}
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "sheets" && (
+              <div className="space-y-6">
+                <div className="rounded-xl bg-[#0b1220] text-white px-4 py-3 mb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
+                      <FileSpreadsheet className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold">
+                        Connect Google Sheets
+                      </h3>
+                      <p className="text-xs text-white/70">
+                        Sync structured data from Google Sheets.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSheetsConnected(false);
+                      setClickedTemplateIndex(null);
+                      setShowLinkInput(false);
+                      setGoogleSheetLink("");
+                      setShowTemplateCards(false);
+                      closeActiveTab();
+                    }}
+                    className="rounded-md border border-transparent px-2 py-1 text-white/70 transition hover:border-white/20 hover:text-white"
+                    aria-label="Close"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                {googleSheets.length > 0 && !showTemplateCards ? (
+                  <div className="space-y-4">
+                    {sheetsError && (
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+                        {sheetsError}
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3 p-4 bg-sky-50 rounded-lg flex-1 border border-sky-200">
+                        <span className="text-sky-600 text-xl">✅</span>
+                        <span className="text-sky-800 font-medium">
+                          Google Sheet Connected
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-500 px-3">
+                        Only one sheet allowed per workspace
+                      </div>
+                    </div>
+                    <div className="p-3 bg-sky-50 border border-sky-200 rounded-lg">
+                      <p className="text-sm text-sky-700">
+                        ℹ️ You can view and manage your connected Google Sheet
+                        in the Knowledge Library below.
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <h4 className="text-lg font-semibold text-gray-900">
+                        Connected Sheets
+                      </h4>
+                      {sheetsLoading && (
+                        <div className="flex items-center justify-center py-4">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
+                          <span className="ml-2 text-sm text-gray-600">
+                            Refreshing...
+                          </span>
+                        </div>
+                      )}
+                      <div className="space-y-2">
+                        {googleSheets.map((sheet) => {
+                          const sheetTypeLabel = formatSheetTypeLabel(
+                            sheet.sheet_type
+                          );
+                          const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheet.sheet_id}/edit`;
+
+                          return (
+                            <div
+                              key={sheet.id}
+                              className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                              <div className="flex items-center space-x-3 flex-1">
+                                <span className="text-green-500 text-xl">
+                                  📊
+                                </span>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <a
+                                      href={sheetUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-sm font-medium text-gray-900 hover:text-green-600 transition-colors"
+                                    >
+                                      {sheetTypeLabel} Sheet
+                                    </a>
+                                    <span className="px-2 py-0.5 text-xs bg- sky-100 text- sky-700 rounded">
+                                      {sheet.sheet_type || "general"}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    Sheet ID: {sheet.sheet_id}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    Connected:{" "}
+                                    {formatDateTime(sheet.created_at)}
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => handleDeleteSheet(sheet.id)}
+                                className="ml-4 px-3 py-1.5 text-sm bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
+                                title="Disconnect this sheet"
+                              >
+                                Disconnect
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {googleSheets.length === 0 && (
+                      <div className="pt-4 border-t border-gray-200">
+                        <button
+                          onClick={() => {
+                            setShowTemplateCards(true);
+                          }}
+                          className="w-full px-6 py-3 border-2 border-dashed border-gray-300 text-gray-700 rounded-lg font-medium hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-all"
+                        >
+                          + Add Another Google Sheet
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {sheetsError && googleSheets.length === 0 && (
+                      <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-700">
+                        ⚠️ {sheetsError} You can still connect a new sheet
+                        below.
+                      </div>
+                    )}
+                    {sheetsLoading && googleSheets.length === 0 && (
+                      <div className="flex items-center justify-center py-2 text-sm text-gray-500">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2"></div>
+                        Loading connected sheets...
+                      </div>
+                    )}
+                    {hasGoogleSheet && (
+                      <div className="p-4 bg-sky-50 border border-sky-200 rounded-lg mb-4">
+                        <p className="text-sm text-sky-800">
+                          ⚠️ A Google Sheet is already connected to this
+                          workspace. You can only connect one sheet per
+                          workspace. To add a different sheet, please disconnect
+                          the existing one first.
+                        </p>
+                      </div>
+                    )}
+                    {googleSheets.length > 0 && (
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-lg font-semibold text-gray-900">
+                          Select a Template
+                        </h4>
+                        <button
+                          onClick={() => {
+                            setShowTemplateCards(false);
+                          }}
+                          className="text-sm text-gray-600 hover:text-gray-900"
+                        >
+                          ← Back to Sheet
+                        </button>
+                      </div>
+                    )}
                     <div
-                      className={`bg-[#0b1220] rounded-lg p-6 text-white ${
-                        hasGoogleSheet ? "opacity-50" : ""
+                      className={`grid grid-cols-1 lg:grid-cols-2 gap-8 ${
+                        hasGoogleSheet ? "pointer-events-none opacity-50" : ""
                       }`}
                     >
-                      <div className="space-y-6">
-                        {/* Make a Copy Section */}
-                        <div>
-                          <h4 className="text-lg font-bold mb-3">
-                            Make a Copy
-                          </h4>
-                          <p className="text-sm leading-relaxed">
-                            Open this template sheet. Click File → Make a copy
-                            to save it to your own Google Drive.
-                          </p>
-                        </div>
+                      {/* Template Cards Grid */}
+                      <div className="grid grid-cols-2 gap-4">
+                        {templateCards.map((template, index) => (
+                          <div
+                            key={index}
+                            onClick={
+                              hasGoogleSheet
+                                ? undefined
+                                : () => handleTemplateClick(index)
+                            }
+                            className={`bg-[#0b1220] border border-sky-400/30 rounded-lg p-6 ${
+                              hasGoogleSheet
+                                ? ""
+                                : "cursor-pointer hover:border-sky-400 hover:shadow-lg hover:shadow-sky-500/20"
+                            } transition-all group`}
+                          >
+                            <div className="text-center text-white">
+                              <h4 className="text-lg font-semibold group-hover:text-sky-300 transition-colors">
+                                {template}
+                              </h4>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
 
-                        {/* Share With the AI Agent Section */}
-                        <div>
-                          <h4 className="text-lg font-bold mb-3">
-                            Share With the AI Agent
-                          </h4>
-                          <p className="text-sm leading-relaxed">
-                            Share your copy with:{" "}
-                            <a
-                              href="mailto:ai.agent.dispatch@gmail.com"
-                              className="underline hover:text-sky-200 transition-colors"
-                            >
-                              ai.agent.dispatch@gmail.com
-                            </a>
-                            <br />
-                            Make sure to give Edit Access so the AI can update
-                            results.
-                          </p>
+                      {/* Instruction Panel */}
+                      <div
+                        className={`bg-[#0b1220] rounded-lg p-6 text-white ${
+                          hasGoogleSheet ? "opacity-50" : ""
+                        }`}
+                      >
+                        <div className="space-y-6">
+                          {/* Make a Copy Section */}
+                          <div>
+                            <h4 className="text-lg font-bold mb-3">
+                              Make a Copy
+                            </h4>
+                            <p className="text-sm leading-relaxed">
+                              Open this template sheet. Click File → Make a copy
+                              to save it to your own Google Drive.
+                            </p>
+                          </div>
+
+                          {/* Share With the AI Agent Section */}
+                          <div>
+                            <h4 className="text-lg font-bold mb-3">
+                              Share With the AI Agent
+                            </h4>
+                            <p className="text-sm leading-relaxed">
+                              Share your copy with:{" "}
+                              <a
+                                href="mailto:ai.agent.dispatch@gmail.com"
+                                className="underline hover:text-sky-200 transition-colors"
+                              >
+                                ai.agent.dispatch@gmail.com
+                              </a>
+                              <br />
+                              Make sure to give Edit Access so the AI can update
+                              results.
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -2035,8 +2061,8 @@ export default function KnowledgePage() {
                         ? "border-green-500 focus:border-green-500"
                         : "border-gray-300"
                       : linkInputError
-                      ? "border-red-300 focus:border-red-500"
-                      : "border-gray-300"
+                        ? "border-red-300 focus:border-red-500"
+                        : "border-gray-300"
                   }`}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
@@ -2169,8 +2195,8 @@ function ChatPanel({
   const disabledReason = !workspaceId
     ? "Select a workspace to start chatting."
     : !hasKnowledge
-    ? "Add knowledge to enable chat."
-    : null;
+      ? "Add knowledge to enable chat."
+      : null;
 
   const handleSend = async () => {
     const text = input.trim();
@@ -2252,8 +2278,8 @@ function ChatPanel({
           {workspaceName
             ? `Workspace: ${workspaceName}`
             : workspaceId
-            ? `Workspace ID: ${workspaceId}`
-            : "Select a workspace to chat"}
+              ? `Workspace ID: ${workspaceId}`
+              : "Select a workspace to chat"}
         </p>
       </div>
       <div className="relative flex-1 bg-gray-50/60">
@@ -2357,4 +2383,3 @@ function ChatPanel({
     </div>
   );
 }
-
