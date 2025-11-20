@@ -80,11 +80,9 @@ export default function WorkspaceSelectionPage() {
       });
 
       handleCloseModal();
-      setPendingWorkspace({
-        id: workspace.id,
-        name: workspace.name,
-      });
-      setShowOnboardingModal(true);
+      // Don't open onboarding modal automatically after workspace creation
+      // User can access it later when they open the workspace
+      // The onboarding will be checked when they select/open the workspace
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error
