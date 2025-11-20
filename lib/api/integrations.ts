@@ -165,6 +165,54 @@ async function getTelegramMessages(
   }
 }
 
+type CreateTelegramIntegrationPayload = {
+  user_id: string;
+  telegram_bot_token: string;
+  workspace_id: string;
+};
+
+type CreateTelegramIntegrationResponse = {
+  success?: boolean;
+  message?: string;
+  data?: unknown;
+};
+
+async function createTelegramIntegration(
+  payload: CreateTelegramIntegrationPayload
+): Promise<CreateTelegramIntegrationResponse> {
+  const TELEGRAM_API_URL =
+    process.env.NEXT_PUBLIC_TELEGRAM_API_URL || "http://localhost:4000";
+
+  const response = await fetch(`${TELEGRAM_API_URL}/telegram/create`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    let errorMessage = `Request failed with status ${response.status}`;
+    try {
+      const errorData = await response.json();
+      errorMessage =
+        errorData?.message ||
+        errorData?.detail ||
+        errorData?.error ||
+        errorMessage;
+    } catch {
+      errorMessage = response.statusText || errorMessage;
+    }
+    throw new Error(errorMessage);
+  }
+
+  try {
+    return await response.json();
+  } catch {
+    return { success: true };
+  }
+}
+
 export const integrationsAPI = {
   getInstagramIntegration,
   disconnectInstagramIntegration,
@@ -172,4 +220,5 @@ export const integrationsAPI = {
   getInstagramMessages,
   getTelegramConversations,
   getTelegramMessages,
+  createTelegramIntegration,
 };

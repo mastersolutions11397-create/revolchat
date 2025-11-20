@@ -1,11 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { Link2 } from "lucide-react";
+import { Link2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { integrationsAPI } from "@/lib/api";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
+import { useAuth } from "@/lib/auth-context";
 
 type InstagramIntegration = {
   username: string;
@@ -58,6 +59,7 @@ const CHANNELS = [
 
 export default function IntegrationsPage() {
   const { selectedWorkspaceId, currentWorkspace } = useWorkspace();
+  const { user } = useAuth();
   const workspaceId = useMemo(
     () => selectedWorkspaceId || currentWorkspace?.id || null,
     [selectedWorkspaceId, currentWorkspace?.id]
@@ -73,6 +75,13 @@ export default function IntegrationsPage() {
   >(null);
   const [instagramChecking, setInstagramChecking] = useState(false);
   const [instagramDisconnecting, setInstagramDisconnecting] = useState(false);
+
+  // Telegram connection state
+  const [showTelegramModal, setShowTelegramModal] = useState(false);
+  const [telegramBotToken, setTelegramBotToken] = useState("");
+  const [telegramConnecting, setTelegramConnecting] = useState(false);
+  const [telegramError, setTelegramError] = useState<string | null>(null);
+  const [telegramSuccess, setTelegramSuccess] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -167,6 +176,69 @@ export default function IntegrationsPage() {
     }
   }, [workspaceId, instagramIntegration]);
 
+  const handleTelegramConnect = useCallback(() => {
+    if (!workspaceId) {
+      window.alert("Please select a workspace before connecting Telegram.");
+      return;
+    }
+
+    if (!user?.id) {
+      window.alert("Please log in to connect Telegram.");
+      return;
+    }
+
+    setShowTelegramModal(true);
+    setTelegramBotToken("");
+    setTelegramError(null);
+    setTelegramSuccess(false);
+  }, [workspaceId, user?.id]);
+
+  const handleTelegramSubmit = useCallback(async () => {
+    if (!workspaceId || !user?.id) {
+      setTelegramError("Workspace or user information missing.");
+      return;
+    }
+
+    if (!telegramBotToken.trim()) {
+      setTelegramError("Please enter a Telegram bot token.");
+      return;
+    }
+
+    setTelegramConnecting(true);
+    setTelegramError(null);
+    setTelegramSuccess(false);
+
+    try {
+      await integrationsAPI.createTelegramIntegration({
+        user_id: user.id,
+        telegram_bot_token: telegramBotToken.trim(),
+        workspace_id: workspaceId,
+      });
+
+      setTelegramSuccess(true);
+      setTelegramBotToken("");
+
+      // Close modal after a short delay
+      setTimeout(() => {
+        setShowTelegramModal(false);
+        setTelegramSuccess(false);
+      }, 2000);
+    } catch (error: any) {
+      setTelegramError(
+        error?.message || "Failed to connect Telegram. Please try again."
+      );
+    } finally {
+      setTelegramConnecting(false);
+    }
+  }, [workspaceId, user?.id, telegramBotToken]);
+
+  const handleCloseTelegramModal = useCallback(() => {
+    setShowTelegramModal(false);
+    setTelegramBotToken("");
+    setTelegramError(null);
+    setTelegramSuccess(false);
+  }, []);
+
   return (
     <div className="space-y-8">
       {/* Banner */}
@@ -226,12 +298,16 @@ export default function IntegrationsPage() {
                   disabled={
                     channel.comingSoon ||
                     (channel.name === "Instagram" &&
-                      (instagramChecking || instagramDisconnecting))
+                      (instagramChecking || instagramDisconnecting)) ||
+                    (channel.name === "Telegram" && telegramConnecting)
                   }
                   onClick={() => {
                     if (channel.comingSoon) return;
                     if (channel.name === "Instagram") {
                       handleInstagramConnect();
+                    }
+                    if (channel.name === "Telegram") {
+                      handleTelegramConnect();
                     }
                   }}
                 >
@@ -239,7 +315,9 @@ export default function IntegrationsPage() {
                     ? "Coming Soon"
                     : channel.name === "Instagram" && instagramIntegration
                       ? "Connected"
-                      : "Connect"}
+                      : channel.name === "Telegram" && telegramConnecting
+                        ? "Connecting..."
+                        : "Connect"}
                 </button>
               </div>
               {channel.name === "Instagram" && (
@@ -309,6 +387,89 @@ export default function IntegrationsPage() {
           </div>
         ))}
       </div>
+
+      {/* Telegram Connection Modal */}
+      {showTelegramModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-xl">
+            <div className="rounded-xl bg-[#0b1220] text-white px-4 py-3 mb-2 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold">Connect Telegram Bot</h3>
+                <p className="text-xs text-white/70">
+                  Enter your Telegram bot access token to connect.
+                </p>
+              </div>
+              <button
+                onClick={handleCloseTelegramModal}
+                className="rounded-md border border-transparent px-2 py-1 text-white/70 transition hover:border-white/20 hover:text-white"
+                aria-label="Close"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {telegramError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+                  {telegramError}
+                </div>
+              )}
+
+              {telegramSuccess && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-md text-sm text-green-700">
+                  Telegram bot connected successfully!
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Telegram Bot Token
+                </label>
+                <input
+                  type="text"
+                  value={telegramBotToken}
+                  onChange={(e) => {
+                    setTelegramBotToken(e.target.value);
+                    setTelegramError(null);
+                  }}
+                  placeholder="Enter your Telegram bot access token"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
+                  disabled={telegramConnecting}
+                />
+                <p className="mt-2 text-xs text-gray-500">
+                  You can get your bot token from{" "}
+                  <a
+                    href="https://t.me/BotFather"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sky-600 hover:underline"
+                  >
+                    @BotFather
+                  </a>{" "}
+                  on Telegram.
+                </p>
+              </div>
+
+              <div className="flex gap-4 pt-2">
+                <button
+                  onClick={handleTelegramSubmit}
+                  disabled={!telegramBotToken.trim() || telegramConnecting}
+                  className="flex-1 bg-gradient-to-r from-sky-600 to-sky-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {telegramConnecting ? "Connecting..." : "Connect"}
+                </button>
+                <button
+                  onClick={handleCloseTelegramModal}
+                  disabled={telegramConnecting}
+                  className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
