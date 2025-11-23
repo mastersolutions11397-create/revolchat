@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, AlertCircle, ChevronLeft, ChevronRight, Check } from "lucide-react";
 import Image from "next/image";
 
 import Modal from "@/components/ui/modal-drop";
@@ -13,6 +13,8 @@ import {
   type YettiOnboardingAnswerValue,
   type YettiOnboardingStatusResponse,
 } from "@/lib/api";
+import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface WorkspaceOnboardingModalProps {
   isOpen: boolean;
@@ -170,7 +172,6 @@ export function WorkspaceOnboardingModal({
   >({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [status, setStatus] = useState<YettiOnboardingStatusResponse | null>(
     null
@@ -188,7 +189,6 @@ export function WorkspaceOnboardingModal({
     const load = async () => {
       setLoading(true);
       setError(null);
-      setSubmitError(null);
       setQuestions([]);
       setHasSubmitted(false);
 
@@ -215,15 +215,20 @@ export function WorkspaceOnboardingModal({
 
         if (cancelled) return;
 
-        const extractedQuestionsRaw = Array.isArray(
-          (questionnaire as any)?.questions
-        )
-          ? (questionnaire as any).questions
-          : Array.isArray((questionnaire as any)?.questionnaire)
-            ? (questionnaire as any).questionnaire
-            : Array.isArray(questionnaire)
-              ? questionnaire
-              : [];
+        const questionnaireTyped = questionnaire as {
+          questions?: unknown[];
+          questionnaire?: unknown[];
+        } | unknown[];
+
+        let extractedQuestionsRaw: unknown[] = [];
+
+        if (Array.isArray((questionnaireTyped as { questions?: unknown[] }).questions)) {
+          extractedQuestionsRaw = (questionnaireTyped as { questions: unknown[] }).questions;
+        } else if (Array.isArray((questionnaireTyped as { questionnaire?: unknown[] }).questionnaire)) {
+          extractedQuestionsRaw = (questionnaireTyped as { questionnaire: unknown[] }).questionnaire;
+        } else if (Array.isArray(questionnaire)) {
+          extractedQuestionsRaw = questionnaire;
+        }
 
         setQuestions(extractedQuestionsRaw as YettiQuestion[]);
         setStatus(statusResponse);
@@ -243,6 +248,7 @@ export function WorkspaceOnboardingModal({
         const message =
           err instanceof Error ? err.message : "Failed to load onboarding";
         setError(message);
+        toast.error(message);
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -262,7 +268,6 @@ export function WorkspaceOnboardingModal({
       setQuestions([]);
       setAnswers({});
       setError(null);
-      setSubmitError(null);
       setStatus(null);
       setHasSubmitted(false);
       setSubmitting(false);
@@ -322,14 +327,12 @@ export function WorkspaceOnboardingModal({
   const handleNext = () => {
     if (currentQuestionIndex < normalizedQuestions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
-      setSubmitError(null);
     }
   };
 
   const handlePrev = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex((prev) => prev - 1);
-      setSubmitError(null);
     }
   };
 
@@ -343,12 +346,11 @@ export function WorkspaceOnboardingModal({
     );
 
     if (missingRequired.length > 0) {
-      setSubmitError("Please answer all required questions to continue.");
+      toast.error("Please answer all required questions to continue.");
       return;
     }
 
     setSubmitting(true);
-    setSubmitError(null);
 
     try {
       await yettiOnboardingAPI.submitOnboarding(workspaceId, {
@@ -360,7 +362,7 @@ export function WorkspaceOnboardingModal({
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Failed to submit onboarding";
-      setSubmitError(message);
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
@@ -368,7 +370,7 @@ export function WorkspaceOnboardingModal({
 
   const handleCloseRequest = () => {
     if (!canDismiss) {
-      setSubmitError("Please complete onboarding to continue.");
+      toast.error("Please complete onboarding to continue.");
       return;
     }
     onClose();
@@ -387,78 +389,58 @@ export function WorkspaceOnboardingModal({
           : DEFAULT_SUBTITLE
       }
       disablePadding
-      className="sm:max-w-5xl md:max-w-6xl p-0 overflow-hidden"
+      className="max-w-2xl p-0 overflow-hidden bg-slate-900 border border-white/10 shadow-2xl shadow-black/50"
     >
       <div className="max-h-[85vh] overflow-y-auto">
         {loading ? (
-          <div className="flex h-96 items-center justify-center text-muted-foreground">
+          <div className="flex h-96 items-center justify-center text-slate-400">
             <div className="flex items-center gap-3">
               <Loader2 className="h-5 w-5 animate-spin" />
               <span>Loading onboarding questions...</span>
             </div>
           </div>
         ) : error ? (
-          <div className="p-6">
-            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-              {error}
+          <div className="p-8 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-8 h-8 text-red-500" />
             </div>
+            <p className="text-red-400 mb-4">{error}</p>
+            <Button onClick={onClose} variant="outline" className="border-white/10 text-white hover:bg-white/5">
+              Close
+            </Button>
           </div>
         ) : normalizedQuestions.length === 0 ? (
-          <div className="flex h-96 items-center justify-center text-center text-muted-foreground">
+          <div className="flex h-96 items-center justify-center text-center text-slate-400">
             <p>No onboarding questions are configured yet.</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit}>
-            {/* Two-column layout */}
-            <div className="grid grid-cols-1 md:grid-cols-2 min-h-[500px]">
-              {/* Left side - Yetti Image */}
-              <div className="bg-[#0b1220] flex items-center justify-center p-8 md:p-12">
-                <div className="text-center space-y-6">
-                  <div className="relative w-48 h-48 md:w-64 md:h-64 mx-auto">
-                    <Image
-                      src="/yetti/15.png"
-                      alt="Yetti"
-                      width={256}
-                      height={256}
-                      className="w-full h-full object-contain"
-                      priority
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <p className="text-sm text-white/70">
-                      Question {currentQuestionIndex + 1} of{" "}
-                      {normalizedQuestions.length}
-                    </p>
-                    <div className="flex gap-1.5 justify-center">
-                      {normalizedQuestions.map((_, index) => (
-                        <div
-                          key={index}
-                          className={`h-1.5 rounded-full transition-all ${
-                            index === currentQuestionIndex
-                              ? "w-8 bg-sky-400"
-                              : "w-1.5 bg-white/20"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
+          <form onSubmit={handleSubmit} className="p-8">
+            {/* Progress Bar */}
+            <div className="mb-8">
+              <div className="flex justify-between text-xs font-medium text-slate-400 mb-2">
+                <span>Question {currentQuestionIndex + 1} of {normalizedQuestions.length}</span>
+                <span>{Math.round(((currentQuestionIndex + 1) / normalizedQuestions.length) * 100)}% Complete</span>
               </div>
+              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                <motion.div 
+                  className="h-full bg-gradient-to-r from-sky-500 to-blue-600"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${((currentQuestionIndex + 1) / normalizedQuestions.length) * 100}%` }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+            </div>
 
-              {/* Right side - Question */}
-              <div className="flex flex-col p-8 md:p-12">
-                {status && !status.is_onboarded && currentQuestionIndex === 0 && (
-                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700 mb-6">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="h-4 w-4 shrink-0" />
-                      <span>
-                        Complete the onboarding to unlock all workspace features.
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex-1 space-y-6">
+            <div className="min-h-[300px] flex flex-col">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentQuestionIndex}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex-1"
+                >
                   {(() => {
                     const { question, type, options, key } =
                       normalizedQuestions[currentQuestionIndex];
@@ -468,22 +450,22 @@ export function WorkspaceOnboardingModal({
                     const value = answers[key];
 
                     return (
-                      <div className="space-y-4">
+                      <div className="space-y-6">
                         <div>
-                          <h3 className="text-2xl font-semibold text-foreground mb-2">
+                          <h3 className="text-2xl font-bold text-white mb-2">
                             {label}
                             {isQuestionRequired(question) && (
-                              <span className="ml-1 text-red-500">*</span>
+                              <span className="ml-1 text-sky-500">*</span>
                             )}
                           </h3>
                           {description && (
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-slate-400">
                               {description}
                             </p>
                           )}
                         </div>
 
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           {type === "short_text" || type === "text" ? (
                             <input
                               type="text"
@@ -499,7 +481,8 @@ export function WorkspaceOnboardingModal({
                               placeholder={
                                 question.placeholder || "Type your answer"
                               }
-                              className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+                              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all outline-none"
+                              autoFocus
                             />
                           ) : type === "long_text" ? (
                             <textarea
@@ -511,7 +494,8 @@ export function WorkspaceOnboardingModal({
                               placeholder={
                                 question.placeholder || "Type your answer"
                               }
-                              className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+                              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all outline-none resize-none"
+                              autoFocus
                             />
                           ) : type === "number" ? (
                             <input
@@ -533,7 +517,8 @@ export function WorkspaceOnboardingModal({
                               placeholder={
                                 question.placeholder || "Enter a number"
                               }
-                              className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+                              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all outline-none"
+                              autoFocus
                             />
                           ) : type === "email" ? (
                             <input
@@ -545,7 +530,8 @@ export function WorkspaceOnboardingModal({
                               placeholder={
                                 question.placeholder || "Enter email"
                               }
-                              className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+                              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all outline-none"
+                              autoFocus
                             />
                           ) : type === "url" ? (
                             <input
@@ -555,7 +541,8 @@ export function WorkspaceOnboardingModal({
                                 handleAnswerChange(key, event.target.value)
                               }
                               placeholder={question.placeholder || "https://"}
-                              className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+                              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all outline-none"
+                              autoFocus
                             />
                           ) : type === "select" ? (
                             <select
@@ -563,21 +550,22 @@ export function WorkspaceOnboardingModal({
                               onChange={(event) =>
                                 handleAnswerChange(key, event.target.value)
                               }
-                              className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+                              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all outline-none appearance-none"
+                              autoFocus
                             >
-                              <option value="" disabled>
+                              <option value="" disabled className="bg-slate-900 text-slate-400">
                                 {question.placeholder || "Select an option"}
                               </option>
                               {options.map((option) => (
-                                <option key={option.value} value={option.value}>
+                                <option key={option.value} value={option.value} className="bg-slate-900 text-white">
                                   {option.label}
                                 </option>
                               ))}
                             </select>
                           ) : type === "multi_select" ? (
-                            <div className="space-y-3 rounded-lg border border-input bg-background p-4">
+                            <div className="space-y-3">
                               {options.length === 0 ? (
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-sm text-slate-400">
                                   No options configured.
                                 </p>
                               ) : (
@@ -589,8 +577,17 @@ export function WorkspaceOnboardingModal({
                                   return (
                                     <label
                                       key={option.value}
-                                      className="flex items-center gap-3 text-sm text-foreground cursor-pointer hover:bg-accent/50 p-2 rounded transition-colors"
+                                      className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
+                                        checked 
+                                          ? "bg-sky-500/10 border-sky-500/50" 
+                                          : "bg-white/5 border-white/10 hover:bg-white/10"
+                                      }`}
                                     >
+                                      <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                                        checked ? "bg-sky-500 border-sky-500" : "border-slate-500"
+                                      }`}>
+                                        {checked && <Check className="w-3.5 h-3.5 text-white" />}
+                                      </div>
                                       <input
                                         type="checkbox"
                                         checked={checked}
@@ -600,25 +597,34 @@ export function WorkspaceOnboardingModal({
                                             option.value
                                           )
                                         }
-                                        className="h-4 w-4 rounded border-input text-sky-600 focus:ring-sky-500"
+                                        className="hidden"
                                       />
-                                      <span>{option.label}</span>
+                                      <span className="text-white font-medium">{option.label}</span>
                                     </label>
                                   );
                                 })
                               )}
                             </div>
                           ) : type === "boolean" ? (
-                            <label className="inline-flex items-center gap-3 text-sm text-foreground cursor-pointer p-3 rounded-lg border border-input bg-background hover:bg-accent/50 transition-colors">
+                            <label className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
+                              Boolean(value)
+                                ? "bg-sky-500/10 border-sky-500/50" 
+                                : "bg-white/5 border-white/10 hover:bg-white/10"
+                            }`}>
+                              <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                                Boolean(value) ? "bg-sky-500 border-sky-500" : "border-slate-500"
+                              }`}>
+                                {Boolean(value) && <Check className="w-3.5 h-3.5 text-white" />}
+                              </div>
                               <input
                                 type="checkbox"
                                 checked={Boolean(value)}
                                 onChange={(event) =>
                                   handleAnswerChange(key, event.target.checked)
                                 }
-                                className="h-5 w-5 rounded border-input text-sky-600 focus:ring-sky-500"
+                                className="hidden"
                               />
-                              <span>{question.placeholder || "Yes"}</span>
+                              <span className="text-white font-medium">{question.placeholder || "Yes"}</span>
                             </label>
                           ) : (
                             <input
@@ -630,64 +636,58 @@ export function WorkspaceOnboardingModal({
                               placeholder={
                                 question.placeholder || "Type your answer"
                               }
-                              className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+                              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all outline-none"
+                              autoFocus
                             />
                           )}
                         </div>
                       </div>
                     );
                   })()}
-                </div>
+                </motion.div>
+              </AnimatePresence>
 
-                {/* Error message */}
-                {submitError && (
-                  <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700 mt-4">
-                    {submitError}
-                  </div>
-                )}
+              {/* Navigation buttons */}
+              <div className="flex items-center justify-between gap-4 mt-8 pt-6 border-t border-white/10">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={handlePrev}
+                  disabled={currentQuestionIndex === 0}
+                  className="flex items-center gap-2 text-slate-400 hover:text-white hover:bg-white/5"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Button>
 
-                {/* Navigation buttons */}
-                <div className="flex items-center justify-between gap-4 mt-8 pt-6 border-t">
+                {currentQuestionIndex < normalizedQuestions.length - 1 ? (
                   <Button
                     type="button"
-                    variant="outline"
-                    onClick={handlePrev}
-                    disabled={currentQuestionIndex === 0}
-                    className="flex items-center gap-2"
+                    onClick={handleNext}
+                    className="flex items-center gap-2 bg-white text-slate-900 hover:bg-slate-200 font-semibold"
                   >
-                    <ChevronLeft className="h-4 w-4" />
-                    Previous
+                    Next
+                    <ChevronRight className="h-4 w-4" />
                   </Button>
-
-                  {currentQuestionIndex < normalizedQuestions.length - 1 ? (
-                    <Button
-                      type="button"
-                      onClick={handleNext}
-                      className="flex items-center gap-2"
-                    >
-                      Next
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  ) : (
-                    <Button
-                      type="submit"
-                      disabled={submitting}
-                      className="flex items-center gap-2"
-                    >
-                      {submitting ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Submitting...
-                        </>
-                      ) : (
-                        <>
-                          Complete
-                          <ChevronRight className="h-4 w-4" />
-                        </>
-                      )}
-                    </Button>
-                  )}
-                </div>
+                ) : (
+                  <Button
+                    type="submit"
+                    disabled={submitting}
+                    className="flex items-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-semibold shadow-lg shadow-sky-500/20"
+                  >
+                    {submitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        Complete
+                        <ChevronRight className="h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
           </form>

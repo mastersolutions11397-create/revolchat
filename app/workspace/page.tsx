@@ -8,17 +8,16 @@ import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Building2, Plus, Loader2 } from "lucide-react";
-// import { PromoCard } from "@/components/ui/card-9";
-// import { AnimatePresence } from "framer-motion";
+import { Building2, Loader2, Plus, AlertCircle, Upload, X, ArrowRight } from "lucide-react";
 import { WorkspaceCard } from "@/components/ui/workspace-card";
 import Modal from "@/components/ui/modal-drop";
-// import { ShimmerGradient } from "@/components/ui/shimmer-gradient";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 import type { WorkspaceListResponse } from "@/lib/api/workspace";
 import { yettiOnboardingAPI } from "@/lib/api";
 import WorkspaceOnboardingModal from "@/components/workspace/WorkspaceOnboardingModal";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 export default function WorkspaceSelectionPage() {
   const { signOut } = useAuth();
@@ -33,10 +32,10 @@ export default function WorkspaceSelectionPage() {
   const router = useRouter();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // const [isPromoVisible, setIsPromoVisible] = useState(true);
   const [workspaceName, setWorkspaceName] = useState("");
   const [workspaceDescription, setWorkspaceDescription] = useState("");
-  const [localError, setLocalError] = useState("");
+  const [workspaceLogo, setWorkspaceLogo] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectingWorkspace, setSelectingWorkspace] = useState<string | null>(null);
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
@@ -51,17 +50,16 @@ export default function WorkspaceSelectionPage() {
 
   const handleCreateWorkspace = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLocalError("");
 
     // Validate workspace name before attempting to create
     const trimmedName = workspaceName.trim();
     if (!trimmedName) {
-      setLocalError("Workspace name is required");
+      toast.error("Workspace name is required");
       return;
     }
 
     if (trimmedName.length < 3) {
-      setLocalError("Workspace name must be at least 3 characters");
+      toast.error("Workspace name must be at least 3 characters");
       return;
     }
 
@@ -88,7 +86,7 @@ export default function WorkspaceSelectionPage() {
         err instanceof Error
           ? err.message
           : "An error occurred while creating workspace";
-      setLocalError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -99,7 +97,6 @@ export default function WorkspaceSelectionPage() {
     workspaceName?: string
   ) => {
     try {
-      setLocalError("");
       setSelectingWorkspace(workspaceId);
       await selectWorkspace(workspaceId);
 
@@ -129,7 +126,7 @@ export default function WorkspaceSelectionPage() {
         err instanceof Error
           ? err.message
           : "An error occurred while selecting workspace";
-      setLocalError(message);
+      toast.error(message);
     } finally {
       setSelectingWorkspace(null);
     }
@@ -145,36 +142,69 @@ export default function WorkspaceSelectionPage() {
     setPendingWorkspace(null);
     void fetchWorkspaces();
     router.push("/dashboard");
+    toast.success("Welcome to your workspace!");
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setLocalError("");
     setWorkspaceName("");
     setWorkspaceDescription("");
-    setIsSubmitting(false);
+    setWorkspaceLogo(null);
+    setLogoPreview(null);
+  };
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image size should be less than 5MB");
+        return;
+      }
+      setWorkspaceLogo(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setWorkspaceLogo(null);
+    setLogoPreview(null);
   };
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-linear-to-br from-gray-900 to-gray-950">
+      <div className="min-h-screen bg-slate-900 relative overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-sky-500/10 to-blue-600/10 blur-[100px] animate-pulse-slow" />
+          <div className="absolute -bottom-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-sky-500/10 to-sky-500/10 blur-[100px] animate-pulse-slow delay-1000" />
+          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-20 [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+        </div>
+
         {/* Navigation */}
-        <nav className="absolute top-0 w-full z-40 border-b border-gray-200/60 bg-white backdrop-blur-xl">
+        <nav className="absolute top-0 w-full z-40 border-b border-white/5 bg-slate-900/50 backdrop-blur-xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <Link href="/" className="flex items-center gap-3">
-                <span className="text-2xl font-extrabold tracking-tight text-gray-900">
-                  YETTI<span className="text-gray-400">.AI</span>
+            <div className="flex justify-between items-center h-20">
+              <Link href="/" className="flex items-center gap-3 group">
+                <span className="text-2xl font-extrabold tracking-tight text-white group-hover:opacity-80 transition-opacity">
+                  YETTI<span className="text-sky-500">.AI</span>
                 </span>
-                </Link>
-              <div className="flex items-center gap-3">
+              </Link>
+              <div className="flex items-center gap-4">
                 <Link
                   href="/profile"
-                  className="px-3 py-2 rounded-md text-sm text-gray-700 hover:text-gray-900 transition-colors"
+                  className="px-4 py-2 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all"
                 >
                   Profile
                 </Link>
-                <Button variant="outline" onClick={handleSignOut} className="h-9">
+                <Button 
+                  variant="outline" 
+                  onClick={handleSignOut} 
+                  className="h-10 rounded-full border-white/10 bg-transparent text-white hover:bg-white/10 hover:text-white hover:border-white/20"
+                >
                   Sign Out
                 </Button>
               </div>
@@ -182,205 +212,272 @@ export default function WorkspaceSelectionPage() {
           </div>
         </nav>
 
-        {/* Header */}
-       
-
         {/* Main Content */}
-        <main className="pb-16 flex flex-col items-center justify-center h-screen ">
-           <header className="relative pt-28 sm:pt-32 pb-10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white">
-              Your Workspaces
-            </h1>
-              <p className="mt-3 text-gray-300 max-w-2xl mx-auto">
-                Select a workspace to continue or create a new one.
-            </p>
-            
+        <main className="relative z-10 flex flex-col items-center justify-center min-h-screen pt-20 pb-16">
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white mb-6">
+                  Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-500">Workspaces</span>
+                </h1>
+                <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+                  Select a workspace to manage your AI agents or create a new one to start a fresh project.
+                </p>
+              </motion.div>
             </div>
-          </div>
-        </header>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Promo Card */}
 
-          {/* Error Display */}
-          {(error || localError) && (
-              <div className="mb-8">
-                <Card className="border-red-200 bg-red-50">
-                  <CardContent className="py-4">
-                    <p className="text-red-700 text-sm text-center">{error || localError}</p>
-                  </CardContent>
-                </Card>
-            </div>
-          )}
+            {/* Error Display */}
+            {error && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="mb-8 max-w-md mx-auto"
+              >
+                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-red-500" />
+                  <p className="text-red-400 text-sm font-medium text-center flex-1">{error}</p>
+                </div>
+              </motion.div>
+            )}
 
-          {/* Loading State */}
-            {loading && workspaces.length === 0 ? (
-              <div className="py-8">
+            {/* Content Area */}
+            <div className="space-y-8">
+              {loading && workspaces.length === 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {[0, 1, 2].map((i) => (
-                    <div key={i} className="rounded-2xl border bg-card w-[350px] p-6">
-                      <div className="flex items-start gap-10 justify-between">
-                        <Skeleton className="h-12 w-12 rounded-xl" />
-                        <div className="space-y-2 w-24">
-                          <Skeleton className="h-3 w-full" />
-                          <Skeleton className="h-3 w-3/4" />
-                        </div>
+                    <div key={i} className="h-48 rounded-3xl bg-white/5 border border-white/5 p-6 animate-pulse">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="w-12 h-12 rounded-xl bg-white/10" />
+                        <div className="w-20 h-4 rounded-full bg-white/10" />
                       </div>
-                      <Skeleton className="h-5 w-3/4 mt-4 rounded-md" />
-                      <Skeleton className="h-3 w-full mt-2" />
-                      <Skeleton className="h-3 w-2/3 mt-2" />
-                      <Skeleton className="h-3 w-32 mt-4" />
+                      <div className="space-y-3">
+                        <div className="w-3/4 h-6 rounded-lg bg-white/10" />
+                        <div className="w-1/2 h-4 rounded-lg bg-white/5" />
+                      </div>
                     </div>
                   ))}
                 </div>
-              </div>
-          ) : (
-            <>
-                {workspaces.length > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {workspaces.map((workspace: WorkspaceListResponse["workspaces"][0]) => {
-                      const isSelecting = selectingWorkspace === workspace.id;
-                      return (
-                        <WorkspaceCard
-                    key={workspace.id}
-                          name={workspace.name}
-                          agents={workspace.agent_count}
-                          members={workspace.member_count}
-                          isSelecting={isSelecting}
-                          onOpen={() =>
-                            handleWorkspaceSelect(workspace.id, workspace.name)
-                          }
-                        />
-                      );
-                    })}
-                    {/* Add New Workspace */}
-                    <Card
+              ) : (
+                <div className="flex flex-col lg:flex-row gap-8 items-start">
+                  {/* Create New Button (Static) */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="w-full lg:w-80 shrink-0"
+                  >
+                    <button
                       onClick={() => setIsModalOpen(true)}
-                      className="border rounded-2xl! py-6 hover:border-sky-500 group cursor-pointer transition-colors"
+                      className="w-full group min-h-[315px] relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-500 to-blue-600 p-1 text-left transition-all hover:shadow-2xl hover:shadow-sky-500/25 hover:-translate-y-1"
                     >
-                      <CardContent className="p-6  h-full flex flex-col items-center justify-center text-center">
-                        <div className="w-12 h-12 rounded-xl bg-gray-900 group-hover:bg-sky-500 text-white flex items-center justify-center">
-                          <Plus className="w-6 h-6 " />
-                      </div>
-                        <h3 className="mt-3 text-lg font-semibold text-gray-900 group-hover:text-sky-500">
-                          Create New Workspace
-                    </h3>
-                        <p className="mt-1 text-sm text-gray-600 max-w-xs">
-                          Start fresh with a new personal workspace for your AI agent projects.
-                        </p>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-
-              {/* Empty State */}
-              {workspaces.length === 0 && !loading && (
-                  <div className="py-16 flex items-center justify-center">
-                    <Card className="max-w-xl w-full p-6">
-                      <CardContent className="p-8 text-center">
-                        <div className="w-16 h-16 rounded-2xl bg-gray-900 text-white flex items-center justify-center mx-auto shadow-md">
-                          <Building2 className="w-8 h-8" />
-                  </div>
-                        <h3 className="mt-6 text-2xl font-semibold text-gray-900">
-                    No workspaces yet
-                  </h3>
-                        <p className="mt-2 text-gray-600">
-                          Create your first workspace to start building and managing your AI agents.
-                        </p>
-                        <div className="mt-6">
-                          <Button onClick={() => setIsModalOpen(true)} className="px-6 h-11">
-                            <Plus className="w-4 h-4 mr-2" /> Create your first workspace
-                          </Button>
+                      <div className="relative h-full rounded-[20px] min-h-[315px] bg-slate-900/40 backdrop-blur-sm p-8 transition-all group-hover:bg-slate-900/20">
+                        <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20 group-hover:scale-110 transition-transform duration-300">
+                          <Plus className="h-7 w-7 text-white" />
                         </div>
-                      </CardContent>
-                    </Card>
+                        <h3 className="mb-2 text-2xl font-bold text-white">Create New</h3>
+                        <p className="text-sky-100/80 text-sm leading-relaxed mb-6">
+                          Start a fresh workspace for your next big AI project.
+                        </p>
+                        <div className="flex items-center gap-2 text-white font-semibold text-sm group-hover:gap-3 transition-all">
+                          Get Started <ArrowRight className="w-4 h-4" />
+                        </div>
+                      </div>
+                    </button>
+                  </motion.div>
+
+                  {/* Horizontal Scrollable List */}
+                  {workspaces.length > 0 ? (
+                    <div className="flex-1 w-full pl-0 overflow-hidden">
+                      <div className="flex gap-6 overflow-x-auto pb-8 px-8  scrollbar-hide snap-x">
+                        {workspaces.map((workspace, index) => (
+                          <motion.div
+                            key={workspace.id}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.1 + index * 0.05 }}
+                            className="w-full md:w-[350px] shrink-0 snap-start"
+                          >
+                            <WorkspaceCard
+                              name={workspace.name}
+                              agents={workspace.agent_count}
+                              members={workspace.member_count}
+                              isSelecting={selectingWorkspace === workspace.id}
+                              onOpen={() => handleWorkspaceSelect(workspace.id, workspace.name)}
+                            />
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center py-12 rounded-3xl border border-dashed border-white/10 bg-white/5">
+                      <div className="text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4">
+                          <Building2 className="w-8 h-8 text-slate-400" />
+                        </div>
+                        <h3 className="text-xl font-semibold text-white mb-2">No workspaces yet</h3>
+                        <p className="text-slate-400">Create your first workspace to get started.</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
-            </>
-          )}
-        </div>
+            </div>
+          </div>
         </main>
       </div>
 
-      {/* Create Workspace Modal via modal-drop with two-column layout */}
+      {/* Create Workspace Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         animationType="scale"
         type="overlay"
         disablePadding
-        className="sm:max-w-4xl md:max-w-5xl lg:max-w-6xl p-0 overflow-hidden"
+        allowEasyClose={false}
+        showEscText={false}
+        className="min-w-4xl p-0 overflow-hidden bg-slate-900 border border-white/10 shadow-2xl shadow-black/50"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 w-full">
           {/* Left visual */}
-          <div className="relative hidden md:block bg-white p-2">
-            <div className="relative h-full min-h-[460px] rounded-2xl overflow-hidden bg-[radial-gradient(900px_400px_at_60%_-20%,#0ea5e9_0%,#0b1220_70%)]">
-              <Image src="/yetti/yetti_laying.png" alt="Yetti resting" fill className="object-contain p-6" />
+          <div className="relative hidden md:flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-950 p-8 border-r border-white/5">
+            <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-20 [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-sky-500/10 to-blue-600/10 blur-3xl opacity-50" />
+            
+            <div className="relative z-10 w-full aspect-square max-w-[280px]">
+              <Image 
+                src="/yetti/yetti_laying.png" 
+                alt="Yetti" 
+                fill 
+                className="object-contain drop-shadow-2xl"
+                priority
+              />
+            </div>
+            
+            <div className="absolute bottom-8 left-0 w-full text-center px-8">
+              <p className="text-sky-200/80 text-sm font-medium">
+                "Let's build something amazing together!"
+              </p>
             </div>
           </div>
 
           {/* Right form */}
-          <div className="p-6 md:p-8 bg-background">
-            <div className="mb-4">
-              <h2 className="text-2xl font-bold text-foreground">Create Personal Workspace</h2>
-              <p className="text-sm text-muted-foreground">Set a name and optional description to begin.</p>
+          <div className="p-8 md:p-10 bg-slate-900">
+            <div className="mb-8">
+              <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-4">
+                <Building2 className="w-6 h-6 text-sky-400" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">Create Workspace</h2>
+              <p className="text-slate-400 text-sm">Give your new workspace a name to get started.</p>
             </div>
 
-            <form onSubmit={handleCreateWorkspace} className="space-y-4">
-              <div>
-                <label
-                  htmlFor="workspaceName"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Workspace Name
-                </label>
-                <input
-                  type="text"
-                  id="workspaceName"
-                  value={workspaceName}
-                  onChange={(e) => setWorkspaceName(e.target.value)}
-                  placeholder="e.g., My Personal Workspace"
-                  required
-                  minLength={3}
-                  className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent transition-all"
-                />
-              </div>
+            <form onSubmit={handleCreateWorkspace} className="space-y-6">
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="workspaceName" className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">
+                    Workspace Name
+                  </label>
+                  <input
+                    type="text"
+                    id="workspaceName"
+                    value={workspaceName}
+                    onChange={(e) => setWorkspaceName(e.target.value)}
+                    placeholder="e.g., My Awesome Project"
+                    required
+                    minLength={3}
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all outline-none"
+                  />
+                </div>
 
-              <div>
-                <label
-                  htmlFor="workspaceDescription"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Description (Optional)
-                </label>
-                <textarea
-                  id="workspaceDescription"
-                  value={workspaceDescription}
-                  onChange={(e) => setWorkspaceDescription(e.target.value)}
-                  placeholder="Describe your workspace"
-                  rows={3}
-                  className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent transition-all resize-none"
-                />
+                {/* Logo Upload */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">
+                    Workspace Logo (Optional)
+                  </label>
+                  {!logoPreview ? (
+                    <label 
+                      htmlFor="logoUpload"
+                      className="group relative flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed border-white/10 bg-white/5 hover:bg-white/10 hover:border-sky-500/50 transition-all cursor-pointer overflow-hidden"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <Upload className="w-8 h-8 text-slate-500 group-hover:text-sky-400 transition-colors mb-2" />
+                      <p className="text-sm text-slate-400 group-hover:text-slate-300 transition-colors">
+                        Click to upload or drag and drop
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        PNG, JPG, SVG up to 5MB
+                      </p>
+                      <input
+                        type="file"
+                        id="logoUpload"
+                        accept="image/*"
+                        onChange={handleLogoChange}
+                        className="hidden"
+                      />
+                    </label>
+                  ) : (
+                    <div className="relative w-full h-32 rounded-xl border border-white/10 bg-white/5 overflow-hidden group">
+                      <img 
+                        src={logoPreview} 
+                        alt="Logo preview" 
+                        className="w-full h-full object-contain p-4"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveLogo}
+                        className="absolute top-2 right-2 p-1.5 rounded-lg bg-red-500/80 hover:bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="workspaceDescription" className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">
+                    Description (Optional)
+                  </label>
+                  <textarea
+                    id="workspaceDescription"
+                    value={workspaceDescription}
+                    onChange={(e) => setWorkspaceDescription(e.target.value)}
+                    placeholder="What's this workspace for?"
+                    rows={3}
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all outline-none resize-none"
+                  />
+                </div>
               </div>
 
               <div className="flex gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={handleCloseModal} disabled={isSubmitting} className="flex-1 h-11">
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  onClick={handleCloseModal} 
+                  disabled={isSubmitting} 
+                  className="flex-1 h-12 bg-slate-800 rounded-xl text-slate-400 hover:text-white hover:bg-white/5"
+                >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting || !workspaceName.trim()} className="flex-1 h-11">
+                <Button 
+                  type="submit" 
+                  disabled={isSubmitting || !workspaceName.trim()} 
+                  className="flex-1 h-12 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-semibold shadow-lg shadow-sky-500/20"
+                >
                   {isSubmitting ? (
-                    <span className="inline-flex items-center"><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating…</span>
+                    <span className="inline-flex items-center"><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating...</span>
                   ) : (
                     "Create Workspace"
                   )}
                 </Button>
-
               </div>
             </form>
           </div>
         </div>
       </Modal>
+
       <WorkspaceOnboardingModal
         isOpen={showOnboardingModal}
         workspaceId={pendingWorkspace?.id ?? null}

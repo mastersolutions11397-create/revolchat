@@ -1,6 +1,6 @@
 import * as React from "react";
 import { motion, type HTMLMotionProps } from "framer-motion";
-import { Building2, Loader2 } from "lucide-react";
+import { Building2, Loader2, ArrowRight, Users, Bot } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -22,57 +22,58 @@ export function WorkspaceCard({
   onOpen,
   ...props
 }: WorkspaceCardProps) {
-  const keyframes = `
-    @keyframes promo-card-loader-pulse {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 1; }
-    }
-  `;
-
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
+      whileHover={{ y: -4 }}
       className={cn(
-        "relative w-full overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-lg",
+        "group relative w-full overflow-hidden rounded-3xl bg-white/5 border border-white/10 p-1 transition-all hover:bg-white/10 hover:border-white/20 hover:shadow-2xl hover:shadow-sky-500/10",
         className
       )}
       {...props}
     >
-      <style>{keyframes}</style>
-
-      <svg className="pointer-events-none absolute -z-10 h-0 w-0" aria-hidden="true">
-        <filter id="grainy-ws">
-          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
-        </filter>
-      </svg>
-
-      <div className="absolute inset-0 z-0 opacity-[0.03]" style={{ filter: "url(#grainy-ws)" }} />
-
-     
-
-      <div className="relative z-10 flex h-full flex-col p-6">
-        <div className="flex items-start justify-between">
-          <div className="w-12 h-12 rounded-xl bg-gray-900! text-white flex items-center justify-center shadow-md">
-           
-              <Building2 className="w-6 h-6" />
-       
+      <div className="relative h-full rounded-[20px] bg-slate-900/40 backdrop-blur-sm p-6 flex flex-col">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-6">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500/20 to-blue-600/20 flex items-center justify-center ring-1 ring-white/10 group-hover:scale-110 transition-transform duration-300">
+            <Building2 className="w-6 h-6 text-sky-400" />
           </div>
-          
+          <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-slate-400">
+            Personal
+          </div>
         </div>
 
-        <div className="mt-4 grow">
-          <h3 className="text-xl font-semibold tracking-tight text-foreground">{name}</h3>
-          <h4 className="text-sm text-muted-foreground">{agents} agents • {members} members</h4>
+        {/* Content */}
+        <div className="grow space-y-4">
+          <div>
+            <h3 className="text-xl font-bold text-white mb-1 group-hover:text-sky-400 transition-colors">{name}</h3>
+            <p className="text-sm text-slate-400">Workspace</p>
+          </div>
+
+          <div className="flex items-center gap-4 text-sm text-slate-400">
+            <div className="flex items-center gap-1.5">
+              <Bot className="w-4 h-4 text-sky-500" />
+              <span>{agents} Agents</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Users className="w-4 h-4 text-blue-500" />
+              <span>{members} Members</span>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-4 flex justify-end shrink-0">
-          <Button className="bg-sky-500! rounded-lg!" onClick={onOpen} disabled={isSelecting}>
+        {/* Footer */}
+        <div className="mt-8 pt-6 border-t border-white/5">
+          <Button 
+            className="w-full bg-white text-slate-900 hover:bg-sky-50 font-semibold h-11 rounded-xl shadow-lg shadow-black/20 group-hover:shadow-sky-500/20 transition-all" 
+            onClick={onOpen} 
+            disabled={isSelecting}
+          >
             {isSelecting ? (
-              <span className="inline-flex items-center"><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Opening…</span>
+              <span className="inline-flex items-center"><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Opening...</span>
             ) : (
-              "Open Workspace"
+              <span className="inline-flex items-center justify-center w-full">
+                Open Workspace <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+              </span>
             )}
           </Button>
         </div>

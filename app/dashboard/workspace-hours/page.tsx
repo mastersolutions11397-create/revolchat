@@ -8,6 +8,8 @@ import {
   Globe2,
   CalendarClock,
   ChevronDown,
+  Clock,
+  Power,
 } from "lucide-react";
 import {
   workspaceHoursAPI,
@@ -15,6 +17,7 @@ import {
   type TimeRange,
 } from "@/lib/api/workspace-hours";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
+import { toast } from "sonner";
 
 const DAYS: Array<{ key: DayKey; label: string; short: string }> = [
   { key: "monday", label: "Monday", short: "Mon" },
@@ -151,8 +154,8 @@ function TimezoneDropdown({
         type="button"
         disabled={!!disabled}
         onClick={() => setOpen((v) => !v)}
-        className={`w-full rounded-lg border border-gray-300 px-4 py-3 text-left text-sm font-medium text-gray-700 ${
-          disabled ? "bg-gray-100 cursor-not-allowed opacity-70" : "bg-white"
+        className={`w-full rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-medium text-slate-700 transition-all hover:border-sky-300 focus:ring-4 focus:ring-sky-500/10 ${
+          disabled ? "bg-slate-100 cursor-not-allowed opacity-70" : "bg-white"
         }`}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -160,7 +163,7 @@ function TimezoneDropdown({
         <div className="flex items-center justify-between">
           <span className="truncate">{value}</span>
           <ChevronDown
-            className={`h-4 w-4 text-gray-500 transition-transform ${
+            className={`h-4 w-4 text-slate-500 transition-transform ${
               open ? "rotate-180" : ""
             }`}
           />
@@ -168,7 +171,7 @@ function TimezoneDropdown({
       </button>
       {open && (
         <div
-          className="absolute z-10 mt-2 max-h-64 w-full overflow-auto rounded-lg border border-gray-200 bg-white"
+          className="absolute z-10 mt-2 max-h-64 w-full overflow-auto rounded-xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5"
           role="listbox"
         >
           {options.map((tz) => {
@@ -178,10 +181,10 @@ function TimezoneDropdown({
                 key={tz}
                 type="button"
                 onClick={() => handleSelect(tz)}
-                className={`flex w-full items-center px-3 py-2 text-left text-sm ${
+                className={`flex w-full items-center px-4 py-2.5 text-left text-sm transition-colors ${
                   selected
-                    ? "bg-sky-100 text-sky-700"
-                    : "text-gray-700 hover:bg-sky-50"
+                    ? "bg-sky-50 text-sky-700 font-medium"
+                    : "text-slate-700 hover:bg-slate-50"
                 }`}
                 role="option"
                 aria-selected={selected}
@@ -246,13 +249,17 @@ export default function WorkspaceHoursPage() {
         setWorkspaceOnline(data.workspace_online);
       } catch (err: any) {
         if (!isMounted) return;
-        if (err?.message?.includes("404")) {
-          // ignore when schedule not yet set
+        if (err?.message?.includes("404") || err?.message?.toLowerCase().includes("not found") || err?.message?.toLowerCase().includes("schedule")) {
+          // Workspace schedule not found - this is normal for new workspaces
           setSchedule(buildDefaultSchedule());
           setWorkspaceOnline(true);
           setSuccess(null);
         } else {
-          setError(err.message || "Failed to load working hours");
+          const errorMessage = err.message || "Failed to load working hours";
+          setError(errorMessage);
+          toast.error("Could not load working hours", {
+            description: "Using default schedule. You can customize it below."
+          });
         }
       } finally {
         if (isMounted) {
@@ -336,8 +343,13 @@ export default function WorkspaceHoursPage() {
       setTimezone(sanitizeTimeZone(response.timezone, timezones));
       setWorkspaceOnline(response.workspace_online);
       setSuccess("Workspace hours updated successfully.");
+      toast.success("Workspace hours updated successfully");
     } catch (err: any) {
-      setError(err.message || "Failed to save working hours");
+      const errorMessage = err.message || "Failed to save working hours";
+      setError(errorMessage);
+      toast.error("Failed to save working hours", {
+        description: errorMessage
+      });
     } finally {
       setSaving(false);
     }
@@ -357,200 +369,235 @@ export default function WorkspaceHoursPage() {
       setWorkspaceOnline(response.workspace_online);
       setSchedule(normalizeSchedule(response.schedule));
       setTimezone(sanitizeTimeZone(response.timezone, timezones));
-      setSuccess(
-        `Workspace ${response.workspace_online ? "enabled" : "paused"} successfully.`
-      );
+      const successMessage = `Workspace ${response.workspace_online ? "enabled" : "paused"} successfully.`;
+      setSuccess(successMessage);
+      toast.success(successMessage);
     } catch (err: any) {
-      setError(err.message || "Failed to update workspace status");
+      const errorMessage = err.message || "Failed to update workspace status";
+      setError(errorMessage);
       setWorkspaceOnline(previousValue);
+      toast.error("Failed to update workspace status", {
+        description: errorMessage
+      });
     } finally {
       setStatusSaving(false);
     }
   };
 
   return (
-    <div className="space-y-8">
-      <div className="rounded-2xl bg-[#0b1220] p-6 text-white">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
-            <CalendarClock className="h-5 w-5" />
+    <div className="space-y-8 animate-fade-in-up">
+      {/* Banner */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-xl">
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-blue-600/20 blur-3xl"></div>
+        
+        <div className="relative z-10 flex items-center gap-6">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20">
+            <CalendarClock className="h-8 w-8 text-sky-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Working Hours</h1>
-            <p className="text-white/70 text-sm">
-              Set workspace availability, timezone and weekly schedules.
+            <h1 className="text-3xl font-bold tracking-tight text-white">Working Hours</h1>
+            <p className="mt-2 text-lg text-sky-100/80 max-w-2xl">
+              Set your AI agent's availability, timezone, and weekly schedule.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 bg-white p-6 space-y-8">
+      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm space-y-8">
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-red-500" />
             {error}
           </div>
         )}
         {success && (
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-emerald-500" />
             {success}
           </div>
         )}
 
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">
-              Workspace Availability
-            </h2>
-            <p className="text-gray-600 text-sm mt-1">
-              Turn the workspace on or off instantly. When off, it remains
-              unavailable even during scheduled hours.
-            </p>
-          </div>
-          <label className="relative inline-flex cursor-pointer items-center">
-            <input
-              type="checkbox"
-              className="peer sr-only"
-              checked={workspaceOnline}
-              onChange={(event) =>
-                handleWorkspaceOnlineToggle(event.target.checked)
-              }
-              disabled={statusSaving || loading}
-            />
-            <span className="h-7 w-12 rounded-full bg-gray-200 transition-all peer-checked:bg-sky-600 peer-disabled:opacity-50"></span>
-            <span className="absolute left-1 top-1 h-5 w-5 rounded-full bg-white transition-all peer-checked:translate-x-5" />
-          </label>
-        </div>
-        {statusSaving && (
-          <div className="mt-2 inline-flex items-center gap-2 rounded-lg bg-sky-50 px-3 py-1 text-sm text-sky-700">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Updating status…
-          </div>
-        )}
-
-        <div className="border-t border-gray-100 pt-6">
-          <div className="flex items-center gap-3 pb-4">
-            <Globe2 className="h-5 w-5 text-sky-500" />
+        {/* Workspace Availability */}
+        <div className="flex items-start justify-between gap-4 p-6 rounded-xl bg-slate-50 border border-slate-100">
+          <div className="flex gap-4">
+            <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${workspaceOnline ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-200 text-slate-500'}`}>
+              <Power className="h-5 w-5" />
+            </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Time Zone</h2>
-              <p className="text-gray-600 text-sm">
-                Meetings and automations will follow this timezone.
+              <h2 className="text-lg font-bold text-slate-900">
+                Workspace Availability
+              </h2>
+              <p className="text-slate-600 text-sm mt-1 max-w-md">
+                Turn the workspace on or off instantly. When off, it remains
+                unavailable even during scheduled hours.
               </p>
             </div>
           </div>
-          <TimezoneDropdown
-            value={timezone}
-            options={timezones}
-            onChange={(val) => setTimezone(val)}
-            disabled={loading}
-          />
+          <div className="flex flex-col items-end gap-2">
+            <label className="relative inline-flex cursor-pointer items-center">
+              <input
+                type="checkbox"
+                className="peer sr-only"
+                checked={workspaceOnline}
+                onChange={(event) =>
+                  handleWorkspaceOnlineToggle(event.target.checked)
+                }
+                disabled={statusSaving || loading}
+              />
+              <div className="h-7 w-12 rounded-full bg-slate-200 transition-all peer-checked:bg-emerald-500 peer-focus:ring-4 peer-focus:ring-emerald-500/20"></div>
+              <span className="absolute left-1 top-1 h-5 w-5 rounded-full bg-white transition-all peer-checked:translate-x-5 shadow-sm" />
+            </label>
+            {statusSaving && (
+              <div className="inline-flex items-center gap-2 text-xs text-slate-500">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Updating...
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="border-t border-gray-100 pt-6">
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Weekly working hours
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Set available windows for each day. Remove all windows to mark a
-              day as unavailable.
-            </p>
+        {/* Timezone */}
+        <div className="border-t border-slate-100 pt-8">
+          <div className="flex items-center gap-3 pb-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
+              <Globe2 className="h-4 w-4" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Time Zone</h2>
+              <p className="text-slate-500 text-sm">
+                All schedules will follow this timezone.
+              </p>
+            </div>
           </div>
+          <div className="max-w-md">
+            <TimezoneDropdown
+              value={timezone}
+              options={timezones}
+              onChange={(val) => setTimezone(val)}
+              disabled={loading}
+            />
+          </div>
+        </div>
+
+        {/* Weekly Schedule */}
+        <div className="border-t border-slate-100 pt-8">
+          <div className="mb-6 flex items-center gap-3">
+             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
+              <Clock className="h-4 w-4" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">
+                Weekly Schedule
+              </h2>
+              <p className="text-sm text-slate-500">
+                Set available windows for each day.
+              </p>
+            </div>
+          </div>
+          
           {loading ? (
-            <div className="flex items-center justify-center py-16 text-gray-500">
-              <Loader2 className="h-6 w-6 animate-spin mr-2" />
-              Loading working hours…
+            <div className="flex items-center justify-center py-16 text-slate-400">
+              <Loader2 className="h-8 w-8 animate-spin mr-2 text-sky-500" />
+              Loading schedule...
             </div>
           ) : (
-            <div className="rounded-xl border border-gray-200 bg-white divide-y divide-gray-200">
+            <div className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100 overflow-hidden">
               {DAYS.map((day) => {
                 const ranges = schedule[day.key] || [];
                 const dayEnabled = ranges.length > 0;
                 return (
-                  <div key={day.key} className="px-4 py-4">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="min-w-40">
-                        <h3 className="text-sm font-semibold text-gray-900">
-                          {day.label}
-                        </h3>
-                        <p className="text-xs text-gray-600">
+                  <div key={day.key} className={`px-6 py-5 transition-colors ${dayEnabled ? 'bg-white' : 'bg-slate-50/50'}`}>
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-40 flex items-center gap-4 sm:block">
+                        <div className="flex items-center gap-3">
+                          <label className="relative inline-flex cursor-pointer items-center">
+                            <input
+                              type="checkbox"
+                              className="peer sr-only"
+                              checked={dayEnabled}
+                              onChange={(event) =>
+                                handleToggleDay(day.key, event.target.checked)
+                              }
+                            />
+                            <div className="h-6 w-11 rounded-full bg-slate-200 transition-all peer-checked:bg-sky-500 peer-focus:ring-4 peer-focus:ring-sky-500/20"></div>
+                            <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-all peer-checked:translate-x-5 shadow-sm" />
+                          </label>
+                          <span className={`text-sm font-bold ${dayEnabled ? 'text-slate-900' : 'text-slate-500'}`}>
+                            {day.label}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1 pl-14 sm:pl-0">
                           {dayEnabled
                             ? `${ranges.length} window${ranges.length > 1 ? "s" : ""}`
                             : "Unavailable"}
                         </p>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <label className="relative inline-flex cursor-pointer items-center">
-                          <input
-                            type="checkbox"
-                            className="peer sr-only"
-                            checked={dayEnabled}
-                            onChange={(event) =>
-                              handleToggleDay(day.key, event.target.checked)
-                            }
-                          />
-                          <span className="h-6 w-11 rounded-full bg-gray-200 transition-all peer-checked:bg-sky-600"></span>
-                          <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-all peer-checked:translate-x-5" />
-                        </label>
+                      
+                      <div className="flex-1">
+                        {dayEnabled && (
+                          <div className="flex flex-col gap-3">
+                            {ranges.map((range, index) => (
+                              <div
+                                key={`${day.key}-${index}`}
+                                className="flex flex-wrap items-center gap-3 animate-fade-in-up"
+                              >
+                                <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-lg border border-slate-200">
+                                  <input
+                                    type="time"
+                                    value={range.start}
+                                    onChange={(event) =>
+                                      handleTimeChange(
+                                        day.key,
+                                        index,
+                                        "start",
+                                        event.target.value
+                                      )
+                                    }
+                                    className="w-28 rounded-md border-0 bg-transparent px-2 py-1 text-sm font-medium text-slate-900 focus:ring-0"
+                                  />
+                                  <span className="text-xs font-medium text-slate-400">
+                                    to
+                                  </span>
+                                  <input
+                                    type="time"
+                                    value={range.end}
+                                    onChange={(event) =>
+                                      handleTimeChange(
+                                        day.key,
+                                        index,
+                                        "end",
+                                        event.target.value
+                                      )
+                                    }
+                                    className="w-28 rounded-md border-0 bg-transparent px-2 py-1 text-sm font-medium text-slate-900 focus:ring-0"
+                                  />
+                                </div>
+                                
+                                {ranges.length > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveRange(day.key, index)}
+                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                    title="Remove window"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => handleAddRange(day.key)}
+                              className="inline-flex w-fit items-center gap-2 rounded-lg border border-dashed border-sky-200 px-3 py-2 text-xs font-semibold text-sky-600 hover:bg-sky-50 hover:border-sky-300 transition-all"
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                              Add window
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
-                    {dayEnabled && (
-                      <div className="mt-3 flex flex-wrap items-center gap-3">
-                        {ranges.map((range, index) => (
-                          <div
-                            key={`${day.key}-${index}`}
-                            className="flex items-center gap-2"
-                          >
-                            <input
-                              type="time"
-                              value={range.start}
-                              onChange={(event) =>
-                                handleTimeChange(
-                                  day.key,
-                                  index,
-                                  "start",
-                                  event.target.value
-                                )
-                              }
-                              className="w-28 rounded-md border border-gray-300 px-2 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-sky-500"
-                            />
-                            <span className="text-xs font-medium text-gray-500">
-                              to
-                            </span>
-                            <input
-                              type="time"
-                              value={range.end}
-                              onChange={(event) =>
-                                handleTimeChange(
-                                  day.key,
-                                  index,
-                                  "end",
-                                  event.target.value
-                                )
-                              }
-                              className="w-28 rounded-md border border-gray-300 px-2 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-sky-500"
-                            />
-                            {ranges.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveRange(day.key, index)}
-                                className="inline-flex items-center gap-1 rounded-md border border-red-200 px-2 py-2 text-xs font-medium text-red-600"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                                Remove
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                        <button
-                          type="button"
-                          onClick={() => handleAddRange(day.key)}
-                          className="inline-flex items-center gap-2 rounded-md border border-dashed border-sky-300 px-2 py-2 text-xs font-medium text-sky-600"
-                        >
-                          <Plus className="h-4 w-4" />
-                          Add window
-                        </button>
-                      </div>
-                    )}
                   </div>
                 );
               })}
@@ -558,15 +605,15 @@ export default function WorkspaceHoursPage() {
           )}
         </div>
 
-        <div className="flex justify-end pt-2">
+        <div className="flex justify-end pt-6 border-t border-slate-100">
           <button
             type="button"
             onClick={handleSave}
             disabled={saving || loading || statusSaving || !workspaceId}
-            className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-sky-600 to-sky-700 px-6 py-3 text-sm font-semibold text-white transition hover:from-sky-700 hover:to-sky-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 px-8 py-3.5 text-sm font-bold text-white transition-all hover:from-sky-700 hover:to-blue-700 hover:shadow-lg hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
           >
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-            Save changes
+            Save Changes
           </button>
         </div>
       </div>

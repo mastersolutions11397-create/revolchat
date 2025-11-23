@@ -4,18 +4,29 @@ import { useState } from "react";
 import Image from "next/image";
 import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
-import { Mail, Phone, MapPin, MessageSquare, Send } from "lucide-react";
+import { 
+  Mail, 
+  Phone, 
+  MapPin, 
+  MessageSquare, 
+  Send, 
+  Loader2, 
+  Twitter, 
+  Linkedin, 
+  Github, 
+  ArrowRight,
+  CheckCircle2
+} from "lucide-react";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 
 export default function ContactPage() {
   const { t } = useLanguage();
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
-    company: "",
-    subject: "",
+    subject: "general",
     message: "",
-    inquiryType: "general",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<
@@ -23,7 +34,7 @@ export default function ContactPage() {
   >("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const handleInputChange = (
+  const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
@@ -55,12 +66,11 @@ export default function ContactPage() {
       if (response.ok) {
         setSubmitStatus("success");
         setFormData({
-          name: "",
+          firstName: "",
+          lastName: "",
           email: "",
-          company: "",
-          subject: "",
+          subject: "general",
           message: "",
-          inquiryType: "general",
         });
       } else {
         setSubmitStatus("error");
@@ -75,328 +85,232 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <Navigation />
+    <div className="min-h-screen bg-slate-50 font-sans selection:bg-sky-500/30">
+      <Navigation darkBackground={true} />
 
-      {/* Hero Section */}
-      <section className="relative min-h-[60vh] flex items-center justify-center pt-28 sm:pt-32 pb-16 overflow-hidden bg-linear-to-br from-[#0b1220] to-[#0b1220]/90 text-white">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-[radial-gradient(1200px_500px_at_50%_-120px,rgba(255,255,255,0.15),transparent_70%)]" />
+      {/* Modern Hero Section */}
+      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-slate-900">
+        {/* Background Effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-sky-500/20 to-blue-600/20 blur-[100px] animate-pulse-slow" />
+          <div className="absolute -bottom-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-sky-500/20 to-sky-500/20 blur-[100px] animate-pulse-slow delay-1000" />
+          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-12">
-            <div className="text-center lg:text-left">
-              <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">
-                {t("contact.title")}
-              </h1>
-              <p className="text-lg md:text-xl text-gray-300 max-w-3xl">
-                {t("contact.subtitle")}
-              </p>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center max-w-3xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-sm font-medium mb-6 animate-fade-in-up">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
+              </span>
+              We're here to help
             </div>
-            <div className="relative w-full max-w-md mx-auto lg:ml-auto rounded-2xl overflow-hidden">
-              <div className="relative w-full aspect-square rounded-2xl overflow-hidden">
-                <Image
-                  src="/yetti/yetti_laying.png"
-                  alt="yetti Contact"
-                  fill
-                  className="object-contain rounded-2xl"
-                  sizes="(max-width: 1024px) 100vw, 400px"
-                />
-              </div>
-            </div>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-8 animate-fade-in-up delay-100">
+              Get in <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-500">Touch</span>
+            </h1>
+            <p className="text-lg md:text-xl text-slate-400 leading-relaxed animate-fade-in-up delay-200">
+              Have a question about our pricing, features, or need technical support? 
+              Our team is ready to answer all your questions.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Contact Form Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Contact Form */}
-            <div className="rounded-2xl bg-white p-8 shadow-lg border border-gray-200 h-full flex flex-col">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                {t("contact.sendMessage")}
-              </h2>
-
-              {submitStatus === "success" && (
-                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-green-600">
-                    Thank you for your message! We&apos;ll get back to you soon.
-                  </p>
+      {/* Main Content Section */}
+      <section className="relative z-20 -mt-20 pb-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+            
+            {/* Contact Info Cards (Left Column) */}
+            <div className="lg:col-span-1 space-y-6 animate-fade-in-up delay-300">
+              {/* Email Card */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow group">
+                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <Mail className="w-6 h-6 text-sky-600" />
                 </div>
-              )}
-
-              {submitStatus === "error" && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-600">{errorMessage}</p>
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="flex flex-col h-full gap-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label
-                      htmlFor="name"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      {t("contact.name")}
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 border border-gray-300 focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
-                      placeholder="Your full name"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="email"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      {t("contact.email")}
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-3 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 border border-gray-300 focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
-                      placeholder="your@email.com"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label
-                      htmlFor="company"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      {t("contact.company")}
-                    </label>
-                    <input
-                      type="text"
-                      id="company"
-                      name="company"
-                      value={formData.company}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 border border-gray-300 focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
-                      placeholder="Your company name"
-                    />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="inquiryType"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      {t("contact.inquiryType")}
-                    </label>
-                    <select
-                      id="inquiryType"
-                      name="inquiryType"
-                      value={formData.inquiryType}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 rounded-lg bg-white text-gray-900 border border-gray-300 focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
-                    >
-                      <option value="general">{t("contact.general")}</option>
-                      <option value="sales">{t("contact.sales")}</option>
-                      <option value="support">{t("contact.support")}</option>
-                      <option value="partnership">{t("contact.partnership")}</option>
-                      <option value="media">{t("contact.media")}</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="subject"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    {t("contact.subject")}
-                  </label>
-                  <input
-                    type="text"
-                    id="subject"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 border border-gray-300 focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
-                    placeholder="What's this about?"
-                  />
-                </div>
-
-                <div className="flex flex-col grow">
-                  <label
-                    htmlFor="message"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    {t("contact.message")}
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    value={formData.message}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full h-full px-4 py-3 rounded-lg bg-white text-gray-900 placeholder:text-gray-500 border border-gray-300 focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all resize-none"
-                    placeholder="Tell us more about your inquiry..."
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-sky-500 hover:bg-sky-600 text-white py-3 px-4 rounded-xl font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-auto"
-                >
-                  {isSubmitting ? (
-                    t("contact.sending")
-                  ) : (
-                    <>
-                      <Send className="w-5 h-5" />
-                      {t("contact.sendButton")}
-                    </>
-                  )}
-                </button>
-              </form>
-            </div>
-
-            {/* Contact Information */}
-            <div className="rounded-2xl bg-white p-8 shadow-lg border border-gray-200 h-full flex flex-col">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                {t("contact.contactInfo")}
-              </h2>
-
-              <div className="space-y-6 grow">
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-sky-500 rounded-lg flex items-center justify-center shrink-0">
-                    <Mail className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      Email
-                    </h3>
-                    <p className="text-gray-600">hello@yettiai.com</p>
-                    <p className="text-sm text-gray-500">
-                      We&apos;ll respond within 24 hours
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-sky-500 rounded-lg flex items-center justify-center shrink-0">
-                    <Phone className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      Phone
-                    </h3>
-                    <p className="text-gray-600">+1 (555) 123-4567</p>
-                    <p className="text-sm text-gray-500">
-                      Monday to Friday, 9 AM - 6 PM PST
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-sky-500 rounded-lg flex items-center justify-center shrink-0">
-                    <MessageSquare className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      Live Chat
-                    </h3>
-                    <p className="text-gray-600">Available 9 AM - 6 PM PST</p>
-                    <p className="text-sm text-gray-500">
-                      Monday through Friday
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-sky-500 rounded-lg flex items-center justify-center shrink-0">
-                    <MapPin className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                      Office
-                    </h3>
-                    <p className="text-gray-600">123 AI Street</p>
-                    <p className="text-gray-600">San Francisco, CA 94105</p>
-                    <p className="text-sm text-gray-500">United States</p>
-                  </div>
-                </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-1">Email Us</h3>
+                <p className="text-slate-500 text-sm mb-4">For general inquiries and support</p>
+                <a href="mailto:hello@yetti.ai" className="text-sky-600 font-semibold hover:text-sky-700 flex items-center gap-2 text-sm">
+                  hello@yetti.ai <ArrowRight className="w-4 h-4" />
+                </a>
               </div>
 
-              {/* Business Hours */}
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Business Hours
-                </h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Monday - Friday</span>
-                    <span className="text-gray-900 font-medium">9:00 AM - 6:00 PM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Saturday</span>
-                    <span className="text-gray-900 font-medium">10:00 AM - 4:00 PM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Sunday</span>
-                    <span className="text-gray-900 font-medium">Closed</span>
-                  </div>
+              {/* Office Card */}
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow group">
+                <div className="w-12 h-12 bg-sky-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <MapPin className="w-6 h-6 text-sky-600" />
                 </div>
+                <h3 className="text-lg font-bold text-slate-900 mb-1">Visit Us</h3>
+                <p className="text-slate-500 text-sm mb-4">Come say hello at our office</p>
+                <p className="text-slate-900 font-medium text-sm">
+                  123 AI Boulevard<br />
+                  San Francisco, CA 94105
+                </p>
               </div>
 
-              {/* Social Links */}
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Follow Us
-                </h3>
+              {/* Socials Card */}
+              <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 shadow-lg text-white">
+                <h3 className="text-lg font-bold mb-4">Follow Us</h3>
+                <p className="text-slate-400 text-sm mb-6">Stay updated with our latest news and updates on social media.</p>
                 <div className="flex gap-4">
-                  <a
-                    href="#"
-                    className="w-10 h-10 bg-gray-100 hover:bg-sky-100 rounded-lg flex items-center justify-center transition-colors group"
-                    aria-label="Twitter"
-                  >
-                    <svg className="w-5 h-5 text-gray-600 group-hover:text-sky-600" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                    </svg>
+                  <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-sky-500 transition-colors">
+                    <Twitter className="w-5 h-5" />
                   </a>
-                  <a
-                    href="#"
-                    className="w-10 h-10 bg-gray-100 hover:bg-sky-100 rounded-lg flex items-center justify-center transition-colors group"
-                    aria-label="LinkedIn"
-                  >
-                    <svg className="w-5 h-5 text-gray-600 group-hover:text-sky-600" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                    </svg>
+                  <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-blue-600 transition-colors">
+                    <Linkedin className="w-5 h-5" />
                   </a>
-                  <a
-                    href="#"
-                    className="w-10 h-10 bg-gray-100 hover:bg-sky-100 rounded-lg flex items-center justify-center transition-colors group"
-                    aria-label="Facebook"
-                  >
-                    <svg className="w-5 h-5 text-gray-600 group-hover:text-sky-600" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                    </svg>
+                  <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-slate-700 transition-colors">
+                    <Github className="w-5 h-5" />
                   </a>
-                  <a
-                    href="#"
-                    className="w-10 h-10 bg-gray-100 hover:bg-sky-100 rounded-lg flex items-center justify-center transition-colors group"
-                    aria-label="Instagram"
-                  >
-                    <svg className="w-5 h-5 text-gray-600 group-hover:text-sky-600" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                    </svg>
-                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Contact Form (Right Column) */}
+            <div className="lg:col-span-2 animate-fade-in-up delay-400">
+              <div className="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
+                <div className="p-8 md:p-10">
+                  <div className="flex items-center gap-3 mb-8">
+                    <div className="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center">
+                      <MessageSquare className="w-5 h-5 text-sky-600" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-slate-900">Send us a message</h2>
+                  </div>
+
+                  {submitStatus === "success" ? (
+                    <div className="bg-green-50 border border-green-200 rounded-2xl p-8 text-center animate-fade-in">
+                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <CheckCircle2 className="w-8 h-8 text-green-600" />
+                      </div>
+                      <h3 className="text-xl font-bold text-green-900 mb-2">Message Sent!</h3>
+                      <p className="text-green-700 mb-6">
+                        Thank you for reaching out. We'll get back to you shortly.
+                      </p>
+                      <button 
+                        onClick={() => setSubmitStatus("idle")}
+                        className="text-green-700 font-semibold hover:text-green-800 underline"
+                      >
+                        Send another message
+                      </button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      {submitStatus === "error" && (
+                        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+                          {errorMessage}
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label htmlFor="firstName" className="text-sm font-semibold text-slate-700">
+                            First Name
+                          </label>
+                          <input
+                            type="text"
+                            id="firstName"
+                            name="firstName"
+                            value={formData.firstName}
+                            onChange={handleChange}
+                            required
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 outline-none transition-all bg-slate-50/50 focus:bg-white"
+                            placeholder="John"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label htmlFor="lastName" className="text-sm font-semibold text-slate-700">
+                            Last Name
+                          </label>
+                          <input
+                            type="text"
+                            id="lastName"
+                            name="lastName"
+                            value={formData.lastName}
+                            onChange={handleChange}
+                            required
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 outline-none transition-all bg-slate-50/50 focus:bg-white"
+                            placeholder="Doe"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="email" className="text-sm font-semibold text-slate-700">
+                          Email Address
+                        </label>
+                        <input
+                          type="email"
+                          id="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          required
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 outline-none transition-all bg-slate-50/50 focus:bg-white"
+                          placeholder="john@example.com"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="subject" className="text-sm font-semibold text-slate-700">
+                          Topic
+                        </label>
+                        <div className="relative">
+                          <select
+                            id="subject"
+                            name="subject"
+                            value={formData.subject}
+                            onChange={handleChange}
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 outline-none transition-all bg-slate-50/50 focus:bg-white appearance-none cursor-pointer"
+                          >
+                            <option value="general">General Inquiry</option>
+                            <option value="support">Technical Support</option>
+                            <option value="billing">Billing Question</option>
+                            <option value="partnership">Partnership</option>
+                          </select>
+                          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="message" className="text-sm font-semibold text-slate-700">
+                          Message
+                        </label>
+                        <textarea
+                          id="message"
+                          name="message"
+                          value={formData.message}
+                          onChange={handleChange}
+                          required
+                          rows={6}
+                          className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/10 outline-none transition-all bg-slate-50/50 focus:bg-white resize-none"
+                          placeholder="How can we help you?"
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-bold text-lg shadow-lg shadow-sky-500/25 transition-all hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            Send Message
+                            <Send className="w-5 h-5" />
+                          </>
+                        )}
+                      </button>
+                    </form>
+                  )}
                 </div>
               </div>
             </div>
@@ -404,7 +318,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      <Footer variant="light" />
+      <Footer />
     </div>
   );
 }

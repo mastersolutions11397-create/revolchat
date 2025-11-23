@@ -7,6 +7,7 @@ export interface ChatMessage {
 
 export interface ChatRequest {
   message: string;
+  user_id?: string;
 }
 
 export type ChatAnswer =

@@ -8,7 +8,7 @@ import {
   type Conversation,
   type Message,
 } from "@/lib/api/integrations";
-import { MessageSquare, Send } from "lucide-react";
+import { MessageSquare, Send, Search, MoreVertical, Phone, Video, Info } from "lucide-react";
 
 type ChannelType = "instagram" | "telegram";
 
@@ -17,8 +17,8 @@ const dummyInstagramConversations: Conversation[] = [
   {
     id: "inst_conv_1",
     participant_id: "user_1",
-    participant_name: "User 1",
-    participant_avatar: undefined,
+    participant_name: "Sarah Johnson",
+    participant_avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=faces",
     last_message: "Thanks for the quick response!",
     last_message_time: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
     unread_count: 2,
@@ -26,8 +26,8 @@ const dummyInstagramConversations: Conversation[] = [
   {
     id: "inst_conv_2",
     participant_id: "user_2",
-    participant_name: "User 2",
-    participant_avatar: undefined,
+    participant_name: "Michael Chen",
+    participant_avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=faces",
     last_message: "I'll check that for you right away.",
     last_message_time: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
     unread_count: 0,
@@ -41,13 +41,13 @@ const dummyInstagramMessages: Record<string, Message[]> = {
       id: "inst_msg_1",
       text: "Hi! I have a question about your product.",
       sender_id: "user_1",
-      sender_name: "User 1",
+      sender_name: "Sarah Johnson",
       timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
       is_from_me: false,
     },
     {
       id: "inst_msg_2",
-      text: "Hello! I'd be happy to help. What would you like to know?",
+      text: "Hello Sarah! I'd be happy to help. What would you like to know?",
       sender_id: "me",
       sender_name: "You",
       timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
@@ -57,7 +57,7 @@ const dummyInstagramMessages: Record<string, Message[]> = {
       id: "inst_msg_3",
       text: "I'm interested in the pricing plans. Can you tell me more?",
       sender_id: "user_1",
-      sender_name: "User 1",
+      sender_name: "Sarah Johnson",
       timestamp: new Date(Date.now() - 90 * 60 * 1000).toISOString(), // 90 minutes ago
       is_from_me: false,
     },
@@ -73,7 +73,7 @@ const dummyInstagramMessages: Record<string, Message[]> = {
       id: "inst_msg_5",
       text: "That sounds great! What features are included in the Basic plan?",
       sender_id: "user_1",
-      sender_name: "User 1",
+      sender_name: "Sarah Johnson",
       timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(), // 45 minutes ago
       is_from_me: false,
     },
@@ -89,7 +89,7 @@ const dummyInstagramMessages: Record<string, Message[]> = {
       id: "inst_msg_7",
       text: "Thanks for the quick response!",
       sender_id: "user_1",
-      sender_name: "User 1",
+      sender_name: "Sarah Johnson",
       timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
       is_from_me: false,
     },
@@ -99,13 +99,13 @@ const dummyInstagramMessages: Record<string, Message[]> = {
       id: "inst_msg_8",
       text: "Hello, I need help with my account.",
       sender_id: "user_2",
-      sender_name: "User 2",
+      sender_name: "Michael Chen",
       timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
       is_from_me: false,
     },
     {
       id: "inst_msg_9",
-      text: "Hi! I'm here to help. What seems to be the issue?",
+      text: "Hi Michael! I'm here to help. What seems to be the issue?",
       sender_id: "me",
       sender_name: "You",
       timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
@@ -115,7 +115,7 @@ const dummyInstagramMessages: Record<string, Message[]> = {
       id: "inst_msg_10",
       text: "I can't log into my account. It says my password is incorrect.",
       sender_id: "user_2",
-      sender_name: "User 2",
+      sender_name: "Michael Chen",
       timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
       is_from_me: false,
     },
@@ -135,8 +135,8 @@ const dummyTelegramConversations: Conversation[] = [
   {
     id: "tg_conv_1",
     participant_id: "user_1",
-    participant_name: "User 1",
-    participant_avatar: undefined,
+    participant_name: "Emma Wilson",
+    participant_avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=faces",
     last_message: "Perfect! I'll sign up today.",
     last_message_time: new Date(Date.now() - 15 * 60 * 1000).toISOString(), // 15 minutes ago
     unread_count: 1,
@@ -144,8 +144,8 @@ const dummyTelegramConversations: Conversation[] = [
   {
     id: "tg_conv_2",
     participant_id: "user_2",
-    participant_name: "User 2",
-    participant_avatar: undefined,
+    participant_name: "James Rodriguez",
+    participant_avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=faces",
     last_message: "Got it, thanks!",
     last_message_time: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
     unread_count: 0,
@@ -159,7 +159,7 @@ const dummyTelegramMessages: Record<string, Message[]> = {
       id: "tg_msg_1",
       text: "Hey! Is the service available 24/7?",
       sender_id: "user_1",
-      sender_name: "User 1",
+      sender_name: "Emma Wilson",
       timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
       is_from_me: false,
     },
@@ -175,7 +175,7 @@ const dummyTelegramMessages: Record<string, Message[]> = {
       id: "tg_msg_3",
       text: "That's amazing! How do I get started?",
       sender_id: "user_1",
-      sender_name: "User 1",
+      sender_name: "Emma Wilson",
       timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(), // 1 hour ago
       is_from_me: false,
     },
@@ -191,7 +191,7 @@ const dummyTelegramMessages: Record<string, Message[]> = {
       id: "tg_msg_5",
       text: "Perfect! I'll sign up today.",
       sender_id: "user_1",
-      sender_name: "User 1",
+      sender_name: "Emma Wilson",
       timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(), // 15 minutes ago
       is_from_me: false,
     },
@@ -201,7 +201,7 @@ const dummyTelegramMessages: Record<string, Message[]> = {
       id: "tg_msg_6",
       text: "Hi, can you help me with integration?",
       sender_id: "user_2",
-      sender_name: "User 2",
+      sender_name: "James Rodriguez",
       timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
       is_from_me: false,
     },
@@ -217,7 +217,7 @@ const dummyTelegramMessages: Record<string, Message[]> = {
       id: "tg_msg_8",
       text: "I want to integrate with my Shopify store.",
       sender_id: "user_2",
-      sender_name: "User 2",
+      sender_name: "James Rodriguez",
       timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
       is_from_me: false,
     },
@@ -233,7 +233,7 @@ const dummyTelegramMessages: Record<string, Message[]> = {
       id: "tg_msg_10",
       text: "Got it, thanks!",
       sender_id: "user_2",
-      sender_name: "User 2",
+      sender_name: "James Rodriguez",
       timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
       is_from_me: false,
     },
@@ -399,256 +399,345 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] -m-6">
-      {/* Nested Sidebar - Channel Selection */}
-      <div className="w-64 border-r border-gray-200 bg-white flex flex-col">
-        <div className="p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Messages</h2>
-        </div>
-        <div className="flex-1 overflow-y-auto p-2">
-          <button
-            onClick={() => {
-              setSelectedChannel("instagram");
-              setSelectedConversation(null);
-            }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors mb-2 ${
-              selectedChannel === "instagram"
-                ? "bg-sky-100 text-sky-700 font-semibold"
-                : "text-gray-700 hover:bg-gray-50"
-            }`}
-          >
-            <div className="relative h-8 w-8 flex-shrink-0">
-              <Image
-                src="/yetti/instagram.png"
-                alt="Instagram"
-                fill
-                className="object-contain"
-              />
-            </div>
-            <span className="text-sm font-medium">Instagram</span>
-          </button>
-          <button
-            onClick={() => {
-              setSelectedChannel("telegram");
-              setSelectedConversation(null);
-            }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-              selectedChannel === "telegram"
-                ? "bg-sky-100 text-sky-700 font-semibold"
-                : "text-gray-700 hover:bg-gray-50"
-            }`}
-          >
-            <div className="relative h-8 w-8 flex-shrink-0">
-              <Image
-                src="/yetti/telegram_1.png"
-                alt="Telegram"
-                fill
-                className="object-contain"
-              />
-            </div>
-            <span className="text-sm font-medium">Telegram</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex">
-        {/* Conversations List */}
-        <div className="w-80 border-r border-gray-200 bg-gray-50 flex flex-col">
-          <div className="p-4 border-b border-gray-200 bg-white">
-            <h3 className="text-sm font-semibold text-gray-900 capitalize">
-              {selectedChannel} Inbox
-            </h3>
+    <div className="flex h-[calc(100vh-8rem)] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+      {/* Sidebar - Channel Selection & Conversations */}
+      <div className="w-80 flex flex-col border-r border-slate-200 bg-slate-50/50">
+        {/* Header */}
+        <div className="p-4 border-b border-slate-200 bg-white">
+          <h2 className="text-xl font-bold text-slate-900 mb-4">Messages</h2>
+          
+          {/* Channel Toggle */}
+          <div className="flex p-1 bg-slate-100 rounded-xl">
+            <button
+              onClick={() => {
+                setSelectedChannel("instagram");
+                setSelectedConversation(null);
+              }}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all ${
+                selectedChannel === "instagram"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              <div className="relative h-5 w-5">
+                <Image
+                  src="/yetti/instagram.png"
+                  alt="Instagram"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              Instagram
+            </button>
+            <button
+              onClick={() => {
+                setSelectedChannel("telegram");
+                setSelectedConversation(null);
+              }}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all ${
+                selectedChannel === "telegram"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              <div className="relative h-5 w-5">
+                <Image
+                  src="/yetti/telegram_1.png"
+                  alt="Telegram"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              Telegram
+            </button>
           </div>
-          <div className="flex-1 overflow-y-auto">
-            {loading && conversations.length === 0 ? (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-gray-500 text-sm">Loading conversations...</p>
-              </div>
-            ) : error && conversations.length === 0 ? (
-              <div className="flex items-center justify-center h-full p-4">
-                <p className="text-red-500 text-sm text-center">{error}</p>
-              </div>
-            ) : conversations.length === 0 ? (
-              <div className="flex items-center justify-center h-full p-4">
-                <p className="text-gray-500 text-sm text-center">
-                  No conversations found
-                </p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-200">
-                {conversations.map((conversation) => (
-                  <button
-                    key={conversation.id}
-                    onClick={() => setSelectedConversation(conversation)}
-                    className={`w-full text-left p-4 hover:bg-gray-100 transition-colors ${
-                      selectedConversation?.id === conversation.id
-                        ? "bg-white border-l-4 border-sky-500"
-                        : ""
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="relative h-12 w-12 flex-shrink-0 rounded-full overflow-hidden bg-gray-200">
-                        {conversation.participant_avatar ? (
-                          <Image
-                            src={conversation.participant_avatar}
-                            alt={conversation.participant_name}
-                            fill
-                            className="object-cover"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-gray-500 font-semibold">
-                            {conversation.participant_name
-                              .charAt(0)
-                              .toUpperCase()}
-                          </div>
+        </div>
+
+        {/* Search */}
+        <div className="p-4 border-b border-slate-200 bg-white/50">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search conversations..."
+              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+            />
+          </div>
+        </div>
+
+        {/* Conversations List */}
+        <div className="flex-1 overflow-y-auto">
+          {loading && conversations.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-40 gap-3">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+              <p className="text-slate-500 text-sm">Loading conversations...</p>
+            </div>
+          ) : conversations.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-40 gap-2 p-4 text-center">
+              <MessageSquare className="h-8 w-8 text-slate-300" />
+              <p className="text-slate-500 text-sm">No conversations found</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {conversations.map((conversation) => (
+                <button
+                  key={conversation.id}
+                  onClick={() => setSelectedConversation(conversation)}
+                  className={`w-full text-left p-4 hover:bg-white transition-all duration-200 ${
+                    selectedConversation?.id === conversation.id
+                      ? "bg-white border-l-4 border-sky-500 shadow-sm"
+                      : "border-l-4 border-transparent"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="relative h-12 w-12 flex-shrink-0 rounded-full overflow-hidden bg-slate-100 ring-2 ring-white shadow-sm">
+                      {conversation.participant_avatar ? (
+                        <Image
+                          src={conversation.participant_avatar}
+                          alt={conversation.participant_name}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-100 to-blue-100 text-sky-600 font-bold text-lg">
+                          {conversation.participant_name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      {selectedChannel === "instagram" ? (
+                         <div className="absolute bottom-0 right-0 h-4 w-4 bg-white rounded-full p-0.5">
+                           <Image src="/yetti/instagram.png" alt="IG" width={12} height={12} />
+                         </div>
+                      ) : (
+                        <div className="absolute bottom-0 right-0 h-4 w-4 bg-white rounded-full p-0.5">
+                           <Image src="/yetti/telegram_1.png" alt="TG" width={12} height={12} />
+                         </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className={`text-sm font-semibold truncate ${
+                          selectedConversation?.id === conversation.id ? "text-sky-900" : "text-slate-900"
+                        }`}>
+                          {conversation.participant_name}
+                        </h4>
+                        {conversation.last_message_time && (
+                          <span className="text-xs text-slate-400 flex-shrink-0 ml-2">
+                            {formatTime(conversation.last_message_time)}
+                          </span>
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="text-sm font-semibold text-gray-900 truncate">
-                            {conversation.participant_name}
-                          </h4>
-                          {conversation.last_message_time && (
-                            <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
-                              {formatTime(conversation.last_message_time)}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600 truncate">
-                          {conversation.last_message || "No messages yet"}
-                        </p>
-                        {conversation.unread_count &&
-                          conversation.unread_count > 0 && (
-                            <div className="mt-1">
-                              <span className="inline-flex items-center justify-center h-5 px-2 text-xs font-semibold text-white bg-sky-500 rounded-full">
-                                {conversation.unread_count}
-                              </span>
-                            </div>
-                          )}
-                      </div>
+                      <p className={`text-sm truncate ${
+                         conversation.unread_count && conversation.unread_count > 0 
+                         ? "text-slate-900 font-medium" 
+                         : "text-slate-500"
+                      }`}>
+                        {conversation.last_message || "No messages yet"}
+                      </p>
                     </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Messages View */}
-        <div className="flex-1 flex flex-col bg-white">
-          {selectedConversation ? (
-            <>
-              {/* Message Header */}
-              <div className="p-4 border-b border-gray-200 bg-white">
-                <div className="flex items-center gap-3">
-                  <div className="relative h-10 w-10 flex-shrink-0 rounded-full overflow-hidden bg-gray-200">
-                    {selectedConversation.participant_avatar ? (
-                      <Image
-                        src={selectedConversation.participant_avatar}
-                        alt={selectedConversation.participant_name}
-                        fill
-                        className="object-cover"
-                        unoptimized
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-gray-500 font-semibold">
-                        {selectedConversation.participant_name
-                          .charAt(0)
-                          .toUpperCase()}
+                    {conversation.unread_count && conversation.unread_count > 0 && (
+                      <div className="flex flex-col justify-center h-full ml-2">
+                        <span className="flex items-center justify-center h-5 min-w-[1.25rem] px-1.5 text-[10px] font-bold text-white bg-sky-500 rounded-full shadow-sm shadow-sky-200">
+                          {conversation.unread_count}
+                        </span>
                       </div>
                     )}
                   </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-900">
-                      {selectedConversation.participant_name}
-                    </h3>
-                    <p className="text-xs text-gray-500">
-                      {selectedChannel === "instagram"
-                        ? "Instagram"
-                        : "Telegram"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Messages List */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {loading && messages.length === 0 ? (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-gray-500 text-sm">Loading messages...</p>
-                  </div>
-                ) : error && messages.length === 0 ? (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-red-500 text-sm">{error}</p>
-                  </div>
-                ) : messages.length === 0 ? (
-                  <div className="flex items-center justify-center h-full">
-                    <p className="text-gray-500 text-sm">No messages yet</p>
-                  </div>
-                ) : (
-                  messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${
-                        message.is_from_me ? "justify-end" : "justify-start"
-                      }`}
-                    >
-                      <div
-                        className={`max-w-[70%] rounded-2xl px-4 py-2 ${
-                          message.is_from_me
-                            ? "bg-sky-500 text-white"
-                            : "bg-gray-100 text-gray-900"
-                        }`}
-                      >
-                        <p className="text-sm whitespace-pre-wrap">
-                          {message.text}
-                        </p>
-                        <p
-                          className={`text-xs mt-1 ${
-                            message.is_from_me
-                              ? "text-sky-100"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          {formatTime(message.timestamp)}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              {/* Message Input */}
-              <div className="p-4 border-t border-gray-200 bg-white">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    placeholder="Type a message..."
-                    className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-                    disabled
-                  />
-                  <button
-                    disabled
-                    className="rounded-lg bg-sky-500 p-2 text-white hover:bg-sky-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <Send className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center">
-                <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-sm">
-                  Select a conversation to view messages
-                </p>
-              </div>
+                </button>
+              ))}
             </div>
           )}
         </div>
+      </div>
+
+      {/* Main Content Area - Chat Interface */}
+      <div className="flex-1 flex flex-col bg-white relative">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none" />
+        
+        {selectedConversation ? (
+          <>
+            {/* Chat Header */}
+            <div className="h-20 px-6 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+              <div className="flex items-center gap-4">
+                <div className="relative h-10 w-10 flex-shrink-0 rounded-full overflow-hidden bg-slate-100 ring-2 ring-slate-50 shadow-sm">
+                  {selectedConversation.participant_avatar ? (
+                    <Image
+                      src={selectedConversation.participant_avatar}
+                      alt={selectedConversation.participant_name}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-100 to-blue-100 text-sky-600 font-bold">
+                      {selectedConversation.participant_name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    {selectedConversation.participant_name}
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${
+                      selectedChannel === "instagram" 
+                        ? "bg-pink-50 text-pink-600 border border-pink-100" 
+                        : "bg-sky-50 text-sky-600 border border-sky-100"
+                    }`}>
+                      {selectedChannel}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500 flex items-center gap-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                    Active now
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <button className="p-2 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors">
+                  <Phone className="h-5 w-5" />
+                </button>
+                <button className="p-2 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors">
+                  <Video className="h-5 w-5" />
+                </button>
+                <div className="h-6 w-px bg-slate-200 mx-1" />
+                <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
+                  <Info className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/30">
+              {loading && messages.length === 0 ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+                    <p className="text-slate-400 text-sm">Loading messages...</p>
+                  </div>
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center">
+                  <div className="h-16 w-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                    <MessageSquare className="h-8 w-8 text-slate-300" />
+                  </div>
+                  <h3 className="text-slate-900 font-medium mb-1">No messages yet</h3>
+                  <p className="text-slate-500 text-sm max-w-xs">
+                    Start the conversation by sending a message below.
+                  </p>
+                </div>
+              ) : (
+                messages.map((message, index) => {
+                  const isLast = index === messages.length - 1;
+                  const showAvatar = !message.is_from_me && (
+                    index === 0 || 
+                    messages[index - 1].is_from_me || 
+                    messages[index - 1].sender_id !== message.sender_id
+                  );
+
+                  return (
+                    <div
+                      key={message.id}
+                      className={`flex gap-3 ${
+                        message.is_from_me ? "justify-end" : "justify-start"
+                      } animate-in fade-in slide-in-from-bottom-2 duration-300`}
+                    >
+                      {!message.is_from_me && (
+                        <div className={`flex-shrink-0 w-8 ${!showAvatar && "invisible"}`}>
+                          {showAvatar && (
+                            <div className="relative h-8 w-8 rounded-full overflow-hidden bg-slate-100 ring-2 ring-white shadow-sm">
+                              {selectedConversation.participant_avatar ? (
+                                <Image
+                                  src={selectedConversation.participant_avatar}
+                                  alt={selectedConversation.participant_name}
+                                  fill
+                                  className="object-cover"
+                                  unoptimized
+                                />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-100 to-blue-100 text-sky-600 font-bold text-xs">
+                                  {selectedConversation.participant_name.charAt(0).toUpperCase()}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      <div className={`flex flex-col ${message.is_from_me ? "items-end" : "items-start"} max-w-[70%]`}>
+                        <div
+                          className={`px-5 py-3 shadow-sm ${
+                            message.is_from_me
+                              ? "bg-gradient-to-br from-sky-500 to-blue-600 text-white rounded-2xl rounded-tr-sm"
+                              : "bg-white border border-slate-100 text-slate-800 rounded-2xl rounded-tl-sm"
+                          }`}
+                        >
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                            {message.text}
+                          </p>
+                        </div>
+                        <span className={`text-[10px] mt-1.5 px-1 ${
+                          message.is_from_me ? "text-slate-400" : "text-slate-400"
+                        }`}>
+                          {formatTime(message.timestamp)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Input Area */}
+            <div className="p-4 bg-white border-t border-slate-100">
+              <div className="flex items-end gap-3 max-w-4xl mx-auto">
+                <button className="p-3 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-xl transition-colors">
+                  <MoreVertical className="h-5 w-5" />
+                </button>
+                <div className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500 transition-all">
+                  <textarea
+                    placeholder="Type a message..."
+                    className="w-full bg-transparent border-none px-4 py-3 text-sm focus:ring-0 resize-none max-h-32 min-h-[48px]"
+                    rows={1}
+                    disabled
+                  />
+                </div>
+                <button
+                  disabled
+                  className="p-3 bg-gradient-to-br from-sky-500 to-blue-600 text-white rounded-xl hover:shadow-lg hover:shadow-sky-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                >
+                  <Send className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-50/30">
+            <div className="h-24 w-24 bg-white rounded-full shadow-xl shadow-sky-100 flex items-center justify-center mb-6 animate-in zoom-in duration-500">
+              <MessageSquare className="h-10 w-10 text-sky-500" />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">
+              Select a Conversation
+            </h2>
+            <p className="text-slate-500 max-w-md mx-auto mb-8">
+              Choose a conversation from the sidebar to start chatting with your customers across Instagram and Telegram.
+            </p>
+            <div className="flex gap-4">
+              <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm text-sm text-slate-600">
+                <div className="relative h-4 w-4">
+                  <Image src="/yetti/instagram.png" alt="IG" fill className="object-contain" />
+                </div>
+                Instagram
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm text-sm text-slate-600">
+                <div className="relative h-4 w-4">
+                  <Image src="/yetti/telegram_1.png" alt="TG" fill className="object-contain" />
+                </div>
+                Telegram
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

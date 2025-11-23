@@ -16,76 +16,76 @@ function FAQ() {
   const { t } = useLanguage();
   
   return (
-    <div className="w-full py-8 lg:py-20 px-5">
-      <div className="container mx-auto max-w-7xl">
-        <div className="grid lg:grid-cols-2 gap-10">
-          <div className="flex gap-10 flex-col">
-            <div className="flex gap-4 flex-col">
-              <div>
-                <Badge variant="outline">{t("faq.badge")}</Badge>
-              </div>
-              <div className="flex gap-2 flex-col">
-                <h4 className="text-3xl md:text-5xl tracking-tighter max-w-xl text-left font-semibold">
-                  {t("faq.title")}
-                </h4>
-                <p className="text-lg max-w-xl lg:max-w-lg leading-relaxed tracking-tight text-muted-foreground  text-left">
-                  {t("faq.subtitle")}
-                </p>
-              </div>
-              <div className="">
-                <Link href="/contact">
-                  <Button className="gap-4" variant="outline">
-                    {t("faq.contactButton")} <PhoneCall className="w-4 h-4" />
-                  </Button>
-                </Link>
-              </div>
+    <div className="w-full py-24 bg-slate-50">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid lg:grid-cols-12 gap-12 lg:gap-24">
+          <div className="lg:col-span-5 flex flex-col gap-6">
+            <div className="animate-fade-in-up">
+              <Badge variant="outline" className="bg-sky-50 text-sky-600 border-sky-200 px-4 py-1 mb-4">{t("faq.badge")}</Badge>
+              <h4 className="text-3xl md:text-5xl tracking-tighter font-extrabold text-slate-900 mb-6">
+                {t("faq.title")}
+              </h4>
+              <p className="text-lg leading-relaxed tracking-tight text-slate-600 mb-8">
+                {t("faq.subtitle")}
+              </p>
+              <Link href="/contact">
+                <Button className="gap-2 bg-white text-slate-900 border-slate-200 hover:bg-slate-50 hover:text-sky-600 transition-colors shadow-sm" variant="outline" size="lg">
+                  {t("faq.contactButton")} <PhoneCall className="w-4 h-4" />
+                </Button>
+              </Link>
             </div>
           </div>
-          <Accordion type="single" collapsible className="w-full">
-            {[
-              {
-                question: t("faq.q1.question"),
-                answer: t("faq.q1.answer")
-              },
-              {
-                question: t("faq.q2.question"),
-                answer: t("faq.q2.answer")
-              },
-              {
-                question: t("faq.q3.question"),
-                answer: t("faq.q3.answer")
-              },
-              {
-                question: t("faq.q4.question"),
-                answer: t("faq.q4.answer")
-              },
-              {
-                question: t("faq.q5.question"),
-                answer: t("faq.q5.answer")
-              },
-              {
-                question: t("faq.q6.question"),
-                answer: t("faq.q6.answer")
-              },
-              {
-                question: t("faq.q7.question"),
-                answer: t("faq.q7.answer")
-              },
-              {
-                question: t("faq.q8.question"),
-                answer: t("faq.q8.answer")
-              }
-            ].map((faq, index) => (
-              <AccordionItem key={index} value={"item-" + index}>
-                <AccordionTrigger>
-                  {faq.question}
-                </AccordionTrigger>
-                <AccordionContent>
-                  {faq.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+          <div className="lg:col-span-7">
+            <Accordion type="single" collapsible className="w-full flex flex-col gap-4">
+              {[
+                {
+                  question: t("faq.q1.question"),
+                  answer: t("faq.q1.answer")
+                },
+                {
+                  question: t("faq.q2.question"),
+                  answer: t("faq.q2.answer")
+                },
+                {
+                  question: t("faq.q3.question"),
+                  answer: t("faq.q3.answer")
+                },
+                {
+                  question: t("faq.q4.question"),
+                  answer: t("faq.q4.answer")
+                },
+                {
+                  question: t("faq.q5.question"),
+                  answer: t("faq.q5.answer")
+                },
+                {
+                  question: t("faq.q6.question"),
+                  answer: t("faq.q6.answer")
+                },
+                {
+                  question: t("faq.q7.question"),
+                  answer: t("faq.q7.answer")
+                },
+                {
+                  question: t("faq.q8.question"),
+                  answer: t("faq.q8.answer")
+                }
+              ].map((faq, index) => (
+                <AccordionItem 
+                  key={index} 
+                  value={"item-" + index} 
+                  className="bg-white border border-slate-200 rounded-xl px-6 shadow-sm data-[state=open]:border-sky-200 data-[state=open]:shadow-md transition-all duration-200"
+                >
+                  <AccordionTrigger className="text-slate-900 font-semibold hover:text-sky-600 hover:no-underline py-4 text-left">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-slate-600 pb-4 leading-relaxed">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
         </div>
       </div>
     </div>

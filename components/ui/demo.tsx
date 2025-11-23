@@ -1,4 +1,4 @@
-import Testimonials from "@/components/ui/testimonials";
+import { Testimonials } from "@/components/ui/testimonials";
 
 export default function DemoOne() {
   return <Testimonials />;

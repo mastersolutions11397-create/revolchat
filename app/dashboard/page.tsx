@@ -16,8 +16,13 @@ import {
   CheckCircle2,
   Loader2,
   Power,
+  ArrowUpRight,
+  Activity,
+  Clock,
+  AlertCircle,
 } from "lucide-react";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
+import { toast } from "sonner";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -94,13 +99,17 @@ export default function DashboardPage() {
         const result = await workspaceHoursAPI.getWorkingHours(workspaceId);
         setWorkspaceOnline(result.workspace_online);
       } catch (err: unknown) {
-        if (err instanceof Error && err.message.includes("404")) {
+        if (err instanceof Error && (err.message.includes("404") || err.message.toLowerCase().includes("not found"))) {
+          // Workspace schedule not found - this is normal for new workspaces
           setWorkspaceOnline(true);
         } else {
+          const errorMessage = err instanceof Error ? err.message : "Failed to load workspace availability";
           console.error("Failed to load workspace availability", err);
-          setAvailabilityError(
-            err instanceof Error ? err.message : "Failed to load workspace availability"
-          );
+          setAvailabilityError(errorMessage);
+          // Only show toast for non-404 errors
+          toast.error("Could not load workspace status", {
+            description: "Using default settings. You can update them in Working Hours."
+          });
         }
       } finally {
         setAvailabilityLoading(false);
@@ -126,8 +135,8 @@ export default function DashboardPage() {
             setWorkspaceName(workspace.name);
           }
         } catch (err) {
-          console.error("Failed to load workspace details", err);
           if (!cancelled) {
+            console.error("Failed to load workspace details", err);
             setWorkspaceName("Workspace");
           }
         }
@@ -153,10 +162,12 @@ export default function DashboardPage() {
       );
       setWorkspaceOnline(response.workspace_online);
     } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to update workspace availability";
       console.error("Failed to update workspace status", err);
-      setAvailabilityError(
-        err instanceof Error ? err.message : "Failed to update workspace availability"
-      );
+      setAvailabilityError(errorMessage);
+      toast.error("Failed to update workspace status", {
+        description: errorMessage
+      });
     } finally {
       setAvailabilityLoading(false);
     }
@@ -177,164 +188,203 @@ export default function DashboardPage() {
       <div className="flex h-96 items-center justify-center">
         <div className="text-center">
           <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-sky-600" />
-          <p className="text-gray-600">Loading dashboard...</p>
+          <p className="text-slate-600 font-medium">Loading dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      <div className="rounded-2xl bg-[#0b1220] p-6 text-white">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
-              <MessageSquare className="h-5 w-5" />
+    <div className="space-y-8 max-w-7xl mx-auto">
+      {/* Welcome Banner */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
+        <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-sky-500/20 blur-3xl" />
+        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-blue-600/20 blur-3xl" />
+        
+        <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-5">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner ring-1 ring-white/20">
+              <span className="text-3xl">👋</span>
             </div>
             <div>
-              <h1 className="text-2xl font-bold">
+              <h1 className="text-3xl font-bold tracking-tight text-white">
                 Welcome back, {getUserName()}
               </h1>
-              <p className="text-white/70 text-sm">
-                Overview of your knowledge base, integrations, and performance.
+              <p className="mt-1 text-slate-300 text-lg">
+                Here's what's happening in your workspace today.
               </p>
             </div>
           </div>
+          
           <div className="flex flex-col items-end gap-3">
-            <div className="text-right">
-              <p className="text-sm text-white/60">Last updated</p>
-              <p className="text-lg font-semibold text-white">
-                {dashboardData?.quick_stats ? "Just now" : "—"}
-              </p>
+            <div className="flex items-center gap-2 rounded-full bg-white/5 px-4 py-1.5 backdrop-blur-sm ring-1 ring-white/10">
+               <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+               <span className="text-sm font-medium text-slate-200">System Operational</span>
             </div>
-            <button
-              onClick={handleToggleWorkspace}
-              disabled={
-                availabilityLoading || workspaceOnline === null || !workspaceId
-              }
-              className={`inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white transition ${
-                availabilityLoading || !workspaceId
-                  ? "cursor-not-allowed opacity-50"
-                  : "hover:bg-white/20"
-              }`}
-            >
-              {availabilityLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Power
-                  className={`h-4 w-4 ${
-                    workspaceOnline ? "text-sky-400" : "text-sky-400"
+            
+            <div className="flex items-center gap-3">
+               <button
+                  onClick={handleToggleWorkspace}
+                  disabled={
+                    availabilityLoading || workspaceOnline === null || !workspaceId
+                  }
+                  className={`group relative inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-all duration-300 ${
+                    availabilityLoading || !workspaceId
+                      ? "cursor-not-allowed opacity-50 bg-white/5"
+                      : workspaceOnline 
+                        ? "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-100 ring-1 ring-emerald-500/50"
+                        : "bg-slate-700/50 hover:bg-slate-700/70 text-slate-300 ring-1 ring-white/10"
                   }`}
-                />
-              )}
-              {workspaceOnline ? "Workspace Online" : "Workspace Offline"}
-            </button>
+                >
+                  {availabilityLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Power
+                      className={`h-4 w-4 transition-colors ${
+                        workspaceOnline ? "text-emerald-400" : "text-slate-400 group-hover:text-white"
+                      }`}
+                    />
+                  )}
+                  {workspaceOnline ? "Workspace Online" : "Workspace Offline"}
+                </button>
+            </div>
             {availabilityError && (
-              <p className="text-xs text-red-300">{availabilityError}</p>
+              <p className="text-xs text-red-300 bg-red-500/10 px-2 py-1 rounded">
+                {availabilityError}
+              </p>
             )}
           </div>
         </div>
       </div>
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex items-center gap-2">
+          <AlertCircle className="h-5 w-5" />
           {error}
         </div>
       )}
 
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <div className="rounded-xl border border-gray-200 bg-white p-6">
+        {/* Monthly Messages */}
+        <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-sky-100">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">
+              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
                 Monthly Messages
               </p>
-              <p className="text-2xl font-bold text-gray-900">
-                {dashboardData?.quick_stats?.this_month_interactions?.toLocaleString() ??
-                  "0"}
+              <p className="mt-2 text-3xl font-bold text-slate-900">
+                {dashboardData?.quick_stats?.this_month_interactions?.toLocaleString() ?? "0"}
               </p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
-              <MessageSquare className="h-5 w-5" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 text-sky-600 transition-colors group-hover:bg-sky-500 group-hover:text-white">
+              <MessageSquare className="h-7 w-7" />
             </div>
           </div>
-          <div className="mt-4 text-sm font-medium text-gray-700">
-            {dashboardData?.quick_stats?.this_week_interactions ?? 0} this week
+          <div className="mt-4 flex items-center gap-2 text-sm">
+            <span className="flex items-center gap-1 font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+              <ArrowUpRight className="h-3 w-3" />
+              {dashboardData?.quick_stats?.this_week_interactions ?? 0}
+            </span>
+            <span className="text-slate-500">new this week</span>
           </div>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-6">
+        {/* Active Integrations */}
+        <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-blue-100">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Integrations</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
+                Integrations
+              </p>
+              <p className="mt-2 text-3xl font-bold text-slate-900">
                 {dashboardData?.workspace_summary?.active_integrations ?? 0}
               </p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-sky-50 text-sky-700">
-              <Link2 className="h-5 w-5" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
+              <Link2 className="h-7 w-7" />
             </div>
           </div>
-          <div className="mt-4 text-sm font-medium text-sky-700">
-            All systems operational
+          <div className="mt-4 flex items-center gap-2 text-sm">
+            <span className="flex items-center gap-1 font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
+               <Activity className="h-3 w-3" />
+               Active
+            </span>
+            <span className="text-slate-500">All systems operational</span>
           </div>
         </div>
 
-        <div className="rounded-xl border border-gray-200 bg-white p-6">
+        {/* Response Time */}
+        <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-amber-100">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-500">Response Time</p>
-              <p className="text-2xl font-bold text-gray-900">0.8s</p>
+              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
+                Avg Response Time
+              </p>
+              <p className="mt-2 text-3xl font-bold text-slate-900">0.8s</p>
             </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
-              <Zap className="h-5 w-5" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 transition-colors group-hover:bg-amber-500 group-hover:text-white">
+              <Zap className="h-7 w-7" />
             </div>
           </div>
-          <div className="mt-4 text-sm font-medium text-sky-700">
-            -0.2s improvement
+          <div className="mt-4 flex items-center gap-2 text-sm">
+            <span className="flex items-center gap-1 font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+              <ArrowUpRight className="h-3 w-3 rotate-180" />
+              0.2s
+            </span>
+            <span className="text-slate-500">improvement</span>
           </div>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 bg-white p-8">
-        <h3 className="mb-6 text-xl font-bold text-gray-900">
-          Platform Status
-        </h3>
+      {/* Platform Status Section */}
+      <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="flex items-center justify-between mb-8">
+           <div>
+              <h3 className="text-xl font-bold text-slate-900">Platform Status</h3>
+              <p className="text-slate-500 text-sm mt-1">Real-time status of your connected integrations.</p>
+           </div>
+           <Link href="/dashboard/integrations" className="text-sm font-semibold text-sky-600 hover:text-sky-700 hover:underline">
+              Manage Integrations &rarr;
+           </Link>
+        </div>
+        
         {dashboardData?.workspace_summary?.total_integrations === 0 ? (
-          <div className="py-8 text-center">
-            <p className="mb-4 text-gray-500">No integrations yet</p>
+          <div className="flex flex-col items-center justify-center py-12 rounded-2xl bg-slate-50 border border-dashed border-slate-200">
+            <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+               <Link2 className="h-6 w-6 text-slate-400" />
+            </div>
+            <p className="mb-4 text-slate-600 font-medium">No integrations connected yet</p>
             <Link
               href="/dashboard/integrations"
-              className="inline-block rounded-lg bg-sky-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-sky-700"
+              className="inline-flex items-center justify-center rounded-xl bg-sky-600 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-sky-700 hover:shadow-lg hover:shadow-sky-200 active:scale-95"
             >
               Add Integration
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4">
-              <div className="flex items-center space-x-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-600 text-white">
-                  <CheckCircle2 className="h-4 w-4" />
-                </div>
-                <span className="font-medium text-gray-900">System</span>
-              </div>
-              <span className="text-sm font-medium text-sky-700">Online</span>
-            </div>
-            <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4">
-              <div className="flex items-center space-x-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-600 text-white">⚠</div>
-                <span className="font-medium text-gray-900">WhatsApp</span>
-              </div>
-              <span className="text-sm font-medium text-sky-700">Issues</span>
-            </div>
-            <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4">
-              <div className="flex items-center space-x-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-600 text-white">✓</div>
-                <span className="font-medium text-gray-900">Discord</span>
-              </div>
-              <span className="text-sm font-medium text-sky-700">Online</span>
-            </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[
+               { name: "System Core", status: "Online", icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-50" },
+               { name: "WhatsApp", status: "Issues", icon: AlertCircle, color: "text-amber-500", bg: "bg-amber-50" },
+               { name: "Discord", status: "Online", icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-50" },
+               { name: "Slack", status: "Offline", icon: Power, color: "text-slate-400", bg: "bg-slate-100" },
+            ].map((item) => (
+               <div key={item.name} className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/50 p-4 transition-all hover:bg-white hover:shadow-md hover:border-slate-200">
+                  <div className="flex items-center gap-3">
+                     <div className={`flex h-10 w-10 items-center justify-center rounded-full ${item.bg} ${item.color}`}>
+                        <item.icon className="h-5 w-5" />
+                     </div>
+                     <span className="font-semibold text-slate-700">{item.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                     <div className={`h-2 w-2 rounded-full ${item.status === 'Online' ? 'bg-emerald-500 animate-pulse' : item.status === 'Issues' ? 'bg-amber-500' : 'bg-slate-300'}`} />
+                     <span className={`text-xs font-medium ${item.status === 'Online' ? 'text-emerald-600' : item.status === 'Issues' ? 'text-amber-600' : 'text-slate-500'}`}>
+                        {item.status}
+                     </span>
+                  </div>
+               </div>
+            ))}
           </div>
         )}
       </div>

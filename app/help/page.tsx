@@ -16,6 +16,7 @@ import {
   MessageSquare,
   ArrowRight,
   X,
+  Star,
 } from "lucide-react";
 
 export default function HelpPage() {
@@ -111,60 +112,58 @@ export default function HelpPage() {
   });
 
   return (
-    <div className="min-h-screen bg-white">
-      <Navigation />
+    <div className="min-h-screen bg-slate-50">
+      <Navigation darkBackground={true} />
 
       {/* Hero Section */}
-      <section className="relative min-h-[50vh] flex items-center justify-center pt-28 sm:pt-32 pb-16 overflow-hidden bg-linear-to-br from-[#0b1220] to-[#0b1220]/90 text-white">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-[radial-gradient(1200px_500px_at_50%_-120px,rgba(255,255,255,0.15),transparent_70%)]" />
+      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-slate-900">
+        {/* Background Effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-sky-500/20 to-blue-600/20 blur-[100px] animate-pulse-slow" />
+          <div className="absolute -bottom-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-sky-500/20 to-sky-500/20 blur-[100px] animate-pulse-slow delay-1000" />
+          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
         </div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-12">
-            <div className="text-center lg:text-left">
-              <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">
-                Help Center
-              </h1>
-              <p className="text-lg md:text-xl text-gray-300 max-w-3xl">
-                Find answers to common questions and learn how to make the most of
-                yetti AI
-              </p>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center max-w-3xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-sm font-medium mb-6 animate-fade-in-up">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
+              </span>
+              Support
             </div>
-            <div className="relative w-full max-w-md mx-auto lg:ml-auto">
-              <div className="relative w-full aspect-square">
-                <Image
-                  src="/yetti/yetti_straight.png"
-                  alt="yetti Help"
-                  fill
-                  className="object-contain"
-                  sizes="(max-width: 1024px) 100vw, 400px"
-                />
-              </div>
-            </div>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-8 animate-fade-in-up delay-100">
+              Help <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-500">Center</span>
+            </h1>
+            <p className="text-lg md:text-xl text-slate-400 leading-relaxed animate-fade-in-up delay-200">
+              Find answers to common questions and learn how to make the most of
+              yetti AI
+            </p>
           </div>
         </div>
       </section>
 
       {/* Search Bar */}
-      <section className="py-12 bg-white border-b border-gray-200">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative">
+      <section className="relative -mt-8 z-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="relative shadow-xl rounded-2xl bg-white p-2">
             <input
               type="text"
               placeholder="Search for help articles..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-6 py-4 pl-12 pr-12 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all text-lg"
+              className="w-full px-6 py-4 pl-14 pr-12 bg-transparent border-none focus:ring-0 text-lg text-slate-900 placeholder:text-slate-400"
             />
-            <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-              <Search className="w-5 h-5 text-gray-400" />
+            <div className="absolute left-6 top-1/2 transform -translate-y-1/2">
+              <Search className="w-6 h-6 text-sky-500" />
             </div>
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2"
+                className="absolute right-6 top-1/2 transform -translate-y-1/2 p-1 hover:bg-slate-100 rounded-full transition-colors"
               >
-                <X className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                <X className="w-5 h-5 text-slate-400 hover:text-slate-600" />
               </button>
             )}
           </div>
@@ -172,61 +171,61 @@ export default function HelpPage() {
       </section>
 
       {/* Quick Help Cards */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="rounded-2xl bg-white p-8 shadow-lg border border-gray-200 text-center">
-              <div className="w-16 h-16 bg-sky-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Rocket className="w-8 h-8 text-white" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="group rounded-2xl bg-white p-8 shadow-sm border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+              <div className="w-14 h-14 bg-sky-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Rocket className="w-7 h-7 text-sky-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
+              <h3 className="text-xl font-bold text-slate-900 mb-3">
                 Getting Started
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-slate-600 mb-6 leading-relaxed">
                 New to yetti AI? Start here with our beginner guides and tutorials.
               </p>
               <Link
                 href="#getting-started"
                 onClick={() => setSelectedCategory("getting-started")}
-                className="text-sky-500 font-semibold hover:text-sky-600 transition-colors inline-flex items-center gap-2"
+                className="text-sky-600 font-semibold hover:text-sky-700 transition-colors inline-flex items-center gap-2 group-hover:gap-3"
               >
                 View Guides <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
-            <div className="rounded-2xl bg-white p-8 shadow-lg border border-gray-200 text-center">
-              <div className="w-16 h-16 bg-sky-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Link2 className="w-8 h-8 text-white" />
+            <div className="group rounded-2xl bg-white p-8 shadow-sm border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+              <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Link2 className="w-7 h-7 text-blue-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
+              <h3 className="text-xl font-bold text-slate-900 mb-3">
                 Integrations
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-slate-600 mb-6 leading-relaxed">
                 Learn how to connect your AI agents to different platforms.
               </p>
               <Link
                 href="#integrations"
                 onClick={() => setSelectedCategory("integrations")}
-                className="text-sky-500 font-semibold hover:text-sky-600 transition-colors inline-flex items-center gap-2"
+                className="text-blue-600 font-semibold hover:text-blue-700 transition-colors inline-flex items-center gap-2 group-hover:gap-3"
               >
                 View Integrations <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
-            <div className="rounded-2xl bg-white p-8 shadow-lg border border-gray-200 text-center">
-              <div className="w-16 h-16 bg-sky-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageSquare className="w-8 h-8 text-white" />
+            <div className="group rounded-2xl bg-white p-8 shadow-sm border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+              <div className="w-14 h-14 bg-indigo-100 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <MessageSquare className="w-7 h-7 text-indigo-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
+              <h3 className="text-xl font-bold text-slate-900 mb-3">
                 Contact Support
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-slate-600 mb-6 leading-relaxed">
                 Can't find what you're looking for? Our support team is here to
                 help.
               </p>
               <Link
                 href="/contact"
-                className="text-sky-500 font-semibold hover:text-sky-600 transition-colors inline-flex items-center gap-2"
+                className="text-indigo-600 font-semibold hover:text-indigo-700 transition-colors inline-flex items-center gap-2 group-hover:gap-3"
               >
                 Get Support <ArrowRight className="w-4 h-4" />
               </Link>
@@ -236,29 +235,30 @@ export default function HelpPage() {
       </section>
 
       {/* Articles Section */}
-      <section className="py-20 bg-white">
+      <section className="pb-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Categories Sidebar */}
             <div className="lg:col-span-1">
-              <div className="rounded-2xl bg-white p-6 shadow-lg border border-gray-200 sticky top-8">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">
+              <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-200 sticky top-24">
+                <h3 className="text-lg font-bold text-slate-900 mb-4 px-2">
                   Categories
                 </h3>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {categories.map((category) => {
                     const IconComponent = category.icon;
+                    const isActive = selectedCategory === category.id;
                     return (
                       <button
                         key={category.id}
                         onClick={() => setSelectedCategory(category.id)}
-                        className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
-                          selectedCategory === category.id
-                            ? "bg-sky-500 text-white font-semibold"
-                            : "text-gray-600 hover:bg-gray-50"
+                        className={`w-full text-left px-4 py-3 rounded-xl transition-all flex items-center gap-3 font-medium ${
+                          isActive
+                            ? "bg-sky-50 text-sky-700 shadow-sm ring-1 ring-sky-200"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                         }`}
                       >
-                        <IconComponent className="w-5 h-5" />
+                        <IconComponent className={`w-5 h-5 ${isActive ? "text-sky-600" : "text-slate-400"}`} />
                         {category.name}
                       </button>
                     );
@@ -269,53 +269,58 @@ export default function HelpPage() {
 
             {/* Articles List */}
             <div className="lg:col-span-3">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  {selectedCategory === "all"
-                    ? "All Articles"
-                    : categories.find((c) => c.id === selectedCategory)?.name}
-                </h2>
-                <p className="text-gray-600">
-                  {filteredArticles.length} article
-                  {filteredArticles.length !== 1 ? "s" : ""} found
-                </p>
+              <div className="mb-8 flex items-end justify-between border-b border-slate-200 pb-6">
+                <div>
+                  <h2 className="text-3xl font-bold text-slate-900 mb-2">
+                    {selectedCategory === "all"
+                      ? "All Articles"
+                      : categories.find((c) => c.id === selectedCategory)?.name}
+                  </h2>
+                  <p className="text-slate-500">
+                    {filteredArticles.length} article
+                    {filteredArticles.length !== 1 ? "s" : ""} found
+                  </p>
+                </div>
               </div>
 
               <div className="space-y-4">
                 {filteredArticles.map((article) => (
                   <div
                     key={article.id}
-                    className="rounded-xl bg-white p-6 shadow-lg border border-gray-200 hover:shadow-xl transition-shadow"
+                    className="group rounded-2xl bg-white p-6 shadow-sm border border-slate-200 hover:shadow-md hover:border-sky-200 transition-all duration-200"
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="text-xl font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
                             {article.title}
                           </h3>
                           {article.popular && (
-                            <span className="bg-orange-100 text-orange-700 text-xs font-medium px-2 py-1 rounded-full">
-                              Popular
+                            <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-current" /> Popular
                             </span>
                           )}
                         </div>
-                        <p className="text-gray-600 mb-3">
+                        <p className="text-slate-600 mb-4 leading-relaxed">
                           {article.description}
                         </p>
-                        <div className="flex items-center space-x-4 text-sm text-gray-500">
-                          <span>{article.readTime}</span>
-                          <span>•</span>
-                          <span className="capitalize">
+                        <div className="flex items-center gap-4 text-sm text-slate-500">
+                          <span className="flex items-center gap-1.5">
+                            <BookOpen className="w-4 h-4" />
+                            {article.readTime}
+                          </span>
+                          <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                          <span className="capitalize px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-medium text-xs">
                             {article.category.replace("-", " ")}
                           </span>
                         </div>
                       </div>
-                      <div className="ml-4">
+                      <div className="hidden sm:block self-center">
                         <Link
                           href={`/help/article/${article.id}`}
-                          className="text-sky-500 hover:text-sky-600 font-semibold inline-flex items-center gap-2"
+                          className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-sky-500 group-hover:text-white transition-all duration-300"
                         >
-                          Read <ArrowRight className="w-4 h-4" />
+                          <ArrowRight className="w-5 h-5" />
                         </Link>
                       </div>
                     </div>
@@ -324,24 +329,24 @@ export default function HelpPage() {
               </div>
 
               {filteredArticles.length === 0 && (
-                <div className="rounded-xl bg-white p-12 shadow-lg border border-gray-200 text-center">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Search className="w-8 h-8 text-gray-400" />
+                <div className="rounded-2xl bg-white p-16 shadow-sm border border-slate-200 text-center">
+                  <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Search className="w-10 h-10 text-slate-300" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">
                     No articles found
                   </h3>
-                  <p className="text-gray-600 mb-6">
-                    Try adjusting your search terms or browse different categories
+                  <p className="text-slate-500 mb-8 max-w-md mx-auto">
+                    We couldn't find any articles matching your search. Try adjusting your terms or browse different categories.
                   </p>
                   <button
                     onClick={() => {
                       setSearchQuery("");
                       setSelectedCategory("all");
                     }}
-                    className="text-sky-500 hover:text-sky-600 font-semibold"
+                    className="text-sky-600 hover:text-sky-700 font-semibold hover:underline"
                   >
-                    Clear filters
+                    Clear all filters
                   </button>
                 </div>
               )}
@@ -351,37 +356,40 @@ export default function HelpPage() {
       </section>
 
       {/* Contact Support CTA */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-20 bg-white border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="rounded-2xl bg-white p-12 shadow-lg border border-gray-200">
-            <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-12">
-              <div className="relative w-full aspect-square max-w-md mx-auto">
+          <div className="rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 p-12 shadow-2xl relative overflow-hidden">
+             <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
+             <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-blue-600/20 blur-3xl"></div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-12 relative z-10">
+              <div className="relative w-full aspect-square max-w-md mx-auto lg:order-2">
                 <Image
                   src="/yetti/yetti_laying.png"
                   alt="yetti Support"
                   fill
-                  className="object-contain"
+                  className="object-contain drop-shadow-2xl"
                   sizes="(max-width: 1024px) 100vw, 400px"
                 />
               </div>
-              <div className="text-center lg:text-left">
-                <h2 className="text-3xl font-bold text-gray-900 mb-6">
+              <div className="text-center lg:text-left lg:order-1">
+                <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
                   Still need help?
                 </h2>
-                <p className="text-lg text-gray-600 mb-8">
+                <p className="text-lg text-slate-300 mb-8 leading-relaxed">
                   Our support team is here to help you get the most out of yetti AI.
                   Get in touch and we'll respond within 24 hours.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                   <Link
                     href="/contact"
-                    className="px-8 py-4 rounded-xl text-white bg-sky-500 hover:bg-sky-600 transition-colors   font-semibold text-center"
+                    className="px-8 py-4 rounded-xl text-white bg-sky-500 hover:bg-sky-600 transition-all shadow-lg shadow-sky-500/25 font-bold text-center hover:-translate-y-0.5"
                   >
                     Contact Support
                   </Link>
                   <Link
                     href="/contact"
-                    className="px-8 py-4 rounded-xl border-2 border-gray-300 text-gray-700 hover:bg-gray-50 transition-all font-semibold text-center"
+                    className="px-8 py-4 rounded-xl border border-slate-600 text-white hover:bg-slate-800 transition-all font-semibold text-center hover:-translate-y-0.5"
                   >
                     Schedule a Call
                   </Link>
@@ -392,7 +400,7 @@ export default function HelpPage() {
         </div>
       </section>
 
-      <Footer variant="light" />
+      <Footer />
     </div>
   );
 }

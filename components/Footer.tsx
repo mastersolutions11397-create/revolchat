@@ -3,249 +3,176 @@
 import Link from "next/link";
 import NewsletterSignup from "./NewsletterSignup";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
+import { Twitter, Linkedin, Instagram, Send, Heart, ArrowRight } from "lucide-react";
 
-interface FooterProps {
-  variant?: "dark" | "light";
-}
-
-export default function Footer({ variant = "dark" }: FooterProps) {
+export default function Footer() {
   const { t } = useLanguage();
-  const isDark = variant === "dark";
+  const currentYear = new Date().getFullYear();
 
   return (
-    <footer className={`relative py-16 ${isDark ? "bg-linear-to-br from-gray-900 via-gray-900 to-gray-800 text-white" : "bg-linear-to-br from-gray-50 to-white border-t border-gray-100"}`}>
-      {/* Decorative elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className={`absolute -top-24 -left-24 w-96 h-96 rounded-full ${isDark ? "bg-sky-500/5" : "bg-sky-500/3"} blur-3xl`} />
-        <div className={`absolute -bottom-24 -right-24 w-96 h-96 rounded-full ${isDark ? "bg-blue-500/5" : "bg-blue-500/3"} blur-3xl`} />
+    <footer className="relative bg-slate-950 text-white overflow-hidden border-t border-slate-800">
+      {/* Background Effects */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-sky-900/20 rounded-full blur-3xl -translate-y-1/2"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-900/20 rounded-full blur-3xl translate-y-1/2"></div>
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-12 pb-12">
-          {/* Brand Section */}
-          <div className="lg:col-span-5">
-            <div className="text-3xl font-extrabold mb-4 tracking-tight">
-              {isDark ? (
-                <>
-                  <span className="text-white">YETTI</span>
-                  <span className="text-gray-500">.AI</span>
-                </>
-              ) : (
-                <>
-                  <span className="text-gray-900">YETTI</span>
-                  <span className="text-gray-400">.AI</span>
-                </>
-              )}
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12">
+        {/* Top Section: CTA & Newsletter */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20 items-center">
+          <div className="space-y-6">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+              Ready to <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-500">supercharge</span> your workflow?
+            </h2>
+            <p className="text-slate-400 text-lg max-w-md">
+              Join thousands of developers and businesses building the future with Yetti AI.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Link 
+                href="/dashboard" 
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-semibold transition-all hover:-translate-y-1 shadow-lg shadow-sky-500/25"
+              >
+                Get Started <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link 
+                href="/contact" 
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-semibold border border-white/10 transition-all hover:-translate-y-1"
+              >
+                Contact Sales
+              </Link>
             </div>
-            <p className={`text-base leading-relaxed mb-6 max-w-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+          </div>
+          
+          <div className="bg-white/5 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
+            <h3 className="text-xl font-bold mb-2">Stay updated</h3>
+            <p className="text-slate-400 mb-6">Get the latest updates, articles, and resources sent to your inbox.</p>
+            <NewsletterSignup />
+          </div>
+        </div>
+
+        <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-800 to-transparent mb-16"></div>
+
+        {/* Main Footer Content */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-8 lg:gap-12 mb-16">
+          {/* Brand Section */}
+          <div className="col-span-2 md:col-span-4 lg:col-span-4 space-y-6">
+            <Link href="/" className="inline-block">
+              <div className="text-3xl font-extrabold tracking-tight flex items-center gap-2">
+                <span className="text-white">YETTI</span>
+                <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></div>
+                <span className="text-sky-500">.AI</span>
+              </div>
+            </Link>
+            <p className="text-slate-400 leading-relaxed max-w-sm">
               {t("footer.description")}
             </p>
-            {!isDark && <NewsletterSignup />}
+            <div className="flex gap-4 pt-2">
+              <Link 
+                href="https://twitter.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="w-10 h-10 rounded-lg bg-white/5 hover:bg-sky-500/20 flex items-center justify-center text-slate-400 hover:text-sky-400 transition-all hover:-translate-y-1"
+                aria-label="Twitter"
+              >
+                <Twitter className="w-5 h-5" />
+              </Link>
+              <Link 
+                href="https://linkedin.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="w-10 h-10 rounded-lg bg-white/5 hover:bg-sky-500/20 flex items-center justify-center text-slate-400 hover:text-sky-400 transition-all hover:-translate-y-1"
+                aria-label="LinkedIn"
+              >
+                <Linkedin className="w-5 h-5" />
+              </Link>
+              <Link 
+                href="https://instagram.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="w-10 h-10 rounded-lg bg-white/5 hover:bg-sky-500/20 flex items-center justify-center text-slate-400 hover:text-sky-400 transition-all hover:-translate-y-1"
+                aria-label="Instagram"
+              >
+                <Instagram className="w-5 h-5" />
+              </Link>
+              <Link 
+                href="https://discord.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="w-10 h-10 rounded-lg bg-white/5 hover:bg-sky-500/20 flex items-center justify-center text-slate-400 hover:text-sky-400 transition-all hover:-translate-y-1"
+                aria-label="Discord"
+              >
+                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-2.595-9.669-5.594-13.711a.074.074 0 0 0-.034-.026ZM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418Zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418Z"/>
+                </svg>
+              </Link>
+            </div>
           </div>
 
-          {/* Product Links */}
-          <div className="lg:col-span-2">
-            <h3 className={`text-sm font-bold uppercase tracking-wider mb-4 ${isDark ? "text-gray-300" : "text-gray-900"}`}>
-              {t("footer.product.title")}
-            </h3>
-            <ul className="space-y-3">
-              <li>
-                <Link
-                  href="/pricing"
-                  className={`text-sm transition-colors inline-flex items-center group ${
-                    isDark
-                      ? "text-gray-400 hover:text-white"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <span className="group-hover:translate-x-1 transition-transform">Pricing</span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/plans"
-                  className={`text-sm transition-colors inline-flex items-center group ${
-                    isDark
-                      ? "text-gray-400 hover:text-white"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <span className="group-hover:translate-x-1 transition-transform">Plans</span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/help"
-                  className={`text-sm transition-colors inline-flex items-center group ${
-                    isDark
-                      ? "text-gray-400 hover:text-white"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <span className="group-hover:translate-x-1 transition-transform">Help Center</span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/dashboard"
-                  className={`text-sm transition-colors inline-flex items-center group ${
-                    isDark
-                      ? "text-gray-400 hover:text-white"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <span className="group-hover:translate-x-1 transition-transform">Dashboard</span>
-                </Link>
-              </li>
+          {/* Links Sections */}
+          <div className="col-span-1 lg:col-span-2 lg:col-start-6">
+            <h4 className="font-bold text-white mb-6">Product</h4>
+            <ul className="space-y-4">
+              {[
+                { label: "Pricing", href: "/pricing" },
+                { label: "Plans", href: "/plans" },
+                { label: "Help Center", href: "/help" },
+                { label: "Dashboard", href: "/dashboard" }
+              ].map((link, i) => (
+                <li key={i}>
+                  <Link href={link.href} className="text-slate-400 hover:text-sky-400 transition-colors inline-flex items-center gap-1 group">
+                    <span className="group-hover:translate-x-1 transition-transform">{link.label}</span>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Company Links */}
-          <div className="lg:col-span-2">
-            <h3 className={`text-sm font-bold uppercase tracking-wider mb-4 ${isDark ? "text-gray-300" : "text-gray-900"}`}>
-              {t("footer.company.title")}
-            </h3>
-            <ul className="space-y-3">
-              <li>
-                <Link
-                  href="/about"
-                  className={`text-sm transition-colors inline-flex items-center group ${
-                    isDark
-                      ? "text-gray-400 hover:text-white"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <span className="group-hover:translate-x-1 transition-transform">About Us</span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/contact"
-                  className={`text-sm transition-colors inline-flex items-center group ${
-                    isDark
-                      ? "text-gray-400 hover:text-white"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <span className="group-hover:translate-x-1 transition-transform">Contact</span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/careers"
-                  className={`text-sm transition-colors inline-flex items-center group ${
-                    isDark
-                      ? "text-gray-400 hover:text-white"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <span className="group-hover:translate-x-1 transition-transform">Careers</span>
-                </Link>
-              </li>
+          <div className="col-span-1 lg:col-span-2">
+            <h4 className="font-bold text-white mb-6">Company</h4>
+            <ul className="space-y-4">
+              {[
+                { label: "About Us", href: "/about" },
+                { label: "Contact", href: "/contact" },
+                { label: "Careers", href: "/careers" },
+                { label: "Blog", href: "/blog" }
+              ].map((link, i) => (
+                <li key={i}>
+                  <Link href={link.href} className="text-slate-400 hover:text-sky-400 transition-colors inline-flex items-center gap-1 group">
+                    <span className="group-hover:translate-x-1 transition-transform">{link.label}</span>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Legal Links */}
-          <div className="lg:col-span-3">
-            <h3 className={`text-sm font-bold uppercase tracking-wider mb-4 ${isDark ? "text-gray-300" : "text-gray-900"}`}>
-              {t("footer.legal.title")}
-            </h3>
-            <ul className="space-y-3">
-              <li>
-                <Link
-                  href="/privacy"
-                  className={`text-sm transition-colors inline-flex items-center group ${
-                    isDark
-                      ? "text-gray-400 hover:text-white"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <span className="group-hover:translate-x-1 transition-transform">Privacy Policy</span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/terms"
-                  className={`text-sm transition-colors inline-flex items-center group ${
-                    isDark
-                      ? "text-gray-400 hover:text-white"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <span className="group-hover:translate-x-1 transition-transform">Terms of Service</span>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/cookies"
-                  className={`text-sm transition-colors inline-flex items-center group ${
-                    isDark
-                      ? "text-gray-400 hover:text-white"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  <span className="group-hover:translate-x-1 transition-transform">Cookie Policy</span>
-                </Link>
-              </li>
+          <div className="col-span-1 lg:col-span-2">
+            <h4 className="font-bold text-white mb-6">Legal</h4>
+            <ul className="space-y-4">
+              {[
+                { label: "Privacy Policy", href: "/privacy" },
+                { label: "Terms of Service", href: "/terms" },
+                { label: "Cookie Policy", href: "/cookies" },
+                { label: "Security", href: "/security" }
+              ].map((link, i) => (
+                <li key={i}>
+                  <Link href={link.href} className="text-slate-400 hover:text-sky-400 transition-colors inline-flex items-center gap-1 group">
+                    <span className="group-hover:translate-x-1 transition-transform">{link.label}</span>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div
-          className={`pt-8 border-t ${
-            isDark ? "border-gray-800" : "border-gray-200"
-          }`}
-        >
-          <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-              <p className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                &copy; {new Date().getFullYear()} Yetti AI. All rights reserved.
-              </p>
-              <div className="flex items-center gap-4">
-                <Link
-                  href="https://twitter.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`transition-colors ${
-                    isDark ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-gray-900"
-                  }`}
-                  aria-label="Twitter"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                  </svg>
-                </Link>
-                <Link
-                  href="https://linkedin.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`transition-colors ${
-                    isDark ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-gray-900"
-                  }`}
-                  aria-label="LinkedIn"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                  </svg>
-                </Link>
-                <Link
-                  href="https://github.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`transition-colors ${
-                    isDark ? "text-gray-400 hover:text-white" : "text-gray-500 hover:text-gray-900"
-                  }`}
-                  aria-label="GitHub"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
-                  </svg>
-                </Link>
-              </div>
-            </div>
-            {isDark && <NewsletterSignup />}
+        <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+          <p className="text-slate-500 text-sm">
+            &copy; {currentYear} Yetti AI. All rights reserved.
+          </p>
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <span>Made with</span>
+            <Heart className="w-4 h-4 text-red-500 fill-red-500 animate-pulse" />
+            <span>in San Francisco</span>
           </div>
         </div>
       </div>

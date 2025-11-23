@@ -7,7 +7,7 @@ import { Check } from "lucide-react";
 export default function PlansPage() {
   return (
     <div className="min-h-screen bg-white">
-      <Navigation />
+      <Navigation darkBackground={true} />
 
       {/* Hero Section */}
       <section className="relative min-h-[50vh] flex items-center justify-center pt-28 sm:pt-32 pb-16 overflow-hidden bg-linear-to-br from-[#0b1220] to-[#0b1220]/90 text-white">
@@ -345,7 +345,7 @@ export default function PlansPage() {
         </div>
       </section>
 
-      <Footer variant="light" />
+      <Footer />
     </div>
   );
 }

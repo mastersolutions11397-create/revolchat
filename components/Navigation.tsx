@@ -2,92 +2,92 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 
-export default function Navigation() {
+interface NavigationProps {
+  darkBackground?: boolean;
+}
+
+export default function Navigation({ darkBackground = false }: NavigationProps) {
   const { t } = useLanguage();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Handle scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const isTransparent = !scrolled && darkBackground;
 
   return (
     <>
-      <nav className="fixed top-0 w-full z-50 border-b border-gray-200/60 bg-white backdrop-blur-xl">
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? "bg-white/80 backdrop-blur-md border-b border-slate-200/50 shadow-sm py-3"
+            : "bg-transparent py-5"
+        }`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center gap-3">
-              <span className="text-2xl font-extrabold tracking-tight text-gray-900">
-                YETTI<span className="text-gray-400">.AI</span>
+          <div className="flex justify-between items-center">
+            <Link href="/" className="flex items-center gap-2 group">
+              <div className="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-sky-500/30 group-hover:scale-105 transition-transform">
+                Y
+              </div>
+              <span className={`text-xl font-bold tracking-tight ${isTransparent ? "text-white" : "text-slate-900"}`}>
+                YETTI<span className="text-sky-500">.AI</span>
               </span>
             </Link>
             
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-6">
-              <Link
-                href="/about"
-                className={`transition-colors ${
-                  pathname === "/about"
-                    ? "text-gray-900 font-medium"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                {t("nav.about")}
-              </Link>
-              <Link
-                href="/pricing"
-                className={`transition-colors ${
-                  pathname === "/pricing"
-                    ? "text-gray-900 font-medium"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                {t("nav.pricing")}
-              </Link>
-              <Link
-                href="/help"
-                className={`transition-colors ${
-                  pathname === "/help"
-                    ? "text-gray-900 font-medium"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                {t("nav.help")}
-              </Link>
-              <Link
-                href="/contact"
-                className={`transition-colors ${
-                  pathname === "/contact"
-                    ? "text-gray-900 font-medium"
-                    : "text-gray-600 hover:text-gray-900"
-                }`}
-              >
-                {t("nav.contact")}
-              </Link>
-              <Link
-                href="/dashboard"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                {t("nav.dashboard")}
-              </Link>
-              <Link
-                href="/auth/login"
-                className="text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                {t("nav.login")}
-              </Link>
-              <Link
-                href="/auth/signup"
-                className="px-4 py-2 rounded-xl text-white bg-[#0ea5e9] hover:bg-[#0284c7] transition-colors shadow-[0_8px_30px_rgba(14,165,233,0.35)]"
-              >
-                {t("nav.getStarted")}
-              </Link>
+            <div className="hidden md:flex items-center gap-1">
+              <div className={`flex items-center rounded-full px-2 py-1 mr-4 ${
+                isTransparent 
+                  ? "bg-white/10 backdrop-blur-sm border border-white/10" 
+                  : "bg-slate-50/50 backdrop-blur-sm border border-slate-200/50"
+              }`}>
+                <NavLink href="/about" active={pathname === "/about"} isTransparent={isTransparent}>{t("nav.about")}</NavLink>
+                <NavLink href="/pricing" active={pathname === "/pricing"} isTransparent={isTransparent}>{t("nav.pricing")}</NavLink>
+                <NavLink href="/help" active={pathname === "/help"} isTransparent={isTransparent}>{t("nav.help")}</NavLink>
+                <NavLink href="/contact" active={pathname === "/contact"} isTransparent={isTransparent}>{t("nav.contact")}</NavLink>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/auth/login"
+                  className={`text-sm font-medium px-4 py-2 transition-colors ${
+                    isTransparent 
+                      ? "text-white/90 hover:text-white" 
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  {t("nav.login")}
+                </Link>
+                <Link
+                  href="/auth/signup"
+                  className="px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 transition-all shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 hover:-translate-y-0.5"
+                >
+                  {t("nav.getStarted")}
+                </Link>
+              </div>
             </div>
 
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-gray-900 transition-colors"
+              className={`md:hidden p-2 transition-colors rounded-lg ${
+                isTransparent 
+                  ? "text-white hover:bg-white/10" 
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              }`}
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? (
@@ -108,101 +108,44 @@ export default function Navigation() {
       >
         {/* Overlay */}
         <div
-          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm"
           onClick={() => setMobileMenuOpen(false)}
         />
         
         {/* Sidebar */}
         <div
-          className={`absolute right-0 top-0 h-full w-72 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${
+          className={`absolute right-0 top-0 h-full w-[280px] bg-white shadow-2xl transform transition-transform duration-300 ease-out ${
             mobileMenuOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
-          <div className="flex flex-col h-full">
-            {/* Sidebar Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <span className="text-xl font-extrabold tracking-tight text-gray-900">
-                YETTI<span className="text-gray-400">.AI</span>
+          <div className="flex flex-col h-full p-6">
+            <div className="flex items-center justify-between mb-8">
+              <span className="text-xl font-bold tracking-tight text-slate-900">
+                YETTI<span className="text-sky-500">.AI</span>
               </span>
               <button
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
-                aria-label="Close menu"
+                className="p-2 text-slate-400 hover:text-slate-900 transition-colors"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Sidebar Navigation */}
-            <div className="flex-1 overflow-y-auto py-6 px-4">
-              <nav className="flex flex-col gap-2">
-                <Link
-                  href="/about"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`px-4 py-3 rounded-lg transition-colors ${
-                    pathname === "/about"
-                      ? "text-gray-900 bg-gray-100 font-medium"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                  }`}
-                >
-                  {t("nav.about")}
-                </Link>
-                <Link
-                  href="/pricing"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`px-4 py-3 rounded-lg transition-colors ${
-                    pathname === "/pricing"
-                      ? "text-gray-900 bg-gray-100 font-medium"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                  }`}
-                >
-                  {t("nav.pricing")}
-                </Link>
-                <Link
-                  href="/help"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`px-4 py-3 rounded-lg transition-colors ${
-                    pathname === "/help"
-                      ? "text-gray-900 bg-gray-100 font-medium"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                  }`}
-                >
-                  {t("nav.help")}
-                </Link>
-                <Link
-                  href="/contact"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`px-4 py-3 rounded-lg transition-colors ${
-                    pathname === "/contact"
-                      ? "text-gray-900 bg-gray-100 font-medium"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                  }`}
-                >
-                  {t("nav.contact")}
-                </Link>
-                <Link
-                  href="/dashboard"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  {t("nav.dashboard")}
-                </Link>
-                <Link
-                  href="/auth/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="px-4 py-3 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  {t("nav.login")}
-                </Link>
-              </nav>
-            </div>
+            <nav className="flex flex-col gap-2 flex-1">
+              <MobileNavLink href="/about" onClick={() => setMobileMenuOpen(false)}>{t("nav.about")}</MobileNavLink>
+              <MobileNavLink href="/pricing" onClick={() => setMobileMenuOpen(false)}>{t("nav.pricing")}</MobileNavLink>
+              <MobileNavLink href="/help" onClick={() => setMobileMenuOpen(false)}>{t("nav.help")}</MobileNavLink>
+              <MobileNavLink href="/contact" onClick={() => setMobileMenuOpen(false)}>{t("nav.contact")}</MobileNavLink>
+              <div className="my-4 border-t border-slate-100" />
+              <MobileNavLink href="/dashboard" onClick={() => setMobileMenuOpen(false)}>{t("nav.dashboard")}</MobileNavLink>
+              <MobileNavLink href="/auth/login" onClick={() => setMobileMenuOpen(false)}>{t("nav.login")}</MobileNavLink>
+            </nav>
 
-            {/* Sidebar Footer with CTA */}
-            <div className="p-4 border-t border-gray-200">
+            <div className="mt-auto">
               <Link
                 href="/auth/signup"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block w-full px-4 py-3 text-center rounded-xl text-white bg-[#0ea5e9] hover:bg-[#0284c7] transition-colors shadow-[0_8px_30px_rgba(14,165,233,0.35)]"
+                className="block w-full py-3 text-center rounded-xl text-white bg-sky-500 hover:bg-sky-600 transition-all font-semibold shadow-lg shadow-sky-500/25"
               >
                 {t("nav.getStarted")}
               </Link>
@@ -211,5 +154,47 @@ export default function Navigation() {
         </div>
       </div>
     </>
+  );
+}
+
+function NavLink({ href, active, isTransparent, children }: { href: string; active: boolean; isTransparent: boolean; children: React.ReactNode }) {
+  if (isTransparent) {
+    return (
+      <Link
+        href={href}
+        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+          active
+            ? "bg-white text-sky-600 shadow-sm"
+            : "text-white/80 hover:text-white hover:bg-white/10"
+        }`}
+      >
+        {children}
+      </Link>
+    );
+  }
+
+  return (
+    <Link
+      href={href}
+      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+        active
+          ? "bg-white text-sky-600 shadow-sm"
+          : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+      }`}
+    >
+      {children}
+    </Link>
+  );
+}
+
+function MobileNavLink({ href, onClick, children }: { href: string; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className="px-4 py-3 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors font-medium"
+    >
+      {children}
+    </Link>
   );
 }

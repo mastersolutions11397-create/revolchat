@@ -8,6 +8,7 @@ import {
   useState,
   type ElementType,
 } from "react";
+import { User } from "@supabase/supabase-js";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { knowledgeAPI } from "@/lib/api/knowledge";
@@ -29,6 +30,14 @@ import {
   Plus,
   Trash2,
   X,
+  Loader2,
+  SendHorizontal,
+  AlertCircle,
+  Bot,
+  RefreshCcwIcon,
+  Info,
+  Link as LinkIcon,
+  MessageSquare,
 } from "lucide-react";
 
 type PreviewTarget =
@@ -67,6 +76,7 @@ type KnowledgeTableRow =
 
 export default function KnowledgePage() {
   const { user } = useAuth();
+  console.log("user", user)
   const { currentWorkspace, selectedWorkspaceId } = useWorkspace();
   const [localSelectedId, setLocalSelectedId] = useState<string | null>(null);
   const [knowledgeItems, setKnowledgeItems] = useState<KnowledgeRecord[]>([]);
@@ -221,7 +231,12 @@ export default function KnowledgePage() {
     });
 
     const sheetRows = googleSheets.map((sheet) => {
-      const sheetTypeLabel = formatSheetTypeLabel(sheet.sheet_type);
+      const sheetTypeLabel = typeof sheet.sheet_type === "string" && sheet.sheet_type
+        ? sheet.sheet_type
+            .split("_")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ")
+        : "Google Sheet";
       const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheet.sheet_id}/edit`;
 
       return {
@@ -720,47 +735,76 @@ export default function KnowledgePage() {
     }
   };
 
+  // Tooltip Component
+  const Tooltip = ({ text, children }: { text: string; children?: React.ReactNode }) => {
+    const [show, setShow] = useState(false);
+    return (
+      <div className="relative inline-flex items-center group">
+        {children}
+        <button
+          type="button"
+          onMouseEnter={() => setShow(true)}
+          onMouseLeave={() => setShow(false)}
+          className="ml-1.5 text-slate-400 hover:text-sky-600 transition-colors"
+        >
+          <Info className="h-3.5 w-3.5" />
+        </button>
+        {show && (
+          <div className="absolute left-0 top-full mt-2 z-50 w-56 rounded-lg bg-slate-900/95 backdrop-blur-md px-3 py-2 text-xs text-white shadow-xl border border-white/10 animate-in fade-in slide-in-from-top-1 duration-200">
+            {text}
+            <div className="absolute -top-1 left-4 h-2 w-2 rotate-45 bg-slate-900/95 border-l border-t border-white/10"></div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+
   return (
-    <div className="flex flex-col gap-6 lg:min-h-[calc(100vh-8rem)]">
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto lg:min-h-[calc(100vh-8rem)]">
       {/* Header - Navy Banner */}
-      <div className="rounded-2xl bg-[#0b1220] p-6 text-white">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
-              <FileText className="h-5 w-5" />
+      <div className="relative rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-xl overflow-visible">
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-blue-600/20 blur-3xl"></div>
+        
+        <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-6">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20">
+              <FileText className="h-8 w-8 text-sky-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Knowledge base</h1>
-              <p className="text-white/70 text-sm">
-                Curate knowledge and chat with your data in one place.
+              <h1 className="text-3xl font-bold tracking-tight text-white">Knowledge Base</h1>
+              <p className="mt-2 text-lg text-sky-100/80 max-w-xl">
+                Manage knowledge and chat with your data in one place.
               </p>
             </div>
           </div>
-          <div className="relative w-auto" ref={addMenuRef}>
+
+          <div className="relative z-50" ref={addMenuRef}>
             <button
               type="button"
               onClick={() => setIsAddMenuOpen((prev) => !prev)}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-cyan-600 px-4 py-2 text-sm font-semibold text-white transition hover:from-sky-700 hover:to-cyan-700 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 focus:ring-offset-[#0b1220]"
+              className="inline-flex items-center gap-2 rounded-xl bg-white text-slate-900 px-6 py-3 text-sm font-bold transition-all hover:bg-sky-50 hover:text-sky-700 shadow-lg shadow-black/10 active:scale-[0.98]"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-5 w-5" />
               Add Knowledge
             </button>
             {isAddMenuOpen && (
-              <div className="absolute right-0 top-full z-20 mt-2 w-64 rounded-xl border border-gray-200 bg-white p-2">
+              <div className="absolute right-0 top-full mt-2 w-72 origin-top-right rounded-2xl border border-slate-200 bg-white p-2 shadow-xl ring-1 ring-black/5 focus:outline-none animate-in fade-in zoom-in-95 duration-200 z-[1000]">
                 <div className="space-y-1">
                   <button
                     type="button"
                     onClick={openTextForm}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-gray-50"
+                    className="flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left transition-colors hover:bg-slate-50 group"
                   >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-50">
-                      <FileText className="h-4 w-4 text-sky-600" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-sky-600 group-hover:scale-110 transition-transform">
+                      <FileText className="h-5 w-5" />
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-bold text-slate-900">
                         Text Document
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-slate-500 font-medium">
                         Write or paste knowledge
                       </div>
                     </div>
@@ -768,16 +812,16 @@ export default function KnowledgePage() {
                   <button
                     type="button"
                     onClick={openPdfForm}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-gray-50"
+                    className="flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left transition-colors hover:bg-slate-50 group"
                   >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-rose-50">
-                      <FileDown className="h-4 w-4 text-rose-600" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-rose-50 text-rose-600 group-hover:scale-110 transition-transform">
+                      <FileDown className="h-5 w-5" />
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-bold text-slate-900">
                         PDF Upload
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-slate-500 font-medium">
                         Import multi-page documents
                       </div>
                     </div>
@@ -785,16 +829,16 @@ export default function KnowledgePage() {
                   <button
                     type="button"
                     onClick={openSheetsForm}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-gray-50"
+                    className="flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left transition-colors hover:bg-slate-50 group"
                   >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50">
-                      <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 group-hover:scale-110 transition-transform">
+                      <FileSpreadsheet className="h-5 w-5" />
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-bold text-slate-900">
                         Google Sheet
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-slate-500 font-medium">
                         Sync structured data
                       </div>
                     </div>
@@ -808,13 +852,14 @@ export default function KnowledgePage() {
 
       {/* Knowledge & Chat Layout */}
       <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
-        <div className="flex h-[520px] flex-1 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-100 px-6 py-4">
+        <div className="flex h-[522px] flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
+          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 bg-gradient-to-br from-slate-50 via-sky-50/20 to-slate-50 px-6 py-4">
             <div>
-              <h3 className="text-xl font-semibold text-gray-900">
+              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <FileText className="h-5 w-5 text-sky-600" />
                 Knowledge Library
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-slate-600 mt-1">
                 {!workspaceId
                   ? "Select a workspace to load knowledge"
                   : knowledgeLoading &&
@@ -831,32 +876,26 @@ export default function KnowledgePage() {
               </p>
             </div>
             <div className="flex items-center gap-4">
-              <div className="hidden xl:flex items-center gap-6">
-                <div className="flex items-center gap-2 text-gray-700">
+              <div className="hidden xl:flex items-center gap-4">
+                <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 ">
                   <FileText className="h-4 w-4 text-sky-600" />
-                  <span className="text-sm">Text Docs</span>
-                  <div className="flex items-center gap-2 size-8 justify-center rounded-full bg-sky-50 px-2 py-1 shrink-0">
-                    <span className="text-sm font-semibold text-sky-700">
-                      {textDocumentsCount}
-                    </span>
+                  <span className="text-xs font-medium text-slate-700">Text</span>
+                  <div className="flex items-center justify-center size-6 rounded-full bg-sky-100">
+                    <span className="text-xs font-bold text-sky-700">{textDocumentsCount}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-gray-700">
+                <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 ">
                   <FileDown className="h-4 w-4 text-sky-600" />
-                  <span className="text-sm">PDF Files</span>
-                  <div className="flex items-center gap-2  size-8 justify-center rounded-full bg-sky-50 px-2 py-1 shrink-0">
-                    <span className="text-sm font-semibold text-sky-700">
-                      {pdfFilesCount}
-                    </span>
+                  <span className="text-xs font-medium text-slate-700">PDF</span>
+                  <div className="flex items-center justify-center size-6 rounded-full shrink-0 bg-sky-100">
+                    <span className="text-xs font-bold text-sky-700">{pdfFilesCount}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-gray-700">
+                <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 ">
                   <FileSpreadsheet className="h-4 w-4 text-sky-600" />
-                  <span className="text-sm">Google Sheets</span>
-                  <div className="flex items-center gap-2 size-8 justify-center rounded-full bg-sky-50 px-2 py-1 shrink-0">
-                    <span className="text-sm font-semibold text-sky-700">
-                      {connectedSheetsCount}
-                    </span>
+                  <span className="text-xs font-medium text-slate-700">Sheets</span>
+                  <div className="flex items-center justify-center size-6 rounded-full shrink-0 bg-sky-100">
+                    <span className="text-xs font-bold text-sky-700">{connectedSheetsCount}</span>
                   </div>
                 </div>
               </div>
@@ -864,41 +903,36 @@ export default function KnowledgePage() {
                 <button
                   onClick={handleRefreshKnowledge}
                   disabled={knowledgeLoading}
-                  className="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-lg  bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition-all hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 disabled:cursor-not-allowed disabled:opacity-50 "
                 >
-                  {knowledgeLoading ? "Refreshing..." : "Refresh"}
+                  <RefreshCcwIcon className="h-4 w-4 text-sky-600" />
+                  Refresh
                 </button>
               )}
             </div>
           </div>
           {/* On small screens, keep summary below as a grid */}
-          <div className="border-b border-gray-100 px-6 py-3 xl:hidden">
+          <div className="border-b border-slate-200 bg-slate-50/30 px-6 py-3 xl:hidden">
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <div className="flex items-center gap-2 text-gray-700">
+              <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 shadow-sm border border-slate-200">
                 <FileText className="h-4 w-4 text-sky-600" />
-                <span className="text-sm">Text Docs</span>
-                <div className="flex items-center gap-2 size-8 justify-center rounded-full bg-sky-50 px-2 py-1 shrink-0">
-                  <span className="text-sm font-semibold text-sky-700">
-                    {textDocumentsCount}
-                  </span>
+                <span className="text-xs font-medium text-slate-700">Text</span>
+                <div className="flex items-center justify-center size-6 rounded-full bg-sky-100">
+                  <span className="text-xs font-bold p-1 text-sky-700">{textDocumentsCount}</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-gray-700">
+              <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 shadow-sm border border-slate-200">
                 <FileDown className="h-4 w-4 text-sky-600" />
-                <span className="text-sm">PDF Files</span>
-                <div className="flex items-center gap-2 size-8 justify-center rounded-full bg-sky-50 px-2 py-1 shrink-0">
-                  <span className="text-sm font-semibold text-sky-700">
-                    {pdfFilesCount}
-                  </span>
+                <span className="text-xs font-medium text-slate-700">PDF</span>
+                <div className="flex items-center justify-center size-6 rounded-full shrink-0 bg-sky-100">
+                  <span className="text-xs font-bold p-1 text-sky-700">{pdfFilesCount}</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 text-gray-700">
+              <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 shadow-sm border border-slate-200">
                 <FileSpreadsheet className="h-4 w-4 text-sky-600" />
-                <span className="text-sm">Google Sheets</span>
-                <div className="flex items-center gap-2 size-8 justify-center rounded-full bg-sky-50 px-2 py-1 shrink-0">
-                  <span className="text-sm font-semibold text-sky-700">
-                    {connectedSheetsCount}
-                  </span>
+                <span className="text-xs font-medium text-slate-700">Sheets</span>
+                <div className="flex items-center justify-center size-6 rounded-full bg-emerald-100">
+                  <span className="text-xs font-bold p-1 text-sky-700">{connectedSheetsCount}</span>
                 </div>
               </div>
             </div>
@@ -1015,51 +1049,48 @@ export default function KnowledgePage() {
                                     </p>
                                   </div>
                                 </div>
-                                <div className="flex items-center justify-end gap-1.5 py-2">
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      setPreviewItem(
-                                        row.kind === "knowledge"
-                                          ? {
-                                              kind: "knowledge",
-                                              item: row.item,
-                                            }
-                                          : { kind: "sheet", item: row.sheet }
-                                      )
-                                    }
-                                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:border-sky-200 hover:text-sky-600"
-                                    title="Preview"
-                                  >
-                                    <Eye className="h-3.5 w-3.5" />
-                                  </button>
-                                  {row.link && (
-                                    <a
-                                      href={row.link}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:border-sky-200 hover:text-sky-600"
-                                      title="Open in new tab"
-                                    >
-                                      <ExternalLink className="h-3.5 w-3.5" />
-                                    </a>
-                                  )}
-                                  <button
-                                    type="button"
-                                    onClick={() =>
+                              </div>
+                              <div className="flex items-center justify-end gap-1.5 py-2">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setPreviewItem(
                                       row.kind === "knowledge"
-                                        ? handleDeleteKnowledge(
-                                            row.deleteId,
-                                            row.item.title
-                                          )
-                                        : handleDeleteSheet(row.deleteId)
-                                    }
-                                    className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-gray-200 text-gray-500 transition hover:border-red-200 hover:text-red-600"
-                                    title="Delete"
+                                        ? { kind: "knowledge", item: row.item }
+                                        : { kind: "sheet", item: row.sheet }
+                                    )
+                                  }
+                                  className="group inline-flex h-8 w-8 items-center justify-center rounded-lg border-2 border-slate-200 bg-white text-slate-500 transition-all hover:border-sky-300 hover:bg-sky-50 hover:text-sky-600 hover:scale-105 active:scale-95 shadow-sm"
+                                  title="Preview"
+                                >
+                                  <Eye className="h-4 w-4 transition-transform group-hover:scale-110" />
+                                </button>
+                                {row.link && (
+                                  <a
+                                    href={row.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="group inline-flex h-8 w-8 items-center justify-center rounded-lg border-2 border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 hover:scale-105 active:scale-95 shadow-sm"
+                                    title="Open in new tab"
                                   >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </button>
-                                </div>
+                                    <ExternalLink className="h-4 w-4 transition-transform group-hover:scale-110" />
+                                  </a>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    row.kind === "knowledge"
+                                      ? handleDeleteKnowledge(
+                                          row.deleteId,
+                                          row.item.title
+                                        )
+                                      : handleDeleteSheet(row.deleteId)
+                                  }
+                                  className="group inline-flex h-8 w-8 items-center justify-center rounded-lg border-2 border-slate-200 bg-white text-slate-500 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600 hover:scale-105 active:scale-95 shadow-sm"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="h-4 w-4 transition-transform group-hover:scale-110" />
+                                </button>
                               </div>
                             </div>
                           );
@@ -1208,6 +1239,15 @@ export default function KnowledgePage() {
                               {formatSheetTypeLabel(
                                 previewItem.item.sheet_type
                               )}
+                              {previewItem.item.sheet_type
+                                ? previewItem.item.sheet_type
+                                    .split("_")
+                                    .map(
+                                      (word) =>
+                                        word.charAt(0).toUpperCase() + word.slice(1)
+                                    )
+                                    .join(" ")
+                                : "General"}
                             </p>
                           </div>
                           <div>
@@ -1252,264 +1292,233 @@ export default function KnowledgePage() {
             workspaceId={workspaceId}
             workspaceName={currentWorkspace?.name ?? null}
             hasKnowledge={hasKnowledge}
+            user={user}
           />
         </div>
       </div>
 
-      {/* Active Tab Content */}
+      {/* Active Tab Content (Modal) */}
       {activeTab && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4 py-6">
-          <div className="w-full max-h-[90vh] max-w-4xl overflow-y-auto rounded-2xl border border-gray-200 bg-white p-8">
-            {activeTab === "text" && (
-              <div className="space-y-6">
-                <div className="rounded-xl bg-[#0b1220] text-white px-4 py-3 mb-2 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
-                      <FileText className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold">Add Text Knowledge</h3>
-                      <p className="text-xs text-white/70">
-                        Create a text entry for your library.
-                      </p>
-                    </div>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="w-full max-h-[90vh] max-w-2xl overflow-y-auto rounded-2xl border border-white/20 bg-white shadow-2xl ring-1 ring-black/5 animate-in zoom-in-95 duration-200">
+          {activeTab === "text" && (
+            <div className="p-6 space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600 shadow-sm">
+                    <FileText className="h-5 w-5" />
                   </div>
-                  <button
-                    onClick={() => {
-                      resetTextForm();
-                      closeActiveTab();
-                    }}
-                    className="rounded-md border border-transparent px-2 py-1 text-white/70 transition hover:border-white/20 hover:text-white"
-                    aria-label="Close"
-                  >
-                    ×
-                  </button>
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-900">Add Text</h3>
+                    <p className="text-xs text-slate-500">Create a new knowledge entry</p>
+                  </div>
                 </div>
+                <button
+                  onClick={() => {
+                    resetTextForm();
+                    closeActiveTab();
+                  }}
+                  className="rounded-lg p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
 
-                {submitError && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
-                    {submitError}
-                  </div>
-                )}
+              {submitError && (
+                <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-xs font-medium text-red-600 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  {submitError}
+                </div>
+              )}
 
-                {/* Title */}
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
                     Title
                   </label>
                   <input
                     type="text"
                     value={textTitle}
                     onChange={(e) => setTextTitle(e.target.value)}
-                    placeholder="e.g., Brand Guidelines"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
+                    placeholder="e.g., Company Overview"
+                    className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all placeholder:text-slate-400"
                   />
                 </div>
 
-                {/* Content */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Knowledge Content
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                    Content
                   </label>
                   <textarea
                     value={textContent}
                     onChange={(e) => setTextContent(e.target.value)}
-                    placeholder="Enter your knowledge content here... You can paste articles, documentation, FAQs, or any text-based information that your AI agents should know."
-                    rows={12}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all resize-none"
+                    placeholder="Paste or type your knowledge content here..."
+                    rows={5}
+                    className="w-full px-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all resize-none placeholder:text-slate-400"
                   />
-                  <p
-                    className={`text-sm mt-2 ${
-                      textContent.length > MAX_CONTENT_LENGTH
-                        ? "text-red-600"
-                        : "text-gray-500"
-                    }`}
-                  >
-                    {textContent.length} characters
-                    {textContent.length > MAX_CONTENT_LENGTH &&
-                      ` (exceeds ${MAX_CONTENT_LENGTH} limit)`}
-                  </p>
+                  <div className="flex justify-end mt-1">
+                    <span className={`text-[10px] font-medium ${textContent.length > MAX_CONTENT_LENGTH ? "text-red-500" : "text-slate-400"}`}>
+                      {textContent.length.toLocaleString()} / {MAX_CONTENT_LENGTH.toLocaleString()}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Category and Importance */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Category
-                    </label>
-                    <select
-                      value={textCategory}
-                      onChange={(e) => setTextCategory(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all bg-white"
-                    >
-                      <option value="branding">Branding</option>
-                      <option value="products">Products</option>
-                      <option value="policies">Policies</option>
-                      <option value="support">Support</option>
-                      <option value="operations">Operations</option>
-                    </select>
+                    <div className="flex items-center gap-1.5 mb-1.5 ml-1">
+                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        Category
+                      </label>
+                      <Tooltip text="Group your knowledge for better organization and retrieval" />
+                    </div>
+                    <div className="relative">
+                      <select
+                        value={textCategory}
+                        onChange={(e) => setTextCategory(e.target.value)}
+                        className="w-full appearance-none px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                      >
+                        <option value="branding">Branding</option>
+                        <option value="products">Products</option>
+                        <option value="policies">Policies</option>
+                        <option value="support">Support</option>
+                        <option value="operations">Operations</option>
+                      </select>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                      </div>
+                    </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Importance
-                    </label>
-                    <div className="px-3 py-2 border border-gray-200 rounded-lg">
-                      <input
-                        type="range"
-                        min={1}
-                        max={4}
-                        step={1}
+                    <div className="flex items-center gap-1.5 mb-1.5 ml-1">
+                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        Importance
+                      </label>
+                      <Tooltip text="Set how critical this information is for the AI to know" />
+                    </div>
+                    <div className="relative">
+                      <select
                         value={importanceLevel}
-                        onChange={(e) =>
-                          setImportanceLevel(parseInt(e.target.value, 10))
-                        }
-                        className="w-full accent-sky-600"
-                      />
-                      <div className="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>Low</span>
-                        <span>Normal</span>
-                        <span>High</span>
-                        <span>Critical</span>
+                        onChange={(e) => setImportanceLevel(parseInt(e.target.value, 10))}
+                        className="w-full appearance-none px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                      >
+                        <option value={1}>Low Priority</option>
+                        <option value={2}>Normal Priority</option>
+                        <option value={3}>High Priority</option>
+                        <option value={4}>Critical Priority</option>
+                      </select>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Tags */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
                     Tags
                   </label>
-                  <div className="flex flex-wrap gap-2 mb-2">
+                  <div className="flex flex-wrap gap-2 mb-2 min-h-[32px]">
                     {tags.map((t, i) => (
-                      <span
-                        key={`${t}-${i}`}
-                        className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm bg-sky-50 text-sky-700"
-                      >
-                        {t}
+                      <span key={`${t}-${i}`} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-50 text-sky-700 border border-sky-100">
+                        #{t}
                         <button
                           type="button"
-                          onClick={() =>
-                            setTags((prev) =>
-                              prev.filter((_, idx) => idx !== i)
-                            )
-                          }
-                          className="text-sky-700 hover:text-sky-900"
-                          aria-label={`Remove ${t}`}
+                          onClick={() => setTags((prev) => prev.filter((_, idx) => idx !== i))}
+                          className="hover:text-sky-900"
                         >
                           ×
                         </button>
                       </span>
                     ))}
-                  </div>
-                  <input
-                    type="text"
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (
-                        (e.key === "Enter" || e.key === ",") &&
-                        tagInput.trim()
-                      ) {
-                        e.preventDefault();
-                        const newTag = tagInput.trim();
-                        if (!tags.includes(newTag)) {
-                          setTags((prev) => [...prev, newTag]);
+                    <input
+                      type="text"
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if ((e.key === "Enter" || e.key === ",") && tagInput.trim()) {
+                          e.preventDefault();
+                          const newTag = tagInput.trim();
+                          if (!tags.includes(newTag)) setTags((prev) => [...prev, newTag]);
+                          setTagInput("");
                         }
-                        setTagInput("");
-                      }
-                    }}
-                    placeholder="Type a tag and press Enter"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
-                  />
-                </div>
-
-                <div className="flex gap-4">
-                  <button
-                    onClick={async () => {
-                      const activeWorkspaceId = workspaceId;
-                      if (!activeWorkspaceId) {
-                        setSubmitError("Please select a workspace first");
-                        return;
-                      }
-                      setSubmitError(null);
-                      const importance: KnowledgeImportance =
-                        importanceLevel === 1
-                          ? "low"
-                          : importanceLevel === 2
-                            ? "normal"
-                            : importanceLevel === 3
-                              ? "high"
-                              : "critical";
-                      if (!textTitle.trim()) {
-                        setSubmitError("Title is required");
-                        return;
-                      }
-                      if (!textContent.trim()) {
-                        setSubmitError("Content is required");
-                        return;
-                      }
-                      try {
-                        setSubmittingText(true);
-                        await knowledgeAPI.addTextKnowledge(activeWorkspaceId, {
-                          title: textTitle.trim(),
-                          content:
-                            textContent.length > MAX_CONTENT_LENGTH
-                              ? textContent.slice(0, MAX_CONTENT_LENGTH)
-                              : textContent.trim(),
-                          category: textCategory,
-                          importance,
-                          tags,
-                        });
-                        await loadKnowledge(activeWorkspaceId);
-                        setTextTitle("");
-                        setTextContent("");
-                        setTextCategory("branding");
-                        setImportanceLevel(2);
-                        setTags([]);
-                        setTagInput("");
-                        closeActiveTab();
-                      } catch (error: any) {
-                        setSubmitError(
-                          error?.message || "Failed to add text knowledge"
-                        );
-                      } finally {
-                        setSubmittingText(false);
-                      }
-                    }}
-                    disabled={
-                      submittingText || !textTitle.trim() || !textContent.trim()
-                    }
-                    className="bg-gradient-to-r from-sky-600 to-sky-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {submittingText ? "Saving..." : "Add to Knowledge Base"}
-                  </button>
-                  <button
-                    onClick={() => {
-                      resetTextForm();
-                    }}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all"
-                  >
-                    Clear
-                  </button>
+                      }}
+                      placeholder={tags.length === 0 ? "Type tag & press Enter..." : ""}
+                      className="flex-1 min-w-[120px] bg-transparent text-sm focus:outline-none placeholder:text-slate-400"
+                    />
+                  </div>
                 </div>
               </div>
-            )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={async () => {
+                    const activeWorkspaceId = workspaceId;
+                    if (!activeWorkspaceId) {
+                      setSubmitError("Please select a workspace first");
+                      return;
+                    }
+                    setSubmitError(null);
+                    const importance: KnowledgeImportance =
+                      importanceLevel === 1 ? "low" : importanceLevel === 2 ? "normal" : importanceLevel === 3 ? "high" : "critical";
+                    if (!textTitle.trim()) {
+                      setSubmitError("Title is required");
+                      return;
+                    }
+                    if (!textContent.trim()) {
+                      setSubmitError("Content is required");
+                      return;
+                    }
+                    try {
+                      setSubmittingText(true);
+                      await knowledgeAPI.addTextKnowledge(activeWorkspaceId, {
+                        title: textTitle.trim(),
+                        content: textContent.length > MAX_CONTENT_LENGTH ? textContent.slice(0, MAX_CONTENT_LENGTH) : textContent.trim(),
+                        category: textCategory,
+                        importance,
+                        tags,
+                      });
+                      await loadKnowledge(activeWorkspaceId);
+                      resetTextForm();
+                      closeActiveTab();
+                    } catch (error: any) {
+                      setSubmitError(error?.message || "Failed to add text knowledge");
+                    } finally {
+                      setSubmittingText(false);
+                    }
+                  }}
+                  disabled={submittingText || !textTitle.trim() || !textContent.trim()}
+                  className="flex-1 bg-sky-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:bg-sky-700 transition-all shadow-lg shadow-sky-500/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                >
+                  {submittingText ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Saving...
+                    </span>
+                  ) : (
+                    "Save Knowledge"
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    resetTextForm();
+                  }}
+                  className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-all active:scale-[0.98]"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+          )}
 
             {activeTab === "pdf" && (
-              <div className="space-y-6">
-                <div className="rounded-xl bg-[#0b1220] text-white px-4 py-3 mb-2 flex items-center justify-between">
+              <div className="p-6 space-y-6">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
-                      <FileDown className="h-4 w-4" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600 shadow-sm">
+                      <FileDown className="h-5 w-5" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold">
-                        Upload PDF Documents
-                      </h3>
-                      <p className="text-xs text-white/70">
-                        Add multi-page documents to your library.
-                      </p>
+                      <h3 className="text-lg font-bold text-slate-900">Upload PDF</h3>
+                      <p className="text-xs text-slate-500">Import documents to your library</p>
                     </div>
                   </div>
                   <button
@@ -1517,22 +1526,21 @@ export default function KnowledgePage() {
                       resetPdfForm();
                       closeActiveTab();
                     }}
-                    className="rounded-md border border-transparent px-2 py-1 text-white/70 transition hover:border-white/20 hover:text-white"
-                    aria-label="Close"
+                    className="rounded-lg p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
                   >
-                    ×
+                    <X className="h-5 w-5" />
                   </button>
                 </div>
 
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <div className="w-16 h-16 bg-linear-to-br from-sky-500 to-sky-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="text-3xl text-white">📄</span>
+                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center hover:border-rose-300 hover:bg-rose-50/30 transition-all group">
+                  <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                    <FileDown className="h-8 w-8 text-rose-500" />
                   </div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                    Upload PDF Files
+                  <h4 className="text-base font-semibold text-slate-900 mb-1">
+                    Drop PDF files here
                   </h4>
-                  <p className="text-gray-600 mb-4">
-                    Drag and drop PDF files here, or click to browse
+                  <p className="text-sm text-slate-500 mb-4">
+                    or click to browse from your computer
                   </p>
 
                   <input
@@ -1546,47 +1554,52 @@ export default function KnowledgePage() {
                   />
                   <label
                     htmlFor="pdf-upload"
-                    className={`bg-gradient-to-r from-sky-600 to-sky-700 text-white px-6 py-3 rounded-lg font-semibold transition-all inline-block ${
+                    className={`inline-flex items-center justify-center px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                       isProcessingPdfs
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:from-sky-700 hover:to-sky-800 cursor-pointer"
+                        ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                        : "bg-white border border-slate-200 text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300 cursor-pointer"
                     }`}
                   >
-                    {isProcessingPdfs ? "Uploading..." : "Choose PDF Files"}
+                    {isProcessingPdfs ? "Processing..." : "Select Files"}
                   </label>
                 </div>
 
                 {pdfError && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+                  <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-xs font-medium text-red-600 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
                     {pdfError}
                   </div>
                 )}
 
                 {pdfSuccessMessage && (
-                  <div className="p-3 bg-green-50 border border-green-200 rounded-md text-sm text-green-700">
+                  <div className="p-3 bg-green-50 border border-green-100 rounded-xl text-xs font-medium text-green-600">
                     {pdfSuccessMessage}
                   </div>
                 )}
 
                 {uploadedFiles.length > 0 && (
-                  <div className="space-y-6">
-                    <div className="space-y-3">
-                      <h4 className="text-lg font-semibold text-gray-900">
-                        Uploaded Files
+                  <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4">
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">
+                        Selected Files
                       </h4>
                       {uploadedFiles.map((file, index) => (
                         <div
                           key={index}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                          className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl"
                         >
-                          <div className="flex items-center space-x-3">
-                            <span className="text-red-500 text-xl">📄</span>
-                            <span className="text-sm font-medium text-gray-900">
-                              {file.name}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                            </span>
+                          <div className="flex items-center gap-3 overflow-hidden">
+                            <div className="flex-shrink-0 h-8 w-8 rounded-lg bg-white flex items-center justify-center text-rose-500 border border-slate-100">
+                              <FileDown className="h-4 w-4" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-slate-700 truncate">
+                                {file.name}
+                              </p>
+                              <p className="text-[10px] text-slate-500">
+                                {(file.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
                           </div>
                           <button
                             onClick={() => {
@@ -1604,161 +1617,146 @@ export default function KnowledgePage() {
                               setPdfError(null);
                               setPdfSuccessMessage(null);
                             }}
-                            className="text-red-500 hover:text-red-700 text-sm"
+                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                           >
-                            Remove
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       ))}
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-4 pt-2 border-t border-slate-100">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Title
+                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                          Collection Title
                         </label>
                         <input
                           type="text"
                           value={pdfTitle}
                           onChange={(e) => setPdfTitle(e.target.value)}
-                          placeholder="e.g., Brand Guidelines"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
+                          placeholder="e.g., Q1 Reports"
+                          className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all placeholder:text-slate-400"
                         />
-                        <p className="text-xs text-gray-500 mt-1">
-                          This title and metadata apply to all selected files.
-                        </p>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
                             Category
                           </label>
-                          <select
-                            value={pdfCategory}
-                            onChange={(e) => setPdfCategory(e.target.value)}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all bg-white"
-                          >
-                            <option value="branding">Branding</option>
-                            <option value="products">Products</option>
-                            <option value="policies">Policies</option>
-                            <option value="support">Support</option>
-                            <option value="operations">Operations</option>
-                          </select>
+                          <div className="relative">
+                            <select
+                              value={pdfCategory}
+                              onChange={(e) => setPdfCategory(e.target.value)}
+                              className="w-full appearance-none px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+                            >
+                              <option value="branding">Branding</option>
+                              <option value="products">Products</option>
+                              <option value="policies">Policies</option>
+                              <option value="support">Support</option>
+                              <option value="operations">Operations</option>
+                            </select>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                          </div>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
                             Importance
                           </label>
-                          <div className="px-3 py-2 border border-gray-200 rounded-lg">
+                          <div className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl">
                             <input
                               type="range"
                               min={1}
                               max={4}
                               step={1}
                               value={pdfImportanceLevel}
-                              onChange={(e) =>
-                                setPdfImportanceLevel(
-                                  parseInt(e.target.value, 10)
-                                )
-                              }
-                              className="w-full accent-sky-600"
+                              onChange={(e) => setPdfImportanceLevel(parseInt(e.target.value, 10))}
+                              className="w-full accent-rose-500 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer"
                             />
-                            <div className="flex justify-between text-xs text-gray-500 mt-1">
-                              <span>Low</span>
-                              <span>Normal</span>
-                              <span>High</span>
-                              <span>Critical</span>
+                            <div className="flex justify-between text-[10px] font-medium text-slate-400 mt-1.5">
+                              <span className={pdfImportanceLevel === 1 ? "text-rose-600" : ""}>Low</span>
+                              <span className={pdfImportanceLevel === 2 ? "text-rose-600" : ""}>Normal</span>
+                              <span className={pdfImportanceLevel === 3 ? "text-rose-600" : ""}>High</span>
+                              <span className={pdfImportanceLevel === 4 ? "text-rose-600" : ""}>Critical</span>
                             </div>
                           </div>
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
                           Tags
                         </label>
-                        <div className="flex flex-wrap gap-2 mb-2">
+                        <div className="flex flex-wrap gap-2 mb-2 min-h-[32px]">
                           {pdfTags.map((t, i) => (
-                            <span
-                              key={`${t}-${i}`}
-                              className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm bg-sky-50 text-sky-700"
-                            >
-                              {t}
+                            <span key={`${t}-${i}`} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-rose-50 text-rose-700 border border-rose-100">
+                              #{t}
                               <button
                                 type="button"
-                                onClick={() =>
-                                  setPdfTags((prev) =>
-                                    prev.filter((_, idx) => idx !== i)
-                                  )
-                                }
-                                className="text-sky-700 hover:text-sky-900"
-                                aria-label={`Remove ${t}`}
+                                onClick={() => setPdfTags((prev) => prev.filter((_, idx) => idx !== i))}
+                                className="hover:text-rose-900"
                               >
                                 ×
                               </button>
                             </span>
                           ))}
-                        </div>
-                        <input
-                          type="text"
-                          value={pdfTagInput}
-                          onChange={(e) => setPdfTagInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (
-                              (e.key === "Enter" || e.key === ",") &&
-                              pdfTagInput.trim()
-                            ) {
-                              e.preventDefault();
-                              const newTag = pdfTagInput.trim();
-                              if (!pdfTags.includes(newTag)) {
-                                setPdfTags((prev) => [...prev, newTag]);
+                          <input
+                            type="text"
+                            value={pdfTagInput}
+                            onChange={(e) => setPdfTagInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if ((e.key === "Enter" || e.key === ",") && pdfTagInput.trim()) {
+                                e.preventDefault();
+                                const newTag = pdfTagInput.trim();
+                                if (!pdfTags.includes(newTag)) setPdfTags((prev) => [...prev, newTag]);
+                                setPdfTagInput("");
                               }
-                              setPdfTagInput("");
-                            }
-                          }}
-                          placeholder="Type a tag and press Enter"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
-                        />
+                            }}
+                            placeholder={pdfTags.length === 0 ? "Type tag & press Enter..." : ""}
+                            className="flex-1 min-w-[120px] bg-transparent text-sm focus:outline-none placeholder:text-slate-400"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                <div className="flex gap-4">
+                <div className="flex gap-3 pt-2">
                   <button
                     onClick={handleProcessPDFs}
                     disabled={uploadedFiles.length === 0 || isProcessingPdfs}
-                    className="bg-gradient-to-r from-sky-600 to-sky-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 bg-rose-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:bg-rose-700 transition-all shadow-lg shadow-rose-500/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                   >
-                    {isProcessingPdfs
-                      ? "Uploading..."
-                      : "Upload to Knowledge Base"}
+                    {isProcessingPdfs ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" /> Uploading...
+                      </span>
+                    ) : (
+                      "Upload Files"
+                    )}
                   </button>
                   <button
                     onClick={resetPdfForm}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all"
+                    className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-all active:scale-[0.98]"
                   >
-                    Clear All
+                    Clear
                   </button>
                 </div>
               </div>
             )}
 
             {activeTab === "sheets" && (
-              <div className="space-y-6">
-                <div className="rounded-xl bg-[#0b1220] text-white px-4 py-3 mb-2 flex items-center justify-between">
+              <div className="p-6 space-y-6">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-500/20 text-sky-400">
-                      <FileSpreadsheet className="h-4 w-4" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 shadow-sm">
+                      <FileSpreadsheet className="h-5 w-5" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold">
-                        Connect Google Sheets
-                      </h3>
-                      <p className="text-xs text-white/70">
-                        Sync structured data from Google Sheets.
-                      </p>
+                      <h3 className="text-lg font-bold text-slate-900">Google Sheets</h3>
+                      <p className="text-xs text-slate-500">Sync structured data</p>
                     </div>
                   </div>
                   <button
@@ -1770,93 +1768,84 @@ export default function KnowledgePage() {
                       setShowTemplateCards(false);
                       closeActiveTab();
                     }}
-                    className="rounded-md border border-transparent px-2 py-1 text-white/70 transition hover:border-white/20 hover:text-white"
-                    aria-label="Close"
+                    className="rounded-lg p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
                   >
-                    ×
+                    <X className="h-5 w-5" />
                   </button>
                 </div>
 
                 {googleSheets.length > 0 && !showTemplateCards ? (
-                  <div className="space-y-4">
+                  <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
                     {sheetsError && (
-                      <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+                      <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-xs font-medium text-red-600 flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4" />
                         {sheetsError}
                       </div>
                     )}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3 p-4 bg-sky-50 rounded-lg flex-1 border border-sky-200">
-                        <span className="text-sky-600 text-xl">✅</span>
-                        <span className="text-sky-800 font-medium">
-                          Google Sheet Connected
-                        </span>
+                    
+                    <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl flex items-start gap-3">
+                      <div className="bg-white p-1.5 rounded-lg shadow-sm">
+                         <span className="text-emerald-500 text-lg">✅</span>
                       </div>
-                      <div className="text-xs text-gray-500 px-3">
-                        Only one sheet allowed per workspace
+                      <div>
+                        <h4 className="text-sm font-bold text-emerald-900">Sheet Connected</h4>
+                        <p className="text-xs text-emerald-700 mt-0.5">
+                          Your workspace is synced with a Google Sheet. View details in the library below.
+                        </p>
                       </div>
-                    </div>
-                    <div className="p-3 bg-sky-50 border border-sky-200 rounded-lg">
-                      <p className="text-sm text-sky-700">
-                        ℹ️ You can view and manage your connected Google Sheet
-                        in the Knowledge Library below.
-                      </p>
                     </div>
 
                     <div className="space-y-3">
-                      <h4 className="text-lg font-semibold text-gray-900">
-                        Connected Sheets
+                      <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider ml-1">
+                        Active Connection
                       </h4>
                       {sheetsLoading && (
                         <div className="flex items-center justify-center py-4">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-                          <span className="ml-2 text-sm text-gray-600">
-                            Refreshing...
-                          </span>
+                          <Loader2 className="h-5 w-5 text-emerald-600 animate-spin mr-2" />
+                          <span className="text-sm text-slate-600">Refreshing...</span>
                         </div>
                       )}
                       <div className="space-y-2">
                         {googleSheets.map((sheet) => {
-                          const sheetTypeLabel = formatSheetTypeLabel(
-                            sheet.sheet_type
-                          );
+                          const sheetTypeLabel = formatSheetTypeLabel(sheet.sheet_type);
                           const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheet.sheet_id}/edit`;
 
                           return (
                             <div
                               key={sheet.id}
-                              className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                              className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-emerald-200 transition-all"
                             >
                               <div className="flex items-center space-x-3 flex-1">
-                                <span className="text-green-500 text-xl">
-                                  📊
-                                </span>
-                                <div className="flex-1">
+                                <div className="h-10 w-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+                                   <FileSpreadsheet className="h-5 w-5" />
+                                </div>
+                                <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2">
                                     <a
                                       href={sheetUrl}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="text-sm font-medium text-gray-900 hover:text-green-600 transition-colors"
+                                      className="text-sm font-bold text-slate-900 hover:text-emerald-600 transition-colors truncate"
                                     >
-                                      {sheetTypeLabel} Sheet
+                                      {sheetTypeLabel}
                                     </a>
-                                    <span className="px-2 py-0.5 text-xs bg- sky-100 text- sky-700 rounded">
+                                    <span className="px-2 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-600 rounded-full uppercase tracking-wide">
                                       {sheet.sheet_type || "general"}
                                     </span>
                                   </div>
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    Sheet ID: {sheet.sheet_id}
-                                  </p>
-                                  <p className="text-xs text-gray-500">
-                                    Connected:{" "}
-                                    {formatDateTime(sheet.created_at)}
-                                  </p>
+                                  <div className="flex items-center gap-3 mt-1">
+                                    <p className="text-[10px] text-slate-400 font-mono bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">
+                                      {sheet.sheet_id.substring(0, 8)}...
+                                    </p>
+                                    <p className="text-[10px] text-slate-400">
+                                      Updated {formatDateTime(sheet.updated_at)}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
                               <button
                                 onClick={() => handleDeleteSheet(sheet.id)}
-                                className="ml-4 px-3 py-1.5 text-sm bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors"
-                                title="Disconnect this sheet"
+                                className="ml-4 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
                               >
                                 Disconnect
                               </button>
@@ -1865,126 +1854,68 @@ export default function KnowledgePage() {
                         })}
                       </div>
                     </div>
-
-                    {googleSheets.length === 0 && (
-                      <div className="pt-4 border-t border-gray-200">
-                        <button
-                          onClick={() => {
-                            setShowTemplateCards(true);
-                          }}
-                          className="w-full px-6 py-3 border-2 border-dashed border-gray-300 text-gray-700 rounded-lg font-medium hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-all"
-                        >
-                          + Add Another Google Sheet
-                        </button>
-                      </div>
-                    )}
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {sheetsError && googleSheets.length === 0 && (
-                      <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md text-sm text-yellow-700">
-                        ⚠️ {sheetsError} You can still connect a new sheet
-                        below.
+                      <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl text-xs font-medium text-amber-700 flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4" />
+                        {sheetsError}
                       </div>
                     )}
-                    {sheetsLoading && googleSheets.length === 0 && (
-                      <div className="flex items-center justify-center py-2 text-sm text-gray-500">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 mr-2"></div>
-                        Loading connected sheets...
-                      </div>
-                    )}
+                    
                     {hasGoogleSheet && (
-                      <div className="p-4 bg-sky-50 border border-sky-200 rounded-lg mb-4">
-                        <p className="text-sm text-sky-800">
-                          ⚠️ A Google Sheet is already connected to this
-                          workspace. You can only connect one sheet per
-                          workspace. To add a different sheet, please disconnect
-                          the existing one first.
-                        </p>
+                      <div className="p-4 bg-sky-50 border border-sky-100 rounded-xl text-sm text-sky-800 flex items-start gap-3">
+                         <Info className="h-5 w-5 text-sky-600 flex-shrink-0" />
+                         <p>To connect a different sheet, please disconnect the existing one first.</p>
                       </div>
                     )}
-                    {googleSheets.length > 0 && (
+
+                    <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-lg font-semibold text-gray-900">
-                          Select a Template
-                        </h4>
-                        <button
-                          onClick={() => {
-                            setShowTemplateCards(false);
-                          }}
-                          className="text-sm text-gray-600 hover:text-gray-900"
-                        >
-                          ← Back to Sheet
-                        </button>
+                         <div>
+                            <h4 className="text-sm font-bold text-slate-900">Select Template</h4>
+                            <p className="text-xs text-slate-500">Choose a structure for your data</p>
+                         </div>
+                         {showTemplateCards && (
+                            <button
+                              onClick={() => setShowTemplateCards(false)}
+                              className="text-xs font-medium text-slate-500 hover:text-slate-900"
+                            >
+                              Cancel
+                            </button>
+                         )}
                       </div>
-                    )}
-                    <div
-                      className={`grid grid-cols-1 lg:grid-cols-2 gap-8 ${
-                        hasGoogleSheet ? "pointer-events-none opacity-50" : ""
-                      }`}
-                    >
-                      {/* Template Cards Grid */}
-                      <div className="grid grid-cols-2 gap-4">
+
+                      <div className={`grid grid-cols-1 gap-3 ${hasGoogleSheet ? "opacity-50 pointer-events-none" : ""}`}>
                         {templateCards.map((template, index) => (
-                          <div
+                          <button
                             key={index}
-                            onClick={
-                              hasGoogleSheet
-                                ? undefined
-                                : () => handleTemplateClick(index)
-                            }
-                            className={`bg-[#0b1220] border border-sky-400/30 rounded-lg p-6 ${
-                              hasGoogleSheet
-                                ? ""
-                                : "cursor-pointer hover:border-sky-400 hover:shadow-lg hover:shadow-sky-500/20"
-                            } transition-all group`}
+                            onClick={() => handleTemplateClick(index)}
+                            className="group relative flex items-center p-4 bg-white border border-slate-200 rounded-xl hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-500/10 transition-all text-left"
                           >
-                            <div className="text-center text-white">
-                              <h4 className="text-lg font-semibold group-hover:text-sky-300 transition-colors">
-                                {template}
-                              </h4>
+                            <div className="h-10 w-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
+                               <FileSpreadsheet className="h-5 w-5" />
                             </div>
-                          </div>
+                            <div>
+                               <h5 className="font-semibold text-slate-900 text-sm group-hover:text-emerald-700 transition-colors">{template}</h5>
+                               <p className="text-xs text-slate-500 mt-0.5">Click to open & copy</p>
+                            </div>
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                               <ExternalLink className="h-4 w-4 text-emerald-400" />
+                            </div>
+                          </button>
                         ))}
                       </div>
-
-                      {/* Instruction Panel */}
-                      <div
-                        className={`bg-[#0b1220] rounded-lg p-6 text-white ${
-                          hasGoogleSheet ? "opacity-50" : ""
-                        }`}
-                      >
-                        <div className="space-y-6">
-                          {/* Make a Copy Section */}
-                          <div>
-                            <h4 className="text-lg font-bold mb-3">
-                              Make a Copy
-                            </h4>
-                            <p className="text-sm leading-relaxed">
-                              Open this template sheet. Click File → Make a copy
-                              to save it to your own Google Drive.
-                            </p>
-                          </div>
-
-                          {/* Share With the AI Agent Section */}
-                          <div>
-                            <h4 className="text-lg font-bold mb-3">
-                              Share With the AI Agent
-                            </h4>
-                            <p className="text-sm leading-relaxed">
-                              Share your copy with:{" "}
-                              <a
-                                href="mailto:ai.agent.dispatch@gmail.com"
-                                className="underline hover:text-sky-200 transition-colors"
-                              >
-                                ai.agent.dispatch@gmail.com
-                              </a>
-                              <br />
-                              Make sure to give Edit Access so the AI can update
-                              results.
-                            </p>
-                          </div>
-                        </div>
+                      
+                      <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                         <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">How it works</h5>
+                         <ol className="space-y-2 text-xs text-slate-600 list-decimal list-inside">
+                            <li>Select a template above to open it in Google Sheets</li>
+                            <li>Click <span className="font-mono bg-white px-1 border border-slate-200 rounded">File</span> → <span className="font-mono bg-white px-1 border border-slate-200 rounded">Make a copy</span></li>
+                            <li>Share with <span className="font-medium text-emerald-700">ai.agent.dispatch@gmail.com</span> (Editor access)</li>
+                            <li>Paste the URL of your copy when prompted</li>
+                         </ol>
                       </div>
                     </div>
                   </div>
@@ -1997,14 +1928,17 @@ export default function KnowledgePage() {
 
       {/* Link Input Modal */}
       {showLinkInput && clickedTemplateIndex !== null && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-md space-y-4 rounded-2xl border border-gray-200 bg-white p-6">
-            <div className="rounded-xl bg-[#0b1220] text-white px-4 py-3 mb-2 flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-bold">Share Your Google Sheet</h3>
-                <p className="text-xs text-white/70">
-                  Paste the sheet link for your selected template.
-                </p>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-md space-y-6 rounded-2xl border border-white/20 bg-white p-6 shadow-2xl ring-1 ring-black/5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 shadow-sm">
+                  <LinkIcon className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">Connect Sheet</h3>
+                  <p className="text-xs text-slate-500">Paste your Google Sheet link</p>
+                </div>
               </div>
               <button
                 onClick={() => {
@@ -2012,117 +1946,92 @@ export default function KnowledgePage() {
                   setGoogleSheetLink("");
                   setLinkInputError(null);
                 }}
-                className="rounded-md border border-transparent px-2 py-1 text-white/70 transition hover:border-white/20 hover:text-white"
-                aria-label="Close"
+                className="rounded-lg p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
               >
-                ×
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <p className="text-sm text-gray-600">
-              Please paste the link to your copied Google Sheet for{" "}
-              <strong>{templateCards[clickedTemplateIndex]}</strong>
-            </p>
-
-            {linkInputError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
-                {linkInputError}
+            <div className="space-y-4">
+              <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                <p className="text-sm text-slate-600">
+                  Paste the link for the <strong>{templateCards[clickedTemplateIndex]}</strong> sheet you just copied.
+                </p>
               </div>
-            )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Google Sheets Link
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={googleSheetLink}
-                  onChange={(e) => {
-                    setGoogleSheetLink(e.target.value);
-                    // Real-time validation feedback
-                    if (e.target.value.trim()) {
-                      const validation = validateGoogleSheetsLink(
-                        e.target.value
-                      );
-                      if (!validation.isValid) {
-                        setLinkInputError(validation.error || "");
+              {linkInputError && (
+                <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-xs font-medium text-red-600 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  {linkInputError}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                  Google Sheets Link
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={googleSheetLink}
+                    onChange={(e) => {
+                      setGoogleSheetLink(e.target.value);
+                      if (e.target.value.trim()) {
+                        const validation = validateGoogleSheetsLink(e.target.value);
+                        if (!validation.isValid) {
+                          setLinkInputError(validation.error || "");
+                        } else {
+                          setLinkInputError(null);
+                        }
                       } else {
                         setLinkInputError(null);
                       }
-                    } else {
-                      setLinkInputError(null);
-                    }
-                  }}
-                  placeholder="https://docs.google.com/spreadsheets/d/..."
-                  className={`w-full px-4 py-3 pr-10 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all ${
-                    googleSheetLink.trim() && !linkInputError
-                      ? validateGoogleSheetsLink(googleSheetLink).isValid
-                        ? "border-green-500 focus:border-green-500"
-                        : "border-gray-300"
-                      : linkInputError
-                        ? "border-red-300 focus:border-red-500"
-                        : "border-gray-300"
-                  }`}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleSubmitLink();
-                    }
-                  }}
-                />
-                {googleSheetLink.trim() &&
-                  validateGoogleSheetsLink(googleSheetLink).isValid && (
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <svg
-                        className="w-5 h-5 text-green-500"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSubmitLink();
+                      }
+                    }}
+                    placeholder="https://docs.google.com/spreadsheets/d/..."
+                    className={`w-full px-4 py-3 pr-10 text-sm bg-slate-50 border rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400 ${
+                      linkInputError ? "border-red-200 focus:border-red-500 focus:ring-red-500/20" : "border-slate-200"
+                    }`}
+                  />
+                  {googleSheetLink.trim() && validateGoogleSheetsLink(googleSheetLink).isValid && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
                     </div>
                   )}
+                </div>
               </div>
-              {linkInputError && (
-                <p className="mt-1 text-xs text-red-600">{linkInputError}</p>
-              )}
-              {googleSheetLink.trim() &&
-                validateGoogleSheetsLink(googleSheetLink).isValid && (
-                  <p className="mt-1 text-xs text-green-600">
-                    ✓ Valid Google Sheets link
-                  </p>
-                )}
-            </div>
 
-            <div className="flex gap-4">
-              <button
-                onClick={handleSubmitLink}
-                disabled={
-                  submittingSheet ||
-                  !validateGoogleSheetsLink(googleSheetLink).isValid
-                }
-                className="flex-1 bg-gradient-to-r from-sky-600 to-sky-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {submittingSheet ? "Connecting..." : "Connect"}
-              </button>
-              <button
-                onClick={() => {
-                  setShowLinkInput(false);
-                  setGoogleSheetLink("");
-                  setLinkInputError(null);
-                  setClickedTemplateIndex(null);
-                }}
-                disabled={submittingSheet}
-                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Cancel
-              </button>
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={handleSubmitLink}
+                  disabled={submittingSheet || !validateGoogleSheetsLink(googleSheetLink).isValid}
+                  className="flex-1 bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                >
+                  {submittingSheet ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" /> Connecting...
+                    </span>
+                  ) : (
+                    "Connect Sheet"
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowLinkInput(false);
+                    setGoogleSheetLink("");
+                    setLinkInputError(null);
+                    setClickedTemplateIndex(null);
+                  }}
+                  disabled={submittingSheet}
+                  className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-all active:scale-[0.98]"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -2134,18 +2043,21 @@ export default function KnowledgePage() {
 type ChatMessage = {
   role: "user" | "assistant";
   content: string;
+  isError?: boolean;
 };
 
-type ChatPanelProps = {
+interface ChatPanelProps {
   workspaceId: string | null;
   workspaceName: string | null;
   hasKnowledge: boolean;
+  user?: User | null;
 };
 
 function ChatPanel({
   workspaceId,
   workspaceName,
   hasKnowledge,
+  user,
 }: ChatPanelProps) {
   const listRef = useRef<HTMLDivElement | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
@@ -2211,6 +2123,7 @@ function ChatPanel({
     try {
       const response = await chatAPI.sendMessage(workspaceId, {
         message: text,
+        user_id: user?.id,
       });
 
       let content = "";
@@ -2254,7 +2167,11 @@ function ChatPanel({
         error?.message || "Failed to send message. Please try again.";
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: `Error: ${errorMessage}` },
+        { 
+          role: "assistant", 
+          content: `⚠️ **Connection Error**\n\nI'm having trouble connecting right now. ${errorMessage}\n\nPlease try again in a moment.`,
+          isError: true 
+        } as ChatMessage,
       ]);
     } finally {
       setSending(false);
@@ -2271,9 +2188,9 @@ function ChatPanel({
   };
 
   return (
-    <div className="sticky top-6 flex h-full max-h-[calc(100vh-8rem)] min-h-[28rem] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-      <div className="border-b border-gray-200 px-6 py-4">
-        <h3 className="text-xl font-semibold text-gray-900">Chat</h3>
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div className="flex-none border-b border-gray-200 px-6 py-4">
+        <h3 className="text-xl font-semibold text-gray-900">Test Yetti</h3>
         <p className="text-xs text-gray-500">
           {workspaceName
             ? `Workspace: ${workspaceName}`
@@ -2282,103 +2199,180 @@ function ChatPanel({
               : "Select a workspace to chat"}
         </p>
       </div>
-      <div className="relative flex-1 bg-gray-50/60">
+
+      {/* Enhanced Messages Area */}
+      <div className="flex-1 min-h-0 relative bg-gradient-to-b from-transparent to-slate-50/20">
         <div
           ref={listRef}
-          className="flex h-full flex-col space-y-4 overflow-y-auto px-6 py-4"
+          className="h-full overflow-y-auto px-6 py-6 scroll-smooth space-y-4"
         >
           {messages.map((message, index) => (
             <div
               key={`${index}-${message.role}`}
-              className={`flex ${
+              className={`flex items-start gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300 ${
                 message.role === "user" ? "justify-end" : "justify-start"
               }`}
             >
+              {/* Assistant Avatar */}
+              {message.role === "assistant" && (
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-100 to-blue-100 p-1 shadow-sm ring-2 ring-sky-200/50">
+                  <Image
+                    src="/yetti/15.png"
+                    alt="Yetti"
+                    width={24}
+                    height={24}
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+              )}
+
+              {/* Message Bubble */}
               <div
-                className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                className={`group relative max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed transition-all duration-200 ${
                   message.role === "user"
-                    ? "rounded-br-sm bg-sky-600 text-white"
-                    : "rounded-bl-sm border border-gray-200 bg-white text-gray-800"
+                    ? "rounded-br-md bg-gradient-to-br from-sky-500 via-sky-600 to-blue-600 text-white shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/30"
+                    : (message as any).isError
+                    ? "rounded-bl-md border-2 border-red-200 bg-red-50 text-red-900 shadow-sm"
+                    : "rounded-bl-md border border-slate-200 bg-white text-slate-800 shadow-md hover:shadow-lg"
                 }`}
               >
                 {message.role === "assistant" ? (
-                  <ReactMarkdown
-                    components={{
-                      p: ({ children }) => (
-                        <p className="mb-2 last:mb-0">{children}</p>
-                      ),
-                      ul: ({ children }) => (
-                        <ul className="mb-2 list-disc list-inside space-y-1">
-                          {children}
-                        </ul>
-                      ),
-                      ol: ({ children }) => (
-                        <ol className="mb-2 list-decimal list-inside space-y-1">
-                          {children}
-                        </ol>
-                      ),
-                      li: ({ children }) => (
-                        <li className="ml-2">{children}</li>
-                      ),
-                      h1: ({ children }) => (
-                        <h1 className="mb-2 text-lg font-bold">{children}</h1>
-                      ),
-                      h2: ({ children }) => (
-                        <h2 className="mb-2 text-base font-bold">{children}</h2>
-                      ),
-                      h3: ({ children }) => (
-                        <h3 className="mb-2 text-sm font-bold">{children}</h3>
-                      ),
-                      strong: ({ children }) => (
-                        <strong className="font-semibold">{children}</strong>
-                      ),
-                      em: ({ children }) => (
-                        <em className="italic">{children}</em>
-                      ),
-                      code: ({ children }) => (
-                        <code className="rounded bg-gray-100 px-1 py-0.5 text-xs font-mono">
-                          {children}
-                        </code>
-                      ),
-                    }}
-                  >
-                    {message.content}
-                  </ReactMarkdown>
+                  <div className="prose prose-sm max-w-none prose-p:mb-2 prose-p:last:mb-0">
+                    <ReactMarkdown
+                      components={{
+                        p: ({ children }) => (
+                          <p className="mb-2 last:mb-0">{children}</p>
+                        ),
+                        ul: ({ children }) => (
+                          <ul className="mb-2 list-disc list-inside space-y-1">
+                            {children}
+                          </ul>
+                        ),
+                        ol: ({ children }) => (
+                          <ol className="mb-2 list-decimal list-inside space-y-1">
+                            {children}
+                          </ol>
+                        ),
+                        li: ({ children }) => (
+                          <li className="ml-2">{children}</li>
+                        ),
+                        h1: ({ children }) => (
+                          <h1 className="mb-2 text-base font-bold">{children}</h1>
+                        ),
+                        h2: ({ children }) => (
+                          <h2 className="mb-2 text-sm font-bold">{children}</h2>
+                        ),
+                        h3: ({ children }) => (
+                          <h3 className="mb-2 text-xs font-bold">{children}</h3>
+                        ),
+                        strong: ({ children }) => (
+                          <strong className="font-semibold text-slate-900">{children}</strong>
+                        ),
+                        em: ({ children }) => (
+                          <em className="italic">{children}</em>
+                        ),
+                        code: ({ children }) => (
+                          <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-mono text-sky-700 border border-slate-200">
+                            {children}
+                          </code>
+                        ),
+                      }}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
                 ) : (
-                  message.content
+                  <div className="font-medium">{message.content}</div>
                 )}
               </div>
+
+              {/* User Avatar Placeholder */}
+              {message.role === "user" && (
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 text-white shadow-sm">
+                  <span className="text-xs font-bold">You</span>
+                </div>
+              )}
             </div>
           ))}
         </div>
+
+        {/* Disabled Overlay - Skeleton Loader or Simple Message */}
         {disabledReason && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/85 backdrop-blur">
-            <div className="rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600">
-              {disabledReason}
-            </div>
+          <div className="absolute inset-0 -z-10 bg-white/50 backdrop-blur-sm p-6 space-y-4 overflow-hidden">
+            {!hasKnowledge && workspaceId ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                 <div className="bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-slate-100 flex flex-col items-center gap-2 text-center max-w-xs">
+                    <div className="h-10 w-10 rounded-full bg-sky-50 flex items-center justify-center text-sky-600 mb-1">
+                      <FileText className="h-5 w-5" />
+                    </div>
+                    <p className="text-sm font-semibold text-slate-800">No knowledge yet</p>
+                    <p className="text-xs text-slate-500">Use "Add Knowledge" to get started.</p>
+                 </div>
+              </div>
+            ) : (
+              <>
+                {/* Message Bubbles Skeleton */}
+                <div className="flex flex-col gap-4 opacity-50">
+                  <div className="flex justify-start">
+                    <div className="h-10 w-3/4 rounded-2xl rounded-tl-none bg-slate-100 animate-pulse" />
+                  </div>
+                  <div className="flex justify-end">
+                    <div className="h-16 w-2/3 rounded-2xl rounded-tr-none bg-sky-50 animate-pulse" />
+                  </div>
+                  <div className="flex justify-start">
+                    <div className="h-12 w-1/2 rounded-2xl rounded-tl-none bg-slate-100 animate-pulse" />
+                  </div>
+                  <div className="flex justify-end">
+                    <div className="h-8 w-1/3 rounded-2xl rounded-tr-none bg-sky-50 animate-pulse" />
+                  </div>
+                </div>
+
+                {/* Loading Indicator */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="bg-white/90 backdrop-blur-md px-6 py-3 rounded-full shadow-xl border border-slate-100 flex items-center gap-3">
+                    <Loader2 className="h-5 w-5 text-sky-600 animate-spin" />
+                    <span className="text-sm font-medium text-slate-600">
+                      {!workspaceId ? "Select a workspace..." : "Loading chat..."}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
-      <div className="border-t border-gray-200 px-6 py-4">
-        <div className="flex items-end gap-3">
-          <textarea
-            value={input}
-            onChange={(event) => setInput(event.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
-            rows={1}
-            disabled={!!disabledReason}
-            className="flex-1 resize-none rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:cursor-not-allowed disabled:bg-gray-100"
-          />
+
+      {/* Enhanced Input Area */}
+      <div className="flex-none border-t border-slate-200 bg-gradient-to-br from-slate-50 via-sky-50/20 to-slate-50 px-6 py-4">
+        <div className="flex gap-3">
+          <div className="relative flex-1">
+            <textarea
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask me anything..."
+              rows={1}
+              disabled={!!disabledReason}
+              className="w-full resize-none rounded-xl border-2 border-slate-200 bg-white px-4 py-3 pr-12 text-sm placeholder:text-slate-400 focus:border-sky-400 focus:outline-none focus:ring-4 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 transition-all shadow-sm hover:border-slate-300"
+              style={{ minHeight: '50px', maxHeight: '120px' }}
+            />
+          </div>
           <button
             type="button"
             onClick={handleSend}
             disabled={!input.trim() || sending || !!disabledReason}
-            className="rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="group relative flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 via-sky-600 to-blue-600 text-white shadow-lg shadow-sky-500/30 transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-sky-500/40 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-lg"
+            title={sending ? "Sending..." : "Send message"}
           >
-            {sending ? "Sending..." : "Send"}
+            {sending ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <SendHorizontal className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+            )}
+            <div className="absolute inset-0 rounded-xl bg-white opacity-0 transition-opacity group-hover:opacity-10"></div>
           </button>
         </div>
+       
       </div>
     </div>
   );

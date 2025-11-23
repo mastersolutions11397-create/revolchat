@@ -1,125 +1,75 @@
 "use client";
 
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Star } from 'lucide-react';
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 
-export default function Testimonials() {
-    const { t } = useLanguage();
-    
-    return (
-        <section className="py-16 md:py-32">
-            <div className="mx-auto max-w-6xl space-y-8 px-6 md:space-y-16">
-                <div className="relative z-10 mx-auto max-w-xl space-y-6 text-center ">
-                    <h2 className="text-4xl font-semibold lg:text-5xl">{t("testimonials.title")}</h2>
-                    <p>{t("testimonials.subtitle")}</p>
+export function Testimonials() {
+  const { t } = useLanguage();
+  
+  return (
+    <section id="testimonials" className="py-24 bg-white relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none">
+        <div className="absolute top-20 right-0 w-96 h-96 bg-sky-100 rounded-full blur-3xl opacity-50" />
+        <div className="absolute bottom-20 left-0 w-96 h-96 bg-indigo-50 rounded-full blur-3xl opacity-50" />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="text-center max-w-3xl mx-auto mb-20 animate-fade-in-up">
+          <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-slate-900 mb-6">
+            {t("testimonials.title")}
+          </h2>
+          <p className="text-lg md:text-xl text-slate-600">
+            {t("testimonials.subtitle")}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            {
+              name: "Sarah Jenkins",
+              role: "Owner, Boutique Styles",
+              content: "Yetti transformed how we handle DMs. We used to miss so many sales because we couldn't reply fast enough. Now, it's instant.",
+              image: "SJ"
+            },
+            {
+              name: "Mike Ross",
+              role: "Marketing Director, TechFlow",
+              content: "The automated lead collection is a game changer. We've seen a 40% increase in qualified leads since implementing Yetti.",
+              image: "MR"
+            },
+            {
+              name: "Jessica Chen",
+              role: "Founder, Glow Beauty",
+              content: "Setting up was incredibly easy. The AI understood our brand voice immediately. It feels just like one of our team members.",
+              image: "JC"
+            }
+          ].map((testimonial, i) => (
+            <div 
+              key={i} 
+              className={`bg-white rounded-2xl p-8 shadow-lg shadow-slate-200/50 border border-slate-100 hover:border-sky-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in-up delay-${(i + 1) * 100}`}
+            >
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
+                  {testimonial.image}
                 </div>
-
-                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-rows-2">
-                    <Card className="grid grid-rows-[auto_1fr] gap-8 sm:col-span-2 sm:p-6 lg:row-span-2">
-                        <CardHeader>
-                            <div className="text-2xl font-bold text-gray-900">YETTI<span className="text-gray-400">.AI</span></div>
-                        </CardHeader>
-                        <CardContent>
-                            <blockquote className="grid h-full grid-rows-[1fr_auto] gap-6">
-                                <p className="text-xl font-medium">{t("testimonials.testimonial1.text")}</p>
-
-                                <div className="grid grid-cols-[auto_1fr] items-center gap-3">
-                                    <Avatar className="size-12">
-                                        <AvatarImage
-                                            src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop"
-                                            alt={t("testimonials.testimonial1.name")}
-                                            height={400}
-                                            width={400}
-                                            loading="lazy"
-                                        />
-                                        <AvatarFallback>SC</AvatarFallback>
-                                    </Avatar>
-
-                                    <div>
-                                        <cite className="text-sm font-medium">{t("testimonials.testimonial1.name")}</cite>
-                                        <span className="text-muted-foreground block text-sm">{t("testimonials.testimonial1.role")}</span>
-                                    </div>
-                                </div>
-                            </blockquote>
-                        </CardContent>
-                    </Card>
-                    <Card className="md:col-span-2">
-                        <CardContent className="h-full pt-6">
-                            <blockquote className="grid h-full grid-rows-[1fr_auto] gap-6">
-                                <p className="text-xl font-medium">{t("testimonials.testimonial2.text")}</p>
-
-                                <div className="grid grid-cols-[auto_1fr] items-center gap-3">
-                                    <Avatar className="size-12">
-                                        <AvatarImage
-                                            src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=400&auto=format&fit=crop"
-                                            alt={t("testimonials.testimonial2.name")}
-                                            height={400}
-                                            width={400}
-                                            loading="lazy"
-                                        />
-                                        <AvatarFallback>MR</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <cite className="text-sm font-medium">{t("testimonials.testimonial2.name")}</cite>
-                                        <span className="text-muted-foreground block text-sm">{t("testimonials.testimonial2.role")}</span>
-                                    </div>
-                                </div>
-                            </blockquote>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardContent className="h-full pt-6">
-                            <blockquote className="grid h-full grid-rows-[1fr_auto] gap-6">
-                                <p className="text-xl font-medium">{t("testimonials.testimonial3.text")}</p>
-
-                                <div className="grid items-center gap-3 grid-cols-[auto_1fr]">
-                                    <Avatar className="size-12">
-                                        <AvatarImage
-                                            src="https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=400&auto=format&fit=crop"
-                                            alt={t("testimonials.testimonial3.name")}
-                                            height={400}
-                                            width={400}
-                                            loading="lazy"
-                                        />
-                                        <AvatarFallback>ET</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <cite className="text-sm font-medium">{t("testimonials.testimonial3.name")}</cite>
-                                        <span className="text-muted-foreground block text-sm">{t("testimonials.testimonial3.role")}</span>
-                                    </div>
-                                </div>
-                            </blockquote>
-                        </CardContent>
-                    </Card>
-                    <Card className="card variant-mixed">
-                        <CardContent className="h-full pt-6">
-                            <blockquote className="grid h-full grid-rows-[1fr_auto] gap-6">
-                                <p className="text-xl font-medium">{t("testimonials.testimonial4.text")}</p>
-
-                                <div className="grid grid-cols-[auto_1fr] gap-3">
-                                    <Avatar className="size-12">
-                                        <AvatarImage
-                                            src="https://images.unsplash.com/photo-1547425260-76bcadfb4f2c?q=80&w=400&auto=format&fit=crop"
-                                            alt={t("testimonials.testimonial4.name")}
-                                            height={400}
-                                            width={400}
-                                            loading="lazy"
-                                        />
-                                        <AvatarFallback>DK</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <p className="text-sm font-medium">{t("testimonials.testimonial4.name")}</p>
-                                        <span className="text-muted-foreground block text-sm">{t("testimonials.testimonial4.role")}</span>
-                                    </div>
-                                </div>
-                            </blockquote>
-                        </CardContent>
-                    </Card>
+                <div>
+                  <h4 className="font-bold text-slate-900">{testimonial.name}</h4>
+                  <p className="text-sm text-slate-500">{testimonial.role}</p>
                 </div>
+              </div>
+              <div className="flex gap-1 mb-4 text-amber-400">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star key={star} size={16} fill="currentColor" />
+                ))}
+              </div>
+              <p className="text-slate-600 leading-relaxed italic">
+                "{testimonial.content}"
+              </p>
             </div>
-        </section>
-    )
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 }
-
-
