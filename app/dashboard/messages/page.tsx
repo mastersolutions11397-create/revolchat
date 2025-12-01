@@ -18,7 +18,7 @@ const dummyInstagramConversations: Conversation[] = [
     id: "inst_conv_1",
     participant_id: "user_1",
     participant_name: "Lead 1",
-    participant_avatar: null,
+    participant_avatar: undefined,
     last_message: "Thanks for the quick response!",
     last_message_time: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
     unread_count: 2,
@@ -27,7 +27,7 @@ const dummyInstagramConversations: Conversation[] = [
     id: "inst_conv_2",
     participant_id: "user_2",
     participant_name: "Lead 2",
-    participant_avatar: null,
+    participant_avatar: undefined,
     last_message: "I'll check that for you right away.",
     last_message_time: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
     unread_count: 0,
@@ -36,7 +36,7 @@ const dummyInstagramConversations: Conversation[] = [
     id: "inst_conv_3",
     participant_id: "user_3",
     participant_name: "Lead 3",
-    participant_avatar: null,
+    participant_avatar: undefined,
     last_message: "Interested in your services",
     last_message_time: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
     unread_count: 1,
@@ -145,7 +145,7 @@ const dummyTelegramConversations: Conversation[] = [
     id: "tg_conv_1",
     participant_id: "user_1",
     participant_name: "Lead 4",
-    participant_avatar: null,
+    participant_avatar: undefined,
     last_message: "Perfect! I'll sign up today.",
     last_message_time: new Date(Date.now() - 15 * 60 * 1000).toISOString(), // 15 minutes ago
     unread_count: 1,
@@ -154,7 +154,7 @@ const dummyTelegramConversations: Conversation[] = [
     id: "tg_conv_2",
     participant_id: "user_2",
     participant_name: "Lead 5",
-    participant_avatar: null,
+    participant_avatar: undefined,
     last_message: "Got it, thanks!",
     last_message_time: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
     unread_count: 0,
@@ -163,7 +163,7 @@ const dummyTelegramConversations: Conversation[] = [
     id: "tg_conv_3",
     participant_id: "user_3",
     participant_name: "Lead 6",
-    participant_avatar: null,
+    participant_avatar: undefined,
     last_message: "Can you provide more details?",
     last_message_time: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
     unread_count: 3,
@@ -309,7 +309,7 @@ export default function LeadsPage() {
         if (data.length > 0 && !selectedConversation) {
           setSelectedConversation(data[0]);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         // Fallback to dummy data on error
         const dummyData =
           selectedChannel === "instagram"
@@ -368,6 +368,7 @@ export default function LeadsPage() {
           }
         }
         setMessages(data);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         // Fallback to dummy data on error
         const dummyData =

@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { getStripe, PLAN_CONFIGS } from "@/lib/stripe";
-import { UserPlan } from "@/lib/database.types";
+
 import {
   Check,
   Sparkles,
@@ -18,6 +18,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { StripeError } from "@stripe/stripe-js";
 
 interface PlanFeature {
   name: string;
@@ -31,7 +32,7 @@ interface Plan {
   description: string;
   tokens: string;
   features: PlanFeature[];
-  icon: any;
+  icon: React.ElementType;
   color: string;
   popular: boolean;
   planKey: string;
@@ -50,7 +51,8 @@ export default function PlansPage() {
   console.log('PlansPage: Auth state - user:', user, 'workspace:', currentWorkspace);
 
   const [loading, setLoading] = useState(true);
-  const [currentPlan, setCurrentPlan] = useState<UserPlan | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [currentPlan, setCurrentPlan] = useState<any | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
 
   const plans: Plan[] = [
@@ -271,9 +273,11 @@ export default function PlansPage() {
       console.log('PlansPage: Getting Stripe instance');
       const stripe = await getStripe();
       console.log('PlansPage: Redirecting to Stripe checkout with sessionId:', sessionId);
-      const { error: stripeError } = await stripe.redirectToCheckout({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (await stripe?.redirectToCheckout({
         sessionId,
-      });
+      })) as { error: StripeError } | undefined;
+      const stripeError = result?.error;
 
       if (stripeError) {
         console.log('PlansPage: Stripe redirect error:', stripeError);

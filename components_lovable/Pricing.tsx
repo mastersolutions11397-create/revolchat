@@ -4,17 +4,19 @@ import { Check, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { getStripe, PLAN_CONFIGS } from "@/lib/stripe";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { StripeError } from "@stripe/stripe-js";
 
 console.log('Pricing Component: Module loaded');
 
-const pricingTiers = [
+function PricingContent() {
+  const pricingTiers = [
   {
     name: "Starter",
     price: "$29",
@@ -88,7 +90,6 @@ const pricingTiers = [
   },
 ];
 
-const Pricing = () => {
   console.log('Pricing Component: Component initialized');
 
   const searchParams = useSearchParams();
@@ -164,9 +165,11 @@ const Pricing = () => {
       console.log('Pricing Component: Getting Stripe instance');
       const stripe = await getStripe();
       console.log('Pricing Component: Redirecting to Stripe checkout with sessionId:', sessionId);
-      const { error: stripeError } = await stripe.redirectToCheckout({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = (await stripe?.redirectToCheckout({
         sessionId,
-      });
+      })) as { error: StripeError } | undefined;
+      const stripeError = result?.error;
 
       if (stripeError) {
         console.log('Pricing Component: Stripe redirect error:', stripeError);
@@ -174,6 +177,7 @@ const Pricing = () => {
       }
 
       console.log('Pricing Component: Checkout process completed successfully');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Pricing Component: Checkout error:', error);
       console.log('Pricing Component: Checkout error details:', {
@@ -362,6 +366,27 @@ const Pricing = () => {
   );
 
   console.log('Pricing Component: Component render completed');
-};
+}
+
+function LoadingFallback() {
+  return (
+    <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
+      <div className="container mx-auto px-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading pricing...</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Pricing() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <PricingContent />
+    </Suspense>
+  );
+}
 
 export default Pricing;
