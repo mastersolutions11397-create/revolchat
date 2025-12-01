@@ -59,7 +59,7 @@ export default function NewsletterSignup() {
         <button
           type="submit"
           disabled={status === "loading"}
-          className="px-6 py-2 rounded-lg bg-sky-500 hover:bg-sky-600 text-white font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+          className="px-6 py-2 rounded-lg bg-sky-500 hover:bg-sky-500 text-white font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
         >
           {status === "loading" ? (
             "..."

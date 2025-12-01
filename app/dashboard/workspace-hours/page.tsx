@@ -219,12 +219,10 @@ export default function WorkspaceHoursPage() {
 
     if (
       typeof Intl !== "undefined" &&
-      typeof (Intl as any).supportedValuesOf === "function"
+      typeof (Intl as { supportedValuesOf?: (key: string) => string[] }).supportedValuesOf === "function"
     ) {
       try {
-        const supported = (Intl as any).supportedValuesOf("timeZone") as
-          | string[]
-          | undefined;
+        const supported = (Intl as { supportedValuesOf?: (key: string) => string[] }).supportedValuesOf!("timeZone");
         supported?.forEach((value: string) => set.add(value));
       } catch {
         // ignore
@@ -247,15 +245,16 @@ export default function WorkspaceHoursPage() {
         setSchedule(normalizeSchedule(data.schedule));
         setTimezone(sanitizeTimeZone(data.timezone, timezones));
         setWorkspaceOnline(data.workspace_online);
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (!isMounted) return;
-        if (err?.message?.includes("404") || err?.message?.toLowerCase().includes("not found") || err?.message?.toLowerCase().includes("schedule")) {
+        const error = err as Error;
+        if (error?.message?.includes("404") || error?.message?.toLowerCase().includes("not found") || error?.message?.toLowerCase().includes("schedule")) {
           // Workspace schedule not found - this is normal for new workspaces
           setSchedule(buildDefaultSchedule());
           setWorkspaceOnline(true);
           setSuccess(null);
         } else {
-          const errorMessage = err.message || "Failed to load working hours";
+          const errorMessage = error.message || "Failed to load working hours";
           setError(errorMessage);
           toast.error("Could not load working hours", {
             description: "Using default schedule. You can customize it below."
@@ -344,8 +343,9 @@ export default function WorkspaceHoursPage() {
       setWorkspaceOnline(response.workspace_online);
       setSuccess("Workspace hours updated successfully.");
       toast.success("Workspace hours updated successfully");
-    } catch (err: any) {
-      const errorMessage = err.message || "Failed to save working hours";
+    } catch (err: unknown) {
+      const error = err as Error;
+      const errorMessage = error.message || "Failed to save working hours";
       setError(errorMessage);
       toast.error("Failed to save working hours", {
         description: errorMessage
@@ -372,8 +372,9 @@ export default function WorkspaceHoursPage() {
       const successMessage = `Workspace ${response.workspace_online ? "enabled" : "paused"} successfully.`;
       setSuccess(successMessage);
       toast.success(successMessage);
-    } catch (err: any) {
-      const errorMessage = err.message || "Failed to update workspace status";
+    } catch (err: unknown) {
+      const error = err as Error;
+      const errorMessage = error.message || "Failed to update workspace status";
       setError(errorMessage);
       setWorkspaceOnline(previousValue);
       toast.error("Failed to update workspace status", {
@@ -387,18 +388,18 @@ export default function WorkspaceHoursPage() {
   return (
     <div className="space-y-8 animate-fade-in-up">
       {/* Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-xl">
+      <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-xl">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-blue-600/20 blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
         
         <div className="relative z-10 flex items-center gap-6">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20">
-            <CalendarClock className="h-8 w-8 text-sky-400" />
+            <CalendarClock className="h-8 w-8 text-sky-500" />
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-white">Working Hours</h1>
             <p className="mt-2 text-lg text-sky-100/80 max-w-2xl">
-              Set your AI agent's availability, timezone, and weekly schedule.
+              Set your AI agent&apos;s availability, timezone, and weekly schedule.
             </p>
           </div>
         </div>
@@ -460,7 +461,7 @@ export default function WorkspaceHoursPage() {
         {/* Timezone */}
         <div className="border-t border-slate-100 pt-8">
           <div className="flex items-center gap-3 pb-4">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-500">
               <Globe2 className="h-4 w-4" />
             </div>
             <div>
@@ -483,7 +484,7 @@ export default function WorkspaceHoursPage() {
         {/* Weekly Schedule */}
         <div className="border-t border-slate-100 pt-8">
           <div className="mb-6 flex items-center gap-3">
-             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
+             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-500">
               <Clock className="h-4 w-4" />
             </div>
             <div>
@@ -589,7 +590,7 @@ export default function WorkspaceHoursPage() {
                             <button
                               type="button"
                               onClick={() => handleAddRange(day.key)}
-                              className="inline-flex w-fit items-center gap-2 rounded-lg border border-dashed border-sky-200 px-3 py-2 text-xs font-semibold text-sky-600 hover:bg-sky-50 hover:border-sky-300 transition-all"
+                              className="inline-flex w-fit items-center gap-2 rounded-lg border border-dashed border-sky-200 px-3 py-2 text-xs font-semibold text-sky-500 hover:bg-sky-50 hover:border-sky-300 transition-all"
                             >
                               <Plus className="h-3.5 w-3.5" />
                               Add window
@@ -610,7 +611,7 @@ export default function WorkspaceHoursPage() {
             type="button"
             onClick={handleSave}
             disabled={saving || loading || statusSaving || !workspaceId}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 px-8 py-3.5 text-sm font-bold text-white transition-all hover:from-sky-700 hover:to-blue-700 hover:shadow-lg hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+            className="inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-sky-500 to-sky-500 px-8 py-3.5 text-sm font-bold text-white transition-all hover:from-sky-700 hover:to-sky-500 hover:shadow-lg hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
           >
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             Save Changes

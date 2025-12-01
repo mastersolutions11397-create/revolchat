@@ -27,8 +27,8 @@ export default function ModalMinimalDemo() {
         <div className="space-y-6">
           {/* Clean Content */}
           <div className="text-center space-y-3">
-            <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
-              <MessageCircle className="w-8 h-8 text-primary" />
+            <div className="w-16 h-16 mx-auto bg-sky-500/10 rounded-full flex items-center justify-center">
+              <MessageCircle className="w-8 h-8 text-sky-500" />
             </div>
             <h3 className="text-xl font-semibold">Quick Update</h3>
             <p className="text-muted-foreground max-w-sm">

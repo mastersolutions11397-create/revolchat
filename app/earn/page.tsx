@@ -24,7 +24,7 @@ export default function EarnPage() {
           <div className="flex h-16 items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
               <span className="text-2xl font-extrabold tracking-tight text-gray-900">
-                YETTI<span className="text-gray-400">.AI</span>
+                Yetti<span className="text-gray-400">.ai</span>
               </span>
             </Link>
             <div className="hidden items-center gap-6 md:flex">
@@ -74,7 +74,7 @@ export default function EarnPage() {
                 <div className="mt-6 flex flex-wrap gap-3">
                   <Link
                     href="/auth/signup"
-                    className="rounded-xl bg-sky-600 px-6 py-3 font-semibold text-white shadow-sm transition-colors hover:bg-sky-700"
+                    className="rounded-xl bg-sky-500 px-6 py-3 font-semibold text-white shadow-sm transition-colors hover:bg-sky-700"
                   >
                     Join Affiliate Program
                   </Link>
@@ -95,7 +95,7 @@ export default function EarnPage() {
                     Commission
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-50 text-blue-700">
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-50 text-sky-500">
                       ✓
                     </span>
                     Real-time Tracking
@@ -133,7 +133,7 @@ export default function EarnPage() {
         <section className="bg-white">
           <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <h2 className="text-center text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-              Why <span className="text-sky-600">Yetti</span>?
+              Why <span className="text-sky-500">Yetti</span>?
             </h2>
             <p className="mt-3 text-center text-gray-600">
               Join the affiliate program trusted by thousands of successful partners
@@ -212,7 +212,7 @@ export default function EarnPage() {
           <div className="mx-auto flex min-h-screen items-center max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
             <div className="w-full">
               <h2 className="text-center text-4xl font-extrabold tracking-tight text-white md:text-5xl">
-                How our <span className="text-sky-400">affiliate program</span> works
+                How our <span className="text-sky-500">affiliate program</span> works
               </h2>
               <p className="mt-3 text-center text-white/70">
                 Start earning with our simple three-step process
@@ -237,7 +237,7 @@ export default function EarnPage() {
                 </div>
                 {/* Arrow */}
                 <div className="hidden items-center justify-center md:flex">
-                  <ChevronsRight className="h-6 w-6 text-sky-400" />
+                  <ChevronsRight className="h-6 w-6 text-sky-500" />
                  
                 </div>
                 {/* Step 2 */}
@@ -259,7 +259,7 @@ export default function EarnPage() {
                 </div>
                 {/* Arrow */}
                 <div className="hidden items-center justify-center md:flex">
-                  <ChevronsRight className="h-6 w-6 text-sky-400" />
+                  <ChevronsRight className="h-6 w-6 text-sky-500" />
                 </div>
                 {/* Step 3 */}
                 <div className="relative rounded-2xl border border-white/10 bg-white/5 p-6 shadow-sm backdrop-blur">
@@ -294,7 +294,7 @@ export default function EarnPage() {
           <div className="mx-auto flex min-h-screen items-center max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div className="w-full">
               <h2 className="text-center text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-                How to promote <span className="text-sky-600">Yetti</span>?
+                How to promote <span className="text-sky-500">Yetti</span>?
               </h2>
               <p className="mt-3 text-center text-gray-600">
                 Discover proven strategies to maximize your affiliate earnings
@@ -304,7 +304,7 @@ export default function EarnPage() {
                 {/* Card 1 */}
                 <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
                   <div className="flex items-start gap-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-sky-50 text-sky-500">
                       <TrendingUp className="h-6 w-6" />
                     </div>
                     <div className="flex-1">
@@ -322,7 +322,7 @@ export default function EarnPage() {
                 {/* Card 2 */}
                 <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
                   <div className="flex items-start gap-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-sky-50 text-sky-500">
                       <Users className="h-6 w-6" />
                     </div>
                     <div className="flex-1">
@@ -340,7 +340,7 @@ export default function EarnPage() {
                 {/* Card 3 */}
                 <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
                   <div className="flex items-start gap-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-sky-50 text-sky-500">
                       <Share2 className="h-6 w-6" />
                     </div>
                     <div className="flex-1">
@@ -361,7 +361,7 @@ export default function EarnPage() {
                 <p className="text-gray-800">Ready to start promoting?</p>
                 <Link
                   href="/auth/signup"
-                  className="mt-3 inline-block rounded-xl bg-sky-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-sky-700"
+                  className="mt-3 inline-block rounded-xl bg-sky-500 px-6 py-3 font-semibold text-white transition-colors hover:bg-sky-700"
                 >
                   Join Affiliate Program →
                 </Link>
@@ -376,7 +376,7 @@ export default function EarnPage() {
           <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
             <div className="mb-10 text-center">
               <h2 className="text-4xl font-extrabold tracking-tight text-white md:text-5xl">
-                Your <span className="text-sky-400">Earning Potential</span>
+                Your <span className="text-sky-500">Earning Potential</span>
               </h2>
               <p className="mt-2 text-white/70">
                 See how much you could earn with our affiliate program
@@ -399,7 +399,7 @@ export default function EarnPage() {
                           onClick={() => setPlan(p)}
                           className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
                             plan === p
-                              ? "bg-sky-600 text-white"
+                              ? "bg-sky-500 text-white"
                               : "bg-white/5 text-white/80 hover:bg-white/10"
                           }`}
                         >
@@ -465,7 +465,7 @@ export default function EarnPage() {
                 <div className="pt-2">
                   <Link
                     href="/auth/signup"
-                    className="block rounded-xl bg-sky-600 px-6 py-4 text-center font-semibold text-white transition-colors hover:bg-sky-700"
+                    className="block rounded-xl bg-sky-500 px-6 py-4 text-center font-semibold text-white transition-colors hover:bg-sky-700"
                   >
                     Join Affiliate Program
                   </Link>
@@ -495,7 +495,7 @@ export default function EarnPage() {
                   <input type="email" className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-sky-500" />
                 </div>
                 <div className="sm:col-span-2">
-                  <Button className="h-11 w-full bg-sky-600 hover:bg-sky-700">Create Affiliate Account</Button>
+                  <Button className="h-11 w-full bg-sky-500 hover:bg-sky-700">Create Affiliate Account</Button>
                 </div>
               </form>
             </div>

@@ -17,8 +17,8 @@ const dummyInstagramConversations: Conversation[] = [
   {
     id: "inst_conv_1",
     participant_id: "user_1",
-    participant_name: "Sarah Johnson",
-    participant_avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=faces",
+    participant_name: "Lead 1",
+    participant_avatar: null,
     last_message: "Thanks for the quick response!",
     last_message_time: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
     unread_count: 2,
@@ -26,11 +26,20 @@ const dummyInstagramConversations: Conversation[] = [
   {
     id: "inst_conv_2",
     participant_id: "user_2",
-    participant_name: "Michael Chen",
-    participant_avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=faces",
+    participant_name: "Lead 2",
+    participant_avatar: null,
     last_message: "I'll check that for you right away.",
     last_message_time: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
     unread_count: 0,
+  },
+  {
+    id: "inst_conv_3",
+    participant_id: "user_3",
+    participant_name: "Lead 3",
+    participant_avatar: null,
+    last_message: "Interested in your services",
+    last_message_time: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
+    unread_count: 1,
   },
 ];
 
@@ -135,8 +144,8 @@ const dummyTelegramConversations: Conversation[] = [
   {
     id: "tg_conv_1",
     participant_id: "user_1",
-    participant_name: "Emma Wilson",
-    participant_avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=faces",
+    participant_name: "Lead 4",
+    participant_avatar: null,
     last_message: "Perfect! I'll sign up today.",
     last_message_time: new Date(Date.now() - 15 * 60 * 1000).toISOString(), // 15 minutes ago
     unread_count: 1,
@@ -144,11 +153,20 @@ const dummyTelegramConversations: Conversation[] = [
   {
     id: "tg_conv_2",
     participant_id: "user_2",
-    participant_name: "James Rodriguez",
-    participant_avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=faces",
+    participant_name: "Lead 5",
+    participant_avatar: null,
     last_message: "Got it, thanks!",
     last_message_time: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
     unread_count: 0,
+  },
+  {
+    id: "tg_conv_3",
+    participant_id: "user_3",
+    participant_name: "Lead 6",
+    participant_avatar: null,
+    last_message: "Can you provide more details?",
+    last_message_time: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
+    unread_count: 3,
   },
 ];
 
@@ -240,7 +258,7 @@ const dummyTelegramMessages: Record<string, Message[]> = {
   ],
 };
 
-export default function MessagesPage() {
+export default function LeadsPage() {
   const { selectedWorkspaceId, currentWorkspace } = useWorkspace();
   const workspaceId = useMemo(
     () => selectedWorkspaceId || currentWorkspace?.id || null,
@@ -404,7 +422,7 @@ export default function MessagesPage() {
       <div className="w-80 flex flex-col border-r border-slate-200 bg-slate-50/50">
         {/* Header */}
         <div className="p-4 border-b border-slate-200 bg-white">
-          <h2 className="text-xl font-bold text-slate-900 mb-4">Messages</h2>
+          <h2 className="text-xl font-bold text-slate-900 mb-4">Leads</h2>
           
           {/* Channel Toggle */}
           <div className="flex p-1 bg-slate-100 rounded-xl">
@@ -421,7 +439,7 @@ export default function MessagesPage() {
             >
               <div className="relative h-5 w-5">
                 <Image
-                  src="/yetti/instagram.png"
+                  src="/yetti/instagram_logo.png"
                   alt="Instagram"
                   fill
                   className="object-contain"
@@ -442,7 +460,7 @@ export default function MessagesPage() {
             >
               <div className="relative h-5 w-5">
                 <Image
-                  src="/yetti/telegram_1.png"
+                  src="/yetti/telegram_logo.png"
                   alt="Telegram"
                   fill
                   className="object-contain"
@@ -459,7 +477,7 @@ export default function MessagesPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Search conversations..."
+              placeholder="Search leads..."
               className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
             />
           </div>
@@ -470,12 +488,12 @@ export default function MessagesPage() {
           {loading && conversations.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 gap-3">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
-              <p className="text-slate-500 text-sm">Loading conversations...</p>
+              <p className="text-slate-500 text-sm">Loading leads...</p>
             </div>
           ) : conversations.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 gap-2 p-4 text-center">
               <MessageSquare className="h-8 w-8 text-slate-300" />
-              <p className="text-slate-500 text-sm">No conversations found</p>
+              <p className="text-slate-500 text-sm">No leads found</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
@@ -490,27 +508,15 @@ export default function MessagesPage() {
                   }`}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="relative h-12 w-12 flex-shrink-0 rounded-full overflow-hidden bg-slate-100 ring-2 ring-white shadow-sm">
-                      {conversation.participant_avatar ? (
-                        <Image
-                          src={conversation.participant_avatar}
-                          alt={conversation.participant_name}
-                          fill
-                          className="object-cover"
-                          unoptimized
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-100 to-blue-100 text-sky-600 font-bold text-lg">
-                          {conversation.participant_name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
+                    <div className="relative h-12 w-12 flex-shrink-0 rounded-xl overflow-hidden bg-gradient-to-br from-sky-100 to-blue-100 flex items-center justify-center shadow-sm">
+                      <MessageSquare className="h-6 w-6 text-sky-500" />
                       {selectedChannel === "instagram" ? (
                          <div className="absolute bottom-0 right-0 h-4 w-4 bg-white rounded-full p-0.5">
-                           <Image src="/yetti/instagram.png" alt="IG" width={12} height={12} />
+                           <Image src="/yetti/instagram_logo.png" alt="IG" width={12} height={12} />
                          </div>
                       ) : (
                         <div className="absolute bottom-0 right-0 h-4 w-4 bg-white rounded-full p-0.5">
-                           <Image src="/yetti/telegram_1.png" alt="TG" width={12} height={12} />
+                           <Image src="/yetti/telegram_logo.png" alt="TG" width={12} height={12} />
                          </div>
                       )}
                     </div>
@@ -560,47 +566,27 @@ export default function MessagesPage() {
             {/* Chat Header */}
             <div className="h-20 px-6 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-sm sticky top-0 z-10">
               <div className="flex items-center gap-4">
-                <div className="relative h-10 w-10 flex-shrink-0 rounded-full overflow-hidden bg-slate-100 ring-2 ring-slate-50 shadow-sm">
-                  {selectedConversation.participant_avatar ? (
-                    <Image
-                      src={selectedConversation.participant_avatar}
-                      alt={selectedConversation.participant_name}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-100 to-blue-100 text-sky-600 font-bold">
-                      {selectedConversation.participant_name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                <div className="relative h-10 w-10 flex-shrink-0 rounded-xl overflow-hidden bg-gradient-to-br from-sky-100 to-blue-100 flex items-center justify-center shadow-sm">
+                  <MessageSquare className="h-5 w-5 text-sky-500" />
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                     {selectedConversation.participant_name}
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${
-                      selectedChannel === "instagram" 
-                        ? "bg-pink-50 text-pink-600 border border-pink-100" 
-                        : "bg-sky-50 text-sky-600 border border-sky-100"
+                      selectedChannel === "instagram"
+                        ? "bg-pink-50 text-pink-600 border border-pink-100"
+                        : "bg-sky-50 text-sky-500 border border-sky-100"
                     }`}>
                       {selectedChannel}
                     </span>
                   </h3>
-                  <p className="text-xs text-slate-500 flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                    Active now
+                  <p className="text-xs text-slate-500">
+                    Lead conversation
                   </p>
                 </div>
               </div>
               
               <div className="flex items-center gap-2">
-                <button className="p-2 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors">
-                  <Phone className="h-5 w-5" />
-                </button>
-                <button className="p-2 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors">
-                  <Video className="h-5 w-5" />
-                </button>
-                <div className="h-6 w-px bg-slate-200 mx-1" />
                 <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
                   <Info className="h-5 w-5" />
                 </button>
@@ -645,20 +631,8 @@ export default function MessagesPage() {
                       {!message.is_from_me && (
                         <div className={`flex-shrink-0 w-8 ${!showAvatar && "invisible"}`}>
                           {showAvatar && (
-                            <div className="relative h-8 w-8 rounded-full overflow-hidden bg-slate-100 ring-2 ring-white shadow-sm">
-                              {selectedConversation.participant_avatar ? (
-                                <Image
-                                  src={selectedConversation.participant_avatar}
-                                  alt={selectedConversation.participant_name}
-                                  fill
-                                  className="object-cover"
-                                  unoptimized
-                                />
-                              ) : (
-                                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-100 to-blue-100 text-sky-600 font-bold text-xs">
-                                  {selectedConversation.participant_name.charAt(0).toUpperCase()}
-                                </div>
-                              )}
+                            <div className="relative h-8 w-8 rounded-lg overflow-hidden bg-gradient-to-br from-sky-100 to-blue-100 flex items-center justify-center shadow-sm">
+                              <MessageSquare className="h-4 w-4 text-sky-500" />
                             </div>
                           )}
                         </div>
@@ -668,7 +642,7 @@ export default function MessagesPage() {
                         <div
                           className={`px-5 py-3 shadow-sm ${
                             message.is_from_me
-                              ? "bg-gradient-to-br from-sky-500 to-blue-600 text-white rounded-2xl rounded-tr-sm"
+                              ? "bg-gradient-to-br from-sky-500 to-sky-500 text-white rounded-2xl rounded-tr-sm"
                               : "bg-white border border-slate-100 text-slate-800 rounded-2xl rounded-tl-sm"
                           }`}
                         >
@@ -688,28 +662,6 @@ export default function MessagesPage() {
               )}
             </div>
 
-            {/* Input Area */}
-            <div className="p-4 bg-white border-t border-slate-100">
-              <div className="flex items-end gap-3 max-w-4xl mx-auto">
-                <button className="p-3 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-xl transition-colors">
-                  <MoreVertical className="h-5 w-5" />
-                </button>
-                <div className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl focus-within:ring-2 focus-within:ring-sky-500/20 focus-within:border-sky-500 transition-all">
-                  <textarea
-                    placeholder="Type a message..."
-                    className="w-full bg-transparent border-none px-4 py-3 text-sm focus:ring-0 resize-none max-h-32 min-h-[48px]"
-                    rows={1}
-                    disabled
-                  />
-                </div>
-                <button
-                  disabled
-                  className="p-3 bg-gradient-to-br from-sky-500 to-blue-600 text-white rounded-xl hover:shadow-lg hover:shadow-sky-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-                >
-                  <Send className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-50/30">
@@ -717,21 +669,21 @@ export default function MessagesPage() {
               <MessageSquare className="h-10 w-10 text-sky-500" />
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-2">
-              Select a Conversation
+              Select a Lead
             </h2>
             <p className="text-slate-500 max-w-md mx-auto mb-8">
-              Choose a conversation from the sidebar to start chatting with your customers across Instagram and Telegram.
+              Choose a lead from the sidebar to view their conversation and manage your potential customers.
             </p>
             <div className="flex gap-4">
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm text-sm text-slate-600">
                 <div className="relative h-4 w-4">
-                  <Image src="/yetti/instagram.png" alt="IG" fill className="object-contain" />
+                  <Image src="/yetti/instagram_logo.png" alt="IG" fill className="object-contain" />
                 </div>
                 Instagram
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm text-sm text-slate-600">
                 <div className="relative h-4 w-4">
-                  <Image src="/yetti/telegram_1.png" alt="TG" fill className="object-contain" />
+                  <Image src="/yetti/telegram_logo.png" alt="TG" fill className="object-contain" />
                 </div>
                 Telegram
               </div>

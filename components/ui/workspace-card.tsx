@@ -34,8 +34,8 @@ export function WorkspaceCard({
       <div className="relative h-full rounded-[20px] bg-slate-900/40 backdrop-blur-sm p-6 flex flex-col">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500/20 to-blue-600/20 flex items-center justify-center ring-1 ring-white/10 group-hover:scale-110 transition-transform duration-300">
-            <Building2 className="w-6 h-6 text-sky-400" />
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500/20 to-sky-500/20 flex items-center justify-center ring-1 ring-white/10 group-hover:scale-110 transition-transform duration-300">
+            <Building2 className="w-6 h-6 text-white" />
           </div>
           <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-slate-400">
             Personal
@@ -45,7 +45,7 @@ export function WorkspaceCard({
         {/* Content */}
         <div className="grow space-y-4">
           <div>
-            <h3 className="text-xl font-bold text-white mb-1 group-hover:text-sky-400 transition-colors">{name}</h3>
+            <h3 className="text-xl font-bold text-white mb-1  transition-colors">{name}</h3>
             <p className="text-sm text-slate-400">Workspace</p>
           </div>
 
@@ -64,7 +64,7 @@ export function WorkspaceCard({
         {/* Footer */}
         <div className="mt-8 pt-6 border-t border-white/5">
           <Button 
-            className="w-full bg-white text-slate-900 hover:bg-sky-50 font-semibold h-11 rounded-xl shadow-lg shadow-black/20 group-hover:shadow-sky-500/20 transition-all" 
+            className="w-full bg-white text-slate-900 hover:bg-white font-semibold h-11 rounded-xl shadow-lg shadow-black/20  transition-all" 
             onClick={onOpen} 
             disabled={isSelecting}
           >

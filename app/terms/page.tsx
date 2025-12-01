@@ -13,22 +13,22 @@ export default function TermsOfServicePage() {
       <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-slate-900">
         {/* Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-sky-500/20 to-blue-600/20 blur-[100px] animate-pulse-slow" />
+          <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-sky-500/20 to-sky-500/20 blur-[100px] animate-pulse-slow" />
           <div className="absolute -bottom-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-sky-500/20 to-sky-500/20 blur-[100px] animate-pulse-slow delay-1000" />
           <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-sm font-medium mb-6 animate-fade-in-up">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-500 text-sm font-medium mb-6 animate-fade-in-up">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-500 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
               </span>
               Legal
             </div>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-8 animate-fade-in-up delay-100">
-              Terms of <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-500">Service</span>
+              Terms of <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-blue-500">Service</span>
             </h1>
             <p className="text-lg md:text-xl text-slate-400 leading-relaxed animate-fade-in-up delay-200">
               Last updated: December 15, 2024
@@ -44,7 +44,7 @@ export default function TermsOfServicePage() {
             <div className="prose prose-lg max-w-none prose-headings:text-slate-900 prose-p:text-slate-600 prose-li:text-slate-600 prose-strong:text-slate-900">
               <section className="mb-12">
                 <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
-                  <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-sky-100 text-sky-600">
+                  <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-sky-100 text-sky-500">
                     <CheckCircle2 className="w-6 h-6" />
                   </span>
                   1. Acceptance of Terms
@@ -202,7 +202,7 @@ export default function TermsOfServicePage() {
 
               <section className="mb-12">
                 <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
-                  <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-sky-100 text-sky-600">
+                  <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-sky-100 text-sky-500">
                     <Shield className="w-6 h-6" />
                   </span>
                   Privacy and Data Protection

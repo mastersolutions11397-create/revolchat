@@ -115,7 +115,7 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen bg-linear-to-br from-white via-sky-50 to-sky-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading profile...</p>
         </div>
       </div>
@@ -139,19 +139,19 @@ export default function ProfilePage() {
             <div className="flex items-center space-x-4">
               <Link
                 href="/dashboard"
-                className="text-gray-700 hover:text-sky-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-700 hover:text-sky-500 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Dashboard
               </Link>
               <Link
                 href="/workspace"
-                className="text-gray-700 hover:text-sky-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-700 hover:text-sky-500 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Workspaces
               </Link>
               <button
                 onClick={handleSignOut}
-                className="text-gray-700 hover:text-sky-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                className="text-gray-700 hover:text-sky-500 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Sign Out
               </button>
@@ -277,7 +277,7 @@ export default function ProfilePage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="bg-linear-to-r from-sky-600 to-sky-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-700 transition-all disabled:opacity-50"
+                  className="bg-linear-to-r from-sky-500 to-sky-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-700 transition-all disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Save Changes"}
                 </button>
@@ -311,7 +311,7 @@ export default function ProfilePage() {
                       }
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-500"></div>
                   </label>
                 </div>
                 <div className="flex items-center justify-between">
@@ -335,7 +335,7 @@ export default function ProfilePage() {
                       }
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-500"></div>
                   </label>
                 </div>
                 <div className="flex items-center justify-between">
@@ -359,7 +359,7 @@ export default function ProfilePage() {
                       }
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sky-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-500"></div>
                   </label>
                 </div>
                 <button
@@ -378,7 +378,7 @@ export default function ProfilePage() {
                     }
                   }}
                   disabled={saving}
-                  className="mt-4 bg-linear-to-r from-sky-600 to-sky-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-700 transition-all disabled:opacity-50"
+                  className="mt-4 bg-linear-to-r from-sky-500 to-sky-500 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-700 transition-all disabled:opacity-50"
                 >
                   {saving ? "Saving..." : "Save Preferences"}
                 </button>
@@ -399,7 +399,7 @@ export default function ProfilePage() {
                 {getUserName()}
               </h3>
               <p className="text-gray-600 mb-4">{formData.email}</p>
-              <button className="text-sky-600 hover:text-sky-500 font-medium">
+              <button className="text-sky-500 hover:text-sky-500 font-medium">
                 Change Photo
               </button>
             </div>
@@ -433,7 +433,7 @@ export default function ProfilePage() {
               <div className="mt-6">
                 <Link
                   href="/plans"
-                  className="block w-full bg-linear-to-r from-sky-600 to-sky-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-700 transition-all text-center"
+                  className="block w-full bg-linear-to-r from-sky-500 to-sky-500 text-white py-3 px-4 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-700 transition-all text-center"
                 >
                   Upgrade Plan
                 </Link>
@@ -443,7 +443,7 @@ export default function ProfilePage() {
             {/* Discord Invite */}
             <div className="yetti-card rounded-2xl p-8 yetti-shadow text-center">
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                Join the YETTI Community
+                Join the Yetti Community
               </h3>
               <p className="text-sm text-gray-600 mb-6">
                 Connect with fellow builders, share tips, and get direct support in our Discord server.

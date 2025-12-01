@@ -16,8 +16,8 @@ export function Testimonials() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-20 animate-fade-in-up">
-          <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-slate-900 mb-6">
-            {t("testimonials.title")}
+          <h2 className="text-4xl md:text-5xl font-black font-lato tracking-tight text-slate-900 mb-6">
+           Loved by <span className="text-sky-500">Businesses Worldwide</span>
           </h2>
           <p className="text-lg md:text-xl text-slate-600">
             {t("testimonials.subtitle")}
@@ -50,7 +50,7 @@ export function Testimonials() {
               className={`bg-white rounded-2xl p-8 shadow-lg shadow-slate-200/50 border border-slate-100 hover:border-sky-200 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in-up delay-${(i + 1) * 100}`}
             >
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
+                <div className="w-12 h-12 rounded-full bg-sky-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
                   {testimonial.image}
                 </div>
                 <div>

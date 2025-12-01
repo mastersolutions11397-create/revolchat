@@ -173,7 +173,7 @@ const Modal: React.FC<ModalProps> = ({
       case "overlay":
         return "bg-black/50"
       case "none":
-        return "shadow-xl shadow-primary-foreground"
+        return "shadow-xl shadow-sky-500-foreground"
       default:
         return "bg-black/50"
     }
@@ -181,8 +181,8 @@ const Modal: React.FC<ModalProps> = ({
 
   const getModalClasses = () => {
     const base =
-      "w-auto bg-background border border-border text-card-foreground max-w-[90%] sm:max-w-xl rounded-2xl shadow-lg m-4 relative"
-    return type === "overlay" ? base : `${base} border border-border`
+      "w-auto bg-background border border-gray-100 text-card-foreground max-w-[90%] sm:max-w-xl rounded-2xl shadow-lg m-4 relative"
+    return type === "overlay" ? base : `${base} border border-gray-100`
   }
 
   if (!mounted) return null
@@ -221,7 +221,7 @@ const Modal: React.FC<ModalProps> = ({
               <div
                 className={cn(
                   "flex justify-between p-6 pb-4",
-                  borderBottom && "border-b border-border",
+                  borderBottom && "border-b border-gray-100",
                   subtitle ? "flex-col items-start gap-1" : "items-center"
                 )}
               >

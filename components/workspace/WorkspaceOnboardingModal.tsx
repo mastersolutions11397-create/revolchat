@@ -389,7 +389,7 @@ export function WorkspaceOnboardingModal({
           : DEFAULT_SUBTITLE
       }
       disablePadding
-      className="max-w-2xl p-0 overflow-hidden bg-slate-900 border border-white/10 shadow-2xl shadow-black/50"
+      className="max-w-2xl p-0 text-white overflow-hidden bg-slate-900 border border-white/10 shadow-2xl shadow-black/50"
     >
       <div className="max-h-[85vh] overflow-y-auto">
         {loading ? (
@@ -423,7 +423,7 @@ export function WorkspaceOnboardingModal({
               </div>
               <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
                 <motion.div 
-                  className="h-full bg-gradient-to-r from-sky-500 to-blue-600"
+                  className="h-full bg-gradient-to-r from-sky-500 to-sky-500"
                   initial={{ width: 0 }}
                   animate={{ width: `${((currentQuestionIndex + 1) / normalizedQuestions.length) * 100}%` }}
                   transition={{ duration: 0.3 }}
@@ -673,7 +673,7 @@ export function WorkspaceOnboardingModal({
                   <Button
                     type="submit"
                     disabled={submitting}
-                    className="flex items-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-semibold shadow-lg shadow-sky-500/20"
+                    className="flex items-center gap-2 bg-gradient-to-r from-sky-500 to-sky-500 hover:from-sky-500 hover:to-sky-500 text-white font-semibold shadow-lg shadow-sky-500/20"
                   >
                     {submitting ? (
                       <>

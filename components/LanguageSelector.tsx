@@ -55,7 +55,7 @@ export default function LanguageSelector() {
                 <span
                   className={`text-sm font-medium ${
                     language === lang.code
-                      ? "text-sky-600"
+                      ? "text-sky-500"
                       : "text-gray-700"
                   }`}
                 >
@@ -63,7 +63,7 @@ export default function LanguageSelector() {
                 </span>
                 {language === lang.code && (
                   <svg
-                    className="ml-auto w-4 h-4 text-sky-600"
+                    className="ml-auto w-4 h-4 text-sky-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -85,7 +85,7 @@ export default function LanguageSelector() {
       {/* Globe Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-14 h-14 rounded-full bg-sky-500 hover:bg-sky-600 text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center group relative"
+        className="w-14 h-14 rounded-full bg-sky-500 hover:bg-sky-500 text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center group relative"
         aria-label="Change language"
       >
         <Globe className="w-6 h-6" />

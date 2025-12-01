@@ -21,7 +21,7 @@ function FAQ() {
         <div className="grid lg:grid-cols-12 gap-12 lg:gap-24">
           <div className="lg:col-span-5 flex flex-col gap-6">
             <div className="animate-fade-in-up">
-              <Badge variant="outline" className="bg-sky-50 text-sky-600 border-sky-200 px-4 py-1 mb-4">{t("faq.badge")}</Badge>
+              <Badge variant="outline" className="bg-sky-500/5 text-sky-500 border-gray-200 px-4 py-1 mb-4">{t("faq.badge")}</Badge>
               <h4 className="text-3xl md:text-5xl tracking-tighter font-extrabold text-slate-900 mb-6">
                 {t("faq.title")}
               </h4>
@@ -29,7 +29,7 @@ function FAQ() {
                 {t("faq.subtitle")}
               </p>
               <Link href="/contact">
-                <Button className="gap-2 bg-white text-slate-900 border-slate-200 hover:bg-slate-50 hover:text-sky-600 transition-colors shadow-sm" variant="outline" size="lg">
+                <Button className="gap-2 bg-white text-slate-900 border-slate-200 hover:bg-slate-50 hover:text-sky-500 transition-colors shadow-sm" variant="outline" size="lg">
                   {t("faq.contactButton")} <PhoneCall className="w-4 h-4" />
                 </Button>
               </Link>
@@ -74,9 +74,9 @@ function FAQ() {
                 <AccordionItem 
                   key={index} 
                   value={"item-" + index} 
-                  className="bg-white border border-slate-200 rounded-xl px-6 shadow-sm data-[state=open]:border-sky-200 data-[state=open]:shadow-md transition-all duration-200"
+                  className="bg-white border border-slate-200 rounded-xl px-6 shadow-sm data-[state=open]:border-gray-200 data-[state=open]:shadow-md transition-all duration-200"
                 >
-                  <AccordionTrigger className="text-slate-900 font-semibold hover:text-sky-600 hover:no-underline py-4 text-left">
+                  <AccordionTrigger className="text-slate-900 font-semibold hover:text-sky-500 hover:no-underline py-4 text-left">
                     {faq.question}
                   </AccordionTrigger>
                   <AccordionContent className="text-slate-600 pb-4 leading-relaxed">

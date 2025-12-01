@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Sparkles, Zap } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { Link2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -19,7 +19,7 @@ const CHANNELS = [
     name: "Instagram",
     description:
       "Connect Instagram to provide real-time support when customers reach out.",
-    icon: "/yetti/instagram.png",
+    icon: "/yetti/instagram_logo.png",
     fallbackIcon: "💬",
     status: "available",
     gradient: "from-[#e8f1ff] via-white to-white",
@@ -30,7 +30,7 @@ const CHANNELS = [
     name: "Telegram",
     description:
       "Connect Telegram Bot to provide real-time support when customers reach out.",
-    icon: "/yetti/telegram_1.png",
+    icon: "/yetti/telegram_logo.png",
     fallbackIcon: "✈️",
     status: "available",
     gradient: "from-[#ebf1ff] via-white to-white",
@@ -41,7 +41,7 @@ const CHANNELS = [
     name: "Messenger",
     description:
       "Connect Messenger to enable customer support and engagement directly.",
-    icon: "/yetti/messenger.png",
+    icon: "/yetti/messenger_logo.png",
     fallbackIcon: "📞",
     gradient: "from-[#e8f1ff] via-white to-white",
     iconOpacity: "opacity-100",
@@ -50,7 +50,7 @@ const CHANNELS = [
 
   {
     name: "WhatsApp",
-    icon: "/yetti/social.png",
+    icon: "/yetti/whatsapp_logo.png",
     fallbackIcon: "📱",
     status: "coming-soon",
     gradient: "from-[#ecfff1] via-white to-white",
@@ -109,11 +109,11 @@ export default function IntegrationsPage() {
         } else {
           setInstagramIntegration(null);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         if (cancelled) return;
         setInstagramIntegration(null);
         setInstagramStatusMessage(
-          error?.message || "Unable to verify Instagram connection."
+          error instanceof Error ? error.message : "Unable to verify Instagram connection."
         );
       } finally {
         if (!cancelled) {
@@ -127,7 +127,7 @@ export default function IntegrationsPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [workspaceId]);
 
   const handleInstagramConnect = useCallback(() => {
     if (!workspaceId) {
@@ -168,9 +168,9 @@ export default function IntegrationsPage() {
       setInstagramIntegration(null);
       setInstagramStatusMessage("Instagram account disconnected.");
       setInstagramStatusKind("success");
-    } catch (error: any) {
+    } catch (error: unknown) {
       setInstagramStatusMessage(
-        error?.message || "Failed to disconnect Instagram."
+        error instanceof Error ? error.message : "Failed to disconnect Instagram."
       );
       setInstagramStatusKind("error");
     } finally {
@@ -225,9 +225,9 @@ export default function IntegrationsPage() {
         setShowTelegramModal(false);
         setTelegramSuccess(false);
       }, 2000);
-    } catch (error: any) {
+    } catch (error: unknown) {
       setTelegramError(
-        error?.message || "Failed to connect Telegram. Please try again."
+        error instanceof Error ? error.message : "Failed to connect Telegram. Please try again."
       );
     } finally {
       setTelegramConnecting(false);
@@ -246,7 +246,7 @@ export default function IntegrationsPage() {
       {/* Header */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
         <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-sky-500/20 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-blue-600/20 blur-3xl" />
+        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-sky-500/20 blur-3xl" />
         
         <div className="relative z-10 flex items-center gap-5">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner ring-1 ring-white/20">
@@ -283,7 +283,7 @@ export default function IntegrationsPage() {
                 <div className="flex items-center gap-5 flex-1">
                   {/* Icon with glow effect */}
                   <div className="relative flex-shrink-0">
-                    <div className="absolute inset-0 bg-gradient-to-br from-sky-400 to-blue-500 rounded-2xl blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-sky-500 to-blue-500 rounded-2xl blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500"></div>
                     <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-white to-sky-50 shadow-md ring-1 ring-slate-200/50 group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
                       <Image
                         src={channel.icon}
@@ -334,7 +334,7 @@ export default function IntegrationsPage() {
                         ? "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
                         : channel.name === "Instagram" && instagramIntegration
                           ? "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105"
-                          : "bg-gradient-to-r from-sky-500 to-sky-600 text-white shadow-sky-500/30 hover:shadow-sky-500/50 hover:scale-105"
+                          : "bg-gradient-to-r from-sky-500 to-sky-500 text-white shadow-sky-500/30 hover:shadow-sky-500/50 hover:scale-105"
                     }`}
                     disabled={
                       channel.comingSoon ||
@@ -407,7 +407,7 @@ export default function IntegrationsPage() {
                                   unoptimized
                                 />
                               ) : (
-                                <div className="flex h-full w-full items-center justify-center text-xl font-bold bg-gradient-to-br from-sky-400 to-blue-500 text-white">
+                                <div className="flex h-full w-full items-center justify-center text-xl font-bold bg-gradient-to-br from-sky-500 to-blue-500 text-white">
                                   {instagramIntegration.username
                                     .charAt(0)
                                     .toUpperCase()}
@@ -418,7 +418,7 @@ export default function IntegrationsPage() {
                           
                           {/* Username and Status */}
                           <div>
-                            <p className="text-xs font-semibold text-sky-600 uppercase tracking-wider mb-0.5">Connected Account</p>
+                            <p className="text-xs font-semibold text-sky-500 uppercase tracking-wider mb-0.5">Connected Account</p>
                             <p className="text-lg font-bold text-slate-900 flex items-center gap-2">
                               @{instagramIntegration.username}
                               <Sparkles className="h-4 w-4 text-sky-500" />
@@ -449,7 +449,7 @@ export default function IntegrationsPage() {
                   {!instagramChecking && !instagramIntegration && (
                     <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
                       <p className="text-sm text-slate-500 font-medium">
-                        Click "Connect" to link your Instagram account
+                        Click &quot;Connect&quot; to link your Instagram account
                       </p>
                     </div>
                   )}
@@ -520,7 +520,7 @@ export default function IntegrationsPage() {
                     href="https://t.me/BotFather"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sky-600 hover:underline"
+                    className="text-sky-500 hover:underline"
                   >
                     @BotFather
                   </a>{" "}
@@ -532,7 +532,7 @@ export default function IntegrationsPage() {
                 <button
                   onClick={handleTelegramSubmit}
                   disabled={!telegramBotToken.trim() || telegramConnecting}
-                  className="flex-1 bg-gradient-to-r from-sky-600 to-sky-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-gradient-to-r from-sky-500 to-sky-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {telegramConnecting ? "Connecting..." : "Connect"}
                 </button>

@@ -3,39 +3,41 @@
 :root {
   --background: #ffffff;
   --foreground: #0f172a; /* Slate 900 - Navy-ish */
-  --primary: #0ea5e9; /* Sky 500 */
-  --primary-light: #38bdf8; /* Sky 400 */
-  --primary-dark: #0284c7; /* Sky 600 */
+  --sky-500: #2d6695; /* Sky 500 */
+  --sky-500-light: #2d6695; /* Sky 400 */
+  --sky-500-dark: #2d6695; /* Sky 600 */
   --secondary: #f8fafc; /* Slate 50 */
-  --accent: #0f172a; /* Slate 900 */
+  --accent: #68b4e4; /* Slate 900 */
   --text-muted: #64748b; /* Slate 500 */
-  
+  --border: #e2e8f0;
   /* Custom Navy & Sky Palette */
   --sky-900: #0f172a;
   --sky-800: #1e293b;
-  --sky-500: #0ea5e9;
+  --sky-500: #2d6695;
   --sky-100: #e0f2fe;
   --sky-50: #f0f9ff;
+  --accent: 203 72% 66%;
+  --accent-foreground: 207 56% 25%;
 
   /* shadcn tokens */
   --card: #ffffff;
   --card-foreground: #0f172a;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
-  --primary-foreground: #ffffff;
+  --sky-500-foreground: #ffffff;
   --secondary-foreground: #0f172a;
   --accent-foreground: #0f172a;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --ring: #0ea5e9;
+  --ring: #2d6695;
   --input: #e2e8f0;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-primary-light: var(--primary-light);
+  --color-sky-500: var(--sky-500);
+  --color-sky-500-light: var(--sky-500-light);
   --color-secondary: var(--secondary);
   --color-accent: var(--accent);
   --color-text-muted: var(--text-muted);
@@ -44,7 +46,7 @@
   --color-card-foreground: var(--card-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-primary-foreground: var(--primary-foreground);
+  --color-sky-500-foreground: var(--sky-500-foreground);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
@@ -65,7 +67,7 @@ body {
 
 /* Custom yetti-themed styles */
 .yetti-gradient {
-  background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 50%, #0284c7 100%);
+  background: linear-gradient(135deg, #2d6695 0%, #38bdf8 50%, #2d6695 100%);
 }
 
 .yetti-shadow {

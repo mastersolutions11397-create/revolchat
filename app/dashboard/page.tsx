@@ -187,7 +187,7 @@ export default function DashboardPage() {
     return (
       <div className="flex h-96 items-center justify-center">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-sky-600" />
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-sky-500" />
           <p className="text-slate-600 font-medium">Loading dashboard...</p>
         </div>
       </div>
@@ -199,7 +199,7 @@ export default function DashboardPage() {
       {/* Welcome Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
         <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-sky-500/20 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-blue-600/20 blur-3xl" />
+        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-sky-500/20 blur-3xl" />
         
         <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-5">
@@ -277,7 +277,7 @@ export default function DashboardPage() {
                 {dashboardData?.quick_stats?.this_month_interactions?.toLocaleString() ?? "0"}
               </p>
             </div>
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 text-sky-600 transition-colors group-hover:bg-sky-500 group-hover:text-white">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 text-sky-500 transition-colors group-hover:bg-sky-500 group-hover:text-white">
               <MessageSquare className="h-7 w-7" />
             </div>
           </div>
@@ -301,7 +301,7 @@ export default function DashboardPage() {
                 {dashboardData?.workspace_summary?.active_integrations ?? 0}
               </p>
             </div>
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-sky-500 transition-colors group-hover:bg-sky-500 group-hover:text-white">
               <Link2 className="h-7 w-7" />
             </div>
           </div>
@@ -344,7 +344,7 @@ export default function DashboardPage() {
               <h3 className="text-xl font-bold text-slate-900">Platform Status</h3>
               <p className="text-slate-500 text-sm mt-1">Real-time status of your connected integrations.</p>
            </div>
-           <Link href="/dashboard/integrations" className="text-sm font-semibold text-sky-600 hover:text-sky-700 hover:underline">
+           <Link href="/dashboard/integrations" className="text-sm font-semibold text-sky-500 hover:text-sky-700 hover:underline">
               Manage Integrations &rarr;
            </Link>
         </div>
@@ -357,7 +357,7 @@ export default function DashboardPage() {
             <p className="mb-4 text-slate-600 font-medium">No integrations connected yet</p>
             <Link
               href="/dashboard/integrations"
-              className="inline-flex items-center justify-center rounded-xl bg-sky-600 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-sky-700 hover:shadow-lg hover:shadow-sky-200 active:scale-95"
+              className="inline-flex items-center justify-center rounded-xl bg-sky-500 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-sky-700 hover:shadow-lg hover:shadow-sky-200 active:scale-95"
             >
               Add Integration
             </Link>

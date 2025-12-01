@@ -13,13 +13,13 @@ export default function PrivacyPolicyPage() {
       <section className="relative min-h-[40vh] flex items-center justify-center pt-28 sm:pt-32 pb-16 overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 text-white">
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-0 right-0 -mt-10 -mr-10 h-96 w-96 rounded-full bg-sky-500/20 blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-96 w-96 rounded-full bg-blue-600/20 blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-96 w-96 rounded-full bg-sky-500/20 blur-3xl"></div>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-12">
             <div className="text-center lg:text-left animate-fade-in-up">
               <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto lg:mx-0 mb-8 border border-white/20 shadow-xl">
-                <Shield className="w-10 h-10 text-sky-400" />
+                <Shield className="w-10 h-10 text-sky-500" />
               </div>
               <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">
                 Privacy Policy
@@ -67,7 +67,7 @@ export default function PrivacyPolicyPage() {
 
               <section className="mb-12">
                 <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
-                  <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-sky-100 text-sky-600">
+                  <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-sky-100 text-sky-500">
                     <FileText className="w-6 h-6" />
                   </span>
                   Information We Collect
@@ -164,7 +164,7 @@ export default function PrivacyPolicyPage() {
 
               <section className="mb-12">
                 <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
-                  <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-sky-100 text-sky-600">
+                  <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-sky-100 text-sky-500">
                     <Lock className="w-6 h-6" />
                   </span>
                   Data Security
@@ -195,7 +195,7 @@ export default function PrivacyPolicyPage() {
 
               <section className="mb-12">
                 <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
-                  <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-sky-100 text-sky-600">
+                  <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-sky-100 text-sky-500">
                     <Eye className="w-6 h-6" />
                   </span>
                   Your Rights and Choices

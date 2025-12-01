@@ -537,7 +537,7 @@ export default function SettingsPage() {
       {/* Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
         <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-sky-500/20 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-blue-600/20 blur-3xl" />
+        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-sky-500/20 blur-3xl" />
         
         <div className="relative z-10 flex items-center gap-5">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner ring-1 ring-white/20">
@@ -561,7 +561,7 @@ export default function SettingsPage() {
               <div className="flex items-center gap-5">
                 {/* Avatar */}
                 <div className="relative">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 text-2xl font-bold text-white shadow-lg ring-4 ring-white">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-sky-500 text-2xl font-bold text-white shadow-lg ring-4 ring-white">
                     {getInitials()}
                   </div>
                 </div>
@@ -600,7 +600,7 @@ export default function SettingsPage() {
                 <div className="space-y-6">
                   <div>
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="p-2 bg-sky-50 rounded-lg text-sky-600">
+                      <div className="p-2 bg-sky-50 rounded-lg text-sky-500">
                         <UserCircle2 className="h-5 w-5" />
                       </div>
                       <div>
@@ -684,7 +684,7 @@ export default function SettingsPage() {
                     <button
                       onClick={handleSaveProfile}
                       disabled={profileSaving}
-                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 px-8 py-3.5 text-sm font-bold text-white transition-all hover:from-sky-700 hover:to-blue-700 hover:shadow-lg hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-sky-500 px-8 py-3.5 text-sm font-bold text-white transition-all hover:from-sky-700 hover:to-sky-500 hover:shadow-lg hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
                     >
                       {profileSaving && <Loader2 className="h-4 w-4 animate-spin" />}
                       Save Profile
@@ -698,7 +698,7 @@ export default function SettingsPage() {
           {/* Workspace Hours Section */}
           <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm space-y-8">
             <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-              <div className="p-2 bg-sky-50 rounded-lg text-sky-600">
+              <div className="p-2 bg-sky-50 rounded-lg text-sky-500">
                 <CalendarClock className="h-5 w-5" />
               </div>
               <div>
@@ -761,7 +761,7 @@ export default function SettingsPage() {
             {/* Timezone */}
             <div>
               <div className="flex items-center gap-3 pb-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-500">
                   <Globe2 className="h-4 w-4" />
                 </div>
                 <div>
@@ -784,7 +784,7 @@ export default function SettingsPage() {
             {/* Weekly Schedule */}
             <div>
               <div className="mb-6 flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-50 text-sky-500">
                   <Clock className="h-4 w-4" />
                 </div>
                 <div>
@@ -890,7 +890,7 @@ export default function SettingsPage() {
                                 <button
                                   type="button"
                                   onClick={() => handleAddRange(day.key)}
-                                  className="inline-flex w-fit items-center gap-2 rounded-lg border border-dashed border-sky-200 px-3 py-2 text-xs font-semibold text-sky-600 hover:bg-sky-50 hover:border-sky-300 transition-all"
+                                  className="inline-flex w-fit items-center gap-2 rounded-lg border border-dashed border-sky-200 px-3 py-2 text-xs font-semibold text-sky-500 hover:bg-sky-50 hover:border-sky-300 transition-all"
                                 >
                                   <Plus className="h-3.5 w-3.5" />
                                   Add window
@@ -911,7 +911,7 @@ export default function SettingsPage() {
                 type="button"
                 onClick={handleSaveWorkspaceHours}
                 disabled={hoursSaving || hoursLoading || statusSaving || !workspaceId}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-blue-600 px-8 py-3.5 text-sm font-bold text-white transition-all hover:from-sky-700 hover:to-blue-700 hover:shadow-lg hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-sky-500 px-8 py-3.5 text-sm font-bold text-white transition-all hover:from-sky-700 hover:to-sky-500 hover:shadow-lg hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
                 {hoursSaving && <Loader2 className="h-4 w-4 animate-spin" />}
                 Save Workspace Hours
@@ -1033,7 +1033,7 @@ export default function SettingsPage() {
             <button
               onClick={handleSave}
               disabled={loading}
-              className="flex items-center gap-2 bg-gradient-to-r from-sky-500 to-blue-600 text-white px-8 py-3.5 rounded-xl font-bold shadow-lg shadow-sky-200 hover:shadow-xl hover:shadow-sky-300 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 bg-gradient-to-r from-sky-500 to-sky-500 text-white px-8 py-3.5 rounded-xl font-bold shadow-lg shadow-sky-200 hover:shadow-xl hover:shadow-sky-300 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                  <>

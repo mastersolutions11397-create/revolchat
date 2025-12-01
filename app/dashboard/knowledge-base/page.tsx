@@ -33,11 +33,9 @@ import {
   Loader2,
   SendHorizontal,
   AlertCircle,
-  Bot,
   RefreshCcwIcon,
   Info,
   Link as LinkIcon,
-  MessageSquare,
 } from "lucide-react";
 
 type PreviewTarget =
@@ -117,7 +115,6 @@ export default function KnowledgePage() {
   );
   const [isProcessingPdfs, setIsProcessingPdfs] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [sheetsConnected, setSheetsConnected] = useState(false);
   const [clickedTemplateIndex, setClickedTemplateIndex] = useState<
     number | null
   >(null);
@@ -220,7 +217,7 @@ export default function KnowledgePage() {
             ? item.usage_count.toString()
             : "—",
         updated: formatDateTime(
-          item.last_used_at || (item as any).updated_at || item.created_at,
+          item.last_used_at || (item as { updated_at?: string }).updated_at || item.created_at,
           "Never"
         ),
         importance: item.importance ?? null,
@@ -264,9 +261,9 @@ export default function KnowledgePage() {
     try {
       const response = await knowledgeAPI.getKnowledgeList(id);
       setKnowledgeItems(response?.results ?? []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       setKnowledgeError(
-        error?.message || "Failed to fetch knowledge for this workspace"
+        error instanceof Error ? error.message : "Failed to fetch knowledge for this workspace"
       );
       setKnowledgeItems([]);
     } finally {
@@ -280,13 +277,11 @@ export default function KnowledgePage() {
     try {
       const response = await googleSheetsAPI.getGoogleSheets(id);
       setGoogleSheets(response?.data ?? []);
-      setSheetsConnected(response?.data && response.data.length > 0);
-    } catch (error: any) {
+    } catch (error: unknown) {
       setSheetsError(
-        error?.message || "Failed to fetch Google Sheets for this workspace"
+        error instanceof Error ? error.message : "Failed to fetch Google Sheets for this workspace"
       );
       setGoogleSheets([]);
-      setSheetsConnected(false);
     } finally {
       setSheetsLoading(false);
     }
@@ -373,7 +368,6 @@ export default function KnowledgePage() {
 
   const openTextForm = () => {
     resetPdfForm();
-    setSheetsConnected(false);
     setClickedTemplateIndex(null);
     setShowLinkInput(false);
     setGoogleSheetLink("");
@@ -383,7 +377,6 @@ export default function KnowledgePage() {
 
   const openPdfForm = () => {
     resetTextForm();
-    setSheetsConnected(false);
     setClickedTemplateIndex(null);
     setShowLinkInput(false);
     setGoogleSheetLink("");
@@ -394,7 +387,6 @@ export default function KnowledgePage() {
   const openSheetsForm = () => {
     resetTextForm();
     resetPdfForm();
-    setSheetsConnected(false);
     setClickedTemplateIndex(null);
     setShowLinkInput(false);
     setGoogleSheetLink("");
@@ -578,8 +570,8 @@ export default function KnowledgePage() {
       setShowLinkInput(false);
       setClickedTemplateIndex(null);
       setShowTemplateCards(false);
-    } catch (error: any) {
-      setLinkInputError(error?.message || "Failed to save Google Sheet link");
+    } catch (error: unknown) {
+      setLinkInputError(error instanceof Error ? error.message : "Failed to save Google Sheet link");
       console.error("Error saving Google Sheet link:", error);
     } finally {
       setSubmittingSheet(false);
@@ -598,8 +590,8 @@ export default function KnowledgePage() {
 
       // Refresh Google Sheets list
       await loadGoogleSheets(workspaceId);
-    } catch (error: any) {
-      setSheetsError(error?.message || "Failed to delete Google Sheet");
+    } catch (error: unknown) {
+      setSheetsError(error instanceof Error ? error.message : "Failed to delete Google Sheet");
       console.error("Error deleting Google Sheet:", error);
     }
   };
@@ -620,8 +612,8 @@ export default function KnowledgePage() {
 
       // Refresh knowledge list
       await loadKnowledge(workspaceId);
-    } catch (error: any) {
-      setKnowledgeError(error?.message || "Failed to delete knowledge entry");
+    } catch (error: unknown) {
+      setKnowledgeError(error instanceof Error ? error.message : "Failed to delete knowledge entry");
       console.error("Error deleting knowledge entry:", error);
     }
   };
@@ -710,9 +702,9 @@ export default function KnowledgePage() {
       setPdfImportanceLevel(3);
       setPdfTags([]);
       setPdfTagInput("");
-    } catch (error: any) {
+    } catch (error: unknown) {
       const message =
-        error?.message ||
+        (error instanceof Error ? error.message : undefined) ||
         (typeof error === "string" ? error : "Failed to process PDF files");
       setPdfError(message);
     } finally {
@@ -720,20 +712,6 @@ export default function KnowledgePage() {
     }
   };
 
-  const handleTextSubmit = async () => {
-    if (textContent.trim() && currentWorkspace?.id) {
-      try {
-        // Handle text knowledge submission
-        console.log("Text knowledge submitted:", textContent);
-
-        // Clear form
-        resetTextForm();
-        closeActiveTab();
-      } catch (error) {
-        console.error("Error submitting text knowledge:", error);
-      }
-    }
-  };
 
   // Tooltip Component
   const Tooltip = ({ text, children }: { text: string; children?: React.ReactNode }) => {
@@ -745,7 +723,7 @@ export default function KnowledgePage() {
           type="button"
           onMouseEnter={() => setShow(true)}
           onMouseLeave={() => setShow(false)}
-          className="ml-1.5 text-slate-400 hover:text-sky-600 transition-colors"
+          className="ml-1.5 text-slate-400 hover:text-sky-500 transition-colors"
         >
           <Info className="h-3.5 w-3.5" />
         </button>
@@ -765,12 +743,12 @@ export default function KnowledgePage() {
       {/* Header - Navy Banner */}
       <div className="relative rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-xl overflow-visible">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-blue-600/20 blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
         
         <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-6">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20">
-              <FileText className="h-8 w-8 text-sky-400" />
+              <FileText className="h-8 w-8 text-sky-500" />
             </div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-white">Knowledge Base</h1>
@@ -797,7 +775,7 @@ export default function KnowledgePage() {
                     onClick={openTextForm}
                     className="flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left transition-colors hover:bg-slate-50 group"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-sky-600 group-hover:scale-110 transition-transform">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-sky-500 group-hover:scale-110 transition-transform">
                       <FileText className="h-5 w-5" />
                     </div>
                     <div>
@@ -856,7 +834,7 @@ export default function KnowledgePage() {
           <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 bg-gradient-to-br from-slate-50 via-sky-50/20 to-slate-50 px-6 py-4">
             <div>
               <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                <FileText className="h-5 w-5 text-sky-600" />
+                <FileText className="h-5 w-5 text-sky-500" />
                 Knowledge Library
               </h3>
               <p className="text-sm text-slate-600 mt-1">
@@ -878,21 +856,21 @@ export default function KnowledgePage() {
             <div className="flex items-center gap-4">
               <div className="hidden xl:flex items-center gap-4">
                 <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 ">
-                  <FileText className="h-4 w-4 text-sky-600" />
+                  <FileText className="h-4 w-4 text-sky-500" />
                   <span className="text-xs font-medium text-slate-700">Text</span>
                   <div className="flex items-center justify-center size-6 rounded-full bg-sky-100">
                     <span className="text-xs font-bold text-sky-700">{textDocumentsCount}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 ">
-                  <FileDown className="h-4 w-4 text-sky-600" />
+                  <FileDown className="h-4 w-4 text-sky-500" />
                   <span className="text-xs font-medium text-slate-700">PDF</span>
                   <div className="flex items-center justify-center size-6 rounded-full shrink-0 bg-sky-100">
                     <span className="text-xs font-bold text-sky-700">{pdfFilesCount}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 ">
-                  <FileSpreadsheet className="h-4 w-4 text-sky-600" />
+                  <FileSpreadsheet className="h-4 w-4 text-sky-500" />
                   <span className="text-xs font-medium text-slate-700">Sheets</span>
                   <div className="flex items-center justify-center size-6 rounded-full shrink-0 bg-sky-100">
                     <span className="text-xs font-bold text-sky-700">{connectedSheetsCount}</span>
@@ -905,7 +883,7 @@ export default function KnowledgePage() {
                   disabled={knowledgeLoading}
                   className="inline-flex items-center gap-2 rounded-lg  bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition-all hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 disabled:cursor-not-allowed disabled:opacity-50 "
                 >
-                  <RefreshCcwIcon className="h-4 w-4 text-sky-600" />
+                  <RefreshCcwIcon className="h-4 w-4 text-sky-500" />
                   Refresh
                 </button>
               )}
@@ -915,21 +893,21 @@ export default function KnowledgePage() {
           <div className="border-b border-slate-200 bg-slate-50/30 px-6 py-3 xl:hidden">
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
               <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 shadow-sm border border-slate-200">
-                <FileText className="h-4 w-4 text-sky-600" />
+                <FileText className="h-4 w-4 text-sky-500" />
                 <span className="text-xs font-medium text-slate-700">Text</span>
                 <div className="flex items-center justify-center size-6 rounded-full bg-sky-100">
                   <span className="text-xs font-bold p-1 text-sky-700">{textDocumentsCount}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 shadow-sm border border-slate-200">
-                <FileDown className="h-4 w-4 text-sky-600" />
+                <FileDown className="h-4 w-4 text-sky-500" />
                 <span className="text-xs font-medium text-slate-700">PDF</span>
                 <div className="flex items-center justify-center size-6 rounded-full shrink-0 bg-sky-100">
                   <span className="text-xs font-bold p-1 text-sky-700">{pdfFilesCount}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 shadow-sm border border-slate-200">
-                <FileSpreadsheet className="h-4 w-4 text-sky-600" />
+                <FileSpreadsheet className="h-4 w-4 text-sky-500" />
                 <span className="text-xs font-medium text-slate-700">Sheets</span>
                 <div className="flex items-center justify-center size-6 rounded-full bg-emerald-100">
                   <span className="text-xs font-bold p-1 text-sky-700">{connectedSheetsCount}</span>
@@ -943,7 +921,7 @@ export default function KnowledgePage() {
                 {!workspaceId ? (
                   <div className="flex h-full items-center justify-center">
                     <div className="text-center">
-                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-500">
                         <FileText className="h-6 w-6" />
                       </div>
                       <p className="text-sm font-semibold text-gray-900">
@@ -995,7 +973,7 @@ export default function KnowledgePage() {
                 ) : tableRows.length === 0 ? (
                   <div className="flex h-full items-center justify-center">
                     <div className="text-center">
-                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
+                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-500">
                         <FileText className="h-6 w-6" />
                       </div>
                       <p className="text-sm font-semibold text-gray-900">
@@ -1031,13 +1009,13 @@ export default function KnowledgePage() {
                               key={`${row.kind}-${row.id}`}
                               className={`grid grid-cols-[minmax(0,1fr),auto] h-[60px] items-center gap-3 px-3  text-xs transition ${
                                 isSelected
-                                  ? "border-l-2 border-sky-400 bg-sky-50/70"
+                                  ? "border-l-2 border-sky-500 bg-sky-50/70"
                                   : "hover:bg-gray-50"
                               }`}
                             >
                               <div className="flex items-center justify-between">
                                 <div className="flex py-2 items-center gap-3">
-                                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600 shadow-inner">
+                                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-500 shadow-inner">
                                     <Icon className="h-4 w-4" />
                                   </div>
                                   <div className="min-w-0">
@@ -1060,7 +1038,7 @@ export default function KnowledgePage() {
                                         : { kind: "sheet", item: row.sheet }
                                     )
                                   }
-                                  className="group inline-flex h-8 w-8 items-center justify-center rounded-lg border-2 border-slate-200 bg-white text-slate-500 transition-all hover:border-sky-300 hover:bg-sky-50 hover:text-sky-600 hover:scale-105 active:scale-95 shadow-sm"
+                                  className="group inline-flex h-8 w-8 items-center justify-center rounded-lg border-2 border-slate-200 bg-white text-slate-500 transition-all hover:border-sky-300 hover:bg-sky-50 hover:text-sky-500 hover:scale-105 active:scale-95 shadow-sm"
                                   title="Preview"
                                 >
                                   <Eye className="h-4 w-4 transition-transform group-hover:scale-110" />
@@ -1070,7 +1048,7 @@ export default function KnowledgePage() {
                                     href={row.link}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="group inline-flex h-8 w-8 items-center justify-center rounded-lg border-2 border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 hover:scale-105 active:scale-95 shadow-sm"
+                                    className="group inline-flex h-8 w-8 items-center justify-center rounded-lg border-2 border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-300 hover:bg-blue-50 hover:text-sky-500 hover:scale-105 active:scale-95 shadow-sm"
                                     title="Open in new tab"
                                   >
                                     <ExternalLink className="h-4 w-4 transition-transform group-hover:scale-110" />
@@ -1199,7 +1177,7 @@ export default function KnowledgePage() {
                                   {previewItem.item.tags.map((tag, index) => (
                                     <span
                                       key={`${tag}-${index}`}
-                                      className="rounded-full bg-white px-3 py-1 text-xs font-medium text-sky-600 shadow-sm"
+                                      className="rounded-full bg-white px-3 py-1 text-xs font-medium text-sky-500 shadow-sm"
                                     >
                                       #{tag}
                                     </span>
@@ -1213,7 +1191,7 @@ export default function KnowledgePage() {
                                 href={previewItem.item.file_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm font-semibold text-sky-600 transition hover:border-sky-300 hover:text-sky-700"
+                                className="inline-flex items-center gap-2 rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm font-semibold text-sky-500 transition hover:border-sky-300 hover:text-sky-700"
                               >
                                 <ExternalLink className="h-4 w-4" />
                                 Open Source Document
@@ -1271,7 +1249,7 @@ export default function KnowledgePage() {
                               href={`https://docs.google.com/spreadsheets/d/${previewItem.item.sheet_id}/edit`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm font-semibold text-sky-600 transition hover:border-sky-300 hover:text-sky-700"
+                              className="inline-flex items-center gap-2 rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm font-semibold text-sky-500 transition hover:border-sky-300 hover:text-sky-700"
                             >
                               <ExternalLink className="h-4 w-4" />
                               Open Google Sheet
@@ -1305,7 +1283,7 @@ export default function KnowledgePage() {
             <div className="p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600 shadow-sm">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-500 shadow-sm">
                     <FileText className="h-5 w-5" />
                   </div>
                   <div>
@@ -1480,14 +1458,14 @@ export default function KnowledgePage() {
                       await loadKnowledge(activeWorkspaceId);
                       resetTextForm();
                       closeActiveTab();
-                    } catch (error: any) {
-                      setSubmitError(error?.message || "Failed to add text knowledge");
+                    } catch (error: unknown) {
+                      setSubmitError(error instanceof Error ? error.message : "Failed to add text knowledge");
                     } finally {
                       setSubmittingText(false);
                     }
                   }}
                   disabled={submittingText || !textTitle.trim() || !textContent.trim()}
-                  className="flex-1 bg-sky-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:bg-sky-700 transition-all shadow-lg shadow-sky-500/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                  className="flex-1 bg-sky-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:bg-sky-700 transition-all shadow-lg shadow-sky-500/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                 >
                   {submittingText ? (
                     <span className="flex items-center justify-center gap-2">
@@ -1761,7 +1739,6 @@ export default function KnowledgePage() {
                   </div>
                   <button
                     onClick={() => {
-                      setSheetsConnected(false);
                       setClickedTemplateIndex(null);
                       setShowLinkInput(false);
                       setGoogleSheetLink("");
@@ -1866,7 +1843,7 @@ export default function KnowledgePage() {
                     
                     {hasGoogleSheet && (
                       <div className="p-4 bg-sky-50 border border-sky-100 rounded-xl text-sm text-sky-800 flex items-start gap-3">
-                         <Info className="h-5 w-5 text-sky-600 flex-shrink-0" />
+                         <Info className="h-5 w-5 text-sky-500 flex-shrink-0" />
                          <p>To connect a different sheet, please disconnect the existing one first.</p>
                       </div>
                     )}
@@ -2087,7 +2064,7 @@ function ChatPanel({
       },
     ]);
     setInput("");
-  }, [workspaceId]);
+  }, [workspaceId, hasKnowledge]);
 
   useEffect(() => {
     setMessages((prev) => {
@@ -2161,10 +2138,10 @@ function ChatPanel({
       }
 
       setMessages((prev) => [...prev, { role: "assistant", content }]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error sending message:", error);
       const errorMessage =
-        error?.message || "Failed to send message. Please try again.";
+        (error instanceof Error ? error.message : undefined) || "Failed to send message. Please try again.";
       setMessages((prev) => [
         ...prev,
         { 
@@ -2217,7 +2194,7 @@ function ChatPanel({
               {message.role === "assistant" && (
                 <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-100 to-blue-100 p-1 shadow-sm ring-2 ring-sky-200/50">
                   <Image
-                    src="/yetti/15.png"
+                    src="/yetti/logo.png"
                     alt="Yetti"
                     width={24}
                     height={24}
@@ -2230,8 +2207,8 @@ function ChatPanel({
               <div
                 className={`group relative max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed transition-all duration-200 ${
                   message.role === "user"
-                    ? "rounded-br-md bg-gradient-to-br from-sky-500 via-sky-600 to-blue-600 text-white shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/30"
-                    : (message as any).isError
+                    ? "rounded-br-md bg-gradient-to-br from-sky-500 via-sky-500 to-sky-500 text-white shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/30"
+                    : message.isError
                     ? "rounded-bl-md border-2 border-red-200 bg-red-50 text-red-900 shadow-sm"
                     : "rounded-bl-md border border-slate-200 bg-white text-slate-800 shadow-md hover:shadow-lg"
                 }`}
@@ -2302,11 +2279,11 @@ function ChatPanel({
             {!hasKnowledge && workspaceId ? (
               <div className="absolute inset-0 flex items-center justify-center">
                  <div className="bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-slate-100 flex flex-col items-center gap-2 text-center max-w-xs">
-                    <div className="h-10 w-10 rounded-full bg-sky-50 flex items-center justify-center text-sky-600 mb-1">
+                    <div className="h-10 w-10 rounded-full bg-sky-50 flex items-center justify-center text-sky-500 mb-1">
                       <FileText className="h-5 w-5" />
                     </div>
                     <p className="text-sm font-semibold text-slate-800">No knowledge yet</p>
-                    <p className="text-xs text-slate-500">Use "Add Knowledge" to get started.</p>
+                    <p className="text-xs text-slate-500">Use &quot;Add Knowledge&quot; to get started.</p>
                  </div>
               </div>
             ) : (
@@ -2330,7 +2307,7 @@ function ChatPanel({
                 {/* Loading Indicator */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="bg-white/90 backdrop-blur-md px-6 py-3 rounded-full shadow-xl border border-slate-100 flex items-center gap-3">
-                    <Loader2 className="h-5 w-5 text-sky-600 animate-spin" />
+                    <Loader2 className="h-5 w-5 text-sky-500 animate-spin" />
                     <span className="text-sm font-medium text-slate-600">
                       {!workspaceId ? "Select a workspace..." : "Loading chat..."}
                     </span>
@@ -2353,7 +2330,7 @@ function ChatPanel({
               placeholder="Ask me anything..."
               rows={1}
               disabled={!!disabledReason}
-              className="w-full resize-none rounded-xl border-2 border-slate-200 bg-white px-4 py-3 pr-12 text-sm placeholder:text-slate-400 focus:border-sky-400 focus:outline-none focus:ring-4 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 transition-all shadow-sm hover:border-slate-300"
+              className="w-full resize-none rounded-xl border-2 border-slate-200 bg-white px-4 py-3 pr-12 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 transition-all shadow-sm hover:border-slate-300"
               style={{ minHeight: '50px', maxHeight: '120px' }}
             />
           </div>
@@ -2361,7 +2338,7 @@ function ChatPanel({
             type="button"
             onClick={handleSend}
             disabled={!input.trim() || sending || !!disabledReason}
-            className="group relative flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 via-sky-600 to-blue-600 text-white shadow-lg shadow-sky-500/30 transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-sky-500/40 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-lg"
+            className="group relative flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 via-sky-500 to-sky-500 text-white shadow-lg shadow-sky-500/30 transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-sky-500/40 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-lg"
             title={sending ? "Sending..." : "Send message"}
           >
             {sending ? (

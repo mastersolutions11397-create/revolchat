@@ -22,7 +22,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20 items-center">
           <div className="space-y-6">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Ready to <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-500">supercharge</span> your workflow?
+              Ready to <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-blue-500">supercharge</span> your workflow?
             </h2>
             <p className="text-slate-400 text-lg max-w-md">
               Join thousands of developers and businesses building the future with Yetti AI.
@@ -30,7 +30,7 @@ export default function Footer() {
             <div className="flex flex-wrap gap-4">
               <Link 
                 href="/dashboard" 
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-semibold transition-all hover:-translate-y-1 shadow-lg shadow-sky-500/25"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-500 text-white font-semibold transition-all hover:-translate-y-1 shadow-lg shadow-sky-500/25"
               >
                 Get Started <ArrowRight className="w-4 h-4" />
               </Link>
@@ -58,9 +58,9 @@ export default function Footer() {
           <div className="col-span-2 md:col-span-4 lg:col-span-4 space-y-6">
             <Link href="/" className="inline-block">
               <div className="text-3xl font-extrabold tracking-tight flex items-center gap-2">
-                <span className="text-white">YETTI</span>
+                <span className="text-white">Yetti</span>
                 <div className="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></div>
-                <span className="text-sky-500">.AI</span>
+                <span className="text-sky-500">.ai</span>
               </div>
             </Link>
             <p className="text-slate-400 leading-relaxed max-w-sm">
@@ -71,7 +71,7 @@ export default function Footer() {
                 href="https://twitter.com" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="w-10 h-10 rounded-lg bg-white/5 hover:bg-sky-500/20 flex items-center justify-center text-slate-400 hover:text-sky-400 transition-all hover:-translate-y-1"
+                className="w-10 h-10 rounded-lg bg-white/5 hover:bg-sky-500/20 flex items-center justify-center text-slate-400 hover:text-sky-500 transition-all hover:-translate-y-1"
                 aria-label="Twitter"
               >
                 <Twitter className="w-5 h-5" />
@@ -80,7 +80,7 @@ export default function Footer() {
                 href="https://linkedin.com" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="w-10 h-10 rounded-lg bg-white/5 hover:bg-sky-500/20 flex items-center justify-center text-slate-400 hover:text-sky-400 transition-all hover:-translate-y-1"
+                className="w-10 h-10 rounded-lg bg-white/5 hover:bg-sky-500/20 flex items-center justify-center text-slate-400 hover:text-sky-500 transition-all hover:-translate-y-1"
                 aria-label="LinkedIn"
               >
                 <Linkedin className="w-5 h-5" />
@@ -89,7 +89,7 @@ export default function Footer() {
                 href="https://instagram.com" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="w-10 h-10 rounded-lg bg-white/5 hover:bg-sky-500/20 flex items-center justify-center text-slate-400 hover:text-sky-400 transition-all hover:-translate-y-1"
+                className="w-10 h-10 rounded-lg bg-white/5 hover:bg-sky-500/20 flex items-center justify-center text-slate-400 hover:text-sky-500 transition-all hover:-translate-y-1"
                 aria-label="Instagram"
               >
                 <Instagram className="w-5 h-5" />
@@ -98,7 +98,7 @@ export default function Footer() {
                 href="https://discord.com" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="w-10 h-10 rounded-lg bg-white/5 hover:bg-sky-500/20 flex items-center justify-center text-slate-400 hover:text-sky-400 transition-all hover:-translate-y-1"
+                className="w-10 h-10 rounded-lg bg-white/5 hover:bg-sky-500/20 flex items-center justify-center text-slate-400 hover:text-sky-500 transition-all hover:-translate-y-1"
                 aria-label="Discord"
               >
                 <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -119,7 +119,7 @@ export default function Footer() {
                 { label: "Dashboard", href: "/dashboard" }
               ].map((link, i) => (
                 <li key={i}>
-                  <Link href={link.href} className="text-slate-400 hover:text-sky-400 transition-colors inline-flex items-center gap-1 group">
+                  <Link href={link.href} className="text-slate-400 hover:text-sky-500 transition-colors inline-flex items-center gap-1 group">
                     <span className="group-hover:translate-x-1 transition-transform">{link.label}</span>
                   </Link>
                 </li>
@@ -137,7 +137,7 @@ export default function Footer() {
                 { label: "Blog", href: "/blog" }
               ].map((link, i) => (
                 <li key={i}>
-                  <Link href={link.href} className="text-slate-400 hover:text-sky-400 transition-colors inline-flex items-center gap-1 group">
+                  <Link href={link.href} className="text-slate-400 hover:text-sky-500 transition-colors inline-flex items-center gap-1 group">
                     <span className="group-hover:translate-x-1 transition-transform">{link.label}</span>
                   </Link>
                 </li>
@@ -155,7 +155,7 @@ export default function Footer() {
                 { label: "Security", href: "/security" }
               ].map((link, i) => (
                 <li key={i}>
-                  <Link href={link.href} className="text-slate-400 hover:text-sky-400 transition-colors inline-flex items-center gap-1 group">
+                  <Link href={link.href} className="text-slate-400 hover:text-sky-500 transition-colors inline-flex items-center gap-1 group">
                     <span className="group-hover:translate-x-1 transition-transform">{link.label}</span>
                   </Link>
                 </li>

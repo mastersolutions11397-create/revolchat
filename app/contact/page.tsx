@@ -92,22 +92,22 @@ export default function ContactPage() {
       <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-slate-900">
         {/* Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-sky-500/20 to-blue-600/20 blur-[100px] animate-pulse-slow" />
+          <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-sky-500/20 to-sky-500/20 blur-[100px] animate-pulse-slow" />
           <div className="absolute -bottom-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-sky-500/20 to-sky-500/20 blur-[100px] animate-pulse-slow delay-1000" />
           <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-400 text-sm font-medium mb-6 animate-fade-in-up">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-500 text-sm font-medium mb-6 animate-fade-in-up">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-500 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
               </span>
               We're here to help
             </div>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-8 animate-fade-in-up delay-100">
-              Get in <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-500">Touch</span>
+              Get in <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-blue-500">Touch</span>
             </h1>
             <p className="text-lg md:text-xl text-slate-400 leading-relaxed animate-fade-in-up delay-200">
               Have a question about our pricing, features, or need technical support? 
@@ -127,11 +127,11 @@ export default function ContactPage() {
               {/* Email Card */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow group">
                 <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <Mail className="w-6 h-6 text-sky-600" />
+                  <Mail className="w-6 h-6 text-sky-500" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 mb-1">Email Us</h3>
                 <p className="text-slate-500 text-sm mb-4">For general inquiries and support</p>
-                <a href="mailto:hello@yetti.ai" className="text-sky-600 font-semibold hover:text-sky-700 flex items-center gap-2 text-sm">
+                <a href="mailto:hello@yetti.ai" className="text-sky-500 font-semibold hover:text-sky-700 flex items-center gap-2 text-sm">
                   hello@yetti.ai <ArrowRight className="w-4 h-4" />
                 </a>
               </div>
@@ -139,7 +139,7 @@ export default function ContactPage() {
               {/* Office Card */}
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow group">
                 <div className="w-12 h-12 bg-sky-50 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <MapPin className="w-6 h-6 text-sky-600" />
+                  <MapPin className="w-6 h-6 text-sky-500" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 mb-1">Visit Us</h3>
                 <p className="text-slate-500 text-sm mb-4">Come say hello at our office</p>
@@ -157,7 +157,7 @@ export default function ContactPage() {
                   <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-sky-500 transition-colors">
                     <Twitter className="w-5 h-5" />
                   </a>
-                  <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-blue-600 transition-colors">
+                  <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-sky-500 transition-colors">
                     <Linkedin className="w-5 h-5" />
                   </a>
                   <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-slate-700 transition-colors">
@@ -173,7 +173,7 @@ export default function ContactPage() {
                 <div className="p-8 md:p-10">
                   <div className="flex items-center gap-3 mb-8">
                     <div className="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center">
-                      <MessageSquare className="w-5 h-5 text-sky-600" />
+                      <MessageSquare className="w-5 h-5 text-sky-500" />
                     </div>
                     <h2 className="text-2xl font-bold text-slate-900">Send us a message</h2>
                   </div>
@@ -295,7 +295,7 @@ export default function ContactPage() {
                       <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-bold text-lg shadow-lg shadow-sky-500/25 transition-all hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full py-4 px-6 rounded-xl bg-gradient-to-r from-sky-500 to-sky-500 hover:from-sky-500 hover:to-sky-500 text-white font-bold text-lg shadow-lg shadow-sky-500/25 transition-all hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
                         {isSubmitting ? (
                           <>

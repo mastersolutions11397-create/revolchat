@@ -32,6 +32,7 @@ export default function WorkspaceSelectionPage() {
   const router = useRouter();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
   const [workspaceName, setWorkspaceName] = useState("");
   const [workspaceDescription, setWorkspaceDescription] = useState("");
   const [workspaceLogo, setWorkspaceLogo] = useState<File | null>(null);
@@ -47,6 +48,19 @@ export default function WorkspaceSelectionPage() {
   const handleSignOut = async () => {
     await signOut();
   };
+
+  const handleNextStep = () => {
+    if (currentStep < 3) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handlePrevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
 
   const handleCreateWorkspace = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,10 +161,12 @@ export default function WorkspaceSelectionPage() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    setCurrentStep(1);
     setWorkspaceName("");
     setWorkspaceDescription("");
     setWorkspaceLogo(null);
     setLogoPreview(null);
+    setIsSubmitting(false);
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -179,7 +195,7 @@ export default function WorkspaceSelectionPage() {
       <div className="min-h-screen bg-slate-900 relative overflow-hidden">
         {/* Background Effects */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-sky-500/10 to-blue-600/10 blur-[100px] animate-pulse-slow" />
+          <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-sky-500/10 to-sky-500/10 blur-[100px] animate-pulse-slow" />
           <div className="absolute -bottom-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-sky-500/10 to-sky-500/10 blur-[100px] animate-pulse-slow delay-1000" />
           <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-20 [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
         </div>
@@ -190,16 +206,11 @@ export default function WorkspaceSelectionPage() {
             <div className="flex justify-between items-center h-20">
               <Link href="/" className="flex items-center gap-3 group">
                 <span className="text-2xl font-extrabold tracking-tight text-white group-hover:opacity-80 transition-opacity">
-                  YETTI<span className="text-sky-500">.AI</span>
+                  Yetti<span className="text-sky-500">.ai</span>
                 </span>
               </Link>
               <div className="flex items-center gap-4">
-                <Link
-                  href="/profile"
-                  className="px-4 py-2 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all"
-                >
-                  Profile
-                </Link>
+              
                 <Button 
                   variant="outline" 
                   onClick={handleSignOut} 
@@ -222,7 +233,7 @@ export default function WorkspaceSelectionPage() {
                 transition={{ duration: 0.5 }}
               >
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white mb-6">
-                  Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-blue-500">Workspaces</span>
+                  Your <span className="text-white">Workspaces</span>
                 </h1>
                 <p className="text-lg text-slate-400 max-w-2xl mx-auto">
                   Select a workspace to manage your AI agents or create a new one to start a fresh project.
@@ -272,7 +283,7 @@ export default function WorkspaceSelectionPage() {
                   >
                     <button
                       onClick={() => setIsModalOpen(true)}
-                      className="w-full group min-h-[315px] relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-500 to-blue-600 p-1 text-left transition-all hover:shadow-2xl hover:shadow-sky-500/25 hover:-translate-y-1"
+                      className="w-full group min-h-[315px] relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-500 to-sky-500 p-1 text-left transition-all hover:shadow-2xl hover:shadow-sky-500/25 hover:-translate-y-1"
                     >
                       <div className="relative h-full rounded-[20px] min-h-[315px] bg-slate-900/40 backdrop-blur-sm p-8 transition-all group-hover:bg-slate-900/20">
                         <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20 group-hover:scale-110 transition-transform duration-300">
@@ -345,11 +356,11 @@ export default function WorkspaceSelectionPage() {
           {/* Left visual */}
           <div className="relative hidden md:flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-950 p-8 border-r border-white/5">
             <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-20 [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-sky-500/10 to-blue-600/10 blur-3xl opacity-50" />
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-sky-500/10 to-sky-500/10 blur-3xl opacity-50" />
             
             <div className="relative z-10 w-full aspect-square max-w-[280px]">
               <Image 
-                src="/yetti/yetti_laying.png" 
+                src="/yetti/yetti_face.png" 
                 alt="Yetti" 
                 fill 
                 className="object-contain drop-shadow-2xl"
@@ -359,7 +370,7 @@ export default function WorkspaceSelectionPage() {
             
             <div className="absolute bottom-8 left-0 w-full text-center px-8">
               <p className="text-sky-200/80 text-sm font-medium">
-                "Let's build something amazing together!"
+                &quot;Let&apos;s build something amazing together!&quot;
               </p>
             </div>
           </div>
@@ -368,110 +379,178 @@ export default function WorkspaceSelectionPage() {
           <div className="p-8 md:p-10 bg-slate-900">
             <div className="mb-8">
               <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-4">
-                <Building2 className="w-6 h-6 text-sky-400" />
+                {currentStep === 1 && <Building2 className="w-6 h-6 text-sky-500" />}
+                {currentStep === 2 && <Upload className="w-6 h-6 text-sky-500" />}
+                {currentStep === 3 && <ArrowRight className="w-6 h-6 text-sky-500" />}
               </div>
-              <h2 className="text-2xl font-bold text-white mb-2">Create Workspace</h2>
-              <p className="text-slate-400 text-sm">Give your new workspace a name to get started.</p>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                {currentStep === 1 && "Create Workspace"}
+                {currentStep === 2 && "Add a Logo"}
+                {currentStep === 3 && "Add Description"}
+              </h2>
+              <p className="text-slate-400 text-sm">
+                {currentStep === 1 && "Give your new workspace a name to get started."}
+                {currentStep === 2 && "Upload a logo to personalize your workspace (optional)."}
+                {currentStep === 3 && "Add a description to help others understand your workspace (optional)."}
+              </p>
+            </div>
+
+            {/* Step Indicators */}
+            <div className="flex items-center justify-center mb-8">
+              <div className="flex items-center space-x-2">
+                {[1, 2, 3].map((step) => (
+                  <div key={step} className="flex items-center">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
+                        step <= currentStep
+                          ? "bg-sky-500 text-white"
+                          : "bg-white/10 text-slate-500"
+                      }`}
+                    >
+                      {step}
+                    </div>
+                    {step < 3 && (
+                      <div
+                        className={`w-8 h-0.5 mx-2 transition-all ${
+                          step < currentStep ? "bg-sky-500" : "bg-white/10"
+                        }`}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
 
             <form onSubmit={handleCreateWorkspace} className="space-y-6">
               <div className="space-y-4">
-                <div>
-                  <label htmlFor="workspaceName" className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">
-                    Workspace Name
-                  </label>
-                  <input
-                    type="text"
-                    id="workspaceName"
-                    value={workspaceName}
-                    onChange={(e) => setWorkspaceName(e.target.value)}
-                    placeholder="e.g., My Awesome Project"
-                    required
-                    minLength={3}
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all outline-none"
-                  />
-                </div>
-
-                {/* Logo Upload */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">
-                    Workspace Logo (Optional)
-                  </label>
-                  {!logoPreview ? (
-                    <label 
-                      htmlFor="logoUpload"
-                      className="group relative flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed border-white/10 bg-white/5 hover:bg-white/10 hover:border-sky-500/50 transition-all cursor-pointer overflow-hidden"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <Upload className="w-8 h-8 text-slate-500 group-hover:text-sky-400 transition-colors mb-2" />
-                      <p className="text-sm text-slate-400 group-hover:text-slate-300 transition-colors">
-                        Click to upload or drag and drop
-                      </p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        PNG, JPG, SVG up to 5MB
-                      </p>
-                      <input
-                        type="file"
-                        id="logoUpload"
-                        accept="image/*"
-                        onChange={handleLogoChange}
-                        className="hidden"
-                      />
+                {/* Step 1: Workspace Name */}
+                {currentStep === 1 && (
+                  <div>
+                    <label htmlFor="workspaceName" className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">
+                      Workspace Name
                     </label>
-                  ) : (
-                    <div className="relative w-full h-32 rounded-xl border border-white/10 bg-white/5 overflow-hidden group">
-                      <img 
-                        src={logoPreview} 
-                        alt="Logo preview" 
-                        className="w-full h-full object-contain p-4"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleRemoveLogo}
-                        className="absolute top-2 right-2 p-1.5 rounded-lg bg-red-500/80 hover:bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-                </div>
+                    <input
+                      type="text"
+                      id="workspaceName"
+                      value={workspaceName}
+                      onChange={(e) => setWorkspaceName(e.target.value)}
+                      placeholder="e.g., My Awesome Project"
+                      required
+                      minLength={3}
+                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all outline-none"
+                    />
+                  </div>
+                )}
 
-                <div>
-                  <label htmlFor="workspaceDescription" className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">
-                    Description (Optional)
-                  </label>
-                  <textarea
-                    id="workspaceDescription"
-                    value={workspaceDescription}
-                    onChange={(e) => setWorkspaceDescription(e.target.value)}
-                    placeholder="What's this workspace for?"
-                    rows={3}
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all outline-none resize-none"
-                  />
-                </div>
+                {/* Step 2: Logo Upload */}
+                {currentStep === 2 && (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">
+                      Workspace Logo (Optional)
+                    </label>
+                    {!logoPreview ? (
+                      <label
+                        htmlFor="logoUpload"
+                        className="group relative flex flex-col items-center justify-center w-full h-32 rounded-xl border-2 border-dashed border-white/10 bg-white/5 hover:bg-white/10 hover:border-sky-500/50 transition-all cursor-pointer overflow-hidden"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 to-sky-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <Upload className="w-8 h-8 text-slate-500 group-hover:text-sky-500 transition-colors mb-2" />
+                        <p className="text-sm text-slate-400 group-hover:text-slate-300 transition-colors">
+                          Click to upload or drag and drop
+                        </p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          PNG, JPG, SVG up to 5MB
+                        </p>
+                        <input
+                          type="file"
+                          id="logoUpload"
+                          accept="image/*"
+                          onChange={handleLogoChange}
+                          className="hidden"
+                        />
+                      </label>
+                    ) : (
+                      <div className="relative w-full h-32 rounded-xl border border-white/10 bg-white/5 overflow-hidden group">
+                        <img
+                          src={logoPreview}
+                          alt="Logo preview"
+                          className="w-full h-full object-contain p-4"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleRemoveLogo}
+                          className="absolute top-2 right-2 p-1.5 rounded-lg bg-red-500/80 hover:bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Step 3: Description */}
+                {currentStep === 3 && (
+                  <div>
+                    <label htmlFor="workspaceDescription" className="block text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">
+                      Description (Optional)
+                    </label>
+                    <textarea
+                      id="workspaceDescription"
+                      value={workspaceDescription}
+                      onChange={(e) => setWorkspaceDescription(e.target.value)}
+                      placeholder="What's this workspace for?"
+                      rows={3}
+                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all outline-none resize-none"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3 pt-4">
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  onClick={handleCloseModal} 
-                  disabled={isSubmitting} 
-                  className="flex-1 h-12 bg-slate-800 rounded-xl text-slate-400 hover:text-white hover:bg-white/5"
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={isSubmitting || !workspaceName.trim()} 
-                  className="flex-1 h-12 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-semibold shadow-lg shadow-sky-500/20"
-                >
-                  {isSubmitting ? (
-                    <span className="inline-flex items-center"><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating...</span>
-                  ) : (
-                    "Create Workspace"
-                  )}
-                </Button>
+                {currentStep === 1 ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handleCloseModal}
+                    disabled={isSubmitting}
+                    className="flex-1 h-12 bg-slate-800 rounded-xl text-slate-400 hover:text-white hover:bg-white/5"
+                  >
+                    Cancel
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handlePrevStep}
+                    disabled={isSubmitting}
+                    className="flex-1 h-12 bg-slate-800 rounded-xl text-slate-400 hover:text-white hover:bg-white/5"
+                  >
+                    Back
+                  </Button>
+                )}
+
+                {currentStep === 3 ? (
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting || !workspaceName.trim()}
+                    className="flex-1 h-12 rounded-xl bg-gradient-to-r from-sky-500 to-sky-500 hover:from-sky-500 hover:to-sky-500 text-white font-semibold shadow-lg shadow-sky-500/20"
+                  >
+                    {isSubmitting ? (
+                      <span className="inline-flex items-center"><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Creating...</span>
+                    ) : (
+                      "Create Workspace"
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={handleNextStep}
+                    disabled={currentStep === 1 && (!workspaceName.trim() || workspaceName.length < 3)}
+                    className="flex-1 h-12 rounded-xl bg-gradient-to-r from-sky-500 to-sky-500 hover:from-sky-500 hover:to-sky-500 text-white font-semibold shadow-lg shadow-sky-500/20"
+                  >
+                    Next
+                  </Button>
+                )}
               </div>
             </form>
           </div>

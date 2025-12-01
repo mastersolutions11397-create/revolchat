@@ -6,6 +6,8 @@ import { useEffect, useState, useRef, Suspense } from "react";
 import type { ChangeEvent } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
+import { useCredits } from "@/lib/hooks/useCredits";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   LayoutDashboard,
   BookOpen,
@@ -13,14 +15,13 @@ import {
   Settings,
   Bell,
   Loader2,
-  User as UserIcon,
-  CalendarClock,
   CreditCard,
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Menu,
   MessageSquare,
+  Crown,
+  Activity,
 } from "lucide-react";
 import { yettiOnboardingAPI } from "@/lib/api";
 import WorkspaceOnboardingModal from "@/components/workspace/WorkspaceOnboardingModal";
@@ -45,6 +46,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { credits, loading: creditsLoading } = useCredits();
   const {
     selectedWorkspaceId,
     workspaces,
@@ -136,10 +138,10 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         setShowOnboardingModal(false);
       }
       previousWorkspaceIdRef.current = newWorkspaceId;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to switch workspace", err);
       setWorkspaceSwitchError(
-        err?.message || "Unable to switch workspace. Please try again."
+        err instanceof Error ? err.message : "Unable to switch workspace. Please try again."
       );
       setLocalWorkspaceSelection(previousWorkspaceId ?? "");
       previousWorkspaceIdRef.current = previousWorkspaceId ?? null;
@@ -182,8 +184,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
               }`}
             >
               <div className="text-2xl font-extrabold tracking-tight">
-                <span className="text-slate-900">YETTI</span>
-                <span className="text-sky-500">.AI</span>
+                <span className="text-slate-900">Yetti</span>
+                <span className="text-sky-500">.ai</span>
               </div>
             </Link>
             {!sidebarExpanded && (
@@ -195,10 +197,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           <nav className="flex-1 space-y-1 px-3 py-6">
             {[
               { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-              { href: "/dashboard/messages", icon: MessageSquare, label: "Messages" },
+              { href: "/dashboard/leads", icon: MessageSquare, label: "Leads" },
               { href: "/dashboard/knowledge-base", icon: BookOpen, label: "Knowledge Base" },
               { href: "/dashboard/integrations", icon: Link2, label: "Integrations" },
+              { href: "/dashboard/plans", icon: Crown, label: "Plans" },
               { href: "/dashboard/billing", icon: CreditCard, label: "Billing" },
+              { href: "/dashboard/usage", icon: Activity, label: "Usage" },
               { href: "/dashboard/settings", icon: Settings, label: "Settings" },
             ].map((item) => {
               const active = isActive(item.href);
@@ -208,13 +212,13 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                   href={buildLink(item.href)}
                   className={`group flex items-center rounded-xl px-3 py-3 transition-all duration-200 ${
                     active
-                      ? "bg-sky-50 text-sky-600 shadow-sm ring-1 ring-sky-100"
+                      ? "bg-sky-50 text-sky-500 shadow-sm ring-1 ring-sky-100"
                       : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                   }`}
                 >
                   <item.icon
                     className={`h-5 w-5 shrink-0 transition-colors ${
-                      active ? "text-sky-600" : "text-slate-400 group-hover:text-slate-600"
+                      active ? "text-sky-500" : "text-slate-400 group-hover:text-slate-600"
                     } ${sidebarExpanded ? "mr-3" : "mx-auto"}`}
                   />
                   <span
@@ -235,7 +239,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           {/* User Profile */}
           <div className="border-t border-slate-100 p-4 bg-slate-50/50">
             <div className={`flex items-center gap-3 ${!sidebarExpanded && "justify-center"}`}>
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-blue-600 text-sm font-bold text-white shadow-md shadow-sky-200">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-sky-500 to-sky-500 text-sm font-bold text-white shadow-md shadow-sky-200">
                 {(user?.user_metadata?.first_name?.[0] ||
                   user?.email?.[0]?.toUpperCase() ||
                   "U") as string}
@@ -268,7 +272,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         {/* Toggle Button */}
         <button
             onClick={() => setSidebarExpanded(!sidebarExpanded)}
-            className="absolute -right-3 top-24 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm hover:text-sky-600 hover:border-sky-200 transition-all"
+            className="absolute -right-3 top-24 flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm hover:text-sky-500 hover:border-sky-200 transition-all"
         >
             {sidebarExpanded ? <ChevronLeft className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
         </button>
@@ -334,7 +338,11 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
               className="inline-flex items-center gap-2 rounded-xl border-2 border-slate-100 bg-white px-4 py-2.5 text-sm font-bold text-slate-900 transition-all hover:bg-sky-100 hover:border-sky-300 hover:shadow-sm"
             >
               <CreditCard className="h-4 w-4" />
-              <span>100 Credits</span>
+              {creditsLoading ? (
+                <Skeleton className="h-4 w-16" />
+              ) : (
+                <span>{credits.toLocaleString()} Credits</span>
+              )}
             </Link>
 
             <div className="h-8 w-px bg-slate-200" />
@@ -355,7 +363,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             <div className="h-8 w-px bg-slate-200" />
 
             <button
-              className="relative rounded-xl p-2.5 text-slate-500 transition-all hover:bg-sky-50 hover:text-sky-600"
+              className="relative rounded-xl p-2.5 text-slate-500 transition-all hover:bg-sky-50 hover:text-sky-500"
               aria-label="Notifications"
             >
               <Bell className="h-5 w-5" />

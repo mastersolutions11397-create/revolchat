@@ -144,7 +144,7 @@ export default function Pricing() {
                                     asChild
                                     className={`w-full rounded-xl font-semibold shadow-sm ${
                                         plan.popular 
-                                            ? 'bg-sky-500 hover:bg-sky-600 text-white shadow-sky-200' 
+                                            ? 'bg-sky-500 hover:bg-sky-500 text-white shadow-sky-200' 
                                             : 'bg-slate-900 hover:bg-slate-800 text-white'
                                     }`}
                                 >
@@ -160,7 +160,7 @@ export default function Pricing() {
                 <div className="mt-12 text-center animate-fade-in-up delay-300">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-sm">
                         <span className="text-sm font-medium text-slate-700">Need more tokens?</span>
-                        <span className="text-sm font-bold text-sky-600">Add-on: $10.00 / 500 Tokens</span>
+                        <span className="text-sm font-bold text-sky-500">Add-on: $10.00 / 500 Tokens</span>
                     </div>
                 </div>
             </div>

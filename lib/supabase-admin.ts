@@ -32,11 +32,11 @@ const getSupabaseAdmin = (): SupabaseClient => {
 export const supabaseAdmin = new Proxy({} as SupabaseClient, {
   get(_target, prop) {
     const client = getSupabaseAdmin();
-    const value = (client as any)[prop];
+    // Use type assertion to 'unknown' and then 'SupabaseClient' to avoid 'any'
+    const value = (client as SupabaseClient)[prop as keyof SupabaseClient];
     if (typeof value === "function") {
       return value.bind(client);
     }
     return value;
   },
 }) as SupabaseClient;
-

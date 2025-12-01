@@ -43,7 +43,7 @@ export default function Navigation({ darkBackground = false }: NavigationProps) 
                 Y
               </div>
               <span className={`text-xl font-bold tracking-tight ${isTransparent ? "text-white" : "text-slate-900"}`}>
-                YETTI<span className="text-sky-500">.AI</span>
+                Yetti<span className="text-sky-500">.ai</span>
               </span>
             </Link>
             
@@ -73,7 +73,7 @@ export default function Navigation({ darkBackground = false }: NavigationProps) 
                 </Link>
                 <Link
                   href="/auth/signup"
-                  className="px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-sky-500 hover:bg-sky-600 transition-all shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 hover:-translate-y-0.5"
+                  className="px-5 py-2.5 rounded-full text-sm font-semibold text-white bg-sky-500 hover:bg-sky-500 transition-all shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 hover:-translate-y-0.5"
                 >
                   {t("nav.getStarted")}
                 </Link>
@@ -121,7 +121,7 @@ export default function Navigation({ darkBackground = false }: NavigationProps) 
           <div className="flex flex-col h-full p-6">
             <div className="flex items-center justify-between mb-8">
               <span className="text-xl font-bold tracking-tight text-slate-900">
-                YETTI<span className="text-sky-500">.AI</span>
+                Yetti<span className="text-sky-500">.ai</span>
               </span>
               <button
                 onClick={() => setMobileMenuOpen(false)}
@@ -145,7 +145,7 @@ export default function Navigation({ darkBackground = false }: NavigationProps) 
               <Link
                 href="/auth/signup"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block w-full py-3 text-center rounded-xl text-white bg-sky-500 hover:bg-sky-600 transition-all font-semibold shadow-lg shadow-sky-500/25"
+                className="block w-full py-3 text-center rounded-xl text-white bg-sky-500 hover:bg-sky-500 transition-all font-semibold shadow-lg shadow-sky-500/25"
               >
                 {t("nav.getStarted")}
               </Link>
@@ -164,7 +164,7 @@ function NavLink({ href, active, isTransparent, children }: { href: string; acti
         href={href}
         className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
           active
-            ? "bg-white text-sky-600 shadow-sm"
+            ? "bg-white text-sky-500 shadow-sm"
             : "text-white/80 hover:text-white hover:bg-white/10"
         }`}
       >
@@ -178,7 +178,7 @@ function NavLink({ href, active, isTransparent, children }: { href: string; acti
       href={href}
       className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
         active
-          ? "bg-white text-sky-600 shadow-sm"
+          ? "bg-white text-sky-500 shadow-sm"
           : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
       }`}
     >

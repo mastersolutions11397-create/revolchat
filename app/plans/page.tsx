@@ -131,7 +131,7 @@ export default function PlansPage() {
               </ul>
               <Link
                 href="/auth/signup"
-                className="w-full bg-sky-500 hover:bg-sky-600 text-white py-3 px-4 rounded-xl font-semibold transition-colors   text-center block"
+                className="w-full bg-sky-500 hover:bg-sky-500 text-white py-3 px-4 rounded-xl font-semibold transition-colors   text-center block"
               >
                 Start Pro Trial
               </Link>
@@ -330,7 +330,7 @@ export default function PlansPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/auth/signup"
-                className="px-8 py-4 rounded-xl text-white bg-sky-500 hover:bg-sky-600 transition-colors   text-lg font-semibold"
+                className="px-8 py-4 rounded-xl text-white bg-sky-500 hover:bg-sky-500 transition-colors   text-lg font-semibold"
               >
                 Start Your Free Trial
               </Link>

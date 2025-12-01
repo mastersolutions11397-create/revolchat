@@ -79,7 +79,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-900 relative flex items-center justify-center p-4 overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-sky-500/20 to-blue-600/20 blur-[100px] animate-pulse-slow" />
+        <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-sky-500/20 to-sky-500/20 blur-[100px] animate-pulse-slow" />
         <div className="absolute -bottom-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-sky-500/20 to-sky-500/20 blur-[100px] animate-pulse-slow delay-1000" />
         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
       </div>
@@ -90,7 +90,7 @@ export default function LoginPage() {
           <div className="mb-6 text-left">
             <Link href="/" className="inline-block hover:opacity-80 transition-opacity">
               <span className="text-2xl font-extrabold tracking-tight text-slate-900">
-                YETTI<span className="text-sky-500">.AI</span>
+                Yetti<span className="text-sky-500">.ai</span>
               </span>
             </Link>
             <h2 className="mt-4 text-2xl font-bold text-slate-900">{t("login.welcomeBack")}</h2>
@@ -128,7 +128,7 @@ export default function LoginPage() {
                   <label htmlFor="password" className="block text-xs font-bold text-slate-700 uppercase tracking-wide">
                     {t("login.password")}
                   </label>
-                  <Link href="/auth/forgot-password" className="text-xs text-sky-600 hover:text-sky-700 font-medium transition-colors">
+                  <Link href="/auth/forgot-password" className="text-xs text-sky-500 hover:text-sky-700 font-medium transition-colors">
                     {t("login.forgotPassword")}
                   </Link>
                 </div>
@@ -164,7 +164,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white py-3 px-4 rounded-xl font-bold text-sm shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full bg-gradient-to-r from-sky-500 to-sky-500 hover:from-sky-500 hover:to-sky-500 text-white py-3 px-4 rounded-xl font-bold text-sm shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -180,7 +180,7 @@ export default function LoginPage() {
               <div className="text-center pt-2">
                 <span className="text-slate-500 text-xs">
                   {t("login.noAccount")}{" "}
-                  <Link href="/auth/signup" className="text-sky-600 hover:text-sky-700 font-bold hover:underline transition-all">
+                  <Link href="/auth/signup" className="text-sky-500 hover:text-sky-700 font-bold hover:underline transition-all">
                     {t("login.signUp")}
                   </Link>
                 </span>
@@ -223,15 +223,15 @@ export default function LoginPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-slate-900 to-slate-800">
             <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-20" />
             <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 rounded-full bg-sky-500/20 blur-3xl animate-pulse-slow" />
-            <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-96 h-96 rounded-full bg-blue-600/20 blur-3xl animate-pulse-slow delay-1000" />
+            <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-96 h-96 rounded-full bg-sky-500/20 blur-3xl animate-pulse-slow delay-1000" />
           </div>
           
           <div className="relative h-full flex items-center justify-center p-8">
             <div className="relative w-full max-w-[320px] aspect-square">
               <div className="absolute inset-0 bg-gradient-to-tr from-sky-500/20 to-blue-500/20 rounded-full blur-2xl animate-pulse-slow" />
               <Image 
-                src="/yetti/yetti_laptop.png" 
-                alt="Yetti with laptop" 
+                src="/yetti/yetti_face.png" 
+                alt="Yetti" 
                 fill 
                 className="object-contain drop-shadow-2xl relative z-10 hover:scale-105 transition-transform duration-500" 
               />
