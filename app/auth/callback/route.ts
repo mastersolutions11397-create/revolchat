@@ -67,7 +67,8 @@ export async function GET(request: NextRequest) {
         await supabase.auth.exchangeCodeForSession(code);
 
       if (!exchangeError && data.session) {
-        // Successfully authenticated
+        // Successfully authenticated (OAuth or email confirmation)
+        // User is now logged in, redirect to workspace
         return NextResponse.redirect(new URL(next, request.url));
       }
 

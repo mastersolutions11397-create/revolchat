@@ -2,8 +2,14 @@
 
 import { createBrowserClient } from "@supabase/ssr";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    "Missing Supabase environment variables. Please check your .env file."
+  );
+}
 
 export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
 
@@ -27,21 +33,69 @@ export const authService = {
     password: string,
     userData?: { firstName?: string; lastName?: string; company?: string }
   ) {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          first_name: userData?.firstName,
-          last_name: userData?.lastName,
-          full_name:
-            userData?.firstName && userData?.lastName
-              ? `${userData.firstName} ${userData.lastName}`
-              : undefined,
+    try {
+      // Get the current origin for email redirect
+      const origin =
+        typeof window !== "undefined"
+          ? window.location.origin
+          : process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
+      const emailRedirectTo = `${origin}/auth/callback`;
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo,
+          data: {
+            first_name: userData?.firstName,
+            last_name: userData?.lastName,
+            full_name:
+              userData?.firstName && userData?.lastName
+                ? `${userData.firstName} ${userData.lastName}`
+                : undefined,
+          },
         },
-      },
-    });
-    return { data, error };
+      });
+
+      if (error) {
+        console.error("Sign up error:", error);
+
+        // Provide more helpful error messages
+        let errorMessage = error.message;
+        if (
+          error.message?.includes("email") ||
+          error.message?.includes("Email")
+        ) {
+          if (error.message.includes("already registered")) {
+            errorMessage =
+              "This email is already registered. Please sign in instead.";
+          } else if (
+            error.message.includes("sending") ||
+            error.message.includes("confirmation")
+          ) {
+            errorMessage =
+              "Unable to send confirmation email. Please check your Supabase email configuration or try again later.";
+          } else {
+            errorMessage = "Email error: " + error.message;
+          }
+        }
+
+        return {
+          data: null,
+          error: { ...error, message: errorMessage },
+        };
+      }
+
+      return { data, error: null };
+    } catch (err) {
+      console.error("Unexpected error in signUp:", err);
+      return {
+        data: null,
+        error:
+          err instanceof Error ? err : new Error("Failed to create account"),
+      };
+    }
   },
 
   async signIn(email: string, password: string, rememberMe?: boolean) {

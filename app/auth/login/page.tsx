@@ -15,17 +15,20 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const router = useRouter();
 
-  // Load remember me preference on mount and check for error in URL
+  // Load remember me preference on mount and check for error/success in URL
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedRememberMe = localStorage.getItem("rememberMe") === "true";
       setRememberMe(savedRememberMe);
 
-      // Check for error in URL query params
+      // Check for error or success message in URL query params
       const urlParams = new URLSearchParams(window.location.search);
       const urlError = urlParams.get("error");
+      const urlMessage = urlParams.get("message");
+
       if (urlError) {
         // Decode the error message if it's URL encoded
         try {
@@ -45,6 +48,16 @@ export default function LoginPage() {
           } else {
             setError("An error occurred during authentication.");
           }
+        }
+        // Clean up URL
+        router.replace("/auth/login");
+      } else if (urlMessage) {
+        // Show success message
+        try {
+          const decodedMessage = decodeURIComponent(urlMessage);
+          setSuccessMessage(decodedMessage);
+        } catch {
+          setSuccessMessage("Operation completed successfully!");
         }
         // Clean up URL
         router.replace("/auth/login");
@@ -123,6 +136,14 @@ export default function LoginPage() {
           </div>
 
           <div>
+            {successMessage && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-100 rounded-lg flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                <p className="text-green-600 text-xs font-medium">
+                  {successMessage}
+                </p>
+              </div>
+            )}
             {error && (
               <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-lg flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
