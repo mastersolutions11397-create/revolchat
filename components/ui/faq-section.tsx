@@ -28,11 +28,7 @@ function FAQ() {
               <p className="text-lg leading-relaxed tracking-tight text-slate-600 mb-8">
                 {t("faq.subtitle")}
               </p>
-              <Link href="/contact">
-                <Button className="gap-2 bg-white text-slate-900 border-slate-200 hover:bg-slate-50 hover:text-sky-500 transition-colors shadow-sm" variant="outline" size="lg">
-                  {t("faq.contactButton")} <PhoneCall className="w-4 h-4" />
-                </Button>
-              </Link>
+              
             </div>
           </div>
           <div className="lg:col-span-7">

@@ -3,8 +3,10 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, MessageCircle, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 const Hero = () => {
+  const router = useRouter();
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-background pt-20">
       {/* Background Gradients & Grid */}
@@ -117,7 +119,7 @@ const Hero = () => {
             transition={{ duration: 0.7, delay: 0.4 }}
             className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed"
           >
-            Losing sales because you can't respond 24/7? Your <span className="text-foreground font-semibold">Yetti AI agent</span> works
+            Losing sales because you can&apos;t respond 24/7? Your <span className="text-foreground font-semibold">Yetti AI agent</span> works
             around the clock on social media selling products, scheduling
             meetings, and answering questions.
           </motion.p>
@@ -131,18 +133,11 @@ const Hero = () => {
           >
             <Button
               size="lg"
+              onClick={() => router.push('/login')}
               className="h-14 px-8 text-lg rounded-full bg-sky-500 hover:bg-sky-500/90 text-white shadow-[0_10px_40px_-10px_rgba(45,102,149,0.4)] hover:shadow-[0_20px_40px_-10px_rgba(45,102,149,0.5)] hover:-translate-y-1 transition-all duration-300"
             >
-              Start Free Trial
+              Start Now
               <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="h-14 px-8 text-lg rounded-full border-2 border-sky-500/10 hover:border-sky-500/20 hover:bg-sky-500/5 text-foreground transition-all duration-300"
-            >
-              <Sparkles className="w-5 h-5 mr-2 text-sky-500" />
-              See Demo
             </Button>
           </motion.div>
         

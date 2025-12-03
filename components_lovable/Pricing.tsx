@@ -21,7 +21,7 @@ function PricingContent() {
     name: "Starter",
     price: "$29",
     period: "/month",
-    description: "Perfect for individuals just getting started.",
+    description: "Best for individuals just getting started.",
     features: [
       "1,000 Yetti Tokens",
       "1 workspace",
@@ -30,7 +30,7 @@ function PricingContent() {
       "Basic analytics",
       "Email support",
     ],
-    cta: "Start Free Trial",
+    cta: "Start Now",
     popular: false,
     planKey: "starter",
   },
@@ -38,7 +38,7 @@ function PricingContent() {
     name: "Growth",
     price: "$59",
     period: "/month",
-    description: "Ideal for growing businesses and creators.",
+    description: "Best for growing businesses and creators.",
     features: [
       "2,500 Yetti Tokens",
       "3 workspaces",
@@ -48,15 +48,15 @@ function PricingContent() {
       "Advanced analytics",
       "Priority chat support",
     ],
-    cta: "Start Free Trial",
-    popular: true,
+    cta: "Start Now",
+    popular: false,
     planKey: "growth",
   },
   {
     name: "Pro",
     price: "$99",
     period: "/month",
-    description: "For serious businesses scaling up.",
+    description: "Best for serious businesses scaling up.",
     features: [
       "5,000 Yetti Tokens",
       "5 workspaces",
@@ -66,15 +66,15 @@ function PricingContent() {
       "Advanced analytics",
       "Priority support",
     ],
-    cta: "Start Free Trial",
-    popular: false,
+    cta: "Start Now",
+    popular: true,
     planKey: "pro",
   },
   {
     name: "Enterprise",
     price: "$179",
     period: "/month",
-    description: "Maximum power for large teams.",
+    description: "Best for large teams and enterprises.",
     features: [
       "10,000 Yetti Tokens",
       "Unlimited workspaces",
@@ -84,7 +84,7 @@ function PricingContent() {
       "Custom integrations",
       "Dedicated support",
     ],
-    cta: "Contact Sales",
+    cta: "Start Now",
     popular: false,
     planKey: "enterprise",
   },
@@ -216,32 +216,7 @@ function PricingContent() {
             </p>
           </motion.div>
 
-          {/* Billing Toggle */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="flex items-center justify-center gap-4"
-          >
-            <span className={`text-sm font-medium ${!isAnnual ? "text-foreground" : "text-muted-foreground"}`}>Monthly</span>
-            <button
-              onClick={() => {
-                console.log('Pricing Component: Billing toggle clicked, current isAnnual:', isAnnual, 'setting to:', !isAnnual);
-                setIsAnnual(!isAnnual);
-              }}
-              className="relative w-14 h-7 rounded-full bg-sky-100 transition-colors duration-300 focus:outline-none"
-            >
-              <div
-                className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-sky-500 shadow-sm transition-transform duration-300 ${
-                  isAnnual ? "translate-x-7" : ""
-                }`}
-              ></div>
-            </button>
-            <span className={`text-sm font-medium ${isAnnual ? "text-foreground" : "text-muted-foreground"}`}>
-              Yearly <span className="text-sky-500 text-xs font-bold ml-1">(Save 20%)</span>
-            </span>
-          </motion.div>
+      
         </div>
 
         {/* Pricing Cards */}

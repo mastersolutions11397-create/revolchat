@@ -98,16 +98,18 @@ const Solutions = () => {
                   <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   
                   <div className="relative z-10 space-y-6">
-                    {/* Icon */}
-                    <div className="w-14 h-14 rounded-2xl bg-sky-500/10 flex items-center justify-center group-hover:bg-sky-500 group-hover:text-white transition-colors duration-300">
-                      <Icon className="w-7 h-7 text-sky-500 group-hover:text-white transition-colors duration-300" />
+                    {/* Icon and Title in same row */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-2xl bg-sky-500/10 flex items-center justify-center group-hover:bg-sky-500 group-hover:text-white transition-colors duration-300">
+                        <Icon className="w-7 h-7 text-sky-500 group-hover:text-white transition-colors duration-300" />
+                      </div>
+                      <h3 className="text-xl font-bold text-foreground group-hover:text-sky-500 transition-colors">
+                        {solution.title}
+                      </h3>
                     </div>
 
                     {/* Content */}
                     <div>
-                      <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-sky-500 transition-colors">
-                        {solution.title}
-                      </h3>
                       
                       <div className="space-y-3">
                         <p className="text-sm text-muted-foreground/80 italic border-l-2 border-sky-500/20 pl-3">

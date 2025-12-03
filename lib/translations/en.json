@@ -6,7 +6,7 @@
   "nav.dashboard": "Dashboard",
   "nav.login": "Login",
   "nav.getStarted": "Get Started",
-  
+
   "hero.title": "Your AI Agent That Never Sleeps",
   "hero.subtitle": "Handle customer conversations 24/7 on Instagram, Messenger, and Telegram. Train with PDFs, build workflows in Sheets—no coding required.",
   "hero.launchNow": "Launch Yetti Now",
@@ -15,7 +15,7 @@
   "hero.fiveMinuteSetup": "5-minute setup",
   "hero.enterpriseSecurity": "Enterprise-grade security",
   "hero.alwaysOn": "Always on for your business",
-  
+
   "centerpiece.title": "Meet Yetti — Your AI That Understands Your Business",
   "centerpiece.subtitle": "No coding required. Train with your content, build workflows in Sheets, and let Yetti handle conversations like your best team member.",
   "centerpiece.trainContent": "Train with Content",
@@ -30,7 +30,7 @@
   "centerpiece.mobile.workflowsSheets": "Workflows in Sheets — No coding",
   "centerpiece.mobile.deployEverywhere": "Deploy Everywhere — Multiple platforms",
   "centerpiece.mobile.realTimeAnalytics": "Real-Time Analytics — Track performance",
-  
+
   "features.title": "Turn Conversations Into Revenue",
   "features.subtitle": "Instant replies, cart recovery, custom workflows—all without coding.",
   "features.smartTraining.title": "Smart Training",
@@ -45,7 +45,7 @@
   "features.instantResponses.desc": "Millisecond replies boost satisfaction and sales.",
   "features.alwaysOnBrand.title": "Always On-Brand",
   "features.alwaysOnBrand.desc": "Built-in guardrails keep responses accurate and trustworthy.",
-  
+
   "integrations.title": "Deploy Where Your Customers Are",
   "integrations.subtitle": "Instagram, Messenger, and Telegram—Yetti engages 24/7 with quality you can trust.",
   "integrations.instagram.title": "Instagram",
@@ -54,13 +54,13 @@
   "integrations.messenger.desc": "Recover abandoned carts, answer FAQs instantly, and route complex issues to your team.",
   "integrations.telegram.title": "Telegram",
   "integrations.telegram.desc": "Handle thousands of conversations simultaneously. Enterprise capacity at startup prices.",
-  
+
   "cta.badge": "Get started",
   "cta.title": "Ready to Scale Your Conversations?",
   "cta.subtitle": "Join thousands of businesses using Yetti 24/7. Stop losing sales to slow responses. Start converting today.",
   "cta.scheduleDemo": "Schedule a Demo",
   "cta.startTrial": "Start Free Trial",
-  
+
   "testimonials.title": "Loved by Businesses Worldwide",
   "testimonials.subtitle": "Thousands of businesses trust Yetti to handle their customer conversations 24/7. See what they're saying.",
   "testimonials.testimonial1.text": "Yetti has completely transformed how we handle customer service. We went from missing 40% of DMs to responding to every customer in seconds. Sales have increased 35% since we deployed Yetti on Instagram and Messenger. The best part? It took us less than 30 minutes to set up.",
@@ -75,7 +75,7 @@
   "testimonials.testimonial4.text": "Yetti understands our brand voice perfectly. Customers can't tell they're talking to an AI. Response quality is consistently excellent.",
   "testimonials.testimonial4.name": "David Kim",
   "testimonials.testimonial4.role": "Marketing Director, FreshMarket",
-  
+
   "pricing.title": "Pricing that scale with your business",
   "pricing.subtitle": "Choose the perfect plan for your needs and start optimizing your workflow today",
   "pricing.plan.name": "Suite Enterprise",
@@ -91,7 +91,7 @@
   "pricing.annual": "Annual",
   "pricing.save20": "Save 20%",
   "pricing.mostPopular": "Most Popular",
-  
+
   "pricing.starter.name": "Starter",
   "pricing.starter.price": "Free",
   "pricing.starter.period": "forever",
@@ -103,7 +103,7 @@
   "pricing.starter.features.3": "Basic analytics",
   "pricing.starter.features.4": "Email support",
   "pricing.starter.features.5": "Community forum access",
-  
+
   "pricing.professional.name": "Professional",
   "pricing.professional.price": "$29",
   "pricing.professional.period": "per month",
@@ -117,7 +117,7 @@
   "pricing.professional.features.5": "Custom knowledge base",
   "pricing.professional.features.6": "API access",
   "pricing.professional.features.7": "Webhook integrations",
-  
+
   "pricing.enterprise.name": "Enterprise",
   "pricing.enterprise.price": "$99",
   "pricing.enterprise.period": "per month",
@@ -134,7 +134,7 @@
   "pricing.enterprise.features.8": "Custom integrations",
   "pricing.enterprise.features.9": "Dedicated account manager",
   "pricing.enterprise.features.10": "SLA guarantee",
-  
+
   "contact.title": "Get in Touch",
   "contact.subtitle": "Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.",
   "contact.sendMessage": "Send us a message",
@@ -152,7 +152,7 @@
   "contact.support": "Technical Support",
   "contact.partnership": "Partnership",
   "contact.media": "Media Inquiry",
-  
+
   "login.welcomeBack": "Welcome home",
   "login.enterDetails": "Please enter your details.",
   "login.email": "Email address",
@@ -164,7 +164,7 @@
   "login.noAccount": "Don't have an account?",
   "login.signUp": "Sign up",
   "login.orContinueWith": "Or continue with",
-  
+
   "signup.createAccount": "Create your account",
   "signup.startTrial": "Start your free trial today",
   "signup.firstName": "First name",
@@ -177,28 +177,28 @@
   "signup.signIn": "Sign in",
   "signup.orContinueWith": "Or continue with",
   "signup.signingUp": "Signing up...",
-  
+
   "faq.badge": "FAQ",
   "faq.title": "Frequently Asked Questions",
   "faq.subtitle": "Everything you need to know about Yetti. Can't find your answer? Reach out to our team.",
   "faq.contactButton": "Still have questions?",
-  "faq.q1.question": "How does Yetti work?",
-  "faq.q1.answer": "Yetti learns from your content (PDFs, text files, or Google Sheets) to understand your products and brand voice. You can build conversation workflows in Google Sheets without coding. Once trained, Yetti automatically responds to customers on Instagram, Messenger, and Telegram 24/7.",
-  "faq.q2.question": "How long does setup take?",
-  "faq.q2.answer": "Most businesses get Yetti up and running in under 30 minutes. Upload your content, configure your workflows in Sheets, and connect your social media accounts. No coding or technical expertise required.",
-  "faq.q3.question": "What platforms does Yetti support?",
-  "faq.q3.answer": "Yetti currently supports Instagram (DMs and comments), Facebook Messenger, and Telegram. We're constantly adding new platforms based on customer demand.",
-  "faq.q4.question": "Can Yetti handle complex customer questions?",
-  "faq.q4.answer": "Yes! Yetti can answer questions based on your training content and follow custom workflows you design in Google Sheets. For complex issues beyond its knowledge, Yetti can seamlessly hand off the conversation to your human team.",
-  "faq.q5.question": "How accurate are Yetti's responses?",
-  "faq.q5.answer": "Yetti uses built-in guardrails to ensure responses stay accurate and on-brand. It only answers based on your training content and won't make up information. You can review and refine responses over time.",
+  "faq.q1.question": "What exactly does Yetti.ai do?",
+  "faq.q1.answer": "Yetti.ai is your 24/7 AI sales agent that responds instantly to DMs on social media. It answers questions, explains your products, captures leads, books appointments, and helps convert conversations into sales automatically, even while you sleep.",
+  "faq.q2.question": "How does Yetti learn about my business?",
+  "faq.q2.answer": "Training your Yetti takes just minutes. Upload PDFs, Google Sheets, or simple text, and your agent instantly learns your product details, pricing, FAQs, policies, and brand voice. You can update or add information whenever you need.",
+  "faq.q3.question": "How accurate are Yetti's responses?",
+  "faq.q3.answer": "Very accurate, your agent only uses the information you provide. This keeps responses consistent, on-brand, and aligned with your business. You can also customize tone, rules, and behavior to match your exact style.",
+  "faq.q4.question": "What happens if Yetti doesn't know the answer?",
+  "faq.q4.answer": "If something isn't covered in your training data, Yetti can give a helpful fallback message, ask for more details, dont worry. It wont make anything up about your business.",
+  "faq.q5.question": "How do Yetti Tokens work?",
+  "faq.q5.answer": "Tokens are your monthly usage credits. Each AI reply uses a token, and your plan determines how many replies you can send per month. Plans start at 1,000 tokens and scale up as your business grows.",
   "faq.q6.question": "Do I need coding skills to use Yetti?",
   "faq.q6.answer": "No coding required! Everything is done through our web interface and Google Sheets. You can train Yetti, build workflows, and manage conversations all without writing a single line of code.",
   "faq.q7.question": "Can I integrate Yetti with my existing tools?",
   "faq.q7.answer": "Yes, Yetti integrates with popular ecommerce platforms, CRMs, inventory systems, and custom APIs. It becomes the central hub for all your customer interactions.",
   "faq.q8.question": "What happens if Yetti doesn't know the answer?",
   "faq.q8.answer": "Yetti is designed to gracefully handle unknowns. It can either route the conversation to your human team, collect customer information for follow-up, or provide helpful context based on what it does know. You control the fallback behavior.",
-  
+
   "footer.description": "Your AI agent that never sleeps. Automate customer conversations across Instagram, Messenger, and Telegram with intelligent AI-powered responses.",
   "footer.brand.tagline": "Connecting AI agents to the world's most popular platforms.",
   "footer.product": "Product",
@@ -220,4 +220,3 @@
   "footer.followUs": "Follow Us",
   "footer.rights": "All rights reserved"
 }
-

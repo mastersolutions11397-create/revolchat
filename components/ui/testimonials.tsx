@@ -64,7 +64,7 @@ export function Testimonials() {
                 ))}
               </div>
               <p className="text-slate-600 leading-relaxed italic">
-                "{testimonial.content}"
+                &quot;{testimonial.content}&quot;
               </p>
             </div>
           ))}

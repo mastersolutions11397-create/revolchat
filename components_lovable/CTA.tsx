@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 const CTA = () => {
   return (
-    <section className="py-32 relative overflow-hidden">
+    <section className="py-6 relative overflow-hidden">
       {/* Background with Gradient and Mesh */}
       <div className="absolute inset-0 bg-sky-500">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff12_1px,transparent_1px),linear-gradient(to_bottom,#ffffff12_1px,transparent_1px)] bg-[size:32px_32px]"></div>
@@ -51,20 +51,18 @@ const CTA = () => {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="relative rounded-3xl overflow-hidden bg-white/10 backdrop-blur-lg border border-white/20 p-12 md:p-20 text-center shadow-2xl"
+            className="relative rounded-3xl overflow-hidden  p-12 md:p-20 text-center "
           >
-            {/* Inner Glow */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none"></div>
 
-            <div className="relative z-10 space-y-8">
+            <div className="relative z-10 space-y-4">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white text-sm font-medium backdrop-blur-sm mb-4">
                 <Sparkles className="w-4 h-4" />
-                <span>Start automating today</span>
+                <span>Boost Your Sales Instantly</span>
               </div>
 
               <h2 className="text-4xl md:text-6xl font-black font-lato text-white tracking-tight leading-tight">
                 Ready to Transform Your
-                <span className="block mt-2 text-white">
+                <span className="block mt-1 text-white">
                   Social Media Into Sales?
                 </span>
               </h2>
@@ -77,7 +75,7 @@ const CTA = () => {
               <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-8">
                 <Button
                   size="lg"
-                  className="h-16 px-10 text-lg rounded-full bg-sky-500 text-white shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 font-bold"
+                  className="h-16 px-10 text-lg rounded-full bg-white !text-gray-900 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 font-bold"
                 >
                   Get Started Free
                   <ArrowRight className="w-5 h-5 ml-2" />

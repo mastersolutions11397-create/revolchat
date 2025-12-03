@@ -48,7 +48,7 @@ const Navbar = () => {
               </Link>
             ))}
             <Link
-              href="https://discord.gg/hN8r5Tep"
+              href="https://discord.gg/reY96aqzTe"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm font-medium text-muted-foreground hover:text-sky-500 transition-colors"
