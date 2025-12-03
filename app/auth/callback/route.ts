@@ -1,11 +1,24 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { NextResponse, type NextRequest } from 'next/server';
-import { cookies } from 'next/headers';
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
+import { cookies } from "next/headers";
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get('code');
-  const next = requestUrl.searchParams.get('next') ?? '/workspace';
+  const code = requestUrl.searchParams.get("code");
+  const error = requestUrl.searchParams.get("error");
+  const errorDescription = requestUrl.searchParams.get("error_description");
+  const next = requestUrl.searchParams.get("next") ?? "/workspace";
+
+  // Check if there's an error from Supabase/Google OAuth
+  if (error) {
+    console.error("OAuth error:", error, errorDescription);
+    const errorMessage = errorDescription
+      ? encodeURIComponent(errorDescription)
+      : "auth_callback_error";
+    return NextResponse.redirect(
+      new URL(`/auth/login?error=${errorMessage}`, request.url)
+    );
+  }
 
   if (code) {
     const cookieStore = await cookies();
@@ -28,7 +41,7 @@ export async function GET(request: NextRequest) {
           },
           remove(name: string, options: CookieOptions) {
             try {
-              cookieStore.set({ name, value: '', ...options });
+              cookieStore.set({ name, value: "", ...options });
             } catch (error) {
               // The `delete` method was called from a Server Component.
               // This can be ignored if you have middleware refreshing
@@ -39,12 +52,24 @@ export async function GET(request: NextRequest) {
       }
     );
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
+    const { error: exchangeError } =
+      await supabase.auth.exchangeCodeForSession(code);
+    if (!exchangeError) {
       return NextResponse.redirect(new URL(next, request.url));
     }
+
+    // Log the actual error for debugging
+    console.error("Error exchanging code for session:", exchangeError);
+    const errorMessage = exchangeError.message
+      ? encodeURIComponent(exchangeError.message)
+      : "auth_callback_error";
+    return NextResponse.redirect(
+      new URL(`/auth/login?error=${errorMessage}`, request.url)
+    );
   }
 
-  // Return the user to an error page with instructions
-  return NextResponse.redirect(new URL('/auth/login?error=auth_callback_error', request.url));
+  // No code and no error - something went wrong
+  return NextResponse.redirect(
+    new URL("/auth/login?error=auth_callback_error", request.url)
+  );
 }
