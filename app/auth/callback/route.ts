@@ -9,23 +9,35 @@ export async function GET(request: NextRequest) {
   const errorDescription = requestUrl.searchParams.get("error_description");
   const next = requestUrl.searchParams.get("next") ?? "/workspace";
 
+  // Validate environment variables
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error("Missing Supabase environment variables");
+    return NextResponse.redirect(
+      new URL(
+        `/auth/login?error=${encodeURIComponent("Server configuration error. Please contact support.")}`,
+        request.url
+      )
+    );
+  }
+
   // Check if there's an error from Supabase/Google OAuth
   if (error) {
     console.error("OAuth error:", error, errorDescription);
     const errorMessage = errorDescription
       ? encodeURIComponent(errorDescription)
-      : "auth_callback_error";
+      : encodeURIComponent(`Authentication failed: ${error}`);
     return NextResponse.redirect(
       new URL(`/auth/login?error=${errorMessage}`, request.url)
     );
   }
 
   if (code) {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
+    try {
+      const cookieStore = await cookies();
+      const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
         cookies: {
           get(name: string) {
             return cookieStore.get(name)?.value;
@@ -49,23 +61,34 @@ export async function GET(request: NextRequest) {
             }
           },
         },
+      });
+
+      const { data, error: exchangeError } =
+        await supabase.auth.exchangeCodeForSession(code);
+
+      if (!exchangeError && data.session) {
+        // Successfully authenticated
+        return NextResponse.redirect(new URL(next, request.url));
       }
-    );
 
-    const { error: exchangeError } =
-      await supabase.auth.exchangeCodeForSession(code);
-    if (!exchangeError) {
-      return NextResponse.redirect(new URL(next, request.url));
+      // Log the actual error for debugging
+      console.error("Error exchanging code for session:", exchangeError);
+      const errorMessage = exchangeError?.message
+        ? encodeURIComponent(exchangeError.message)
+        : "auth_callback_error";
+      return NextResponse.redirect(
+        new URL(`/auth/login?error=${errorMessage}`, request.url)
+      );
+    } catch (err) {
+      console.error("Unexpected error in callback:", err);
+      const errorMessage =
+        err instanceof Error
+          ? encodeURIComponent(err.message)
+          : "auth_callback_error";
+      return NextResponse.redirect(
+        new URL(`/auth/login?error=${errorMessage}`, request.url)
+      );
     }
-
-    // Log the actual error for debugging
-    console.error("Error exchanging code for session:", exchangeError);
-    const errorMessage = exchangeError.message
-      ? encodeURIComponent(exchangeError.message)
-      : "auth_callback_error";
-    return NextResponse.redirect(
-      new URL(`/auth/login?error=${errorMessage}`, request.url)
-    );
   }
 
   // No code and no error - something went wrong
