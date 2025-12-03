@@ -53,9 +53,9 @@ export const metadata: Metadata = {
     creator: "@yetti_ai",
   },
   icons: {
-    icon: "/yetti/yetti_face.png",
-    shortcut: "/yetti/yetti_face.png",
-    apple: "/yetti/yetti_face.png",
+    icon: "/yetti/logo.png",
+    shortcut: "/yetti/logo.png",
+    apple: "/yetti/logo.png",
   },
   manifest: "/manifest.json",
 };
