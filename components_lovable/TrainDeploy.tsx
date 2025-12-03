@@ -1,32 +1,31 @@
 "use client";
 
 import {
-  Table,
-  FileText,
-  Type,
   UserPlus,
   Brain,
   Rocket,
   CheckCircle2,
+  ArrowRight,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 const trainingMethods = [
   {
-    icon: Table,
+    icon: () => <Image src="/yetti/google-sheets.png" alt="Google Sheets" width={28} height={28} className="w-7 h-7" />,
     title: "Google Sheets",
     description:
       "Connect your Google Sheets directly. Yetti automatically syncs and learns from your spreadsheets, product catalogs, and data.",
   },
   {
-    icon: FileText,
+    icon: () => <Image src="/yetti/pdf.png" alt="PDF Documents" width={28} height={28} className="w-7 h-7" />,
     title: "PDF Documents",
     description:
       "Upload PDF documents with your product information, FAQs, policies, and business knowledge. Yetti extracts and learns everything.",
   },
   {
-    icon: Type,
+    icon: () => <Image src="/yetti/text.png" alt="Direct Text" width={28} height={28} className="w-7 h-7" />,
     title: "Direct Text",
     description:
       "Simply paste or type your content. Add product details, brand voice guidelines, or any information you want Yetti to know.",
@@ -79,7 +78,7 @@ const TrainDeploy = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {trainingMethods.map((method, index) => {
-              const Icon = method.icon;
+              const IconComponent = method.icon;
               return (
                 <motion.div
                   key={index}
@@ -90,7 +89,7 @@ const TrainDeploy = () => {
                 >
                   <Card className="h-full p-8 border bg-white border-gray-200/50 hover:border-sky-500/50 hover:shadow-lg transition-all duration-300 bg-secondary/20 group">
                     <div className="w-14 h-14 rounded-xl bg-white shadow-sm flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                      <Icon className="w-7 h-7 text-sky-500" />
+                      <IconComponent />
                     </div>
                     <h3 className="text-xl font-bold text-foreground mb-4 group-hover:text-sky-500 transition-colors">
                       {method.title}
@@ -126,6 +125,20 @@ const TrainDeploy = () => {
           <div className="relative">
             {/* Connecting Line (Desktop) */}
             <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-sky-500/30 to-transparent -translate-y-1/2 z-0"></div>
+
+            {/* Arrows between steps (Desktop) */}
+            <div className="hidden md:block absolute top-1/2 -translate-y-1/2 w-full z-0">
+              <div className="absolute left-1/3 mr-1.5 -translate-x-1/2">
+                <div className="w-8 h-8 -translate-2 rounded-full bg-sky-500 flex items-center justify-center shadow-lg">
+                  <ArrowRight className="w-4 h-4 text-white" />
+                </div>
+              </div>
+              <div className="absolute left-2/3 -translate-x-1/2">
+                <div className="w-8 h-8 translate-x-2 -translate-y-2 rounded-full bg-sky-500 flex items-center justify-center shadow-lg">
+                  <ArrowRight className="w-4 h-4 text-white" />
+                </div>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative z-10">
               {deploymentSteps.map((step, index) => {
