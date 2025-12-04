@@ -26,10 +26,9 @@ interface Transaction {
   workspace_id: string;
 }
 
-
 export default function UsagePage() {
   const searchParams = useSearchParams();
-  const urlWorkspaceId = searchParams.get('ws');
+  const urlWorkspaceId = searchParams.get("ws");
 
   const { user } = useAuth();
   const { currentWorkspace } = useWorkspace();
@@ -42,20 +41,26 @@ export default function UsagePage() {
     totalTransactions: 0,
   });
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [selectedPeriod, setSelectedPeriod] = useState<"7d" | "30d" | "all">("30d");
+  const [selectedPeriod, setSelectedPeriod] = useState<"7d" | "30d" | "all">(
+    "30d"
+  );
 
   const effectiveWorkspaceId = urlWorkspaceId || currentWorkspace?.id;
 
   useEffect(() => {
     async function loadUsageData() {
-      console.log('=== USAGE PAGE: Loading Data ===');
-      console.log('User ID:', user?.id);
-      console.log('Current Workspace:', currentWorkspace?.id, currentWorkspace?.name);
-      console.log('Effective Workspace ID:', effectiveWorkspaceId);
-      console.log('Selected Period:', selectedPeriod);
-      
+      console.log("=== USAGE PAGE: Loading Data ===");
+      console.log("User ID:", user?.id);
+      console.log(
+        "Current Workspace:",
+        currentWorkspace?.id,
+        currentWorkspace?.name
+      );
+      console.log("Effective Workspace ID:", effectiveWorkspaceId);
+      console.log("Selected Period:", selectedPeriod);
+
       if (!user?.id || !effectiveWorkspaceId) {
-        console.log('Missing user ID or workspace ID, returning early');
+        console.log("Missing user ID or workspace ID, returning early");
         return;
       }
 
@@ -63,71 +68,112 @@ export default function UsagePage() {
         setLoading(true);
 
         // Fetch workspace-specific debit transactions
-        console.log('\n--- Fetching Workspace Transactions ---');
+        console.log("\n--- Fetching Workspace Transactions ---");
         const transactionsUrl = `${process.env.NEXT_PUBLIC_API_URL}/v2/api/credits/transactions?user_id=${user.id}&workspace_id=${effectiveWorkspaceId}&limit=100&offset=0`;
-        console.log('Transactions URL:', transactionsUrl);
+        console.log("Transactions URL:", transactionsUrl);
         const transactionsResponse = await fetch(transactionsUrl);
-        console.log('Transactions Response Status:', transactionsResponse.status);
+        console.log(
+          "Transactions Response Status:",
+          transactionsResponse.status
+        );
         const transactionsData = await transactionsResponse.json();
-        console.log('Transactions Data:', JSON.stringify(transactionsData, null, 2));
+        console.log(
+          "Transactions Data:",
+          JSON.stringify(transactionsData, null, 2)
+        );
         if (!transactionsResponse.ok) throw new Error(transactionsData.error);
 
         // Filter only debit transactions (workspace-specific usage)
         const allTransactions = transactionsData.transactions || [];
-        console.log('Total transactions fetched:', allTransactions.length);
-        
+        console.log("Total transactions fetched:", allTransactions.length);
+
         // Map transactions to normalize field names (backend uses 'type' and 'amount', frontend uses 'transaction_type' and 'credits')
-        const normalizedTransactions = allTransactions.map((t: Transaction) => ({
-          ...t,
-          transaction_type: t.transaction_type || t.type,
-          credits: t.credits ?? t.amount ?? 0,
-          balance: t.balance ?? 0, // Backend doesn't return balance, so we'll show 0 for now
-        }));
-        
-        const debitTransactions = normalizedTransactions.filter(
-          (t: Transaction) => (t.transaction_type || t.type) === 'debit'
+        const normalizedTransactions = allTransactions.map(
+          (t: Transaction) => ({
+            ...t,
+            transaction_type: t.transaction_type || t.type,
+            credits: t.credits ?? t.amount ?? 0,
+            balance: t.balance ?? 0, // Backend doesn't return balance, so we'll show 0 for now
+          })
         );
-        console.log('Debit transactions (filtered):', debitTransactions.length);
-        console.log('Debit transactions:', JSON.stringify(debitTransactions, null, 2));
+
+        const debitTransactions = normalizedTransactions.filter(
+          (t: Transaction) => (t.transaction_type || t.type) === "debit"
+        );
+        console.log("Debit transactions (filtered):", debitTransactions.length);
+        console.log(
+          "Debit transactions:",
+          JSON.stringify(debitTransactions, null, 2)
+        );
 
         // Calculate usage metrics
         const now = new Date();
         const currentMonth = now.getMonth();
         const currentYear = now.getFullYear();
-        console.log('\n--- Calculating Metrics ---');
-        console.log('Current Month:', currentMonth, 'Current Year:', currentYear);
+        console.log("\n--- Calculating Metrics ---");
+        console.log(
+          "Current Month:",
+          currentMonth,
+          "Current Year:",
+          currentYear
+        );
 
         // Filter by selected period
         let filteredTransactions = debitTransactions;
         if (selectedPeriod === "7d") {
-          const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          console.log('Filtering for last 7 days, cutoff:', sevenDaysAgo);
+          const sevenDaysAgo = new Date(
+            now.getTime() - 7 * 24 * 60 * 60 * 1000
+          );
+          console.log("Filtering for last 7 days, cutoff:", sevenDaysAgo);
           filteredTransactions = debitTransactions.filter(
             (t: Transaction) => new Date(t.created_at) >= sevenDaysAgo
           );
         } else if (selectedPeriod === "30d") {
-          const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-          console.log('Filtering for last 30 days, cutoff:', thirtyDaysAgo);
+          const thirtyDaysAgo = new Date(
+            now.getTime() - 30 * 24 * 60 * 60 * 1000
+          );
+          console.log("Filtering for last 30 days, cutoff:", thirtyDaysAgo);
           filteredTransactions = debitTransactions.filter(
             (t: Transaction) => new Date(t.created_at) >= thirtyDaysAgo
           );
         }
-        console.log('Filtered transactions for period:', filteredTransactions.length);
+        console.log(
+          "Filtered transactions for period:",
+          filteredTransactions.length
+        );
 
-        const totalUsed = debitTransactions.reduce((sum: number, t: Transaction) => sum + (t.credits ?? t.amount ?? 0), 0);
-        console.log('Total credits used (all time):', totalUsed);
-        
+        const totalUsed = debitTransactions.reduce(
+          (sum: number, t: Transaction) => sum + (t.credits ?? t.amount ?? 0),
+          0
+        );
+        console.log("Total credits used (all time):", totalUsed);
+
         const monthlyUsage = debitTransactions
-          .filter((t: Transaction) =>
-            new Date(t.created_at).getMonth() === currentMonth &&
-            new Date(t.created_at).getFullYear() === currentYear
+          .filter(
+            (t: Transaction) =>
+              new Date(t.created_at).getMonth() === currentMonth &&
+              new Date(t.created_at).getFullYear() === currentYear
           )
-          .reduce((sum: number, t: Transaction) => sum + (t.credits ?? t.amount ?? 0), 0);
-        console.log('Monthly usage (current month):', monthlyUsage);
+          .reduce(
+            (sum: number, t: Transaction) => sum + (t.credits ?? t.amount ?? 0),
+            0
+          );
+        console.log("Monthly usage (current month):", monthlyUsage);
 
-        const daysInPeriod = selectedPeriod === "7d" ? 7 : selectedPeriod === "30d" ? 30 : Math.max(1, debitTransactions.length);
-        const dailyAvg = filteredTransactions.length > 0 ? totalUsed / daysInPeriod : 0;
-        console.log('Days in period:', daysInPeriod, 'Daily average:', dailyAvg);
+        const daysInPeriod =
+          selectedPeriod === "7d"
+            ? 7
+            : selectedPeriod === "30d"
+              ? 30
+              : Math.max(1, debitTransactions.length);
+        const dailyAvg =
+          filteredTransactions.length > 0 ? totalUsed / daysInPeriod : 0;
+        console.log(
+          "Days in period:",
+          daysInPeriod,
+          "Daily average:",
+          dailyAvg
+        );
 
         const usageUpdate = {
           workspaceCreditsUsed: totalUsed,
@@ -135,21 +181,29 @@ export default function UsagePage() {
           dailyAverage: Math.round(dailyAvg),
           totalTransactions: debitTransactions.length,
         };
-        console.log('\n--- Final Usage Data ---');
-        console.log('Usage Data:', JSON.stringify(usageUpdate, null, 2));
+        console.log("\n--- Final Usage Data ---");
+        console.log("Usage Data:", JSON.stringify(usageUpdate, null, 2));
         setUsageData(usageUpdate);
 
-        console.log('Setting filtered transactions:', filteredTransactions.length);
+        console.log(
+          "Setting filtered transactions:",
+          filteredTransactions.length
+        );
         setTransactions(filteredTransactions);
-        
-        console.log('=== USAGE PAGE: Data Loading Complete ===\n');
 
+        console.log("=== USAGE PAGE: Data Loading Complete ===\n");
       } catch (error) {
-        console.error('=== USAGE PAGE: ERROR ===');
-        console.error('Error details:', error);
-        console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
-        console.error('Error stack:', error instanceof Error ? error.stack : undefined);
-        toast.error('Failed to load usage data');
+        console.error("=== USAGE PAGE: ERROR ===");
+        console.error("Error details:", error);
+        console.error(
+          "Error message:",
+          error instanceof Error ? error.message : "Unknown error"
+        );
+        console.error(
+          "Error stack:",
+          error instanceof Error ? error.stack : undefined
+        );
+        toast.error("Failed to load usage data");
       } finally {
         setLoading(false);
       }
@@ -158,140 +212,218 @@ export default function UsagePage() {
     loadUsageData();
   }, [user?.id, effectiveWorkspaceId, selectedPeriod]);
 
-
   if (loading) {
     return (
-      <div className="flex h-96 items-center justify-center">
+      <div className="flex h-96 items-center justify-center px-4">
         <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto animate-fade-in-up">
+    <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto animate-fade-in-up px-4 sm:px-6 lg:px-8">
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-6 sm:p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
         <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-sky-500/20 blur-3xl" />
         <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-sky-500/20 blur-3xl" />
 
-        <div className="relative z-10 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner ring-1 ring-white/20">
-              <Activity className="h-8 w-8 text-sky-300" />
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+          <div className="flex items-center gap-4 sm:gap-6">
+            <div className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-md shadow-inner ring-1 ring-white/20 flex-shrink-0">
+              <Activity className="h-6 w-6 sm:h-8 sm:w-8 text-sky-300" />
             </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-white">Workspace Usage</h1>
-              <p className="mt-2 text-lg text-slate-300 max-w-2xl">
-                Track credits used in {currentWorkspace?.name || 'your workspace'}
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                Workspace Usage
+              </h1>
+              <p className="mt-1 sm:mt-2 text-sm sm:text-lg text-slate-300 max-w-2xl">
+                Track credits used in{" "}
+                {currentWorkspace?.name || "your workspace"}
               </p>
             </div>
           </div>
-          
+
           {/* Period Selector */}
-          <div className="flex gap-2 bg-white/10 backdrop-blur-sm rounded-xl p-1 border border-white/20">
-            {(['7d', '30d', 'all'] as const).map((period) => (
+          <div className="flex gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm rounded-xl p-1 border border-white/20 flex-shrink-0">
+            {(["7d", "30d", "all"] as const).map((period) => (
               <button
                 key={period}
                 onClick={() => setSelectedPeriod(period)}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
                   selectedPeriod === period
-                    ? 'bg-white text-sky-900 shadow-sm'
-                    : 'text-white/80 hover:text-white hover:bg-white/10'
+                    ? "bg-white text-sky-900 shadow-sm"
+                    : "text-white/80 hover:text-white hover:bg-white/10"
                 }`}
               >
-                {period === '7d' ? 'Last 7 Days' : period === '30d' ? 'Last 30 Days' : 'All Time'}
+                {period === "7d" ? "7d" : period === "30d" ? "30d" : "All"}
               </button>
             ))}
           </div>
         </div>
       </div>
 
-
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Total Usage */}
-        <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+        <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-slate-100 bg-white p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
           <div className="absolute top-0 right-0 w-24 h-24 bg-sky-500/5 rounded-full blur-2xl group-hover:bg-sky-500/10 transition-colors" />
           <div className="relative">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
-                <TrendingDown className="h-6 w-6" />
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-sky-50 text-sky-600">
+                <TrendingDown className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
             </div>
-            <p className="text-sm font-medium text-slate-500">Total Usage</p>
-            <p className="text-3xl font-bold text-slate-900 mt-1">
+            <p className="text-xs sm:text-sm font-medium text-slate-500">
+              Total Usage
+            </p>
+            <p className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1">
               {usageData.workspaceCreditsUsed.toLocaleString()}
             </p>
-            <p className="text-xs text-slate-400 mt-2">Credits used in workspace</p>
+            <p className="text-[10px] sm:text-xs text-slate-400 mt-1 sm:mt-2">
+              Credits used in workspace
+            </p>
           </div>
         </div>
 
         {/* Daily Average */}
-        <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+        <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-slate-100 bg-white p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
           <div className="absolute top-0 right-0 w-24 h-24 bg-sky-500/5 rounded-full blur-2xl group-hover:bg-sky-500/10 transition-colors" />
           <div className="relative">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
-                <Calendar className="h-6 w-6" />
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-sky-50 text-sky-600">
+                <Calendar className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
             </div>
-            <p className="text-sm font-medium text-slate-500">Daily Average</p>
-            <p className="text-3xl font-bold text-slate-900 mt-1">
+            <p className="text-xs sm:text-sm font-medium text-slate-500">
+              Daily Average
+            </p>
+            <p className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1">
               {usageData.dailyAverage.toLocaleString()}
             </p>
-            <p className="text-xs text-slate-400 mt-2">Credits per day</p>
+            <p className="text-[10px] sm:text-xs text-slate-400 mt-1 sm:mt-2">
+              Credits per day
+            </p>
           </div>
         </div>
 
         {/* Total Transactions */}
-        <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+        <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-slate-100 bg-white p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg sm:col-span-2 lg:col-span-1">
           <div className="absolute top-0 right-0 w-24 h-24 bg-sky-500/5 rounded-full blur-2xl group-hover:bg-sky-500/10 transition-colors" />
           <div className="relative">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
-                <Activity className="h-6 w-6" />
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-sky-50 text-sky-600">
+                <Activity className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
             </div>
-            <p className="text-sm font-medium text-slate-500">Transactions</p>
-            <p className="text-3xl font-bold text-slate-900 mt-1">
+            <p className="text-xs sm:text-sm font-medium text-slate-500">
+              Transactions
+            </p>
+            <p className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1">
               {usageData.totalTransactions}
             </p>
-            <p className="text-xs text-slate-400 mt-2">Debit transactions</p>
+            <p className="text-[10px] sm:text-xs text-slate-400 mt-1 sm:mt-2">
+              Debit transactions
+            </p>
           </div>
         </div>
       </div>
 
       {/* Transaction History */}
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="border-b border-slate-100 bg-slate-50/50 px-8 py-6">
-          <div className="flex items-center justify-between">
+      <div className="rounded-xl sm:rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="border-b border-slate-100 bg-slate-50/50 px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h2 className="text-xl font-bold text-slate-900">Usage History</h2>
-              <p className="text-sm text-slate-500 mt-1">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+                Usage History
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
                 All debit transactions for this workspace
               </p>
             </div>
-            <button className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
-              <Download className="h-4 w-4" />
+            <button className="flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg sm:rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm w-full sm:w-auto">
+              <Download className="h-3 w-3 sm:h-4 sm:w-4" />
               Export CSV
             </button>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Mobile Card View */}
+        <div className="block md:hidden divide-y divide-slate-100">
+          {transactions.length === 0 ? (
+            <div className="px-4 py-12 text-center">
+              <div className="flex flex-col items-center gap-2">
+                <Activity className="h-8 w-8 text-slate-300" />
+                <p className="text-slate-500 text-sm">No usage history found</p>
+              </div>
+            </div>
+          ) : (
+            transactions.map((transaction) => (
+              <div
+                key={transaction.id}
+                className="p-4 hover:bg-slate-50/80 transition-colors"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-slate-600 truncate">
+                      {new Date(transaction.created_at).toLocaleDateString(
+                        "en-US",
+                        {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        }
+                      )}
+                    </p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">
+                      {new Date(transaction.created_at).toLocaleTimeString(
+                        "en-US",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
+                    </p>
+                  </div>
+                  <div className="ml-4 text-right">
+                    <span className="inline-flex items-center gap-1 text-sm font-bold text-rose-600">
+                      <Minus className="h-3 w-3" />
+                      {(
+                        transaction.credits ??
+                        transaction.amount ??
+                        0
+                      ).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-900 mb-2">
+                  {transaction.description || "Credit usage"}
+                </p>
+                <div className="flex items-center justify-between text-xs text-slate-500">
+                  <span>Balance After:</span>
+                  <span className="font-semibold text-slate-700">
+                    {(transaction.balance ?? 0).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-slate-50 border-b border-slate-100">
               <tr>
-                <th className="px-8 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <th className="px-6 lg:px-8 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Date
                 </th>
-                <th className="px-8 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <th className="px-6 lg:px-8 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Description
                 </th>
-                <th className="px-8 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <th className="px-6 lg:px-8 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Credits Used
                 </th>
-                <th className="px-8 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                <th className="px-6 lg:px-8 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   Balance After
                 </th>
               </tr>
@@ -302,7 +434,9 @@ export default function UsagePage() {
                   <td colSpan={4} className="px-8 py-12 text-center">
                     <div className="flex flex-col items-center gap-2">
                       <Activity className="h-8 w-8 text-slate-300" />
-                      <p className="text-slate-500 text-sm">No usage history found</p>
+                      <p className="text-slate-500 text-sm">
+                        No usage history found
+                      </p>
                     </div>
                   </td>
                 </tr>
@@ -312,25 +446,32 @@ export default function UsagePage() {
                     key={transaction.id}
                     className="hover:bg-slate-50/80 transition-colors"
                   >
-                    <td className="px-8 py-5 whitespace-nowrap text-sm font-medium text-slate-600">
-                      {new Date(transaction.created_at).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                    <td className="px-6 lg:px-8 py-5 whitespace-nowrap text-sm font-medium text-slate-600">
+                      {new Date(transaction.created_at).toLocaleDateString(
+                        "en-US",
+                        {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
                     </td>
-                    <td className="px-8 py-5 text-sm text-slate-900">
-                      {transaction.description || 'Credit usage'}
+                    <td className="px-6 lg:px-8 py-5 text-sm text-slate-900">
+                      {transaction.description || "Credit usage"}
                     </td>
-                    <td className="px-8 py-5 whitespace-nowrap text-right text-sm font-bold text-rose-600">
+                    <td className="px-6 lg:px-8 py-5 whitespace-nowrap text-right text-sm font-bold text-rose-600">
                       <span className="inline-flex items-center gap-1">
                         <Minus className="h-3 w-3" />
-                        {(transaction.credits ?? transaction.amount ?? 0).toLocaleString()}
+                        {(
+                          transaction.credits ??
+                          transaction.amount ??
+                          0
+                        ).toLocaleString()}
                       </span>
                     </td>
-                    <td className="px-8 py-5 whitespace-nowrap text-right text-sm font-semibold text-slate-700">
+                    <td className="px-6 lg:px-8 py-5 whitespace-nowrap text-right text-sm font-semibold text-slate-700">
                       {(transaction.balance ?? 0).toLocaleString()}
                     </td>
                   </tr>
@@ -341,8 +482,8 @@ export default function UsagePage() {
         </div>
 
         {transactions.length > 0 && (
-          <div className="border-t border-slate-100 px-8 py-5 text-center bg-slate-50/30">
-            <button className="text-sm font-semibold text-sky-500 hover:text-sky-700 transition-colors hover:underline">
+          <div className="border-t border-slate-100 px-4 sm:px-6 lg:px-8 py-4 sm:py-5 text-center bg-slate-50/30">
+            <button className="text-xs sm:text-sm font-semibold text-sky-500 hover:text-sky-700 transition-colors hover:underline">
               Load More Transactions
             </button>
           </div>
