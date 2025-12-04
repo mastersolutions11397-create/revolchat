@@ -133,7 +133,7 @@ const Hero = () => {
           >
             <Button
               size="lg"
-              onClick={() => router.push('/login')}
+              onClick={() => router.push('/auth/login')}
               className="h-14 px-8 text-lg rounded-full bg-sky-500 hover:bg-sky-500/90 text-white shadow-[0_10px_40px_-10px_rgba(45,102,149,0.4)] hover:shadow-[0_20px_40px_-10px_rgba(45,102,149,0.5)] hover:-translate-y-1 transition-all duration-300"
             >
               Start Now

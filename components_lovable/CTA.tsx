@@ -3,8 +3,18 @@
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 const CTA = () => {
+  const router = useRouter();
+
+  const scrollToPricing = () => {
+    const pricingSection = document.getElementById("pricing");
+    if (pricingSection) {
+      pricingSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
   return (
     <section className="py-6 relative overflow-hidden">
       {/* Background with Gradient and Mesh */}
@@ -53,7 +63,6 @@ const CTA = () => {
             transition={{ duration: 0.5 }}
             className="relative rounded-3xl overflow-hidden  p-12 md:p-20 text-center "
           >
-
             <div className="relative z-10 space-y-4">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white text-sm font-medium backdrop-blur-sm mb-4">
                 <Sparkles className="w-4 h-4" />
@@ -68,13 +77,14 @@ const CTA = () => {
               </h2>
 
               <p className="text-xl md:text-2xl text-sky-50 max-w-3xl mx-auto leading-relaxed">
-                Join businesses already using Yetti.ai to automate conversations,
-                capture leads, and grow revenue 24/7.
+                Join businesses already using Yetti.ai to automate
+                conversations, capture leads, and grow revenue 24/7.
               </p>
 
               <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-8">
                 <Button
                   size="lg"
+                  onClick={() => router.push("/auth/signup")}
                   className="h-16 px-10 text-lg rounded-full bg-white !text-gray-900 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 font-bold"
                 >
                   Get Started Free
@@ -83,13 +93,12 @@ const CTA = () => {
                 <Button
                   size="lg"
                   variant="outline"
+                  onClick={scrollToPricing}
                   className="h-16 px-10 text-lg rounded-full border-2 border-white/30 bg-transparent text-white hover:bg-white/10 hover:border-white/50 transition-all duration-300 font-semibold"
                 >
                   View Pricing
                 </Button>
               </div>
-              
-             
             </div>
           </motion.div>
         </div>
