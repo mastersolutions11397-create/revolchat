@@ -4,16 +4,8 @@ import { Check, Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import { useAuth } from "@/lib/auth-context";
-import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
-import { getStripe, PLAN_CONFIGS } from "@/lib/stripe";
-import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
-import { StripeError } from "@stripe/stripe-js";
+import { Suspense } from "react";
 
-console.log('Pricing Component: Module loaded');
 
 function PricingContent() {
   const pricingTiers = [
@@ -21,12 +13,13 @@ function PricingContent() {
     name: "Starter",
     price: "$29",
     period: "/month",
-    description: "Best for individuals just getting started.",
+    description: "Best for: up to 5 conversations/day",
     features: [
       "1,000 Yetti Tokens",
       "1 workspace",
       "1 AI agent",
       "Connect 1 social account",
+      "1 User",
       "Basic analytics",
       "Email support",
     ],
@@ -38,15 +31,16 @@ function PricingContent() {
     name: "Growth",
     price: "$59",
     period: "/month",
-    description: "Best for growing businesses and creators.",
+    description: "Best for: 5 to 20 conversations/day",
     features: [
       "2,500 Yetti Tokens",
       "3 workspaces",
       "Up to 3 AI agents",
-      "Connect 3 social accounts",
+      "Connect upto 3 social accounts",
       "Team seats (2 users)",
+      "Token Usage & analytics",
       "Advanced analytics",
-      "Priority chat support",
+      "Chat support",
     ],
     cta: "Start Now",
     popular: false,
@@ -56,15 +50,15 @@ function PricingContent() {
     name: "Pro",
     price: "$99",
     period: "/month",
-    description: "Best for serious businesses scaling up.",
+    description: "Best for: 20 to 50 conversations/day",
     features: [
       "5,000 Yetti Tokens",
       "5 workspaces",
-      "5 AI agents",
+      "5 AI agents (any mix)",
       "Connect 5 social accounts",
-      "Team seats (3 users)",
-      "Advanced analytics",
-      "Priority support",
+      "Team seats (up to 3 users)",
+      "Advanced token usage & analytics",
+      "Priority chat support",
     ],
     cta: "Start Now",
     popular: true,
@@ -74,15 +68,15 @@ function PricingContent() {
     name: "Enterprise",
     price: "$179",
     period: "/month",
-    description: "Best for large teams and enterprises.",
+    description: "Best for: 50+ conversations/day",
     features: [
       "10,000 Yetti Tokens",
       "Unlimited workspaces",
       "Unlimited AI agents",
-      "Connect all socials",
+      "Connect all socials + custom integrations",
       "Unlimited Team seats",
-      "Custom integrations",
-      "Dedicated support",
+      "Advanced token usage & analytics",
+      "Priority chat support",
     ],
     cta: "Start Now",
     popular: false,
@@ -90,112 +84,17 @@ function PricingContent() {
   },
 ];
 
-  console.log('Pricing Component: Component initialized');
-
-  const searchParams = useSearchParams();
-  const urlWorkspaceId = searchParams.get('ws');
-  console.log('Pricing Component: URL workspace ID:', urlWorkspaceId);
-
-  const { user } = useAuth();
-  const { currentWorkspace } = useWorkspace();
-  console.log('Pricing Component: Auth state - user:', user, 'workspace:', currentWorkspace);
-
-  const [isAnnual, setIsAnnual] = useState(false);
-  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
-  console.log('Pricing Component: Initial isAnnual state:', isAnnual, 'checkout loading:', checkoutLoading);
-
-  console.log('Pricing Component: Pricing tiers defined, count:', pricingTiers.length);
-
-  const handlePlanSelect = async (planKey: string) => {
-    const effectiveWorkspaceId = urlWorkspaceId || currentWorkspace?.id;
-    console.log('Pricing Component: handlePlanSelect called with planKey:', planKey);
-    console.log('Pricing Component: User email:', user?.email, 'Effective Workspace ID:', effectiveWorkspaceId, 'URL Workspace ID:', urlWorkspaceId, 'Current Workspace ID:', currentWorkspace?.id);
-
-    if (!user?.email) {
-      console.log('Pricing Component: User not authenticated, redirecting to signup');
-      window.location.href = `/auth/signup?redirect=${encodeURIComponent(window.location.pathname)}`;
-      return;
-    }
-
-    if (!effectiveWorkspaceId) {
-      console.log('Pricing Component: No workspace ID available, showing error toast');
-      toast.error('Please select a workspace first');
-      return;
-    }
-
-    const planConfig = PLAN_CONFIGS[planKey as keyof typeof PLAN_CONFIGS];
-    console.log('Pricing Component: Plan config for', planKey, ':', planConfig);
-    if (!planConfig) {
-      console.log('Pricing Component: Invalid plan selected:', planKey);
-      toast.error('Invalid plan selected');
-      return;
-    }
-
-    try {
-      console.log('Pricing Component: Setting checkout loading to:', planKey);
-      setCheckoutLoading(planKey);
-
-      console.log('Pricing Component: Creating checkout session with data:', {
-        priceId: planConfig.priceId,
-        userId: user.id,
-        userEmail: user.email,
-      });
-
-      const response = await fetch('/api/stripe/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          priceId: planConfig.priceId,
-          userId: user.id,
-          userEmail: user.email,
-        }),
-      });
-
-      console.log('Pricing Component: Checkout session API response status:', response.status);
-      const { sessionId, error } = await response.json();
-      console.log('Pricing Component: Checkout session response data:', { sessionId, error });
-
-      if (error) {
-        console.log('Pricing Component: Error in checkout session response:', error);
-        throw new Error(error);
-      }
-
-      console.log('Pricing Component: Getting Stripe instance');
-      const stripe = await getStripe();
-      console.log('Pricing Component: Redirecting to Stripe checkout with sessionId:', sessionId);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = (await stripe?.redirectToCheckout({
-        sessionId,
-      })) as { error: StripeError } | undefined;
-      const stripeError = result?.error;
-
-      if (stripeError) {
-        console.log('Pricing Component: Stripe redirect error:', stripeError);
-        throw stripeError;
-      }
-
-      console.log('Pricing Component: Checkout process completed successfully');
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      console.error('Pricing Component: Checkout error:', error);
-      console.log('Pricing Component: Checkout error details:', {
-        message: error.message || 'Unknown error',
-        stack: error.stack,
-        planKey: planKey,
-        userId: user?.id,
-        workspaceId: effectiveWorkspaceId
-      });
-      toast.error('Failed to start checkout process');
-    } finally {
-      console.log('Pricing Component: Setting checkout loading to null');
-      setCheckoutLoading(null);
+  const handlePlanSelect = (planKey: string) => {
+    if (planKey === "enterprise") {
+      window.location.assign('/contact');
+    } else {
+      window.location.assign('/auth/login');
     }
   };
 
+
   return (
-    <section className="py-32 bg-slate-50 relative" id="pricing">
+    <section className="py-10 md:py-20 lg:py-32 bg-slate-50 relative" id="pricing">
       {/* Background Decoration */}
       <div className="absolute top-0 left-0 right-0 h-[500px] bg-gradient-to-b from-secondary/50 to-transparent -z-10"></div>
 
@@ -222,7 +121,6 @@ function PricingContent() {
         {/* Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {pricingTiers.map((tier, index) => {
-            console.log(`Pricing Component: Rendering pricing tier ${index + 1}/${pricingTiers.length}:`, tier.name, 'popular:', tier.popular, 'features count:', tier.features.length);
             return (
             <motion.div
               key={index}
@@ -266,45 +164,20 @@ function PricingContent() {
                   </div>
 
                   {/* CTA Button */}
-                  {tier.name === "Enterprise" ? (
-                    <Button
-                      onClick={() => {
-                        console.log('Pricing Component: Enterprise contact button clicked');
-                        window.location.href = '/contact';
-                      }}
-                      className={`w-full h-12 rounded-xl font-semibold ${
-                        tier.popular
-                          ? "bg-sky-500 hover:bg-sky-500 text-white shadow-lg shadow-sky-500/25"
-                          : "bg-secondary hover:bg-secondary/80 text-foreground"
-                      }`}
-                    >
-                      {tier.cta}
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => {
-                        console.log('Pricing Component: Plan button clicked for tier:', tier.name, 'planKey:', tier.planKey);
-                        if (tier.planKey) {
-                          handlePlanSelect(tier.planKey);
-                        }
-                      }}
-                      disabled={checkoutLoading === tier.planKey}
-                      className={`w-full h-12 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
-                        tier.popular
-                          ? "bg-sky-500 hover:bg-sky-500 text-white shadow-lg shadow-sky-500/25"
-                          : "bg-secondary hover:bg-secondary/80 text-foreground"
-                      }`}
-                    >
-                      {checkoutLoading === tier.planKey ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        tier.cta
-                      )}
-                    </Button>
-                  )}
+                  <Button
+                    onClick={() => {
+                      if (tier.planKey) {
+                        handlePlanSelect(tier.planKey);
+                      }
+                    }}
+                    className={`w-full h-12 rounded-xl font-semibold ${
+                      tier.popular
+                        ? "bg-sky-500 hover:bg-sky-500 text-white shadow-lg shadow-sky-500/25"
+                        : "bg-secondary hover:bg-secondary/80 text-foreground"
+                    }`}
+                  >
+                    {tier.cta}
+                  </Button>
 
                   {/* Features */}
                   <div className="space-y-4 pt-6 border-t border-gray-200/50">
@@ -339,8 +212,6 @@ function PricingContent() {
       </div>
     </section>
   );
-
-  console.log('Pricing Component: Component render completed');
 }
 
 function LoadingFallback() {

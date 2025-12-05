@@ -1,25 +1,26 @@
 import Link from "next/link";
 import Image from "next/image";
-import Footer from "@/components/Footer";
-import Navigation from "@/components/Navigation";
+
 import { Shield, Lock, Eye, FileText } from "lucide-react";
+import Navbar from "../../components_lovable/Navbar";
+import Footer from "../../components_lovable/Footer";
 
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-slate-50">
-      <Navigation darkBackground={true} />
+      <Navbar/>
 
       {/* Hero Section */}
-      <section className="relative min-h-[40vh] flex items-center justify-center pt-28 sm:pt-32 pb-16 overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 text-white">
+      <section className="relative min-h-[40vh] flex items-center justify-center pt-28 sm:pt-32 pb-16 overflow-hidden bg-gradient-to-br from-sky-500 to-sky-900 text-white">
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-0 right-0 -mt-10 -mr-10 h-96 w-96 rounded-full bg-sky-500/20 blur-3xl"></div>
           <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-96 w-96 rounded-full bg-sky-500/20 blur-3xl"></div>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-12">
-            <div className="text-center lg:text-left animate-fade-in-up">
-              <div className="w-20 h-20 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto lg:mx-0 mb-8 border border-white/20 shadow-xl">
-                <Shield className="w-10 h-10 text-sky-500" />
+          <div className="flex flex-col items-center gap-12">
+            <div className="text-center flex items-center justify-center flex-col animate-fade-in-up">
+              <div className="w-20 h-20  bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto lg:mx-0 mb-8 border border-white/20 shadow-xl">
+                <Shield className="w-10 h-10 text-white" />
               </div>
               <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">
                 Privacy Policy
@@ -28,24 +29,14 @@ export default function PrivacyPolicyPage() {
                 Last updated: December 15, 2024
               </p>
             </div>
-            <div className="relative w-full max-w-md mx-auto lg:ml-auto animate-fade-in-up delay-100">
-              <div className="relative w-full aspect-square">
-                <Image
-                  src="/yetti/yetti_angry.png"
-                  alt="yetti Privacy"
-                  fill
-                  className="object-contain drop-shadow-2xl"
-                  sizes="(max-width: 1024px) 100vw, 400px"
-                />
-              </div>
-            </div>
+           
           </div>
         </div>
       </section>
 
       {/* Content Section */}
       <section className="py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="rounded-3xl bg-white p-8 md:p-12 shadow-xl border border-slate-200">
             <div className="prose prose-lg max-w-none prose-headings:text-slate-900 prose-p:text-slate-600 prose-li:text-slate-600 prose-strong:text-slate-900">
               <section className="mb-12">
@@ -54,7 +45,7 @@ export default function PrivacyPolicyPage() {
                   Introduction
                 </h2>
                 <p className="leading-relaxed">
-                  yetti AI ("we," "our," or "us") is committed to protecting your
+                  yetti AI (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your
                   privacy. This Privacy Policy explains how we collect, use,
                   disclose, and safeguard your information when you use our AI
                   integration platform and services.
@@ -214,7 +205,7 @@ export default function PrivacyPolicyPage() {
                 </ul>
                 <div className="bg-amber-50 p-6 rounded-xl border border-amber-100 text-amber-900">
                   To exercise these rights, please contact us using the
-                  information provided in the "Contact Us" section.
+                  information provided in the &quot;Contact Us&quot; section.
                 </div>
               </section>
 
@@ -248,7 +239,7 @@ export default function PrivacyPolicyPage() {
               <section className="mb-12">
                 <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
                   <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-100 text-slate-900 text-lg">9</span>
-                  Children's Privacy
+                  Children&apos;s Privacy
                 </h2>
                 <p className="leading-relaxed">
                   Our services are not intended for children under 13 years of
@@ -267,7 +258,7 @@ export default function PrivacyPolicyPage() {
                 <p className="leading-relaxed">
                   We may update this Privacy Policy from time to time. We will
                   notify you of any changes by posting the new Privacy Policy on
-                  this page and updating the "Last updated" date. We encourage you
+                  this page and updating the &quot;Last updated&quot; date. We encourage you
                   to review this Privacy Policy periodically for any changes.
                 </p>
               </section>
@@ -281,18 +272,18 @@ export default function PrivacyPolicyPage() {
                   If you have any questions about this Privacy Policy or our data
                   practices, please contact us:
                 </p>
-                <div className="bg-slate-900 text-white p-8 rounded-2xl shadow-lg">
+                <div className="bg-sky-500 text-white p-8 rounded-2xl shadow-lg">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                      <p className="text-slate-400 text-sm mb-1 uppercase tracking-wider font-semibold">Email</p>
+                      <p className="text-slate-200 text-sm mb-1 uppercase tracking-wider font-semibold">Email</p>
                       <p className="font-medium text-lg">privacy@yettiai.com</p>
                     </div>
                     <div>
-                      <p className="text-slate-400 text-sm mb-1 uppercase tracking-wider font-semibold">Address</p>
+                      <p className="text-slate-200 text-sm mb-1 uppercase tracking-wider font-semibold">Address</p>
                       <p className="font-medium text-lg">123 AI Street, San Francisco, CA 94105</p>
                     </div>
                     <div>
-                      <p className="text-slate-400 text-sm mb-1 uppercase tracking-wider font-semibold">Phone</p>
+                      <p className="text-slate-200 text-sm mb-1 uppercase tracking-wider font-semibold">Phone</p>
                       <p className="font-medium text-lg">+1 (555) 123-4567</p>
                     </div>
                   </div>
@@ -303,7 +294,7 @@ export default function PrivacyPolicyPage() {
         </div>
       </section>
 
-      <Footer />
+     <Footer/>
     </div>
   );
 }

@@ -85,7 +85,7 @@ const CTA = () => {
                 <Button
                   size="lg"
                   onClick={() => router.push("/auth/signup")}
-                  className="h-16 px-10 text-lg rounded-full bg-white !text-gray-900 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 font-bold"
+                  className="h-16 px-10 text-lg rounded-full bg-white !text-gray-900 hover:!bg-white  cursor-pointer  shadow-xl  hover:-translate-y-1 transition-all duration-300 font-bold"
                 >
                   Get Started Free
                   <ArrowRight className="w-5 h-5 ml-2" />
@@ -94,7 +94,7 @@ const CTA = () => {
                   size="lg"
                   variant="outline"
                   onClick={scrollToPricing}
-                  className="h-16 px-10 text-lg rounded-full border-2 border-white/30 bg-transparent text-white hover:bg-white/10 hover:border-white/50 transition-all duration-300 font-semibold"
+                  className="h-16 px-10 text-lg rounded-full border-2 hover:!text-white border-white/30 bg-transparent text-white transition-all duration-300 font-semibold"
                 >
                   View Pricing
                 </Button>

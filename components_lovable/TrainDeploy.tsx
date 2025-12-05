@@ -55,12 +55,12 @@ const deploymentSteps = [
 
 const TrainDeploy = () => {
   return (
-    <section id="how-it-works" className="py-32 bg-slate-50 relative overflow-hidden">
+    <section id="how-it-works" className="py-10 md:py-20 lg:py-32 bg-slate-50 relative overflow-hidden">
       <div className="container px-4 mx-auto relative z-10">
         
         {/* Training Section */}
-        <div className="max-w-6xl mx-auto mb-32">
-          <div className="text-center mb-20 space-y-4">
+        <div className="max-w-6xl mx-auto mb-20 md:mb-32">
+          <div className="text-center mb-10 md:mb-20 space-y-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -106,7 +106,7 @@ const TrainDeploy = () => {
 
         {/* Deployment Section */}
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-20 space-y-4">
+          <div className="text-center mb-10 md:mb-20 space-y-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -129,12 +129,12 @@ const TrainDeploy = () => {
             {/* Arrows between steps (Desktop) */}
             <div className="hidden md:block absolute top-1/2 -translate-y-1/2 w-full z-0">
               <div className="absolute left-1/3 mr-1.5 -translate-x-1/2">
-                <div className="w-8 h-8 -translate-2 rounded-full bg-sky-500 flex items-center justify-center shadow-lg">
+                <div className="w-8 h-8 -translate-x-2 -translate-y-4 rounded-full bg-sky-500 flex items-center justify-center shadow-lg">
                   <ArrowRight className="w-4 h-4 text-white" />
                 </div>
               </div>
               <div className="absolute left-2/3 -translate-x-1/2">
-                <div className="w-8 h-8 translate-x-2 -translate-y-2 rounded-full bg-sky-500 flex items-center justify-center shadow-lg">
+                <div className="w-8 h-8 translate-x-2 -translate-y-4 rounded-full bg-sky-500 flex items-center justify-center shadow-lg">
                   <ArrowRight className="w-4 h-4 text-white" />
                 </div>
               </div>

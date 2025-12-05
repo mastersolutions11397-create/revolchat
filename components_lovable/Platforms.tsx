@@ -72,7 +72,7 @@ const platforms = [
 
 const Platforms = () => {
   return (
-    <section className="py-32 bg-secondary/30 relative overflow-hidden">
+    <section className="py-10 md:py-20 lg:py-32 bg-secondary/30 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px] opacity-50 pointer-events-none"></div>
       

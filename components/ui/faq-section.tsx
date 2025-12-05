@@ -16,9 +16,9 @@ function FAQ() {
   const { t } = useLanguage();
   
   return (
-    <div className="w-full py-24 bg-slate-50">
+    <div className="w-full py-10 md:py-24 bg-slate-50">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-12 gap-12 lg:gap-24">
+        <div className="grid lg:grid-cols-12 gap-6 lg:gap-24">
           <div className="lg:col-span-5 flex flex-col gap-6">
             <div className="animate-fade-in-up">
               <Badge variant="outline" className="bg-sky-500/5 text-sky-500 border-gray-200 px-4 py-1 mb-4">{t("faq.badge")}</Badge>
@@ -27,8 +27,7 @@ function FAQ() {
               </h4>
               <p className="text-lg leading-relaxed tracking-tight text-slate-600 mb-8">
                 {t("faq.subtitle")}
-              </p>
-              
+              </p>       
             </div>
           </div>
           <div className="lg:col-span-7">

@@ -1,16 +1,18 @@
 import Link from "next/link";
 import Image from "next/image";
-import Footer from "@/components/Footer";
+
 import Navigation from "@/components/Navigation";
 import { FileText, Scale, Shield, CheckCircle2 } from "lucide-react";
+import Navbar from "../../components_lovable/Navbar";
+import Footer from "../../components_lovable/Footer";
 
 export default function TermsOfServicePage() {
   return (
     <div className="min-h-screen bg-slate-50">
-      <Navigation darkBackground={true} />
+      <Navbar/>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-slate-900">
+      <section className="relative pt-42 pb-20 overflow-hidden bg-gradient-to-tr from-sky-500 to-sky-900">
         {/* Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-sky-500/20 to-sky-500/20 blur-[100px] animate-pulse-slow" />
@@ -19,16 +21,12 @@ export default function TermsOfServicePage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/20 text-sky-500 text-sm font-medium mb-6 animate-fade-in-up">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-500 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
-              </span>
-              Legal
+          <div className="text-center max-w-3xl flex flex-col items-center justify-center mx-auto">
+            <div className="w-20 h-20  bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto lg:mx-0 mb-8 border border-white/20 shadow-xl">
+                <Shield className="w-10 h-10 text-white" />
             </div>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-8 animate-fade-in-up delay-100">
-              Terms of <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-blue-500">Service</span>
+              Terms of <span className="text-white">Service</span>
             </h1>
             <p className="text-lg md:text-xl text-slate-400 leading-relaxed animate-fade-in-up delay-200">
               Last updated: December 15, 2024
@@ -50,7 +48,7 @@ export default function TermsOfServicePage() {
                   1. Acceptance of Terms
                 </h2>
                 <p className="leading-relaxed mb-4">
-                  By accessing and using yetti AI's services, you accept and agree
+                  By accessing and using yetti AI&apos;s services, you accept and agree
                   to be bound by the terms and provision of this agreement. If you
                   do not agree to abide by the above, please do not use this
                   service.
@@ -119,7 +117,7 @@ export default function TermsOfServicePage() {
                   <li>In any way that violates any applicable federal, state, local, or international law or regulation</li>
                   <li>To transmit, or procure the sending of, any advertising or promotional material without our prior written consent</li>
                   <li>To impersonate or attempt to impersonate the Company, a Company employee, another user, or any other person or entity</li>
-                  <li>To engage in any other conduct that restricts or inhibits anyone's use or enjoyment of the service</li>
+                  <li>To engage in any other conduct that restricts or inhibits anyone&apos;s use or enjoyment of the service</li>
                 </ul>
 
                 <h3 className="text-xl font-bold mb-4 text-slate-900">
@@ -252,7 +250,7 @@ export default function TermsOfServicePage() {
                   its licensee and licensors, and their employees, contractors,
                   agents, officers and directors, from and against any and all
                   claims, damages, obligations, losses, liabilities, costs or
-                  debt, and expenses (including but not limited to attorney's
+                  debt, and expenses (including but not limited to attorney&apos;s
                   fees).
                 </p>
               </section>
@@ -305,7 +303,7 @@ export default function TermsOfServicePage() {
                   If you have any questions about these Terms of Service, please
                   contact us:
                 </p>
-                <div className="bg-slate-900 text-white p-8 rounded-2xl shadow-lg">
+                <div className="bg-sky-500 text-white p-8 rounded-2xl shadow-lg">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                       <p className="text-slate-400 text-sm mb-1 uppercase tracking-wider font-semibold">Email</p>
@@ -326,8 +324,9 @@ export default function TermsOfServicePage() {
           </div>
         </div>
       </section>
+      <Footer/>
 
-      <Footer />
+      
     </div>
   );
 }

@@ -41,7 +41,7 @@ const Navbar = () => {
             {["Features", "How It Works", "Pricing"].map((item) => (
               <Link
                 key={item}
-                href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
+                href={`/#${item.toLowerCase().replace(/\s+/g, "-")}`}
                 className="text-sm font-medium text-muted-foreground hover:text-sky-500 transition-colors"
               >
                 {item}
@@ -86,7 +86,7 @@ const Navbar = () => {
             exit={{ opacity: 0, height: 0 }}
             className="md:hidden bg-background border-b border-gray-100"
           >
-            <div className="container px-4 py-4 flex flex-col gap-4">
+            <div className="container px-4 py-8 flex flex-col gap-8">
               {["Features", "How It Works", "Pricing"].map((item) => (
                 <Link
                   key={item}
@@ -98,7 +98,7 @@ const Navbar = () => {
                 </Link>
               ))}
               <Link
-                href="https://discord.com"
+                href="https://discord.gg/reY96aqzTe"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm font-medium text-foreground hover:text-sky-500 transition-colors"
@@ -107,10 +107,10 @@ const Navbar = () => {
                 Contact
               </Link>
               <div className="flex flex-col gap-2 pt-4 border-t border-gray-100">
-                <Link href="/auth/login" className="text-sm font-medium text-foreground hover:text-sky-500 transition-colors w-full text-left" onClick={() => setIsMobileMenuOpen(false)}>
+                <Link href="/auth/login" className="text-sm bg-sky-500 text-center px-3 py-2 rounded-lg text-white font-medium  hover:text-sky-500 transition-colors w-full" onClick={() => setIsMobileMenuOpen(false)}>
                   Login
                 </Link>
-                <Link href="/auth/signup" className="text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md transition-colors w-full text-center" onClick={() => setIsMobileMenuOpen(false)}>
+                <Link href="/auth/signup" className="text-sm bg-sky-500 px-3 py-2 rounded-lg text-white font-medium bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md transition-colors w-full text-center" onClick={() => setIsMobileMenuOpen(false)}>
                   Get Started
                 </Link>
               </div>

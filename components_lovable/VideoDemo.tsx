@@ -5,14 +5,14 @@ import { motion } from "framer-motion";
 
 const VideoDemo = () => {
   return (
-    <section className="py-32 bg-background relative overflow-hidden">
+    <section className="py-16 md:py-20 lg:py-32 bg-background relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-sky-500/5 rounded-full blur-3xl"></div>
       </div>
 
       <div className="container px-4 mx-auto relative z-10">
-        <div className="max-w-4xl mx-auto text-center mb-16">
+        <div className="max-w-4xl mx-auto text-center mb-10 lg:mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

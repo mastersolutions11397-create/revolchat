@@ -59,13 +59,13 @@ const solutions = [
 
 const Solutions = () => {
   return (
-    <section id="features" className="py-32 bg-secondary/30 relative">
+    <section id="features" className="py-10 md:py-20 lg:py-32 bg-secondary/30 relative">
        {/* Background Pattern */}
        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] opacity-50 pointer-events-none"></div>
 
       <div className="container px-4 mx-auto relative z-10">
         {/* Section Header */}
-        <div className="max-w-5xl mx-auto text-center mb-20 space-y-4">
+        <div className="max-w-5xl mx-auto text-center mb-10 md:mb-20 space-y-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
