@@ -213,6 +213,52 @@ async function createTelegramIntegration(
   }
 }
 
+type TelegramBotInfo = {
+  username?: string;
+  first_name?: string;
+  token?: string;
+  telegram_bot_token?: string;
+  data?: {
+    username?: string;
+    first_name?: string;
+    token?: string;
+    telegram_bot_token?: string;
+  };
+};
+
+async function getTelegramBotInfo(
+  workspaceId: string
+): Promise<{ username: string; first_name: string } | null> {
+  try {
+    const response = await apiRequest<TelegramBotInfo>(
+      `/api/yetti/workspaces/${workspaceId}/integrations/telegram/token`,
+      {
+        method: "GET",
+      }
+    );
+
+    // Try different response formats to extract username and first_name
+    const username = response.username || response.data?.username || null;
+
+    const first_name = response.first_name || response.data?.first_name || "";
+
+    if (username) {
+      return {
+        username,
+        first_name,
+      };
+    }
+
+    return null;
+  } catch (error) {
+    if (error instanceof ApiRequestError && error.status === 404) {
+      return null;
+    }
+    console.error("Error fetching Telegram bot info:", error);
+    return null;
+  }
+}
+
 export const integrationsAPI = {
   getInstagramIntegration,
   disconnectInstagramIntegration,
@@ -221,4 +267,5 @@ export const integrationsAPI = {
   getTelegramConversations,
   getTelegramMessages,
   createTelegramIntegration,
+  getTelegramBotInfo,
 };

@@ -1270,6 +1270,7 @@ export default function KnowledgePage() {
             workspaceId={workspaceId}
             workspaceName={currentWorkspace?.name ?? null}
             hasKnowledge={hasKnowledge}
+            hasGoogleSheet={hasGoogleSheet}
             user={user}
           />
         </div>
@@ -2027,6 +2028,7 @@ interface ChatPanelProps {
   workspaceId: string | null;
   workspaceName: string | null;
   hasKnowledge: boolean;
+  hasGoogleSheet: boolean;
   user?: User | null;
 };
 
@@ -2034,15 +2036,18 @@ function ChatPanel({
   workspaceId,
   workspaceName,
   hasKnowledge,
+  hasGoogleSheet,
   user,
 }: ChatPanelProps) {
   const listRef = useRef<HTMLDivElement | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
       role: "assistant",
-      content: hasKnowledge
-        ? "Hi! Ask me anything about your knowledge library."
-        : "Add knowledge to enable the chat.",
+      content: hasGoogleSheet
+        ? "Chat is disabled when a Google Sheet is connected."
+        : hasKnowledge
+          ? "Hi! Ask me anything about your knowledge library."
+          : "Add knowledge to enable the chat.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -2058,20 +2063,24 @@ function ChatPanel({
     setMessages([
       {
         role: "assistant",
-        content: hasKnowledge
-          ? "Hi! Ask me anything about your knowledge library."
-          : "Add knowledge to enable the chat.",
+        content: hasGoogleSheet
+          ? "Chat is disabled when a Google Sheet is connected."
+          : hasKnowledge
+            ? "Hi! Ask me anything about your knowledge library."
+            : "Add knowledge to enable the chat.",
       },
     ]);
     setInput("");
-  }, [workspaceId, hasKnowledge]);
+  }, [workspaceId, hasKnowledge, hasGoogleSheet]);
 
   useEffect(() => {
     setMessages((prev) => {
       if (prev.length === 1 && prev[0].role === "assistant") {
-        const content = hasKnowledge
-          ? "Hi! Ask me anything about your knowledge library."
-          : "Add knowledge to enable the chat.";
+        const content = hasGoogleSheet
+          ? "Chat is disabled when a Google Sheet is connected."
+          : hasKnowledge
+            ? "Hi! Ask me anything about your knowledge library."
+            : "Add knowledge to enable the chat.";
         if (prev[0].content === content) {
           return prev;
         }
@@ -2079,17 +2088,19 @@ function ChatPanel({
       }
       return prev;
     });
-  }, [hasKnowledge]);
+  }, [hasKnowledge, hasGoogleSheet]);
 
   const disabledReason = !workspaceId
     ? "Select a workspace to start chatting."
-    : !hasKnowledge
-      ? "Add knowledge to enable chat."
-      : null;
+    : hasGoogleSheet
+      ? "Chat is disabled when a Google Sheet is connected."
+      : !hasKnowledge
+        ? "Add knowledge to enable chat."
+        : null;
 
   const handleSend = async () => {
     const text = input.trim();
-    if (!text || sending || !workspaceId || !hasKnowledge) {
+    if (!text || sending || !workspaceId || !hasKnowledge || hasGoogleSheet) {
       return;
     }
 
@@ -2276,7 +2287,17 @@ function ChatPanel({
         {/* Disabled Overlay - Skeleton Loader or Simple Message */}
         {disabledReason && (
           <div className="absolute inset-0 -z-10 bg-white/50 backdrop-blur-sm p-6 space-y-4 overflow-hidden">
-            {!hasKnowledge && workspaceId ? (
+            {hasGoogleSheet && workspaceId ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                 <div className="bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-slate-100 flex flex-col items-center gap-2 text-center max-w-xs">
+                    <div className="h-10 w-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 mb-1">
+                      <FileSpreadsheet className="h-5 w-5" />
+                    </div>
+                    <p className="text-sm font-semibold text-slate-800">Chat Disabled</p>
+                    <p className="text-xs text-slate-500">Chat is not available when a Google Sheet is connected.</p>
+                 </div>
+              </div>
+            ) : !hasKnowledge && workspaceId ? (
               <div className="absolute inset-0 flex items-center justify-center">
                  <div className="bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-slate-100 flex flex-col items-center gap-2 text-center max-w-xs">
                     <div className="h-10 w-10 rounded-full bg-sky-50 flex items-center justify-center text-sky-500 mb-1">

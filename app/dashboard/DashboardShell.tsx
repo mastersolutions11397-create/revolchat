@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, useRef, Suspense } from "react";
 import type { ChangeEvent } from "react";
 import { useAuth } from "@/lib/auth-context";
@@ -48,6 +48,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { credits, loading: creditsLoading } = useCredits();
   const {
     selectedWorkspaceId,
@@ -130,6 +131,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     setSwitchingWorkspace(true);
     try {
       await selectWorkspace(newWorkspaceId);
+      
+      // Update URL query parameter
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("ws", newWorkspaceId);
+      router.replace(`${pathname}?${params.toString()}`);
+      
       const status = await yettiOnboardingAPI
         .getOnboardingStatus(newWorkspaceId)
         .catch((err: unknown) => {

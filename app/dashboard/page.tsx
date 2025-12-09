@@ -7,8 +7,10 @@ import {
   type DashboardResponse,
   workspaceHoursAPI,
   workspaceAPI,
+  integrationsAPI,
 } from "@/lib/api";
 import Link from "next/link";
+import Image from "next/image";
 import {
   MessageSquare,
   Link2,
@@ -42,6 +44,17 @@ export default function DashboardPage() {
     () => selectedWorkspaceId || currentWorkspace?.id || null,
     [selectedWorkspaceId, currentWorkspace?.id]
   );
+
+  // Integration states
+  const [instagramIntegration, setInstagramIntegration] = useState<{
+    username: string;
+    profile_picture: string | null;
+  } | null>(null);
+  const [telegramBotInfo, setTelegramBotInfo] = useState<{
+    username: string;
+    first_name: string;
+  } | null>(null);
+  const [integrationsLoading, setIntegrationsLoading] = useState(false);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -158,6 +171,49 @@ export default function DashboardPage() {
       cancelled = true;
     };
   }, [workspaceId, currentWorkspace?.name, workspaces]);
+
+  // Fetch integration status
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkIntegrations() {
+      if (!workspaceId) {
+        setInstagramIntegration(null);
+        setTelegramBotInfo(null);
+        return;
+      }
+
+      setIntegrationsLoading(true);
+
+      try {
+        // Check Instagram
+        const instagramData = await integrationsAPI.getInstagramIntegration(workspaceId);
+        if (!cancelled) {
+          setInstagramIntegration(instagramData);
+        }
+
+        // Check Telegram
+        const telegramData = await integrationsAPI.getTelegramBotInfo(workspaceId);
+        if (!cancelled) {
+          setTelegramBotInfo(telegramData);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Error checking integrations:", error);
+        }
+      } finally {
+        if (!cancelled) {
+          setIntegrationsLoading(false);
+        }
+      }
+    }
+
+    checkIntegrations();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [workspaceId]);
 
   const handleToggleWorkspace = async () => {
     if (!workspaceId || workspaceOnline === null) return;
@@ -374,7 +430,11 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        {dashboardData?.workspace_summary?.total_integrations === 0 ? (
+        {integrationsLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
+          </div>
+        ) : !instagramIntegration && !telegramBotInfo ? (
           <div className="flex flex-col items-center justify-center py-12 rounded-2xl bg-slate-50 border border-dashed border-slate-200">
             <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
               <Link2 className="h-6 w-6 text-slate-400" />
@@ -391,62 +451,74 @@ export default function DashboardPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                name: "System Core",
-                status: "Online",
-                icon: CheckCircle2,
-                color: "text-emerald-500",
-                bg: "bg-emerald-50",
-              },
-              {
-                name: "WhatsApp",
-                status: "Issues",
-                icon: AlertCircle,
-                color: "text-amber-500",
-                bg: "bg-amber-50",
-              },
-              {
-                name: "Discord",
-                status: "Online",
-                icon: CheckCircle2,
-                color: "text-emerald-500",
-                bg: "bg-emerald-50",
-              },
-              {
-                name: "Slack",
-                status: "Offline",
-                icon: Power,
-                color: "text-slate-400",
-                bg: "bg-slate-100",
-              },
-            ].map((item) => (
-              <div
-                key={item.name}
-                className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/50 p-4 transition-all hover:bg-white hover:shadow-md hover:border-slate-200"
-              >
+            {instagramIntegration && (
+              <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/50 p-4 transition-all hover:bg-white hover:shadow-md hover:border-slate-200">
                 <div className="flex items-center gap-3">
-                  <div
-                    className={`flex h-10 w-10 items-center justify-center rounded-full ${item.bg} ${item.color}`}
-                  >
-                    <item.icon className="h-5 w-5" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50">
+                    {instagramIntegration.profile_picture ? (
+                      <Image
+                        src={instagramIntegration.profile_picture}
+                        alt={instagramIntegration.username}
+                        width={40}
+                        height={40}
+                        className="h-10 w-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <Image
+                        src="/yetti/instagram_logo.png"
+                        alt="Instagram"
+                        width={20}
+                        height={20}
+                        className="h-5 w-5"
+                      />
+                    )}
                   </div>
-                  <span className="font-semibold text-slate-700">
-                    {item.name}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-slate-700">
+                      Instagram
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      @{instagramIntegration.username}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div
-                    className={`h-2 w-2 rounded-full ${item.status === "Online" ? "bg-emerald-500 animate-pulse" : item.status === "Issues" ? "bg-amber-500" : "bg-slate-300"}`}
-                  />
-                  <span
-                    className={`text-xs font-medium ${item.status === "Online" ? "text-emerald-600" : item.status === "Issues" ? "text-amber-600" : "text-slate-500"}`}
-                  >
-                    {item.status}
+                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-xs font-medium text-emerald-600">
+                    Online
                   </span>
                 </div>
               </div>
-            ))}
+            )}
+            {telegramBotInfo && (
+              <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/50 p-4 transition-all hover:bg-white hover:shadow-md hover:border-slate-200">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50">
+                    <Image
+                      src="/yetti/telegram_logo.png"
+                      alt="Telegram"
+                      width={20}
+                      height={20}
+                      className="h-5 w-5"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-slate-700">
+                      Telegram
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      @{telegramBotInfo.username}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-xs font-medium text-emerald-600">
+                    Online
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

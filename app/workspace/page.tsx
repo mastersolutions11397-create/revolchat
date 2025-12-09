@@ -94,10 +94,12 @@ export default function WorkspaceSelectionPage() {
     setIsSubmitting(true);
 
     try {
+      // Create workspace with logo if provided
       const workspace = await createWorkspace({
         name: trimmedName,
         description: workspaceDescription.trim() || undefined,
         workspace_type: "personal",
+        logo: workspaceLogo || undefined,
       });
 
       handleCloseModal();
@@ -538,6 +540,12 @@ export default function WorkspaceSelectionPage() {
                       id="workspaceDescription"
                       value={workspaceDescription}
                       onChange={(e) => setWorkspaceDescription(e.target.value)}
+                      onKeyDown={(e) => {
+                        // Prevent form submission on Enter, allow Shift+Enter for new lines
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                        }
+                      }}
                       placeholder="What's this workspace for?"
                       rows={3}
                       className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all outline-none resize-none text-base"

@@ -84,6 +84,11 @@ export default function IntegrationsPage() {
   const [telegramConnecting, setTelegramConnecting] = useState(false);
   const [telegramError, setTelegramError] = useState<string | null>(null);
   const [telegramSuccess, setTelegramSuccess] = useState(false);
+  const [telegramBotInfo, setTelegramBotInfo] = useState<{
+    username: string;
+    first_name: string;
+  } | null>(null);
+  const [telegramChecking, setTelegramChecking] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -113,7 +118,9 @@ export default function IntegrationsPage() {
         if (cancelled) return;
         setInstagramIntegration(null);
         setInstagramStatusMessage(
-          error instanceof Error ? error.message : "Unable to verify Instagram connection."
+          error instanceof Error
+            ? error.message
+            : "Unable to verify Instagram connection."
         );
       } finally {
         if (!cancelled) {
@@ -122,7 +129,39 @@ export default function IntegrationsPage() {
       }
     }
 
+    async function checkTelegramConnection() {
+      if (!workspaceId) {
+        setTelegramBotInfo(null);
+        return;
+      }
+
+      setTelegramChecking(true);
+
+      try {
+        // Get bot info (username and first_name) directly from backend API
+        const botInfo = await integrationsAPI.getTelegramBotInfo(workspaceId);
+        if (cancelled) return;
+
+        if (botInfo && botInfo.username) {
+          setTelegramBotInfo({
+            username: botInfo.username,
+            first_name: botInfo.first_name || "",
+          });
+        } else {
+          setTelegramBotInfo(null);
+        }
+      } catch (error: unknown) {
+        if (cancelled) return;
+        setTelegramBotInfo(null);
+      } finally {
+        if (!cancelled) {
+          setTelegramChecking(false);
+        }
+      }
+    }
+
     checkInstagramConnection();
+    checkTelegramConnection();
 
     return () => {
       cancelled = true;
@@ -170,7 +209,9 @@ export default function IntegrationsPage() {
       setInstagramStatusKind("success");
     } catch (error: unknown) {
       setInstagramStatusMessage(
-        error instanceof Error ? error.message : "Failed to disconnect Instagram."
+        error instanceof Error
+          ? error.message
+          : "Failed to disconnect Instagram."
       );
       setInstagramStatusKind("error");
     } finally {
@@ -220,6 +261,15 @@ export default function IntegrationsPage() {
       setTelegramSuccess(true);
       setTelegramBotToken("");
 
+      // Refresh Telegram connection status
+      const botInfo = await integrationsAPI.getTelegramBotInfo(workspaceId);
+      if (botInfo && botInfo.username) {
+        setTelegramBotInfo({
+          username: botInfo.username,
+          first_name: botInfo.first_name || "",
+        });
+      }
+
       // Close modal after a short delay
       setTimeout(() => {
         setShowTelegramModal(false);
@@ -227,7 +277,9 @@ export default function IntegrationsPage() {
       }, 2000);
     } catch (error: unknown) {
       setTelegramError(
-        error instanceof Error ? error.message : "Failed to connect Telegram. Please try again."
+        error instanceof Error
+          ? error.message
+          : "Failed to connect Telegram. Please try again."
       );
     } finally {
       setTelegramConnecting(false);
@@ -247,13 +299,15 @@ export default function IntegrationsPage() {
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
         <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-sky-500/20 blur-3xl" />
         <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-sky-500/20 blur-3xl" />
-        
+
         <div className="relative z-10 flex items-center gap-5">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner ring-1 ring-white/20">
             <Link2 className="h-8 w-8 text-sky-300" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">Integrations</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-white">
+              Integrations
+            </h1>
             <p className="mt-1 text-slate-300 text-lg">
               Connect your favorite channels in seconds
             </p>
@@ -266,16 +320,16 @@ export default function IntegrationsPage() {
           <div
             key={channel.name}
             className="group relative overflow-hidden rounded-3xl bg-white border border-slate-200 hover:border-sky-300 transition-all duration-300 shadow-lg hover:shadow-2xl"
-            style={{ 
+            style={{
               animation: `fadeInUp 0.5s ease-out ${index * 0.1}s both`,
             }}
           >
             {/* Gradient background */}
             <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-sky-50/30 opacity-60"></div>
-            
+
             {/* Animated gradient overlay on hover */}
             <div className="absolute inset-0 bg-gradient-to-r from-sky-100/0 via-sky-100/60 to-sky-100/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            
+
             <div className="relative p-6 sm:p-8">
               {/* Header Section */}
               <div className="flex items-start justify-between gap-6 mb-6">
@@ -297,10 +351,12 @@ export default function IntegrationsPage() {
                           target.nextElementSibling?.classList.remove("hidden");
                         }}
                       />
-                      <span className="hidden text-3xl">{channel.fallbackIcon}</span>
+                      <span className="hidden text-3xl">
+                        {channel.fallbackIcon}
+                      </span>
                     </div>
                   </div>
-                  
+
                   {/* Channel Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
@@ -313,6 +369,12 @@ export default function IntegrationsPage() {
                           Active
                         </span>
                       )}
+                      {channel.name === "Telegram" && telegramBotInfo && (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200/50">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                          Active
+                        </span>
+                      )}
                       {channel.comingSoon && (
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 ring-1 ring-slate-200/50">
                           Coming Soon
@@ -320,7 +382,8 @@ export default function IntegrationsPage() {
                       )}
                     </div>
                     <p className="text-sm text-slate-600 leading-relaxed">
-                      {channel.description || "Connect to enable real-time support and engagement."}
+                      {channel.description ||
+                        "Connect to enable real-time support and engagement."}
                     </p>
                   </div>
                 </div>
@@ -340,7 +403,8 @@ export default function IntegrationsPage() {
                       channel.comingSoon ||
                       (channel.name === "Instagram" &&
                         (instagramChecking || instagramDisconnecting)) ||
-                      (channel.name === "Telegram" && telegramConnecting)
+                      (channel.name === "Telegram" &&
+                        (telegramConnecting || telegramChecking))
                     }
                     onClick={() => {
                       if (channel.comingSoon) return;
@@ -356,12 +420,76 @@ export default function IntegrationsPage() {
                       ? "Coming Soon"
                       : channel.name === "Instagram" && instagramIntegration
                         ? "✓ Connected"
-                        : channel.name === "Telegram" && telegramConnecting
-                          ? "Connecting..."
-                          : "Connect"}
+                        : channel.name === "Telegram" && telegramBotInfo
+                          ? "✓ Connected"
+                          : channel.name === "Telegram" && telegramConnecting
+                            ? "Connecting..."
+                            : channel.name === "Telegram" && telegramChecking
+                              ? "Checking..."
+                              : "Connect"}
                   </button>
                 </div>
               </div>
+
+              {/* Telegram Connection Details */}
+              {channel.name === "Telegram" && (
+                <div className="space-y-3">
+                  {telegramChecking && (
+                    <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
+                      <div className="h-5 w-5 rounded-full border-2 border-sky-500 border-t-transparent animate-spin"></div>
+                      <p className="text-sm text-slate-600 font-medium">
+                        Checking Telegram status…
+                      </p>
+                    </div>
+                  )}
+
+                  {!telegramChecking &&
+                    telegramBotInfo &&
+                    telegramBotInfo.username && (
+                      <div className="relative overflow-hidden rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-white p-5 shadow-inner">
+                        {/* Decorative gradient */}
+                        <div className="absolute top-0 right-0 h-32 w-32 bg-gradient-to-br from-sky-200/40 to-transparent rounded-full blur-2xl"></div>
+
+                        <div className="relative flex items-center justify-between gap-4">
+                          {/* Bot Info Section */}
+                          <div className="flex items-center gap-4">
+                            {/* Bot Icon with Ring */}
+                            <div className="relative">
+                              <div className="absolute inset-0 bg-gradient-to-br from-sky-400 via-blue-400 to-cyan-400 rounded-full blur-sm opacity-75"></div>
+                              <div className="relative h-14 w-14 overflow-hidden rounded-full bg-white ring-4 ring-white shadow-lg flex items-center justify-center">
+                                <div className="text-2xl">🤖</div>
+                              </div>
+                            </div>
+
+                            {/* Bot Username and Status */}
+                            <div>
+                              <p className="text-xs font-semibold text-sky-500 uppercase tracking-wider mb-0.5">
+                                Connected Bot
+                              </p>
+                              <p className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                @{telegramBotInfo.username}
+                                <Sparkles className="h-4 w-4 text-sky-500" />
+                              </p>
+                              {telegramBotInfo.first_name && (
+                                <p className="text-sm text-slate-600">
+                                  {telegramBotInfo.first_name}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                  {!telegramChecking && !telegramBotInfo && (
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                      <p className="text-sm text-slate-500 font-medium">
+                        Click &quot;Connect&quot; to link your Telegram bot
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Instagram Connection Details */}
               {channel.name === "Instagram" && (
@@ -369,10 +497,12 @@ export default function IntegrationsPage() {
                   {instagramChecking && (
                     <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
                       <div className="h-5 w-5 rounded-full border-2 border-sky-500 border-t-transparent animate-spin"></div>
-                      <p className="text-sm text-slate-600 font-medium">Checking Instagram status…</p>
+                      <p className="text-sm text-slate-600 font-medium">
+                        Checking Instagram status…
+                      </p>
                     </div>
                   )}
-                  
+
                   {!instagramChecking && instagramStatusMessage && (
                     <div
                       className={`p-4 rounded-xl border ${
@@ -381,15 +511,17 @@ export default function IntegrationsPage() {
                           : "bg-amber-50 border-amber-200 text-amber-700"
                       }`}
                     >
-                      <p className="text-sm font-medium">{instagramStatusMessage}</p>
+                      <p className="text-sm font-medium">
+                        {instagramStatusMessage}
+                      </p>
                     </div>
                   )}
-                  
+
                   {!instagramChecking && instagramIntegration && (
                     <div className="relative overflow-hidden rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-white p-5 shadow-inner">
                       {/* Decorative gradient */}
                       <div className="absolute top-0 right-0 h-32 w-32 bg-gradient-to-br from-sky-200/40 to-transparent rounded-full blur-2xl"></div>
-                      
+
                       <div className="relative flex items-center justify-between gap-4">
                         {/* Profile Section */}
                         <div className="flex items-center gap-4">
@@ -415,17 +547,19 @@ export default function IntegrationsPage() {
                               )}
                             </div>
                           </div>
-                          
+
                           {/* Username and Status */}
                           <div>
-                            <p className="text-xs font-semibold text-sky-500 uppercase tracking-wider mb-0.5">Connected Account</p>
+                            <p className="text-xs font-semibold text-sky-500 uppercase tracking-wider mb-0.5">
+                              Connected Account
+                            </p>
                             <p className="text-lg font-bold text-slate-900 flex items-center gap-2">
                               @{instagramIntegration.username}
                               <Sparkles className="h-4 w-4 text-sky-500" />
                             </p>
                           </div>
                         </div>
-                        
+
                         {/* Disconnect Button */}
                         <button
                           type="button"
@@ -445,7 +579,7 @@ export default function IntegrationsPage() {
                       </div>
                     </div>
                   )}
-                  
+
                   {!instagramChecking && !instagramIntegration && (
                     <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
                       <p className="text-sm text-slate-500 font-medium">
@@ -459,7 +593,7 @@ export default function IntegrationsPage() {
 
             {/* Bottom accent line with animation */}
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-sky-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            
+
             {/* Corner decoration */}
             <div className="absolute top-0 right-0 h-24 w-24 bg-gradient-to-br from-sky-100/50 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           </div>
