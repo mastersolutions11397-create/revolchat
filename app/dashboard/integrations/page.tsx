@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
 import { Link2, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 
 import { integrationsAPI } from "@/lib/api";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
@@ -59,8 +59,52 @@ const CHANNELS = [
   },
 ];
 
+// Skeleton Loader Component
+function IntegrationSkeleton() {
+  return (
+    <div className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-lg animate-pulse">
+      <div className="p-6 sm:p-8">
+        <div className="flex items-start justify-between gap-6 mb-6">
+          <div className="flex items-center gap-5 flex-1">
+            <div className="h-20 w-20 rounded-2xl bg-slate-200"></div>
+            <div className="flex-1 space-y-3">
+              <div className="h-6 w-32 bg-slate-200 rounded"></div>
+              <div className="h-4 w-full bg-slate-200 rounded"></div>
+            </div>
+          </div>
+          <div className="h-12 w-24 bg-slate-200 rounded-xl"></div>
+        </div>
+        <div className="h-20 bg-slate-100 rounded-2xl"></div>
+      </div>
+    </div>
+  );
+}
+
+// Parent Loader Overlay
+function ParentLoader({ isLoading }: { isLoading: boolean }) {
+  if (!isLoading) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-4 min-w-[200px]">
+        <div className="relative">
+          <div className="h-16 w-16 rounded-full border-4 border-sky-200"></div>
+          <div className="absolute inset-0 h-16 w-16 rounded-full border-4 border-sky-500 border-t-transparent animate-spin"></div>
+        </div>
+        <p className="text-sm font-semibold text-slate-700">
+          Loading workspace...
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function IntegrationsPage() {
-  const { selectedWorkspaceId, currentWorkspace } = useWorkspace();
+  const {
+    selectedWorkspaceId,
+    currentWorkspace,
+    loading: workspaceLoading,
+  } = useWorkspace();
   const { user } = useAuth();
   const workspaceId = useMemo(
     () => selectedWorkspaceId || currentWorkspace?.id || null,
@@ -77,6 +121,7 @@ export default function IntegrationsPage() {
   >(null);
   const [instagramChecking, setInstagramChecking] = useState(false);
   const [instagramDisconnecting, setInstagramDisconnecting] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   // Telegram connection state
   const [showTelegramModal, setShowTelegramModal] = useState(false);
@@ -90,83 +135,110 @@ export default function IntegrationsPage() {
   } | null>(null);
   const [telegramChecking, setTelegramChecking] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
+  // Track fetched workspace to avoid unnecessary refetches
+  const fetchedWorkspaceId = useRef<string | null>(null);
+  const isInitialMount = useRef(true);
 
-    async function checkInstagramConnection() {
-      if (!workspaceId) {
-        setInstagramIntegration(null);
-        setInstagramStatusMessage(null);
-        setInstagramStatusKind(null);
+  // Fetch integrations data - only once per workspace
+  const fetchIntegrations = useCallback(
+    async (workspaceId: string, force = false) => {
+      // Don't refetch if we already have data for this workspace unless forced
+      if (
+        !force &&
+        fetchedWorkspaceId.current === workspaceId &&
+        !isInitialMount.current
+      ) {
         return;
       }
 
+      fetchedWorkspaceId.current = workspaceId;
+      isInitialMount.current = false;
+
+      setInitialLoading(true);
       setInstagramChecking(true);
-      setInstagramStatusMessage(null);
-      setInstagramStatusKind(null);
-
-      try {
-        const data = await integrationsAPI.getInstagramIntegration(workspaceId);
-        if (cancelled) return;
-
-        if (data) {
-          setInstagramIntegration(data);
-        } else {
-          setInstagramIntegration(null);
-        }
-      } catch (error: unknown) {
-        if (cancelled) return;
-        setInstagramIntegration(null);
-        setInstagramStatusMessage(
-          error instanceof Error
-            ? error.message
-            : "Unable to verify Instagram connection."
-        );
-      } finally {
-        if (!cancelled) {
-          setInstagramChecking(false);
-        }
-      }
-    }
-
-    async function checkTelegramConnection() {
-      if (!workspaceId) {
-        setTelegramBotInfo(null);
-        return;
-      }
-
       setTelegramChecking(true);
 
       try {
-        // Get bot info (username and first_name) directly from backend API
-        const botInfo = await integrationsAPI.getTelegramBotInfo(workspaceId);
-        if (cancelled) return;
+        // Fetch both in parallel
+        const [instagramData, telegramData] = await Promise.allSettled([
+          integrationsAPI.getInstagramIntegration(workspaceId),
+          integrationsAPI.getTelegramBotInfo(workspaceId),
+        ]);
 
-        if (botInfo && botInfo.username) {
+        // Handle Instagram result
+        if (instagramData.status === "fulfilled" && instagramData.value) {
+          setInstagramIntegration(instagramData.value);
+          setInstagramStatusMessage(null);
+          setInstagramStatusKind(null);
+        } else {
+          setInstagramIntegration(null);
+          if (instagramData.status === "rejected") {
+            setInstagramStatusMessage(
+              instagramData.reason instanceof Error
+                ? instagramData.reason.message
+                : "Unable to verify Instagram connection."
+            );
+            setInstagramStatusKind("error");
+          }
+        }
+
+        // Handle Telegram result
+        if (
+          telegramData.status === "fulfilled" &&
+          telegramData.value?.username
+        ) {
           setTelegramBotInfo({
-            username: botInfo.username,
-            first_name: botInfo.first_name || "",
+            username: telegramData.value.username,
+            first_name: telegramData.value.first_name || "",
           });
         } else {
           setTelegramBotInfo(null);
         }
-      } catch (error: unknown) {
-        if (cancelled) return;
-        setTelegramBotInfo(null);
+      } catch (error) {
+        console.error("Error fetching integrations:", error);
       } finally {
-        if (!cancelled) {
-          setTelegramChecking(false);
-        }
+        setInstagramChecking(false);
+        setTelegramChecking(false);
+        setInitialLoading(false);
       }
+    },
+    []
+  );
+
+  // Initial fetch when workspace changes
+  useEffect(() => {
+    if (!workspaceId || workspaceLoading) {
+      // Reset state when no workspace or workspace is loading
+      if (!workspaceId) {
+        setInstagramIntegration(null);
+        setTelegramBotInfo(null);
+        fetchedWorkspaceId.current = null;
+      }
+      return;
     }
 
-    checkInstagramConnection();
-    checkTelegramConnection();
+    // Only fetch if workspace changed or on initial mount
+    if (fetchedWorkspaceId.current !== workspaceId) {
+      fetchIntegrations(workspaceId);
+    }
+  }, [workspaceId, workspaceLoading, fetchIntegrations]);
 
-    return () => {
-      cancelled = true;
+  // Refetch when window regains focus (e.g., after OAuth redirect)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (
+        workspaceId &&
+        !workspaceLoading &&
+        fetchedWorkspaceId.current === workspaceId
+      ) {
+        // Refetch to get latest data after potential OAuth completion
+        fetchIntegrations(workspaceId, true);
+      }
     };
-  }, [workspaceId]);
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [workspaceId, workspaceLoading, fetchIntegrations]);
 
   const handleInstagramConnect = useCallback(() => {
     if (!workspaceId) {
@@ -207,6 +279,8 @@ export default function IntegrationsPage() {
       setInstagramIntegration(null);
       setInstagramStatusMessage("Instagram account disconnected.");
       setInstagramStatusKind("success");
+      // Reset fetched workspace to allow refetch if needed
+      fetchedWorkspaceId.current = null;
     } catch (error: unknown) {
       setInstagramStatusMessage(
         error instanceof Error
@@ -261,13 +335,9 @@ export default function IntegrationsPage() {
       setTelegramSuccess(true);
       setTelegramBotToken("");
 
-      // Refresh Telegram connection status
-      const botInfo = await integrationsAPI.getTelegramBotInfo(workspaceId);
-      if (botInfo && botInfo.username) {
-        setTelegramBotInfo({
-          username: botInfo.username,
-          first_name: botInfo.first_name || "",
-        });
+      // Force refetch to get latest data
+      if (workspaceId) {
+        await fetchIntegrations(workspaceId, true);
       }
 
       // Close modal after a short delay
@@ -284,7 +354,7 @@ export default function IntegrationsPage() {
     } finally {
       setTelegramConnecting(false);
     }
-  }, [workspaceId, user?.id, telegramBotToken]);
+  }, [workspaceId, user?.id, telegramBotToken, fetchIntegrations]);
 
   const handleCloseTelegramModal = useCallback(() => {
     setShowTelegramModal(false);
@@ -293,10 +363,17 @@ export default function IntegrationsPage() {
     setTelegramSuccess(false);
   }, []);
 
+  const isPageLoading = workspaceLoading || initialLoading;
+  const isPageDisabled = workspaceLoading;
+
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-8 max-w-7xl mx-auto relative">
+      <ParentLoader isLoading={workspaceLoading} />
+
       {/* Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
+      <div
+        className={`relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5 transition-opacity ${isPageDisabled ? "opacity-60" : ""}`}
+      >
         <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-sky-500/20 blur-3xl" />
         <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-sky-500/20 blur-3xl" />
 
@@ -314,297 +391,350 @@ export default function IntegrationsPage() {
           </div>
         </div>
       </div>
+
       {/* Integrations Grid */}
-      <div className="grid gap-6">
-        {CHANNELS.map((channel, index) => (
-          <div
-            key={channel.name}
-            className="group relative overflow-hidden rounded-3xl bg-white border border-slate-200 hover:border-sky-300 transition-all duration-300 shadow-lg hover:shadow-2xl"
-            style={{
-              animation: `fadeInUp 0.5s ease-out ${index * 0.1}s both`,
-            }}
-          >
-            {/* Gradient background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-sky-50/30 opacity-60"></div>
+      {isPageLoading ? (
+        <div className="grid gap-6 animate-in fade-in duration-300">
+          {CHANNELS.map((_, index) => (
+            <IntegrationSkeleton key={index} />
+          ))}
+        </div>
+      ) : (
+        <div
+          className={`grid gap-6 transition-all duration-300 ${isPageDisabled ? "opacity-60 pointer-events-none" : "animate-in fade-in duration-300"}`}
+        >
+          {CHANNELS.map((channel, index) => (
+            <div
+              key={channel.name}
+              className="group relative overflow-hidden rounded-3xl bg-white border border-slate-200 hover:border-sky-300 transition-all duration-300 shadow-lg hover:shadow-2xl"
+              style={{
+                animation: `fadeInUp 0.5s ease-out ${index * 0.1}s both`,
+              }}
+            >
+              {/* Gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-sky-50/30 opacity-60"></div>
 
-            {/* Animated gradient overlay on hover */}
-            <div className="absolute inset-0 bg-gradient-to-r from-sky-100/0 via-sky-100/60 to-sky-100/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              {/* Animated gradient overlay on hover */}
+              <div className="absolute inset-0 bg-gradient-to-r from-sky-100/0 via-sky-100/60 to-sky-100/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-            <div className="relative p-6 sm:p-8">
-              {/* Header Section */}
-              <div className="flex items-start justify-between gap-6 mb-6">
-                {/* Left: Icon + Info */}
-                <div className="flex items-center gap-5 flex-1">
-                  {/* Icon with glow effect */}
-                  <div className="relative flex-shrink-0">
-                    <div className="absolute inset-0 bg-gradient-to-br from-sky-500 to-blue-500 rounded-2xl blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500"></div>
-                    <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-white to-sky-50 shadow-md ring-1 ring-slate-200/50 group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
-                      <Image
-                        src={channel.icon}
-                        alt={channel.name}
-                        width={48}
-                        height={48}
-                        className="h-12 w-12 object-contain"
-                        onError={(e) => {
-                          const target = e.currentTarget;
-                          target.style.display = "none";
-                          target.nextElementSibling?.classList.remove("hidden");
-                        }}
-                      />
-                      <span className="hidden text-3xl">
-                        {channel.fallbackIcon}
-                      </span>
+              <div className="relative p-6 sm:p-8">
+                {/* Header Section */}
+                <div className="flex items-start justify-between gap-6 mb-6">
+                  {/* Left: Icon + Info */}
+                  <div className="flex items-center gap-5 flex-1">
+                    {/* Icon with glow effect */}
+                    <div className="relative flex-shrink-0">
+                      <div className="absolute inset-0 bg-gradient-to-br from-sky-500 to-blue-500 rounded-2xl blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500"></div>
+                      <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-white to-sky-50 shadow-md ring-1 ring-slate-200/50 group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
+                        <Image
+                          src={channel.icon}
+                          alt={channel.name}
+                          width={48}
+                          height={48}
+                          className="h-12 w-12 object-contain"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            target.style.display = "none";
+                            target.nextElementSibling?.classList.remove(
+                              "hidden"
+                            );
+                          }}
+                        />
+                        <span className="hidden text-3xl">
+                          {channel.fallbackIcon}
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Channel Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-2xl font-bold text-slate-900 group-hover:text-sky-700 transition-colors">
-                        {channel.name}
-                      </h3>
-                      {channel.name === "Instagram" && instagramIntegration && (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200/50">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                          Active
-                        </span>
-                      )}
-                      {channel.name === "Telegram" && telegramBotInfo && (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200/50">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                          Active
-                        </span>
-                      )}
-                      {channel.comingSoon && (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 ring-1 ring-slate-200/50">
-                          Coming Soon
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-slate-600 leading-relaxed">
-                      {channel.description ||
-                        "Connect to enable real-time support and engagement."}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Right: Connect Button */}
-                <div className="flex-shrink-0">
-                  <button
-                    type="button"
-                    className={`rounded-xl px-6 py-3 text-sm font-bold transition-all duration-300 shadow-md ${
-                      channel.comingSoon
-                        ? "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
-                        : channel.name === "Instagram" && instagramIntegration
-                          ? "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105"
-                          : "bg-gradient-to-r from-sky-500 to-sky-500 text-white shadow-sky-500/30 hover:shadow-sky-500/50 hover:scale-105"
-                    }`}
-                    disabled={
-                      channel.comingSoon ||
-                      (channel.name === "Instagram" &&
-                        (instagramChecking || instagramDisconnecting)) ||
-                      (channel.name === "Telegram" &&
-                        (telegramConnecting || telegramChecking))
-                    }
-                    onClick={() => {
-                      if (channel.comingSoon) return;
-                      if (channel.name === "Instagram") {
-                        handleInstagramConnect();
-                      }
-                      if (channel.name === "Telegram") {
-                        handleTelegramConnect();
-                      }
-                    }}
-                  >
-                    {channel.comingSoon
-                      ? "Coming Soon"
-                      : channel.name === "Instagram" && instagramIntegration
-                        ? "✓ Connected"
-                        : channel.name === "Telegram" && telegramBotInfo
-                          ? "✓ Connected"
-                          : channel.name === "Telegram" && telegramConnecting
-                            ? "Connecting..."
-                            : channel.name === "Telegram" && telegramChecking
-                              ? "Checking..."
-                              : "Connect"}
-                  </button>
-                </div>
-              </div>
-
-              {/* Telegram Connection Details */}
-              {channel.name === "Telegram" && (
-                <div className="space-y-3">
-                  {telegramChecking && (
-                    <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
-                      <div className="h-5 w-5 rounded-full border-2 border-sky-500 border-t-transparent animate-spin"></div>
-                      <p className="text-sm text-slate-600 font-medium">
-                        Checking Telegram status…
+                    {/* Channel Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-2xl font-bold text-slate-900 group-hover:text-sky-700 transition-colors">
+                          {channel.name}
+                        </h3>
+                        {channel.name === "Instagram" &&
+                          instagramIntegration && (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200/50">
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                              Active
+                            </span>
+                          )}
+                        {channel.name === "Telegram" && telegramBotInfo && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200/50">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Active
+                          </span>
+                        )}
+                        {channel.comingSoon && (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 ring-1 ring-slate-200/50">
+                            Coming Soon
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-slate-600 leading-relaxed">
+                        {channel.description ||
+                          "Connect to enable real-time support and engagement."}
                       </p>
                     </div>
-                  )}
+                  </div>
 
-                  {!telegramChecking &&
-                    telegramBotInfo &&
-                    telegramBotInfo.username && (
+                  {/* Right: Connect Button */}
+                  <div className="flex-shrink-0">
+                    <button
+                      type="button"
+                      className={`rounded-xl px-6 py-3 text-sm font-bold transition-all duration-300 shadow-md ${
+                        channel.comingSoon || isPageDisabled
+                          ? "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
+                          : channel.name === "Instagram" && instagramIntegration
+                            ? "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105"
+                            : "bg-gradient-to-r from-sky-500 to-sky-500 text-white shadow-sky-500/30 hover:shadow-sky-500/50 hover:scale-105"
+                      }`}
+                      disabled={
+                        channel.comingSoon ||
+                        isPageDisabled ||
+                        (channel.name === "Instagram" &&
+                          (instagramChecking || instagramDisconnecting)) ||
+                        (channel.name === "Telegram" &&
+                          (telegramConnecting || telegramChecking))
+                      }
+                      onClick={() => {
+                        if (channel.comingSoon || isPageDisabled) return;
+                        if (channel.name === "Instagram") {
+                          handleInstagramConnect();
+                        }
+                        if (channel.name === "Telegram") {
+                          handleTelegramConnect();
+                        }
+                      }}
+                    >
+                      {channel.comingSoon ? (
+                        "Coming Soon"
+                      ) : channel.name === "Instagram" &&
+                        instagramIntegration ? (
+                        "✓ Connected"
+                      ) : channel.name === "Telegram" && telegramBotInfo ? (
+                        "✓ Connected"
+                      ) : channel.name === "Telegram" && telegramConnecting ? (
+                        <span className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Connecting...
+                        </span>
+                      ) : channel.name === "Telegram" && telegramChecking ? (
+                        <span className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Checking...
+                        </span>
+                      ) : channel.name === "Instagram" &&
+                        (instagramChecking || instagramDisconnecting) ? (
+                        <span className="flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          {instagramDisconnecting
+                            ? "Disconnecting..."
+                            : "Checking..."}
+                        </span>
+                      ) : (
+                        "Connect"
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Telegram Connection Details */}
+                {channel.name === "Telegram" && (
+                  <div className="space-y-3">
+                    {telegramChecking && (
+                      <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-sky-50 to-blue-50 border border-sky-200 animate-pulse">
+                        <div className="relative">
+                          <div className="h-5 w-5 rounded-full border-2 border-sky-200"></div>
+                          <div className="absolute inset-0 h-5 w-5 rounded-full border-2 border-sky-500 border-t-transparent animate-spin"></div>
+                        </div>
+                        <p className="text-sm text-slate-700 font-medium">
+                          Checking Telegram status…
+                        </p>
+                      </div>
+                    )}
+
+                    {!telegramChecking &&
+                      telegramBotInfo &&
+                      telegramBotInfo.username && (
+                        <div className="relative overflow-hidden rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-white p-5 shadow-inner">
+                          {/* Decorative gradient */}
+                          <div className="absolute top-0 right-0 h-32 w-32 bg-gradient-to-br from-sky-200/40 to-transparent rounded-full blur-2xl"></div>
+
+                          <div className="relative flex items-center justify-between gap-4">
+                            {/* Bot Info Section */}
+                            <div className="flex items-center gap-4">
+                              {/* Bot Icon with Ring */}
+                              <div className="relative">
+                                <div className="absolute inset-0 bg-gradient-to-br from-sky-400 via-blue-400 to-cyan-400 rounded-full blur-sm opacity-75"></div>
+                                <div className="relative h-14 w-14 overflow-hidden rounded-full bg-white ring-4 ring-white shadow-lg flex items-center justify-center">
+                                  <div className="text-2xl">🤖</div>
+                                </div>
+                              </div>
+
+                              {/* Bot Username and Status */}
+                              <div>
+                                <p className="text-xs font-semibold text-sky-500 uppercase tracking-wider mb-0.5">
+                                  Connected Bot
+                                </p>
+                                <p className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                  @{telegramBotInfo.username}
+                                  <Sparkles className="h-4 w-4 text-sky-500" />
+                                </p>
+                                {telegramBotInfo.first_name && (
+                                  <p className="text-sm text-slate-600">
+                                    {telegramBotInfo.first_name}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                    {!telegramChecking && !telegramBotInfo && (
+                      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                        <p className="text-sm text-slate-500 font-medium">
+                          Click &quot;Connect&quot; to link your Telegram bot
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Instagram Connection Details */}
+                {channel.name === "Instagram" && (
+                  <div className="space-y-3">
+                    {instagramChecking && (
+                      <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-200 animate-pulse">
+                        <div className="relative">
+                          <div className="h-5 w-5 rounded-full border-2 border-pink-200"></div>
+                          <div className="absolute inset-0 h-5 w-5 rounded-full border-2 border-pink-500 border-t-transparent animate-spin"></div>
+                        </div>
+                        <p className="text-sm text-slate-700 font-medium">
+                          Checking Instagram status…
+                        </p>
+                      </div>
+                    )}
+
+                    {!instagramChecking && instagramStatusMessage && (
+                      <div
+                        className={`p-4 rounded-xl border animate-in slide-in-from-top-2 duration-200 ${
+                          instagramStatusKind === "success"
+                            ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                            : "bg-amber-50 border-amber-200 text-amber-700"
+                        }`}
+                      >
+                        <div className="flex items-start gap-2">
+                          <div className="flex-shrink-0 mt-0.5">
+                            {instagramStatusKind === "success" ? "✓" : "⚠️"}
+                          </div>
+                          <p className="text-sm font-medium">
+                            {instagramStatusMessage}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {!instagramChecking && instagramIntegration && (
                       <div className="relative overflow-hidden rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-white p-5 shadow-inner">
                         {/* Decorative gradient */}
                         <div className="absolute top-0 right-0 h-32 w-32 bg-gradient-to-br from-sky-200/40 to-transparent rounded-full blur-2xl"></div>
 
                         <div className="relative flex items-center justify-between gap-4">
-                          {/* Bot Info Section */}
+                          {/* Profile Section */}
                           <div className="flex items-center gap-4">
-                            {/* Bot Icon with Ring */}
+                            {/* Profile Picture with Ring */}
                             <div className="relative">
-                              <div className="absolute inset-0 bg-gradient-to-br from-sky-400 via-blue-400 to-cyan-400 rounded-full blur-sm opacity-75"></div>
-                              <div className="relative h-14 w-14 overflow-hidden rounded-full bg-white ring-4 ring-white shadow-lg flex items-center justify-center">
-                                <div className="text-2xl">🤖</div>
+                              <div className="absolute inset-0 bg-gradient-to-br from-pink-400 via-purple-400 to-yellow-400 rounded-full blur-sm opacity-75"></div>
+                              <div className="relative h-14 w-14 overflow-hidden rounded-full bg-white ring-4 ring-white shadow-lg">
+                                {instagramIntegration.profile_picture ? (
+                                  <Image
+                                    src={instagramIntegration.profile_picture}
+                                    alt={instagramIntegration.username}
+                                    fill
+                                    sizes="56px"
+                                    className="object-cover"
+                                    unoptimized
+                                  />
+                                ) : (
+                                  <div className="flex h-full w-full items-center justify-center text-xl font-bold bg-gradient-to-br from-sky-500 to-blue-500 text-white">
+                                    {instagramIntegration.username
+                                      .charAt(0)
+                                      .toUpperCase()}
+                                  </div>
+                                )}
                               </div>
                             </div>
 
-                            {/* Bot Username and Status */}
+                            {/* Username and Status */}
                             <div>
                               <p className="text-xs font-semibold text-sky-500 uppercase tracking-wider mb-0.5">
-                                Connected Bot
+                                Connected Account
                               </p>
                               <p className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                                @{telegramBotInfo.username}
+                                @{instagramIntegration.username}
                                 <Sparkles className="h-4 w-4 text-sky-500" />
                               </p>
-                              {telegramBotInfo.first_name && (
-                                <p className="text-sm text-slate-600">
-                                  {telegramBotInfo.first_name}
-                                </p>
-                              )}
                             </div>
                           </div>
+
+                          {/* Disconnect Button */}
+                          <button
+                            type="button"
+                            className="rounded-xl border-2 border-red-200 bg-white px-5 py-2.5 text-sm font-bold text-red-600 transition-all hover:bg-red-50 hover:border-red-300 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                            onClick={handleInstagramDisconnect}
+                            disabled={instagramDisconnecting || isPageDisabled}
+                          >
+                            {instagramDisconnecting ? (
+                              <span className="flex items-center gap-2">
+                                <Loader2 className="h-4 w-4 animate-spin text-red-500" />
+                                Disconnecting...
+                              </span>
+                            ) : (
+                              "Disconnect"
+                            )}
+                          </button>
                         </div>
                       </div>
                     )}
 
-                  {!telegramChecking && !telegramBotInfo && (
-                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                      <p className="text-sm text-slate-500 font-medium">
-                        Click &quot;Connect&quot; to link your Telegram bot
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Instagram Connection Details */}
-              {channel.name === "Instagram" && (
-                <div className="space-y-3">
-                  {instagramChecking && (
-                    <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200">
-                      <div className="h-5 w-5 rounded-full border-2 border-sky-500 border-t-transparent animate-spin"></div>
-                      <p className="text-sm text-slate-600 font-medium">
-                        Checking Instagram status…
-                      </p>
-                    </div>
-                  )}
-
-                  {!instagramChecking && instagramStatusMessage && (
-                    <div
-                      className={`p-4 rounded-xl border ${
-                        instagramStatusKind === "success"
-                          ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                          : "bg-amber-50 border-amber-200 text-amber-700"
-                      }`}
-                    >
-                      <p className="text-sm font-medium">
-                        {instagramStatusMessage}
-                      </p>
-                    </div>
-                  )}
-
-                  {!instagramChecking && instagramIntegration && (
-                    <div className="relative overflow-hidden rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-white p-5 shadow-inner">
-                      {/* Decorative gradient */}
-                      <div className="absolute top-0 right-0 h-32 w-32 bg-gradient-to-br from-sky-200/40 to-transparent rounded-full blur-2xl"></div>
-
-                      <div className="relative flex items-center justify-between gap-4">
-                        {/* Profile Section */}
-                        <div className="flex items-center gap-4">
-                          {/* Profile Picture with Ring */}
-                          <div className="relative">
-                            <div className="absolute inset-0 bg-gradient-to-br from-pink-400 via-purple-400 to-yellow-400 rounded-full blur-sm opacity-75"></div>
-                            <div className="relative h-14 w-14 overflow-hidden rounded-full bg-white ring-4 ring-white shadow-lg">
-                              {instagramIntegration.profile_picture ? (
-                                <Image
-                                  src={instagramIntegration.profile_picture}
-                                  alt={instagramIntegration.username}
-                                  fill
-                                  sizes="56px"
-                                  className="object-cover"
-                                  unoptimized
-                                />
-                              ) : (
-                                <div className="flex h-full w-full items-center justify-center text-xl font-bold bg-gradient-to-br from-sky-500 to-blue-500 text-white">
-                                  {instagramIntegration.username
-                                    .charAt(0)
-                                    .toUpperCase()}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Username and Status */}
-                          <div>
-                            <p className="text-xs font-semibold text-sky-500 uppercase tracking-wider mb-0.5">
-                              Connected Account
-                            </p>
-                            <p className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                              @{instagramIntegration.username}
-                              <Sparkles className="h-4 w-4 text-sky-500" />
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Disconnect Button */}
-                        <button
-                          type="button"
-                          className="rounded-xl border-2 border-red-200 bg-white px-5 py-2.5 text-sm font-bold text-red-600 transition-all hover:bg-red-50 hover:border-red-300 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-                          onClick={handleInstagramDisconnect}
-                          disabled={instagramDisconnecting}
-                        >
-                          {instagramDisconnecting ? (
-                            <span className="flex items-center gap-2">
-                              <div className="h-4 w-4 rounded-full border-2 border-red-500 border-t-transparent animate-spin"></div>
-                              Disconnecting...
-                            </span>
-                          ) : (
-                            "Disconnect"
-                          )}
-                        </button>
+                    {!instagramChecking && !instagramIntegration && (
+                      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                        <p className="text-sm text-slate-500 font-medium">
+                          Click &quot;Connect&quot; to link your Instagram
+                          account
+                        </p>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                )}
+              </div>
 
-                  {!instagramChecking && !instagramIntegration && (
-                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                      <p className="text-sm text-slate-500 font-medium">
-                        Click &quot;Connect&quot; to link your Instagram account
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Bottom accent line with animation */}
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-sky-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+              {/* Corner decoration */}
+              <div className="absolute top-0 right-0 h-24 w-24 bg-gradient-to-br from-sky-100/50 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                {" "}
+              </div>
             </div>
-
-            {/* Bottom accent line with animation */}
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-sky-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-            {/* Corner decoration */}
-            <div className="absolute top-0 right-0 h-24 w-24 bg-gradient-to-br from-sky-100/50 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Telegram Connection Modal */}
       {showTelegramModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-xl">
-            <div className="rounded-xl bg-[#0b1220] text-white px-4 py-3 mb-2 flex items-center justify-between">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !telegramConnecting) {
+              handleCloseTelegramModal();
+            }
+          }}
+        >
+          <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="rounded-t-xl bg-gradient-to-br from-[#0b1220] to-[#1a1f35] text-white px-4 py-3 mb-2 flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-bold">Connect Telegram Bot</h3>
                 <p className="text-xs text-white/70">
@@ -613,7 +743,8 @@ export default function IntegrationsPage() {
               </div>
               <button
                 onClick={handleCloseTelegramModal}
-                className="rounded-md border border-transparent px-2 py-1 text-white/70 transition hover:border-white/20 hover:text-white"
+                disabled={telegramConnecting}
+                className="rounded-md border border-transparent px-2 py-1 text-white/70 transition hover:border-white/20 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Close"
               >
                 <X className="h-5 w-5" />
@@ -622,14 +753,20 @@ export default function IntegrationsPage() {
 
             <div className="p-6 space-y-4">
               {telegramError && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
-                  {telegramError}
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 animate-in slide-in-from-top-2 duration-200">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-shrink-0 mt-0.5">⚠️</div>
+                    <div>{telegramError}</div>
+                  </div>
                 </div>
               )}
 
               {telegramSuccess && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-md text-sm text-green-700">
-                  Telegram bot connected successfully!
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 animate-in slide-in-from-top-2 duration-200">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-shrink-0 mt-0.5">✓</div>
+                    <div>Telegram bot connected successfully!</div>
+                  </div>
                 </div>
               )}
 
@@ -645,8 +782,18 @@ export default function IntegrationsPage() {
                     setTelegramError(null);
                   }}
                   placeholder="Enter your Telegram bot access token"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
-                  disabled={telegramConnecting}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all disabled:bg-gray-50 disabled:cursor-not-allowed"
+                  disabled={telegramConnecting || isPageDisabled}
+                  onKeyDown={(e) => {
+                    if (
+                      e.key === "Enter" &&
+                      telegramBotToken.trim() &&
+                      !telegramConnecting &&
+                      !isPageDisabled
+                    ) {
+                      handleTelegramSubmit();
+                    }
+                  }}
                 />
                 <p className="mt-2 text-xs text-gray-500">
                   You can get your bot token from{" "}
@@ -654,7 +801,7 @@ export default function IntegrationsPage() {
                     href="https://t.me/BotFather"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sky-500 hover:underline"
+                    className="text-sky-500 hover:underline font-medium"
                   >
                     @BotFather
                   </a>{" "}
@@ -665,14 +812,25 @@ export default function IntegrationsPage() {
               <div className="flex gap-4 pt-2">
                 <button
                   onClick={handleTelegramSubmit}
-                  disabled={!telegramBotToken.trim() || telegramConnecting}
-                  className="flex-1 bg-gradient-to-r from-sky-500 to-sky-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={
+                    !telegramBotToken.trim() ||
+                    telegramConnecting ||
+                    isPageDisabled
+                  }
+                  className="flex-1 bg-gradient-to-r from-sky-500 to-sky-700 text-white px-6 py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {telegramConnecting ? "Connecting..." : "Connect"}
+                  {telegramConnecting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Connecting...
+                    </>
+                  ) : (
+                    "Connect"
+                  )}
                 </button>
                 <button
                   onClick={handleCloseTelegramModal}
-                  disabled={telegramConnecting}
+                  disabled={telegramConnecting || isPageDisabled}
                   className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
