@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { getStripe, PLAN_CONFIGS } from "@/lib/stripe";
+import { supabase } from "@/lib/supabase";
 
 import {
   Check,
@@ -39,6 +40,15 @@ interface Plan {
   cta: string;
 }
 
+type UserPlan = {
+  plan_name: string;
+  current_period_end?: string | null;
+  current_period_start?: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export default function PlansPage() {
   console.log('PlansPage: Component initialized');
 
@@ -51,8 +61,7 @@ export default function PlansPage() {
   console.log('PlansPage: Auth state - user:', user, 'workspace:', currentWorkspace);
 
   const [loading, setLoading] = useState(true);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [currentPlan, setCurrentPlan] = useState<any | null>(null);
+  const [currentPlan, setCurrentPlan] = useState<UserPlan | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
 
   const plans: Plan[] = [
@@ -171,33 +180,33 @@ export default function PlansPage() {
   console.log('PlansPage: Plans array defined, count:', plans.length);
 
   useEffect(() => {
-    const effectiveWorkspaceId = urlWorkspaceId || currentWorkspace?.id;
-    console.log('PlansPage: useEffect triggered with workspace ID:', effectiveWorkspaceId);
-
     async function fetchCurrentPlan() {
       console.log('PlansPage: fetchCurrentPlan started');
 
-      if (!user?.id || !effectiveWorkspaceId) {
+      if (!user?.id) {
         console.log('PlansPage: Missing user or workspace data, skipping plan fetch');
         setLoading(false);
         return;
       }
 
       try {
-        console.log('PlansPage: Fetching current plan data');
-        const planResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/v2/api/billing/plan?user_id=${user.id}&workspace_id=${effectiveWorkspaceId}`
-        );
-        console.log('PlansPage: Plan API response status:', planResponse.status);
-        const planData = await planResponse.json();
-        console.log('PlansPage: Plan data received:', planData);
+        console.log('PlansPage: Fetching current plan data from Supabase');
+        const { data: plans, error: planError } = await supabase
+          .from("user_plans")
+          .select(
+            "plan_name, current_period_start, current_period_end, status, created_at, updated_at"
+          )
+          .eq("user_id", user.id)
+          .order("updated_at", { ascending: false })
+          .limit(1);
 
-        if (!planResponse.ok) {
-          console.log('PlansPage: Failed to fetch plan data:', planData.error);
-          throw new Error(planData.error);
+        if (planError) {
+          console.log('PlansPage: Failed to fetch plan data:', planError.message);
+          throw new Error(planError.message);
         }
 
-        const userPlan = planData.plan || planData.data || null;
+        const userPlan = (plans && plans.length > 0 ? plans[0] : null) as UserPlan | null;
+        console.log('PlansPage: User plan:', userPlan);
         console.log('PlansPage: Setting current plan:', userPlan);
         setCurrentPlan(userPlan);
       } catch (error) {
@@ -223,11 +232,6 @@ export default function PlansPage() {
       return;
     }
 
-    if (!effectiveWorkspaceId) {
-      console.log('PlansPage: No workspace ID available, showing error toast');
-      toast.error('Please select a workspace first');
-      return;
-    }
 
     const planConfig = PLAN_CONFIGS[planKey as keyof typeof PLAN_CONFIGS];
     console.log('PlansPage: Plan config for', planKey, ':', planConfig);
@@ -357,12 +361,24 @@ export default function PlansPage() {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h2 className="text-2xl font-bold text-slate-900">Current Plan</h2>
-                <span className="px-3 py-1 bg-sky-100 text-sky-700 rounded-full text-sm font-semibold border border-sky-300">
-                  Active
+                <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${
+                  currentPlan.status === 'active' 
+                    ? 'bg-green-100 text-green-700 border-green-300' 
+                    : 'bg-sky-100 text-sky-700 border-sky-300'
+                }`}>
+                  {currentPlan.status === 'active' ? 'Active' : currentPlan.status || 'Active'}
                 </span>
               </div>
               <h3 className="text-xl font-semibold text-slate-800 mb-1">{currentPlan.plan_name || 'Free'}</h3>
-             
+              {currentPlan.current_period_end && (
+                <p className="text-sm text-slate-600 mt-2">
+                  Renews on {new Date(currentPlan.current_period_end).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -468,10 +484,6 @@ export default function PlansPage() {
         })}
         </div>
       </div>
-
-    
     </div>
   );
-
-  console.log('PlansPage: Component render completed');
 }

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { getStripe, PLAN_CONFIGS } from "@/lib/stripe";
+import { supabase } from "@/lib/supabase";
 import {
   CreditCard,
   TrendingUp,
@@ -68,14 +69,9 @@ export default function BillingPage() {
   const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [creditTransactions, setCreditTransactions] = useState<Transaction[]>([]);
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
 
   useEffect(() => {
     async function loadBillingData() {
-      console.log('=== BILLING PAGE: Loading Data ===');
-      console.log('User ID:', user?.id);
-      console.log('Current Workspace:', currentWorkspace?.id, currentWorkspace?.name);
-      console.log('Global Workspace ID:', GLOBAL_WORKSPACE_ID);
 
       if (!user?.id) {
         console.log('No user ID, returning early');
@@ -85,80 +81,83 @@ export default function BillingPage() {
       try {
         setLoading(true);
 
-        // Fetch GLOBAL credits balance (using global workspace ID)
-        console.log('\n--- Fetching Global Credits ---');
-        const creditsUrl = `${process.env.NEXT_PUBLIC_API_URL}/v2/api/credits?user_id=${user.id}&workspace_id=${GLOBAL_WORKSPACE_ID}`;
-        console.log('Credits URL:', creditsUrl);
-        const creditsResponse = await fetch(creditsUrl);
-        console.log('Credits Response Status:', creditsResponse.status);
-        const creditsData = await creditsResponse.json();
-        console.log('Credits Data:', JSON.stringify(creditsData, null, 2));
-        if (!creditsResponse.ok) throw new Error(creditsData.error);
+        // Fetch credit transactions directly from Supabase
+        console.log('\n--- Fetching Credit Transactions (Supabase) ---');
+        const { data: creditRows, error: creditError } = await supabase
+          .from("user_credits")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("transaction_type", "credit")
+          .order("created_at", { ascending: false });
 
-        // Fetch GLOBAL credit transactions (only credit type)
-        console.log('\n--- Fetching Credit Transactions ---');
-        const transactionsUrl = `${process.env.NEXT_PUBLIC_API_URL}/v2/api/credits/transactions?user_id=${user.id}&workspace_id=${GLOBAL_WORKSPACE_ID}&limit=100&offset=0`;
-        console.log('Transactions URL:', transactionsUrl);
-        const transactionsResponse = await fetch(transactionsUrl);
-        console.log('Transactions Response Status:', transactionsResponse.status);
-        const transactionsData = await transactionsResponse.json();
-        console.log('Transactions Data:', JSON.stringify(transactionsData, null, 2));
-        if (!transactionsResponse.ok) throw new Error(transactionsData.error);
+        if (creditError) throw new Error(creditError.message);
 
-        // Filter only CREDIT type transactions (global)
-        const allTransactions: Transaction[] = transactionsData.transactions || [];
-        console.log('Total transactions fetched:', allTransactions.length);
-        
-        // Map transactions to normalize field names (backend uses 'type' and 'amount', frontend uses 'transaction_type' and 'credits')
-        const normalizedTransactions = allTransactions.map((t: Transaction) => ({
+        const normalizedCreditTransactions = (creditRows || []).map((t: Transaction) => ({
           ...t,
           transaction_type: t.transaction_type || t.type,
-          credits: t.credits ?? t.amount ?? 0,
-          balance: t.balance ?? 0, // Backend doesn't return balance, so we'll show 0 for now
+          credits: t.credits ?? 0,
+          balance: t.balance ?? 0,
         }));
-        
-        const onlyCreditTransactions = normalizedTransactions.filter(
-          (t: Transaction) => (t.transaction_type || t.type) === 'credit'
-        );
-        console.log('Credit transactions (filtered):', onlyCreditTransactions.length);
-        console.log('Credit transactions:', JSON.stringify(onlyCreditTransactions, null, 2));
 
-        // Calculate total used across ALL workspaces (all debit transactions)
-        const totalDebits = normalizedTransactions
-          .filter((t: Transaction) => (t.transaction_type || t.type) === 'debit')
-          .reduce((sum: number, t: Transaction) => sum + (t.credits ?? t.amount ?? 0), 0);
+        console.log('Credit transactions count:', normalizedCreditTransactions.length);
+        console.log('Credit transactions:', JSON.stringify(normalizedCreditTransactions, null, 2));
+
+        // Fetch debit transactions to calculate total used across all workspaces
+        console.log('\n--- Fetching Debit Totals (Supabase) ---');
+        const { data: debitRows, error: debitError } = await supabase
+          .from("user_credits")
+          .select("credits, transaction_type")
+          .eq("user_id", user.id)
+          .eq("transaction_type", "debit");
+
+        if (debitError) throw new Error(debitError.message);
+
+        const totalDebits = (debitRows || []).reduce(
+          (sum: number, t: { credits?: number | null }) =>
+            sum + (t.credits ?? 0),
+          0
+        );
         console.log('Total debits calculated:', totalDebits);
 
-        // Fetch user plan (use current workspace or global)
-        console.log('\n--- Fetching User Plan ---');
+        // Get current credits balance from most recent transaction
+        console.log('\n--- Fetching Current Credits Balance (Supabase) ---');
+        const { data: latestTransaction, error: balanceError } = await supabase
+          .from("user_credits")
+          .select("balance")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+
+        if (balanceError && balanceError.code !== 'PGRST116') {
+          // PGRST116 is "no rows returned" which is fine for new users
+          throw new Error(balanceError.message);
+        }
+
+        const globalCredits = latestTransaction?.balance ?? 0;
+        console.log('Current credits balance:', globalCredits);
+
+        // Fetch user plan from Supabase
+        console.log('\n--- Fetching User Plan (Supabase) ---');
         const workspaceForPlan = currentWorkspace?.id || GLOBAL_WORKSPACE_ID;
-        const planUrl = `${process.env.NEXT_PUBLIC_API_URL}/v2/api/billing/plan?user_id=${user.id}&workspace_id=${workspaceForPlan}`;
-        console.log('Plan URL:', planUrl);
-        const planResponse = await fetch(planUrl);
-        console.log('Plan Response Status:', planResponse.status);
-        const planData = await planResponse.json();
-        console.log('Plan Data:', JSON.stringify(planData, null, 2));
-        const currentPlan = planData.plan || null;
+        const { data: planRows, error: planError } = await supabase
+          .from("user_plans")
+          .select("id, user_id, workspace_id, plan_name, stripe_subscription_id, stripe_customer_id, status, current_period_start, current_period_end, created_at, updated_at")
+          .eq("user_id", user.id)
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (planError) throw new Error(planError.message);
+
+        const currentPlan = planRows || null;
         console.log('Current Plan:', currentPlan);
-
-        // Fetch invoices (global - no workspace filter)
-        console.log('\n--- Fetching Invoices ---');
-        const invoicesUrl = `${process.env.NEXT_PUBLIC_API_URL}/v2/api/billing/invoices?user_id=${user.id}&workspace_id=${GLOBAL_WORKSPACE_ID}&limit=10`;
-        console.log('Invoices URL:', invoicesUrl);
-        const invoicesResponse = await fetch(invoicesUrl);
-        console.log('Invoices Response Status:', invoicesResponse.status);
-        const invoicesData = await invoicesResponse.json();
-        console.log('Invoices Data:', JSON.stringify(invoicesData, null, 2));
-
-        const processedInvoices = invoicesData.invoices || invoicesData.data || [];
-        console.log('Processed Invoices Count:', processedInvoices.length);
-        console.log('Processed Invoices:', JSON.stringify(processedInvoices, null, 2));
 
         // Update billing data
         const billingUpdate = {
-          globalCredits: creditsData.credits || 0,
+          globalCredits: globalCredits,
           totalUsedAllWorkspaces: totalDebits,
-          creditTransactionsCount: onlyCreditTransactions.length,
+          creditTransactionsCount: normalizedCreditTransactions.length,
           currentPlan: currentPlan?.plan_name || "Free",
           nextBillingDate: currentPlan?.current_period_end || null,
         };
@@ -167,8 +166,7 @@ export default function BillingPage() {
         setBillingData(billingUpdate);
 
         setUserPlan(currentPlan);
-        setCreditTransactions(onlyCreditTransactions);
-        setInvoices(processedInvoices);
+        setCreditTransactions(normalizedCreditTransactions);
         
         console.log('=== BILLING PAGE: Data Loading Complete ===\n');
 
@@ -348,12 +346,7 @@ export default function BillingPage() {
             <p className="text-3xl font-bold text-slate-900 mt-1 tracking-tight">
               {billingData.currentPlan}
             </p>
-            <div className="flex items-center justify-between mt-4">
-              <p className="text-sm font-medium text-slate-500">
-                {userPlan ? '$99/month' : 'Free'}
-              </p>
-             
-            </div>
+            
           </div>
         </div>
       </div>

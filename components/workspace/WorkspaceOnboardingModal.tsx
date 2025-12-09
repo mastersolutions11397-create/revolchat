@@ -324,10 +324,24 @@ export function WorkspaceOnboardingModal({
     });
   };
 
-  const handleNext = () => {
-    if (currentQuestionIndex < normalizedQuestions.length - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1);
+  const handleNext = (event?: React.MouseEvent<HTMLButtonElement>) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+    
+    if (currentQuestionIndex >= normalizedQuestions.length - 1) {
+      return;
     }
+
+    const currentQuestion = normalizedQuestions[currentQuestionIndex];
+    const { question, key } = currentQuestion;
+
+    // Validate current question if it's required
+    if (isQuestionRequired(question) && !isAnswerProvided(answers[key])) {
+      toast.error("Please answer this required question to continue.");
+      return;
+    }
+
+    setCurrentQuestionIndex((prev) => prev + 1);
   };
 
   const handlePrev = () => {
@@ -338,6 +352,8 @@ export function WorkspaceOnboardingModal({
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    console.log("ANSWERS",answers);
     if (!workspaceId) return;
 
     const missingRequired = normalizedQuestions.filter(
@@ -414,7 +430,22 @@ export function WorkspaceOnboardingModal({
             <p>No onboarding questions are configured yet.</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="p-8">
+          <form 
+            onSubmit={handleSubmit} 
+            onKeyDown={(e) => {
+              // Prevent Enter from submitting form unless on last question
+              // Allow Enter in textareas for new lines
+              if (
+                e.key === 'Enter' && 
+                currentQuestionIndex < normalizedQuestions.length - 1 &&
+                (e.target as HTMLElement).tagName !== 'TEXTAREA'
+              ) {
+                e.preventDefault();
+                handleNext();
+              }
+            }}
+            className="p-8"
+          >
             {/* Progress Bar */}
             <div className="mb-8">
               <div className="flex justify-between text-xs font-medium text-slate-400 mb-2">

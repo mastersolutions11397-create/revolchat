@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/lib/supabase";
 
 const GLOBAL_WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 
@@ -28,16 +29,22 @@ export function useCredits(): CreditsData {
         setLoading(true);
         setError(null);
 
-        const creditsUrl = `${process.env.NEXT_PUBLIC_API_URL}/v2/api/credits?user_id=${user.id}&workspace_id=${GLOBAL_WORKSPACE_ID}`;
-        const creditsResponse = await fetch(creditsUrl);
+        // Fetch the most recent transaction to get current balance
+        const { data: latestTransaction, error: balanceError } = await supabase
+          .from("user_credits")
+          .select("balance")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
 
-        if (!creditsResponse.ok) {
-          const errorData = await creditsResponse.json();
-          throw new Error(errorData.error || "Failed to fetch credits");
+        if (balanceError && balanceError.code !== 'PGRST116') {
+          // PGRST116 is "no rows returned" which is fine for new users
+          throw new Error(balanceError.message);
         }
 
-        const creditsData = await creditsResponse.json();
-        setCredits(creditsData.credits || 0);
+        // If no transactions exist, balance is 0
+        setCredits(latestTransaction?.balance ?? 0);
       } catch (err) {
         console.error("Failed to fetch credits:", err);
         setError(

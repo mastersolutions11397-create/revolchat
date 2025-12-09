@@ -221,7 +221,7 @@ const Modal: React.FC<ModalProps> = ({
               <div
                 className={cn(
                   "flex justify-between p-6 pb-4",
-                  borderBottom && "border-b border-gray-100",
+                  borderBottom && "border-b border-gray-800",
                   subtitle ? "flex-col items-start gap-1" : "items-center"
                 )}
               >

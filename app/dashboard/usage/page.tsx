@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
+import { supabase } from "@/lib/supabase";
 import {
   Activity,
   TrendingDown,
@@ -17,13 +18,12 @@ import { toast } from "sonner";
 interface Transaction {
   id: string;
   created_at: string;
-  transaction_type?: "credit" | "debit";
-  type?: "credit" | "debit"; // Backend uses 'type' instead of 'transaction_type'
+  transaction_type: "credit" | "debit";
   description?: string;
-  credits?: number;
-  amount?: number; // Backend uses 'amount' instead of 'credits'
-  balance?: number;
+  credits: number;
+  balance: number;
   workspace_id: string;
+  user_id: string;
 }
 
 export default function UsagePage() {
@@ -67,43 +67,26 @@ export default function UsagePage() {
       try {
         setLoading(true);
 
-        // Fetch workspace-specific debit transactions
-        console.log("\n--- Fetching Workspace Transactions ---");
-        const transactionsUrl = `${process.env.NEXT_PUBLIC_API_URL}/v2/api/credits/transactions?user_id=${user.id}&workspace_id=${effectiveWorkspaceId}&limit=100&offset=0`;
-        console.log("Transactions URL:", transactionsUrl);
-        const transactionsResponse = await fetch(transactionsUrl);
-        console.log(
-          "Transactions Response Status:",
-          transactionsResponse.status
-        );
-        const transactionsData = await transactionsResponse.json();
-        console.log(
-          "Transactions Data:",
-          JSON.stringify(transactionsData, null, 2)
-        );
-        if (!transactionsResponse.ok) throw new Error(transactionsData.error);
+        // Fetch workspace-specific debit transactions directly from Supabase
+        console.log("\n--- Fetching Workspace Debit Transactions (Supabase) ---");
+        const { data: debitTransactions, error: transactionsError } = await supabase
+          .from("user_credits")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("workspace_id", effectiveWorkspaceId)
+          .eq("transaction_type", "debit")
+          .order("created_at", { ascending: false })
+          .limit(100);
 
-        // Filter only debit transactions (workspace-specific usage)
-        const allTransactions = transactionsData.transactions || [];
-        console.log("Total transactions fetched:", allTransactions.length);
+        if (transactionsError) {
+          throw new Error(transactionsError.message);
+        }
 
-        // Map transactions to normalize field names (backend uses 'type' and 'amount', frontend uses 'transaction_type' and 'credits')
-        const normalizedTransactions = allTransactions.map(
-          (t: Transaction) => ({
-            ...t,
-            transaction_type: t.transaction_type || t.type,
-            credits: t.credits ?? t.amount ?? 0,
-            balance: t.balance ?? 0, // Backend doesn't return balance, so we'll show 0 for now
-          })
-        );
-
-        const debitTransactions = normalizedTransactions.filter(
-          (t: Transaction) => (t.transaction_type || t.type) === "debit"
-        );
-        console.log("Debit transactions (filtered):", debitTransactions.length);
+        const allDebitTransactions = (debitTransactions || []) as Transaction[];
+        console.log("Debit transactions fetched:", allDebitTransactions.length);
         console.log(
           "Debit transactions:",
-          JSON.stringify(debitTransactions, null, 2)
+          JSON.stringify(allDebitTransactions, null, 2)
         );
 
         // Calculate usage metrics
@@ -119,13 +102,13 @@ export default function UsagePage() {
         );
 
         // Filter by selected period
-        let filteredTransactions = debitTransactions;
+        let filteredTransactions = allDebitTransactions;
         if (selectedPeriod === "7d") {
           const sevenDaysAgo = new Date(
             now.getTime() - 7 * 24 * 60 * 60 * 1000
           );
           console.log("Filtering for last 7 days, cutoff:", sevenDaysAgo);
-          filteredTransactions = debitTransactions.filter(
+          filteredTransactions = allDebitTransactions.filter(
             (t: Transaction) => new Date(t.created_at) >= sevenDaysAgo
           );
         } else if (selectedPeriod === "30d") {
@@ -133,7 +116,7 @@ export default function UsagePage() {
             now.getTime() - 30 * 24 * 60 * 60 * 1000
           );
           console.log("Filtering for last 30 days, cutoff:", thirtyDaysAgo);
-          filteredTransactions = debitTransactions.filter(
+          filteredTransactions = allDebitTransactions.filter(
             (t: Transaction) => new Date(t.created_at) >= thirtyDaysAgo
           );
         }
@@ -142,20 +125,20 @@ export default function UsagePage() {
           filteredTransactions.length
         );
 
-        const totalUsed = debitTransactions.reduce(
-          (sum: number, t: Transaction) => sum + (t.credits ?? t.amount ?? 0),
+        const totalUsed = allDebitTransactions.reduce(
+          (sum: number, t: Transaction) => sum + (t.credits ?? 0),
           0
         );
         console.log("Total credits used (all time):", totalUsed);
 
-        const monthlyUsage = debitTransactions
+        const monthlyUsage = allDebitTransactions
           .filter(
             (t: Transaction) =>
               new Date(t.created_at).getMonth() === currentMonth &&
               new Date(t.created_at).getFullYear() === currentYear
           )
           .reduce(
-            (sum: number, t: Transaction) => sum + (t.credits ?? t.amount ?? 0),
+            (sum: number, t: Transaction) => sum + (t.credits ?? 0),
             0
           );
         console.log("Monthly usage (current month):", monthlyUsage);
@@ -165,7 +148,7 @@ export default function UsagePage() {
             ? 7
             : selectedPeriod === "30d"
               ? 30
-              : Math.max(1, debitTransactions.length);
+              : Math.max(1, allDebitTransactions.length);
         const dailyAvg =
           filteredTransactions.length > 0 ? totalUsed / daysInPeriod : 0;
         console.log(
@@ -179,7 +162,7 @@ export default function UsagePage() {
           workspaceCreditsUsed: totalUsed,
           monthlyUsage,
           dailyAverage: Math.round(dailyAvg),
-          totalTransactions: debitTransactions.length,
+          totalTransactions: allDebitTransactions.length,
         };
         console.log("\n--- Final Usage Data ---");
         console.log("Usage Data:", JSON.stringify(usageUpdate, null, 2));
@@ -387,11 +370,7 @@ export default function UsagePage() {
                   <div className="ml-4 text-right">
                     <span className="inline-flex items-center gap-1 text-sm font-bold text-rose-600">
                       <Minus className="h-3 w-3" />
-                      {(
-                        transaction.credits ??
-                        transaction.amount ??
-                        0
-                      ).toLocaleString()}
+                      {(transaction.credits ?? 0).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -464,11 +443,7 @@ export default function UsagePage() {
                     <td className="px-6 lg:px-8 py-5 whitespace-nowrap text-right text-sm font-bold text-rose-600">
                       <span className="inline-flex items-center gap-1">
                         <Minus className="h-3 w-3" />
-                        {(
-                          transaction.credits ??
-                          transaction.amount ??
-                          0
-                        ).toLocaleString()}
+                        {(transaction.credits ?? 0).toLocaleString()}
                       </span>
                     </td>
                     <td className="px-6 lg:px-8 py-5 whitespace-nowrap text-right text-sm font-semibold text-slate-700">

@@ -345,7 +345,7 @@ export default function WorkspaceSelectionPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex-1 flex items-center justify-center py-12 rounded-3xl border border-dashed border-white/10 bg-white/5">
+                    <div className="flex-1 flex items-center justify-center py-12 rounded-3xl border border-dashed border-white/10 h-[320px] bg-white/5">
                       <div className="text-center">
                         <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4">
                           <Building2 className="w-8 h-8 text-slate-400" />

@@ -376,7 +376,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             </button>
 
             {/* Workspace Switcher */}
-            <div className="relative group flex-1 min-w-0">
+            <div className="relative group flex-1 min-w-0 max-w-64">
               <select
                 id="dashboard-header-workspace-select"
                 value={localWorkspaceSelection}

@@ -7,13 +7,10 @@ import Stripe from "stripe";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 // Helper function to get current balance
-async function getCurrentBalance(
-  userId: string,
-  workspaceId: string
-): Promise<number> {
+async function getCurrentBalance(userId: string): Promise<number> {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/api/credits?user_id=${userId}&workspace_id=${workspaceId}`,
+      `${API_BASE_URL}/api/credits?user_id=${userId}`,
       {
         method: "GET",
         headers: {
@@ -144,7 +141,7 @@ async function handleCheckoutSessionCompleted(
 
       if (planConfig && planConfig.name === "Yetti Credits") {
         // Get current balance and calculate new balance
-        const currentBalance = await getCurrentBalance(userId, "");
+        const currentBalance = await getCurrentBalance(userId);
         const newBalance = currentBalance + planConfig.credits;
 
         // Create credit transaction via API
@@ -157,7 +154,6 @@ async function handleCheckoutSessionCompleted(
             },
             body: JSON.stringify({
               user_id: userId,
-              workspace_id: "",
               transaction_type: "credit",
               credits: planConfig.credits,
               balance: newBalance,
@@ -258,7 +254,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 
     // Get existing plan via API
     const getPlanResponse = await fetch(
-      `${API_BASE_URL}/api/billing/plan?user_id=${userId}&workspace_id=`,
+      `${API_BASE_URL}/api/billing/plan?user_id=${userId}`,
       {
         method: "GET",
         headers: {
@@ -275,7 +271,6 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 
     const planData = {
       user_id: userId,
-      workspace_id: "",
       plan_name: planConfig.name,
       stripe_subscription_id: subscription.id,
       stripe_customer_id: customer.id,
@@ -334,7 +329,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
     }
 
     // Get current balance and calculate new balance
-    const currentBalance = await getCurrentBalance(userId, "");
+    const currentBalance = await getCurrentBalance(userId);
     const newBalance = currentBalance + planConfig.credits;
 
     // Credit the monthly credits via API
@@ -347,7 +342,6 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
         },
         body: JSON.stringify({
           user_id: userId,
-          workspace_id: "",
           transaction_type: "credit",
           credits: planConfig.credits,
           balance: newBalance,
