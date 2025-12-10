@@ -99,8 +99,6 @@ export default function SignupPage() {
                 Yetti<span className="text-sky-500">.ai</span>
               </span>
             </Link>
-            <h2 className="mt-4 text-2xl font-bold text-slate-900">{t("signup.createAccount")}</h2>
-            <p className="mt-1 text-sm text-slate-500">{t("signup.startTrial")}</p>
           </div>
 
           <div>

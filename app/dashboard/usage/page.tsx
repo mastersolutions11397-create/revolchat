@@ -126,7 +126,7 @@ export default function UsagePage() {
         );
 
         const totalUsed = allDebitTransactions.reduce(
-          (sum: number, t: Transaction) => sum + (t.credits ?? 0),
+          (sum: number, t: Transaction) => sum + parseInt(String(t.credits ?? 0)),
           0
         );
         console.log("Total credits used (all time):", totalUsed);
@@ -138,7 +138,7 @@ export default function UsagePage() {
               new Date(t.created_at).getFullYear() === currentYear
           )
           .reduce(
-            (sum: number, t: Transaction) => sum + (t.credits ?? 0),
+            (sum: number, t: Transaction) => sum + parseInt(String(t.credits ?? 0)),
             0
           );
         console.log("Monthly usage (current month):", monthlyUsage);

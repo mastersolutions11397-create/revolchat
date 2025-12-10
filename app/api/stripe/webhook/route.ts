@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     try {
       const webhookSecret =
         process.env.STRIPE_WEBHOOK_SECRET ||
-        "whsec_z2QBlG2w2I0Wst5NsWkavw3mlMVHTRFr";
+        "whsec_0FJxMd7eFuSAbBIOQeOjC9Igrms5ATBO";
       if (!webhookSecret) {
         throw new Error(
           "STRIPE_WEBHOOK_SECRET environment variable is not set"

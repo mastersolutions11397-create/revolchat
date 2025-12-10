@@ -114,7 +114,7 @@ export default function BillingPage() {
 
         const totalDebits = (debitRows || []).reduce(
           (sum: number, t: { credits?: number | null }) =>
-            sum + (t.credits ?? 0),
+            sum + parseInt(String(t.credits ?? 0)),
           0
         );
         console.log('Total debits calculated:', totalDebits);
