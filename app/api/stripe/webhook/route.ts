@@ -21,7 +21,8 @@ async function getCurrentBalance(userId: string): Promise<number> {
 
     if (response.ok) {
       const data = await response.json();
-      return data.credits || 0;
+      // Convert credits from string to number since it's stored as text
+      return parseInt(data.credits || "0", 10);
     }
     return 0;
   } catch (error) {
@@ -177,8 +178,8 @@ async function handleCheckoutSessionCompleted(
             body: JSON.stringify({
               user_id: userId,
               transaction_type: "credit",
-              credits: planConfig.credits,
-              balance: newBalance,
+              credits: planConfig.credits.toString(),
+              balance: newBalance.toString(),
               description: `Purchased ${planConfig.credits} credits`,
               source: "stripe_checkout",
               invoice: session.invoice
@@ -365,8 +366,8 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
         body: JSON.stringify({
           user_id: userId,
           transaction_type: "credit",
-          credits: planConfig.credits,
-          balance: newBalance,
+          credits: planConfig.credits.toString(),
+          balance: newBalance.toString(),
           description: `Monthly credits for ${planConfig.name} plan`,
           source: "stripe_subscription",
           invoice: `https://dashboard.stripe.com/invoices/${invoice.id}`,
