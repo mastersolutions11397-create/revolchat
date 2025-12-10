@@ -32,21 +32,43 @@ async function getCurrentBalance(userId: string): Promise<number> {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.text();
+    // Get the raw body as Uint8Array for proper signature verification
+    const body = await request.arrayBuffer();
+    const bodyString = new TextDecoder().decode(body);
+
     const headersList = await headers();
     const sig = headersList.get("stripe-signature")!;
+
+    if (!sig) {
+      console.error("Missing stripe-signature header");
+      return NextResponse.json({ error: "Missing signature" }, { status: 400 });
+    }
+
+    console.log("SIG in Header = ", sig);
+    console.log("SIG in env=", process.env.STRIPE_WEBHOOK_SECRET);
+    console.log("Body length:", bodyString.length);
 
     let event: Stripe.Event;
 
     try {
-      event = stripe.webhooks.constructEvent(
-        body,
-        sig,
-        process.env.STRIPE_WEBHOOK_SECRET!
-      );
+      const webhookSecret =
+        process.env.STRIPE_WEBHOOK_SECRET ||
+        "whsec_z2QBlG2w2I0Wst5NsWkavw3mlMVHTRFr";
+      if (!webhookSecret) {
+        throw new Error(
+          "STRIPE_WEBHOOK_SECRET environment variable is not set"
+        );
+      }
+
+      event = stripe.webhooks.constructEvent(bodyString, sig, webhookSecret);
     } catch (err: unknown) {
       const error = err as Error;
-      console.error("Webhook signature verification failed:", error.message);
+      console.error("Webhook signature verification failed:", {
+        message: error.message,
+        sig: sig ? `${sig.substring(0, 20)}...` : "undefined",
+        bodyLength: bodyString.length,
+        webhookSecret: process.env.STRIPE_WEBHOOK_SECRET ? "set" : "not set",
+      });
       return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
     }
 

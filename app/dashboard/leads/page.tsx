@@ -4,15 +4,15 @@ import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import {
-  integrationsAPI,
   type Conversation,
   type Message,
 } from "@/lib/api/integrations";
-import { MessageSquare, Search, Info, ArrowLeft, Menu } from "lucide-react";
+import { MessageSquare, Search, Info, ArrowLeft } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 type ChannelType = "instagram" | "telegram";
 
-// API response interfaces
+// Chat history data structure
 interface ChatHistoryResponse {
   data: {
     Instagram: ChatHistoryItem[];
@@ -26,26 +26,77 @@ interface ChatHistoryItem {
 }
 
 interface ChatHistoryMessage {
+  id: number;
   message: string;
   message_source: "agent" | "user";
   created_at: string;
   period_ago: string;
 }
 
-// API function to fetch chat history
-const fetchChatHistory = async (
-  workspaceId: string
-): Promise<ChatHistoryResponse> => {
-  const response = await fetch(
-    `http://localhost:8000/api/chat-history?workspace_id=${workspaceId}`
-  );
-  if (!response.ok) {
-    throw new Error(`Failed to fetch chat history: ${response.statusText}`);
+// Supabase chat history row type
+interface SupabaseChatHistoryRow {
+  id: number;
+  chat_id: string;
+  message: string;
+  source: "IG" | "TG";
+  message_source: "agent" | "user";
+  created_at: string;
+  workspace_id: string;
+}
+
+// Fetch chat history from Supabase
+const fetchChatHistory = async (workspaceId: string): Promise<ChatHistoryResponse> => {
+  const { data, error } = await supabase
+    .from("yetti_chat_history")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching chat history:", error);
+    return { data: { Instagram: [], Telegram: [] } };
   }
-  return response.json();
+
+  // Initialize grouped data structure
+  const groupedData: { Instagram: ChatHistoryItem[]; Telegram: ChatHistoryItem[] } = {
+    Instagram: [],
+    Telegram: [],
+  };
+
+  // Group messages by chat_id
+  const messagesByChat: Record<string, { source: "IG" | "TG"; messages: ChatHistoryMessage[] }> = {};
+
+  data.forEach((row: SupabaseChatHistoryRow) => {
+    if (!messagesByChat[row.chat_id]) {
+      messagesByChat[row.chat_id] = {
+        source: row.source,
+        messages: [],
+      };
+    }
+
+    messagesByChat[row.chat_id].messages.push({
+      id: row.id,
+      message: row.message,
+      message_source: row.message_source,
+      created_at: row.created_at,
+      period_ago: "", // This can be calculated if needed
+    });
+  });
+
+  // Convert to the expected format
+  Object.entries(messagesByChat).forEach(([chatId, chatData]) => {
+    const platform = chatData.source === "IG" ? "Instagram" : "Telegram";
+    groupedData[platform].push({
+      chat_id: chatId,
+      messages: chatData.messages,
+    });
+  });
+
+  return { data: groupedData };
 };
 
-// Transform API data to Conversation format
+// Transform chat history data to Conversation format
 const transformChatHistoryToConversations = (
   chatHistory: ChatHistoryResponse,
   channel: ChannelType
@@ -56,25 +107,25 @@ const transformChatHistoryToConversations = (
       : chatHistory.data.Telegram;
 
   return platformData.map((chat) => {
-    const sortedMessages = chat.messages.sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    // Sort messages descending to find the most recent message for the conversation
+    const sortedMessages = [...chat.messages].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
     const lastMessage = sortedMessages[0];
 
     return {
       id: `${channel}_${chat.chat_id}`,
       participant_id: `user_${chat.chat_id}`,
-      participant_name: `Lead ${chat.chat_id}`,
+      participant_name: `Chat ${chat.chat_id}`,
       participant_avatar: undefined,
-      last_message: lastMessage?.message || "No messages yet",
+      last_message: lastMessage?.message || "No message",
       last_message_time: lastMessage?.created_at || new Date().toISOString(),
-      unread_count: 0, // API doesn't provide unread count
+      unread_count: 0,
     };
   });
 };
 
-// Transform API data to Message format
+// Transform chat history data to Message format
 const transformChatHistoryToMessages = (
   chatHistory: ChatHistoryResponse,
   channel: ChannelType,
@@ -88,269 +139,16 @@ const transformChatHistoryToMessages = (
 
   if (!chat) return [];
 
-  // Sort messages by timestamp (oldest first for chat display)
-  const sortedMessages = chat.messages.sort(
-    (a, b) =>
-      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-  );
-
-  return sortedMessages.map((msg, index) => ({
-    id: `${channel}_${chatId}_msg_${index}`,
+  // Messages are already sorted by created_at asc, then id asc in the data structure
+  return chat.messages.map((msg) => ({
+    id: `${channel}_${chatId}_msg_${msg.id}`,
     text: msg.message,
     sender_id: msg.message_source === "agent" ? "agent" : `user_${chatId}`,
     sender_name:
-      msg.message_source === "agent" ? "Yetti Agent" : `Lead ${chatId}`,
+      msg.message_source === "agent" ? "Yetti Agent" : `Chat ${chatId}`,
     timestamp: msg.created_at,
     is_from_me: msg.message_source === "agent",
   }));
-};
-
-// Dummy data for Instagram conversations
-const dummyInstagramConversations: Conversation[] = [
-  {
-    id: "inst_conv_1",
-    participant_id: "user_1",
-    participant_name: "Lead 1",
-    participant_avatar: undefined,
-    last_message: "Thanks for the quick response!",
-    last_message_time: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
-    unread_count: 2,
-  },
-  {
-    id: "inst_conv_2",
-    participant_id: "user_2",
-    participant_name: "Lead 2",
-    participant_avatar: undefined,
-    last_message: "I'll check that for you right away.",
-    last_message_time: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-    unread_count: 0,
-  },
-  {
-    id: "inst_conv_3",
-    participant_id: "user_3",
-    participant_name: "Lead 3",
-    participant_avatar: undefined,
-    last_message: "Interested in your services",
-    last_message_time: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
-    unread_count: 1,
-  },
-];
-
-// Dummy data for Instagram messages
-const dummyInstagramMessages: Record<string, Message[]> = {
-  inst_conv_1: [
-    {
-      id: "inst_msg_1",
-      text: "Hi! I have a question about your product.",
-      sender_id: "user_1",
-      sender_name: "Sarah Johnson",
-      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
-      is_from_me: false,
-    },
-    {
-      id: "inst_msg_2",
-      text: "Hello Sarah! I'd be happy to help. What would you like to know?",
-      sender_id: "me",
-      sender_name: "You",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-      is_from_me: true,
-    },
-    {
-      id: "inst_msg_3",
-      text: "I'm interested in the pricing plans. Can you tell me more?",
-      sender_id: "user_1",
-      sender_name: "Sarah Johnson",
-      timestamp: new Date(Date.now() - 90 * 60 * 1000).toISOString(), // 90 minutes ago
-      is_from_me: false,
-    },
-    {
-      id: "inst_msg_4",
-      text: "Of course! We have three plans: Basic, Pro, and Enterprise. The Basic plan starts at $29/month.",
-      sender_id: "me",
-      sender_name: "You",
-      timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(), // 1 hour ago
-      is_from_me: true,
-    },
-    {
-      id: "inst_msg_5",
-      text: "That sounds great! What features are included in the Basic plan?",
-      sender_id: "user_1",
-      sender_name: "Sarah Johnson",
-      timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(), // 45 minutes ago
-      is_from_me: false,
-    },
-    {
-      id: "inst_msg_6",
-      text: "The Basic plan includes 10,000 messages per month, email support, and all core features.",
-      sender_id: "me",
-      sender_name: "You",
-      timestamp: new Date(Date.now() - 35 * 60 * 1000).toISOString(), // 35 minutes ago
-      is_from_me: true,
-    },
-    {
-      id: "inst_msg_7",
-      text: "Thanks for the quick response!",
-      sender_id: "user_1",
-      sender_name: "Sarah Johnson",
-      timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
-      is_from_me: false,
-    },
-  ],
-  inst_conv_2: [
-    {
-      id: "inst_msg_8",
-      text: "Hello, I need help with my account.",
-      sender_id: "user_2",
-      sender_name: "Michael Chen",
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
-      is_from_me: false,
-    },
-    {
-      id: "inst_msg_9",
-      text: "Hi Michael! I'm here to help. What seems to be the issue?",
-      sender_id: "me",
-      sender_name: "You",
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
-      is_from_me: true,
-    },
-    {
-      id: "inst_msg_10",
-      text: "I can't log into my account. It says my password is incorrect.",
-      sender_id: "user_2",
-      sender_name: "Michael Chen",
-      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
-      is_from_me: false,
-    },
-    {
-      id: "inst_msg_11",
-      text: "I'll check that for you right away.",
-      sender_id: "me",
-      sender_name: "You",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-      is_from_me: true,
-    },
-  ],
-};
-
-// Dummy data for Telegram conversations
-const dummyTelegramConversations: Conversation[] = [
-  {
-    id: "tg_conv_1",
-    participant_id: "user_1",
-    participant_name: "Lead 4",
-    participant_avatar: undefined,
-    last_message: "Perfect! I'll sign up today.",
-    last_message_time: new Date(Date.now() - 15 * 60 * 1000).toISOString(), // 15 minutes ago
-    unread_count: 1,
-  },
-  {
-    id: "tg_conv_2",
-    participant_id: "user_2",
-    participant_name: "Lead 5",
-    participant_avatar: undefined,
-    last_message: "Got it, thanks!",
-    last_message_time: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
-    unread_count: 0,
-  },
-  {
-    id: "tg_conv_3",
-    participant_id: "user_3",
-    participant_name: "Lead 6",
-    participant_avatar: undefined,
-    last_message: "Can you provide more details?",
-    last_message_time: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
-    unread_count: 3,
-  },
-];
-
-// Dummy data for Telegram messages
-const dummyTelegramMessages: Record<string, Message[]> = {
-  tg_conv_1: [
-    {
-      id: "tg_msg_1",
-      text: "Hey! Is the service available 24/7?",
-      sender_id: "user_1",
-      sender_name: "Emma Wilson",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-      is_from_me: false,
-    },
-    {
-      id: "tg_msg_2",
-      text: "Yes, absolutely! Our service is available 24/7 to assist you anytime.",
-      sender_id: "me",
-      sender_name: "You",
-      timestamp: new Date(Date.now() - 90 * 60 * 1000).toISOString(), // 90 minutes ago
-      is_from_me: true,
-    },
-    {
-      id: "tg_msg_3",
-      text: "That's amazing! How do I get started?",
-      sender_id: "user_1",
-      sender_name: "Emma Wilson",
-      timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(), // 1 hour ago
-      is_from_me: false,
-    },
-    {
-      id: "tg_msg_4",
-      text: "You can sign up on our website. It only takes a few minutes to set up your account.",
-      sender_id: "me",
-      sender_name: "You",
-      timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
-      is_from_me: true,
-    },
-    {
-      id: "tg_msg_5",
-      text: "Perfect! I'll sign up today.",
-      sender_id: "user_1",
-      sender_name: "Emma Wilson",
-      timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(), // 15 minutes ago
-      is_from_me: false,
-    },
-  ],
-  tg_conv_2: [
-    {
-      id: "tg_msg_6",
-      text: "Hi, can you help me with integration?",
-      sender_id: "user_2",
-      sender_name: "James Rodriguez",
-      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
-      is_from_me: false,
-    },
-    {
-      id: "tg_msg_7",
-      text: "Sure! What platform are you looking to integrate with?",
-      sender_id: "me",
-      sender_name: "You",
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
-      is_from_me: true,
-    },
-    {
-      id: "tg_msg_8",
-      text: "I want to integrate with my Shopify store.",
-      sender_id: "user_2",
-      sender_name: "James Rodriguez",
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
-      is_from_me: false,
-    },
-    {
-      id: "tg_msg_9",
-      text: "Great! We have a Shopify plugin available. I'll send you the setup guide.",
-      sender_id: "me",
-      sender_name: "You",
-      timestamp: new Date(
-        Date.now() - 4 * 60 * 60 * 1000 + 5 * 60 * 1000
-      ).toISOString(), // 3h 55m ago
-      is_from_me: true,
-    },
-    {
-      id: "tg_msg_10",
-      text: "Got it, thanks!",
-      sender_id: "user_2",
-      sender_name: "James Rodriguez",
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
-      is_from_me: false,
-    },
-  ],
 };
 
 export default function LeadsPage() {
@@ -369,113 +167,65 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(false);
   const [showChatView, setShowChatView] = useState(false);
 
-  // Fetch conversations when channel or workspace changes
+  // Load conversations when channel changes
   useEffect(() => {
     if (!workspaceId) return;
 
-    const fetchConversations = async () => {
+    const loadConversations = async () => {
       setLoading(true);
       try {
-        // Try chat history API first, fallback to dummy data
-        let data: Conversation[] = [];
-        try {
-          const chatHistory = await fetchChatHistory(workspaceId);
-          data = transformChatHistoryToConversations(
-            chatHistory,
-            selectedChannel
-          );
-          if (data.length === 0) {
-            data =
-              selectedChannel === "instagram"
-                ? dummyInstagramConversations
-                : dummyTelegramConversations;
-          }
-        } catch {
-          // Fallback to dummy data on API error
-          data =
-            selectedChannel === "instagram"
-              ? dummyInstagramConversations
-              : dummyTelegramConversations;
-        }
+        const chatHistoryData = await fetchChatHistory(workspaceId);
+        const data = transformChatHistoryToConversations(
+          chatHistoryData,
+          selectedChannel
+        );
         setConversations(data);
         // Auto-select first conversation if available
         if (data.length > 0 && !selectedConversation) {
           setSelectedConversation(data[0]);
         }
       } catch (err: unknown) {
-        // Fallback to dummy data on error
-        const dummyData =
-          selectedChannel === "instagram"
-            ? dummyInstagramConversations
-            : dummyTelegramConversations;
-        setConversations(dummyData);
-        if (dummyData.length > 0 && !selectedConversation) {
-          setSelectedConversation(dummyData[0]);
-        }
-        console.error("Error fetching conversations:", err);
+        console.error("Error loading conversations:", err);
+        setConversations([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchConversations();
+    loadConversations();
   }, [workspaceId, selectedChannel, selectedConversation]);
 
-  // Fetch messages when conversation is selected
+  // Load messages when conversation is selected
   useEffect(() => {
     if (!workspaceId || !selectedConversation) {
       setMessages([]);
       return;
     }
 
-    const fetchMessages = async () => {
+    const loadMessages = async () => {
       setLoading(true);
       try {
-        // Try chat history API first, fallback to dummy data
-        let data: Message[] = [];
-        try {
-          const chatHistory = await fetchChatHistory(workspaceId);
-          // Extract chat_id from conversation id (remove channel prefix)
-          const chatId = selectedConversation.id.replace(
-            `${selectedChannel}_`,
-            ""
-          );
-          data = transformChatHistoryToMessages(
-            chatHistory,
-            selectedChannel,
-            chatId
-          );
-          if (data.length === 0) {
-            // Fallback to dummy data if no messages from API
-            const dummyMessages =
-              selectedChannel === "instagram"
-                ? dummyInstagramMessages[selectedConversation.id] || []
-                : dummyTelegramMessages[selectedConversation.id] || [];
-            data = dummyMessages;
-          }
-        } catch {
-          // Fallback to dummy data on API error
-          const dummyMessages =
-            selectedChannel === "instagram"
-              ? dummyInstagramMessages[selectedConversation.id] || []
-              : dummyTelegramMessages[selectedConversation.id] || [];
-          data = dummyMessages;
-        }
+        // Extract chat_id from conversation id (remove channel prefix)
+        const chatId = selectedConversation.id.replace(
+          `${selectedChannel}_`,
+          ""
+        );
+        const chatHistoryData = await fetchChatHistory(workspaceId);
+        const data = transformChatHistoryToMessages(
+          chatHistoryData,
+          selectedChannel,
+          chatId
+        );
         setMessages(data);
       } catch (err: unknown) {
-        // Fallback to dummy data on error
-        const dummyData =
-          selectedChannel === "instagram"
-            ? dummyInstagramMessages[selectedConversation.id] || []
-            : dummyTelegramMessages[selectedConversation.id] || [];
-        setMessages(dummyData);
-        console.error("Error fetching messages:", err);
+        console.error("Error loading messages:", err);
+        setMessages([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMessages();
+    loadMessages();
   }, [workspaceId, selectedConversation, selectedChannel]);
 
   const formatTime = (timestamp?: string) => {
@@ -502,6 +252,13 @@ export default function LeadsPage() {
     }
   };
 
+  // Always call useEffect to avoid conditional hook execution
+  useEffect(() => {
+    if (!selectedConversation) {
+      setShowChatView(false);
+    }
+  }, [selectedConversation]);
+
   if (!workspaceId) {
     return (
       <div className="flex h-[calc(100vh-5rem)] md:h-[calc(100vh-8rem)] items-center justify-center">
@@ -512,6 +269,7 @@ export default function LeadsPage() {
     );
   }
 
+
   // Handle conversation selection (mobile: show chat view, desktop: keep sidebar visible)
   const handleConversationSelect = (conversation: Conversation) => {
     setSelectedConversation(conversation);
@@ -520,13 +278,6 @@ export default function LeadsPage() {
       setShowChatView(true);
     }
   };
-
-  // Reset chat view when conversation is cleared
-  useEffect(() => {
-    if (!selectedConversation) {
-      setShowChatView(false);
-    }
-  }, [selectedConversation]);
 
   return (
     <div className="flex flex-col md:flex-row h-[calc(100vh-5rem)] md:h-[calc(100vh-8rem)] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
@@ -537,7 +288,7 @@ export default function LeadsPage() {
         {/* Header */}
         <div className="p-3 sm:p-4 border-b border-slate-200 bg-white">
           <h2 className="text-lg sm:text-xl font-bold text-slate-900 mb-3 sm:mb-4">
-            Leads
+            Chat
           </h2>
 
           {/* Channel Toggle */}
@@ -597,7 +348,7 @@ export default function LeadsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Search leads..."
+              placeholder="Search chat..."
               className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
             />
           </div>
@@ -609,14 +360,14 @@ export default function LeadsPage() {
             <div className="flex flex-col items-center justify-center h-40 gap-3">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
               <p className="text-slate-500 text-xs sm:text-sm">
-                Loading leads...
+                Loading chat...
               </p>
             </div>
           ) : conversations.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 gap-2 p-4 text-center">
               <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8 text-slate-300" />
               <p className="text-slate-500 text-xs sm:text-sm">
-                No leads found
+                No chat found
               </p>
             </div>
           ) : (
@@ -681,7 +432,7 @@ export default function LeadsPage() {
                             : "text-slate-500"
                         }`}
                       >
-                        {conversation.last_message || "No messages yet"}
+                        {conversation.last_message || "No message"}
                       </p>
                     </div>
                     {conversation.unread_count &&
@@ -740,7 +491,7 @@ export default function LeadsPage() {
                     </span>
                   </h3>
                   <p className="text-xs text-slate-500 truncate">
-                    Lead conversation
+                    Chat conversation
                   </p>
                 </div>
               </div>
@@ -769,7 +520,7 @@ export default function LeadsPage() {
                     <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8 text-slate-300" />
                   </div>
                   <h3 className="text-sm sm:text-base text-slate-900 font-medium mb-1">
-                    No messages yet
+                    No message
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-500 max-w-xs">
                     Start the conversation by sending a message below.
@@ -851,10 +602,10 @@ export default function LeadsPage() {
               <MessageSquare className="h-8 w-8 sm:h-10 sm:w-10 text-sky-500" />
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
-              Select a Lead
+              Select a Chat
             </h2>
             <p className="text-sm sm:text-base text-slate-500 max-w-md mx-auto mb-6 sm:mb-8 px-4">
-              Choose a lead from the sidebar to view their conversation and
+              Choose a chat from the sidebar to view their conversation and
               manage your potential customers.
             </p>
             <div className="flex gap-2 sm:gap-4">
