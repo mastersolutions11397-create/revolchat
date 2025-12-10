@@ -245,17 +245,17 @@ export default function BillingPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto animate-fade-in-up">
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-xl">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-6 sm:p-8 text-white shadow-xl">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
         <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
         
-        <div className="relative z-10 flex items-center gap-6">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20">
-            <CreditCard className="h-8 w-8 text-sky-500" />
+        <div className="relative z-10 flex items-start sm:items-center gap-4 sm:gap-6">
+          <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20 flex-shrink-0">
+            <CreditCard className="h-7 w-7 sm:h-8 sm:w-8 text-sky-500" />
           </div>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">Billing</h1>
-            <p className="mt-2 text-lg text-sky-100/80 max-w-2xl">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Billing</h1>
+            <p className="mt-2 text-base sm:text-lg text-sky-100/80 max-w-2xl">
               Manage your global credits, view transactions, and access invoices.
             </p>
           </div>
