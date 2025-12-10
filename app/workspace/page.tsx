@@ -71,8 +71,9 @@ export default function WorkspaceSelectionPage() {
     }
   };
 
-  const handleCreateWorkspace = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateWorkspace = async (e?: React.FormEvent | React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
 
     // Validate workspace name before attempting to create
     const trimmedName = workspaceName.trim();
@@ -88,6 +89,11 @@ export default function WorkspaceSelectionPage() {
 
     // Prevent double submission
     if (isSubmitting) {
+      return;
+    }
+
+    // Ensure we're on step 3 before allowing creation
+    if (currentStep !== 3) {
       return;
     }
 
@@ -457,7 +463,14 @@ export default function WorkspaceSelectionPage() {
               </div>
             </div>
 
-            <form onSubmit={handleCreateWorkspace} className="space-y-6">
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                // Only allow form submission if explicitly triggered by button click
+                // This prevents auto-submission when reaching step 3
+              }} 
+              className="space-y-6"
+            >
               <div className="space-y-4">
                 {/* Step 1: Workspace Name */}
                 {currentStep === 1 && (
@@ -545,6 +558,10 @@ export default function WorkspaceSelectionPage() {
                         if (e.key === "Enter" && !e.shiftKey) {
                           e.preventDefault();
                         }
+                        // Prevent any accidental form submission
+                        if (e.key === "Enter") {
+                          e.stopPropagation();
+                        }
                       }}
                       placeholder="What's this workspace for?"
                       rows={3}
@@ -579,7 +596,8 @@ export default function WorkspaceSelectionPage() {
 
                 {currentStep === 3 ? (
                   <Button
-                    type="submit"
+                    type="button"
+                    onClick={handleCreateWorkspace}
                     disabled={isSubmitting || !workspaceName.trim()}
                     className="flex-1 h-12 rounded-xl bg-gradient-to-r from-sky-500 to-sky-500 hover:from-sky-500 hover:to-sky-500 text-white font-semibold shadow-lg shadow-sky-500/20"
                   >
