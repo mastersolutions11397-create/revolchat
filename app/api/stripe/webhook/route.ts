@@ -2,29 +2,48 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { stripe } from "@/lib/stripe";
 import { PLAN_CONFIGS, PlanConfig } from "@/lib/stripe";
+import { supabaseAdmin } from "@/lib/supabase-admin";
+import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Create a new Supabase client for this file
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// Helper function to get current balance
+if (!supabaseUrl) {
+  throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL environment variable");
+}
+
+if (!supabaseServiceKey) {
+  throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY environment variable");
+}
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+});
+
+// Helper function to get current balance from Supabase
 async function getCurrentBalance(userId: string): Promise<number> {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/api/credits?user_id=${userId}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const { data: latestTransaction, error: balanceError } = await supabaseAdmin
+      .from("user_credits")
+      .select("balance")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    if (response.ok) {
-      const data = await response.json();
-      // Convert credits from string to number since it's stored as text
-      return parseInt(data.credits || "0", 10);
+    if (balanceError && balanceError.code !== "PGRST116") {
+      // PGRST116 is "no rows returned" which is fine for new users
+      console.error("Error fetching balance:", balanceError);
+      return 0;
     }
-    return 0;
+
+    // If no transactions exist, balance is 0
+    return latestTransaction?.balance ?? 0;
   } catch (error) {
     console.error("Error fetching balance:", error);
     return 0;
@@ -167,30 +186,34 @@ async function handleCheckoutSessionCompleted(
         const currentBalance = await getCurrentBalance(userId);
         const newBalance = currentBalance + planConfig.credits;
 
-        // Create credit transaction via API
-        const response = await fetch(
-          `${API_BASE_URL}/api/credits/transaction`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              user_id: userId,
-              transaction_type: "credit",
-              credits: planConfig.credits.toString(),
-              balance: newBalance.toString(),
-              description: `Purchased ${planConfig.credits} credits`,
-              source: "stripe_checkout",
-              invoice: session.invoice
-                ? `https://dashboard.stripe.com/invoices/${session.invoice}`
-                : undefined,
-            }),
+        // Get invoice PDF URL if invoice exists
+        let invoiceUrl: string | null = null;
+        if (session.invoice) {
+          try {
+            const invoice = await stripe.invoices.retrieve(
+              session.invoice as string
+            );
+            invoiceUrl = invoice.invoice_pdf || null;
+          } catch (error) {
+            console.error("Error fetching invoice PDF:", error);
           }
-        );
+        }
 
-        if (!response.ok) {
-          throw new Error(`Failed to credit credits: ${await response.text()}`);
+        // Create credit transaction via Supabase
+        const { error: creditError } = await supabaseAdmin
+          .from("user_credits")
+          .insert({
+            user_id: userId,
+            transaction_type: "credit",
+            credits: planConfig.credits,
+            balance: newBalance,
+            description: `Purchased ${planConfig.credits} credits`,
+            source: "stripe_checkout",
+            invoice: invoiceUrl,
+          });
+
+        if (creditError) {
+          throw new Error(`Failed to credit credits: ${creditError.message}`);
         }
 
         console.log(
@@ -275,21 +298,18 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
       return;
     }
 
-    // Get existing plan via API
-    const getPlanResponse = await fetch(
-      `${API_BASE_URL}/api/billing/plan?user_id=${userId}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    // Get existing plan from Supabase
+    const { data: existingPlanData, error: getPlanError } = await supabaseAdmin
+      .from("user_plans")
+      .select("*")
+      .eq("user_id", userId)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    let existingPlan = null;
-    if (getPlanResponse.ok) {
-      const data = await getPlanResponse.json();
-      existingPlan = data.plan;
+    if (getPlanError && getPlanError.code !== "PGRST116") {
+      console.error("Error fetching plan:", getPlanError);
+      throw new Error(`Failed to fetch plan: ${getPlanError.message}`);
     }
 
     const planData = {
@@ -306,48 +326,35 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
       ).toISOString(),
     };
 
-    if (existingPlan) {
-      // Update existing plan via API
-      const updateResponse = await fetch(
-        `${API_BASE_URL}/api/billing/plan/${existingPlan.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            stripe_subscription_id: subscription.id,
-            stripe_customer_id: customer.id,
-            status: subscription.status === "active" ? "active" : "past_due",
-            current_period_start: new Date(
-              subscription.current_period_start * 1000
-            ).toISOString(),
-            current_period_end: new Date(
-              subscription.current_period_end * 1000
-            ).toISOString(),
-          }),
-        }
-      );
+    if (existingPlanData) {
+      // Update existing plan via Supabase
+      const { error: updateError } = await supabaseAdmin
+        .from("user_plans")
+        .update({
+          plan_name: planConfig.name,
+          stripe_subscription_id: subscription.id,
+          stripe_customer_id: customer.id,
+          status: subscription.status === "active" ? "active" : "past_due",
+          current_period_start: new Date(
+            subscription.current_period_start * 1000
+          ).toISOString(),
+          current_period_end: new Date(
+            subscription.current_period_end * 1000
+          ).toISOString(),
+        })
+        .eq("id", existingPlanData.id);
 
-      if (!updateResponse.ok) {
-        throw new Error(
-          `Failed to update plan: ${await updateResponse.text()}`
-        );
+      if (updateError) {
+        throw new Error(`Failed to update plan: ${updateError.message}`);
       }
     } else {
-      // Create new plan via API
-      const createResponse = await fetch(`${API_BASE_URL}/api/billing/plan`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(planData),
-      });
+      // Create new plan via Supabase
+      const { error: createError } = await supabaseAdmin
+        .from("user_plans")
+        .insert(planData);
 
-      if (!createResponse.ok) {
-        throw new Error(
-          `Failed to create plan: ${await createResponse.text()}`
-        );
+      if (createError) {
+        throw new Error(`Failed to create plan: ${createError.message}`);
       }
     }
 
@@ -355,30 +362,24 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
     const currentBalance = await getCurrentBalance(userId);
     const newBalance = currentBalance + planConfig.credits;
 
-    // Credit the monthly credits via API
-    const creditResponse = await fetch(
-      `${API_BASE_URL}/api/credits/transaction`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          user_id: userId,
-          transaction_type: "credit",
-          credits: planConfig.credits.toString(),
-          balance: newBalance.toString(),
-          description: `Monthly credits for ${planConfig.name} plan`,
-          source: "stripe_subscription",
-          invoice: `https://dashboard.stripe.com/invoices/${invoice.id}`,
-        }),
-      }
-    );
+    // Get invoice PDF URL
+    const invoiceUrl = invoice.invoice_pdf || null;
 
-    if (!creditResponse.ok) {
-      throw new Error(
-        `Failed to credit credits: ${await creditResponse.text()}`
-      );
+    // Credit the monthly credits via Supabase
+    const { error: creditError } = await supabaseAdmin
+      .from("user_credits")
+      .insert({
+        user_id: userId,
+        transaction_type: "credit",
+        credits: planConfig.credits,
+        balance: newBalance,
+        description: `Monthly credits for ${planConfig.name} plan`,
+        source: "stripe_subscription",
+        invoice: invoiceUrl,
+      });
+
+    if (creditError) {
+      throw new Error(`Failed to credit credits: ${creditError.message}`);
     }
 
     console.log(
@@ -414,57 +415,45 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       return;
     }
 
-    // Get plan by stripe subscription ID via API
-    const getPlanResponse = await fetch(
-      `${API_BASE_URL}/api/billing/plan/stripe/${subscription.id}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+    // Get plan by stripe subscription ID from Supabase
+    const { data: plan, error: getPlanError } = await supabaseAdmin
+      .from("user_plans")
+      .select("*")
+      .eq("stripe_subscription_id", subscription.id)
+      .maybeSingle();
+
+    if (getPlanError && getPlanError.code !== "PGRST116") {
+      console.error("Error fetching plan:", getPlanError);
+      throw new Error(`Failed to fetch plan: ${getPlanError.message}`);
+    }
+
+    if (plan) {
+      // Update the plan status via Supabase
+      const { error: updateError } = await supabaseAdmin
+        .from("user_plans")
+        .update({
+          status:
+            subscription.status === "active"
+              ? "active"
+              : subscription.status === "canceled"
+                ? "canceled"
+                : "past_due",
+          current_period_start: new Date(
+            subscription.current_period_start * 1000
+          ).toISOString(),
+          current_period_end: new Date(
+            subscription.current_period_end * 1000
+          ).toISOString(),
+        })
+        .eq("id", plan.id);
+
+      if (updateError) {
+        throw new Error(`Failed to update plan: ${updateError.message}`);
       }
-    );
 
-    if (getPlanResponse.ok) {
-      const data = await getPlanResponse.json();
-      const plan = data.plan;
-
-      if (plan) {
-        // Update the plan status via API
-        const updateResponse = await fetch(
-          `${API_BASE_URL}/api/billing/plan/${plan.id}`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              status:
-                subscription.status === "active"
-                  ? "active"
-                  : subscription.status === "canceled"
-                    ? "canceled"
-                    : "past_due",
-              current_period_start: new Date(
-                subscription.current_period_start * 1000
-              ).toISOString(),
-              current_period_end: new Date(
-                subscription.current_period_end * 1000
-              ).toISOString(),
-            }),
-          }
-        );
-
-        if (!updateResponse.ok) {
-          throw new Error(
-            `Failed to update plan: ${await updateResponse.text()}`
-          );
-        }
-
-        console.log(
-          `Updated subscription ${subscription.id} status to ${subscription.status}`
-        );
-      }
+      console.log(
+        `Updated subscription ${subscription.id} status to ${subscription.status}`
+      );
     }
   } catch (error: unknown) {
     console.error("Error in handleSubscriptionUpdated:", {
@@ -490,44 +479,32 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       return;
     }
 
-    // Get plan by stripe subscription ID via API
-    const getPlanResponse = await fetch(
-      `${API_BASE_URL}/api/billing/plan/stripe/${subscription.id}`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+    // Get plan by stripe subscription ID from Supabase
+    const { data: plan, error: getPlanError } = await supabaseAdmin
+      .from("user_plans")
+      .select("*")
+      .eq("stripe_subscription_id", subscription.id)
+      .maybeSingle();
+
+    if (getPlanError && getPlanError.code !== "PGRST116") {
+      console.error("Error fetching plan:", getPlanError);
+      throw new Error(`Failed to fetch plan: ${getPlanError.message}`);
+    }
+
+    if (plan) {
+      // Update the plan status to canceled via Supabase
+      const { error: updateError } = await supabaseAdmin
+        .from("user_plans")
+        .update({
+          status: "canceled",
+        })
+        .eq("id", plan.id);
+
+      if (updateError) {
+        throw new Error(`Failed to cancel plan: ${updateError.message}`);
       }
-    );
 
-    if (getPlanResponse.ok) {
-      const data = await getPlanResponse.json();
-      const plan = data.plan;
-
-      if (plan) {
-        // Update the plan status to canceled via API
-        const updateResponse = await fetch(
-          `${API_BASE_URL}/api/billing/plan/${plan.id}`,
-          {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              status: "canceled",
-            }),
-          }
-        );
-
-        if (!updateResponse.ok) {
-          throw new Error(
-            `Failed to cancel plan: ${await updateResponse.text()}`
-          );
-        }
-
-        console.log(`Canceled subscription ${subscription.id}`);
-      }
+      console.log(`Canceled subscription ${subscription.id}`);
     }
   } catch (error: unknown) {
     console.error("Error in handleSubscriptionDeleted:", {
