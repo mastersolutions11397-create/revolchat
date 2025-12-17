@@ -24,6 +24,7 @@ interface WorkspaceContextType {
   selectedWorkspaceId: string | null;
   loading: boolean;
   error: string | null;
+  hasWorkspaces: boolean;
   createWorkspace: (data: WorkspaceCreateData) => Promise<WorkspaceResponse>;
   fetchWorkspaces: () => Promise<void>;
   selectWorkspace: (workspaceId: string) => Promise<void>;
@@ -128,56 +129,60 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }
   }, [user?.id]);
 
-  const createWorkspace = useCallback(async (
-    data: WorkspaceCreateData
-  ): Promise<WorkspaceResponse> => {
-    if (!user?.id) {
-      throw new Error("User not authenticated");
-    }
+  const createWorkspace = useCallback(
+    async (data: WorkspaceCreateData): Promise<WorkspaceResponse> => {
+      if (!user?.id) {
+        throw new Error("User not authenticated");
+      }
 
-    setLoading(true);
-    setError(null);
-    try {
-      const workspace = await workspaceAPI.createWorkspace({
-        ...data,
-        workspace_type: data.workspace_type || "personal",
-      });
+      setLoading(true);
+      setError(null);
+      try {
+        const workspace = await workspaceAPI.createWorkspace({
+          ...data,
+          workspace_type: data.workspace_type || "personal",
+        });
 
-      // Refresh workspaces list
-      await fetchWorkspaces();
+        // Refresh workspaces list
+        await fetchWorkspaces();
 
-      // Set newly created workspace as current
-      setCurrentWorkspace(workspace);
-      persistWorkspaceId(workspace.id);
-      hasLoadedWorkspace.current = true;
+        // Set newly created workspace as current
+        setCurrentWorkspace(workspace);
+        persistWorkspaceId(workspace.id);
+        hasLoadedWorkspace.current = true;
 
-      return workspace;
-    } catch (err: any) {
-      const errorMessage = err.message || "Failed to create workspace";
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.id, fetchWorkspaces]);
+        return workspace;
+      } catch (err: any) {
+        const errorMessage = err.message || "Failed to create workspace";
+        setError(errorMessage);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user?.id, fetchWorkspaces]
+  );
 
-  const selectWorkspace = useCallback(async (workspaceId: string) => {
-    if (!user?.id) return;
+  const selectWorkspace = useCallback(
+    async (workspaceId: string) => {
+      if (!user?.id) return;
 
-    setLoading(true);
-    setError(null);
-    try {
-      const workspace = await workspaceAPI.getWorkspace(workspaceId);
-      setCurrentWorkspace(workspace);
-      setSelectedWorkspaceId(workspaceId);
-      persistWorkspaceId(workspaceId);
-      hasLoadedWorkspace.current = true;
-    } catch (err: any) {
-      setError(err.message || "Failed to load workspace");
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.id]);
+      setLoading(true);
+      setError(null);
+      try {
+        const workspace = await workspaceAPI.getWorkspace(workspaceId);
+        setCurrentWorkspace(workspace);
+        setSelectedWorkspaceId(workspaceId);
+        persistWorkspaceId(workspaceId);
+        hasLoadedWorkspace.current = true;
+      } catch (err: any) {
+        setError(err.message || "Failed to load workspace");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [user?.id]
+  );
 
   // Fetch workspaces when user is available
   useEffect(() => {
@@ -194,6 +199,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       selectedWorkspaceId,
       loading,
       error,
+      hasWorkspaces: workspaces.length > 0,
       createWorkspace,
       fetchWorkspaces,
       selectWorkspace,

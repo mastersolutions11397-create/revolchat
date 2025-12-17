@@ -13,19 +13,43 @@ import Image from "next/image";
 
 const trainingMethods = [
   {
-    icon: () => <Image src="/yetti/google-sheets.png" alt="Google Sheets" width={28} height={28} className="w-7 h-7" />,
+    icon: () => (
+      <Image
+        src="/yetti/google-sheets.png"
+        alt="Google Sheets"
+        width={28}
+        height={28}
+        className="w-7 h-7"
+      />
+    ),
     title: "Google Sheets",
     description:
       "Connect your Google Sheets directly. Yetti automatically syncs and learns from your spreadsheets, product catalogs, and data.",
   },
   {
-    icon: () => <Image src="/yetti/pdf.png" alt="PDF Documents" width={28} height={28} className="w-7 h-7" />,
+    icon: () => (
+      <Image
+        src="/yetti/pdf.png"
+        alt="PDF Documents"
+        width={28}
+        height={28}
+        className="w-7 h-7"
+      />
+    ),
     title: "PDF Documents",
     description:
       "Upload PDF documents with your product information, FAQs, policies, and business knowledge. Yetti extracts and learns everything.",
   },
   {
-    icon: () => <Image src="/yetti/text.png" alt="Direct Text" width={28} height={28} className="w-7 h-7" />,
+    icon: () => (
+      <Image
+        src="/yetti/text.png"
+        alt="Direct Text"
+        width={28}
+        height={28}
+        className="w-7 h-7"
+      />
+    ),
     title: "Direct Text",
     description:
       "Simply paste or type your content. Add product details, brand voice guidelines, or any information you want Yetti to know.",
@@ -55,9 +79,11 @@ const deploymentSteps = [
 
 const TrainDeploy = () => {
   return (
-    <section id="how-it-works" className="py-10 md:py-20 lg:py-32 bg-slate-50 relative overflow-hidden">
+    <section
+      id="how-it-works"
+      className="py-10 md:py-20 lg:py-32 bg-slate-50 relative overflow-hidden"
+    >
       <div className="container px-4 mx-auto relative z-10">
-        
         {/* Training Section */}
         <div className="max-w-6xl mx-auto mb-20 md:mb-32">
           <div className="text-center mb-10 md:mb-20 space-y-4">
@@ -68,10 +94,12 @@ const TrainDeploy = () => {
               transition={{ duration: 0.5 }}
             >
               <h2 className="text-4xl md:text-5xl font-black font-lato text-foreground mb-6">
-                Train Your Yetti in <span className="text-sky-500">Minutes</span>
+                Train Your Yetti in{" "}
+                <span className="text-sky-500">Minutes</span>
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                No coding required. No complex setup. Just share your knowledge and watch your AI agent come to life.
+                No coding required. No complex setup. Just share your knowledge
+                and watch your AI agent come to life.
               </p>
             </motion.div>
           </div>
@@ -87,16 +115,20 @@ const TrainDeploy = () => {
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <Card className="h-full p-8 border bg-white border-gray-200/50 hover:border-sky-500/50 hover:shadow-lg transition-all duration-300 bg-secondary/20 group">
-                    <div className="w-14 h-14 rounded-xl bg-white shadow-sm flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                      <IconComponent />
+                  <Card className="h-full p-6 border bg-white border-gray-200/50 hover:border-sky-500/50 hover:shadow-lg transition-all duration-300 group">
+                    <div className="flex gap-4 items-start">
+                      <div className="w-14 h-14 shrink-0 rounded-xl bg-white shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <IconComponent />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-sky-500 transition-colors">
+                          {method.title}
+                        </h3>
+                        <p className="text-muted-foreground leading-relaxed">
+                          {method.description}
+                        </p>
+                      </div>
                     </div>
-                    <h3 className="text-xl font-bold text-foreground mb-4 group-hover:text-sky-500 transition-colors">
-                      {method.title}
-                    </h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      {method.description}
-                    </p>
                   </Card>
                 </motion.div>
               );
@@ -114,7 +146,8 @@ const TrainDeploy = () => {
               transition={{ duration: 0.5 }}
             >
               <h2 className="text-4xl md:text-5xl font-black font-lato text-foreground mb-6">
-                Get Started in <span className="text-sky-500">3 Easy Steps</span>
+                Get Started in{" "}
+                <span className="text-sky-500">3 Easy Steps</span>
               </h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                 Launch your AI sales agent in less than 10 minutes.
@@ -124,7 +157,7 @@ const TrainDeploy = () => {
 
           <div className="relative">
             {/* Connecting Line (Desktop) */}
-            <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-sky-500/30 to-transparent -translate-y-1/2 z-0"></div>
+            <div className="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-linear-to-r from-transparent via-sky-500/30 to-transparent -translate-y-1/2 z-0"></div>
 
             {/* Arrows between steps (Desktop) */}
             <div className="hidden md:block absolute top-1/2 -translate-y-1/2 w-full z-0">
@@ -156,20 +189,20 @@ const TrainDeploy = () => {
                       <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-sky-500 text-white flex items-center justify-center font-bold text-xl shadow-lg ring-4 ring-background z-20">
                         {index + 1}
                       </div>
-                      
+
                       <div className="pt-8 space-y-4">
                         <div className="w-16 h-16 mx-auto rounded-full bg-sky-500/10 flex items-center justify-center group-hover:bg-sky-500 group-hover:text-white transition-all duration-300">
                           <Icon className="w-8 h-8 text-sky-500 group-hover:text-white transition-colors" />
                         </div>
-                        
+
                         <h3 className="text-2xl font-bold text-foreground">
                           {step.title}
                         </h3>
-                        
+
                         <p className="text-muted-foreground">
                           {step.description}
                         </p>
-                        
+
                         <div className="pt-4 flex items-center justify-center text-sm font-medium text-sky-500">
                           <CheckCircle2 className="w-4 h-4 mr-1.5" />
                           {step.subtext}

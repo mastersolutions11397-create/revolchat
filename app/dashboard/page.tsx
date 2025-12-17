@@ -8,9 +8,11 @@ import {
   workspaceHoursAPI,
   workspaceAPI,
   integrationsAPI,
+  yettiOnboardingAPI,
 } from "@/lib/api";
 import Link from "next/link";
 import Image from "next/image";
+import { formatNumberInK } from "@/lib/utils";
 import {
   MessageSquare,
   Link2,
@@ -22,13 +24,27 @@ import {
   Activity,
   Clock,
   AlertCircle,
+  Crown,
+  Plus,
 } from "lucide-react";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
+import WorkspaceOnboardingModal from "@/components/workspace/WorkspaceOnboardingModal";
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const { currentWorkspace, selectedWorkspaceId, workspaces } = useWorkspace();
+  const router = useRouter();
+  const {
+    currentWorkspace,
+    selectedWorkspaceId,
+    workspaces,
+    hasWorkspaces,
+    createWorkspace,
+    selectWorkspace,
+    loading: workspaceLoading,
+  } = useWorkspace();
   const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(
     null
   );
@@ -55,6 +71,29 @@ export default function DashboardPage() {
     first_name: string;
   } | null>(null);
   const [integrationsLoading, setIntegrationsLoading] = useState(false);
+  const [userPlan, setUserPlan] = useState<{
+    plan_name: string;
+    status: string;
+    current_period_end?: string | null;
+  } | null>(null);
+  const [planLoading, setPlanLoading] = useState(true);
+  const [messageCount, setMessageCount] = useState<number>(0);
+  const [messageCountLoading, setMessageCountLoading] = useState(false);
+  const [showNewUserModal, setShowNewUserModal] = useState(false);
+  const [newWorkspaceName, setNewWorkspaceName] = useState("");
+  const [creatingWorkspace, setCreatingWorkspace] = useState(false);
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
+  const [pendingWorkspace, setPendingWorkspace] = useState<{
+    id: string;
+    name?: string;
+  } | null>(null);
+
+  // Check if new user needs to create a workspace
+  useEffect(() => {
+    if (user && !workspaceLoading && !hasWorkspaces) {
+      setShowNewUserModal(true);
+    }
+  }, [user, workspaceLoading, hasWorkspaces]);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -139,6 +178,43 @@ export default function DashboardPage() {
     fetchAvailability();
   }, [workspaceId]);
 
+  // Fetch user plan
+  useEffect(() => {
+    const fetchUserPlan = async () => {
+      if (!user?.id) {
+        setPlanLoading(false);
+        return;
+      }
+
+      try {
+        const { data: plans, error: planError } = await supabase
+          .from("user_plans")
+          .select("plan_name, status, current_period_end")
+          .eq("user_id", user.id)
+          .order("updated_at", { ascending: false })
+          .limit(1);
+
+        if (planError) {
+          console.error("Failed to fetch plan data:", planError);
+          setUserPlan({ plan_name: "Free", status: "active" });
+        } else {
+          setUserPlan(
+            plans && plans.length > 0
+              ? plans[0]
+              : { plan_name: "Free", status: "active" }
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching user plan:", error);
+        setUserPlan({ plan_name: "Free", status: "active" });
+      } finally {
+        setPlanLoading(false);
+      }
+    };
+
+    fetchUserPlan();
+  }, [user?.id]);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -187,13 +263,15 @@ export default function DashboardPage() {
 
       try {
         // Check Instagram
-        const instagramData = await integrationsAPI.getInstagramIntegration(workspaceId);
+        const instagramData =
+          await integrationsAPI.getInstagramIntegration(workspaceId);
         if (!cancelled) {
           setInstagramIntegration(instagramData);
         }
 
         // Check Telegram
-        const telegramData = await integrationsAPI.getTelegramBotInfo(workspaceId);
+        const telegramData =
+          await integrationsAPI.getTelegramBotInfo(workspaceId);
         if (!cancelled) {
           setTelegramBotInfo(telegramData);
         }
@@ -209,6 +287,57 @@ export default function DashboardPage() {
     }
 
     checkIntegrations();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [workspaceId]);
+
+  // Fetch message count from yetti_chat_history directly from Supabase
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchMessageCount() {
+      if (!workspaceId) {
+        console.log("No workspace ID available");
+        setMessageCount(0);
+        return;
+      }
+
+      console.log("Fetching message count for workspace:", workspaceId);
+      setMessageCountLoading(true);
+
+      try {
+        const { count, error } = await supabase
+          .from("yetti_chat_history")
+          .select("*", { count: "exact", head: true })
+          .eq("workspace_id", workspaceId);
+
+        if (error) {
+          console.error("Error fetching message count:", error);
+          console.error("Error details:", JSON.stringify(error, null, 2));
+          if (!cancelled) {
+            setMessageCount(0);
+          }
+        } else {
+          console.log("Message count fetched successfully:", count);
+          if (!cancelled) {
+            setMessageCount(count || 0);
+          }
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Exception fetching message count:", error);
+          setMessageCount(0);
+        }
+      } finally {
+        if (!cancelled) {
+          setMessageCountLoading(false);
+        }
+      }
+    }
+
+    fetchMessageCount();
 
     return () => {
       cancelled = true;
@@ -250,7 +379,65 @@ export default function DashboardPage() {
     return user?.email?.split("@")[0] || "User";
   };
 
-  if (loading) {
+  const handleCreateFirstWorkspace = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmedName = newWorkspaceName.trim();
+    if (!trimmedName || trimmedName.length < 3) {
+      toast.error("Workspace name must be at least 3 characters");
+      return;
+    }
+
+    setCreatingWorkspace(true);
+    try {
+      const workspace = await createWorkspace({
+        name: trimmedName,
+        workspace_type: "personal",
+      });
+
+      // Select the newly created workspace
+      await selectWorkspace(workspace.id);
+
+      setShowNewUserModal(false);
+      setNewWorkspaceName("");
+
+      // Check onboarding status
+      const status = await yettiOnboardingAPI
+        .getOnboardingStatus(workspace.id)
+        .catch((err: unknown) => {
+          if (
+            err instanceof Error &&
+            (err.message.includes("404") ||
+              err.message.toLowerCase().includes("not found"))
+          ) {
+            return null;
+          }
+          throw err;
+        });
+
+      if (!status || !status.is_onboarded) {
+        setPendingWorkspace({
+          id: workspace.id,
+          name: workspace.name,
+        });
+        setShowOnboardingModal(true);
+      }
+    } catch (err) {
+      console.error("Failed to create workspace:", err);
+      toast.error(
+        err instanceof Error ? err.message : "Failed to create workspace"
+      );
+    } finally {
+      setCreatingWorkspace(false);
+    }
+  };
+
+  const handleOnboardingCompleted = () => {
+    setShowOnboardingModal(false);
+    setPendingWorkspace(null);
+    toast.success("Workspace setup complete!");
+  };
+
+  if (loading || workspaceLoading) {
     return (
       <div className="flex h-96 items-center justify-center">
         <div className="text-center">
@@ -264,7 +451,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
+      <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
         <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-sky-500/20 blur-3xl" />
         <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-sky-500/20 blur-3xl" />
 
@@ -318,7 +505,7 @@ export default function DashboardPage() {
                     }`}
                   />
                 )}
-                {workspaceOnline ? "Workspace Online" : "Workspace Offline"}
+                {workspaceOnline ? "Yetti On" : "Yetti Off"}
               </button>
             </div>
             {availabilityError && (
@@ -344,12 +531,17 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                Monthly Messages
+                Total Messages
               </p>
-              <p className="mt-2 text-3xl font-bold text-slate-900">
-                {dashboardData?.quick_stats?.this_month_interactions?.toLocaleString() ??
-                  "0"}
-              </p>
+              {messageCountLoading ? (
+                <div className="mt-2">
+                  <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+                </div>
+              ) : (
+                <p className="mt-2 text-3xl font-bold text-slate-900">
+                  {formatNumberInK(messageCount)}
+                </p>
+              )}
             </div>
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 text-sky-500 transition-colors group-hover:bg-sky-500 group-hover:text-white">
               <MessageSquare className="h-7 w-7" />
@@ -371,9 +563,15 @@ export default function DashboardPage() {
               <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
                 Integrations
               </p>
-              <p className="mt-2 text-3xl font-bold text-slate-900">
-                {dashboardData?.workspace_summary?.active_integrations ?? 0}
-              </p>
+              {integrationsLoading ? (
+                <div className="mt-2">
+                  <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+                </div>
+              ) : (
+                <p className="mt-2 text-3xl font-bold text-slate-900">
+                  {(instagramIntegration ? 1 : 0) + (telegramBotInfo ? 1 : 0)}
+                </p>
+              )}
             </div>
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-sky-500 transition-colors group-hover:bg-sky-500 group-hover:text-white">
               <Link2 className="h-7 w-7" />
@@ -388,27 +586,44 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Response Time */}
-        <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-amber-100">
+        {/* Current Plan */}
+        <Link
+          href="/dashboard/plans"
+          className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-violet-100 block"
+        >
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                Avg Response Time
+                Current Plan
               </p>
-              <p className="mt-2 text-3xl font-bold text-slate-900">0.8s</p>
+              {planLoading ? (
+                <div className="mt-2">
+                  <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+                </div>
+              ) : (
+                <p className="mt-2 text-3xl font-bold text-slate-900">
+                  {userPlan?.plan_name || "Free"}
+                </p>
+              )}
             </div>
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 transition-colors group-hover:bg-amber-500 group-hover:text-white">
-              <Zap className="h-7 w-7" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 transition-colors group-hover:bg-violet-500 group-hover:text-white">
+              <Crown className="h-7 w-7" />
             </div>
           </div>
           <div className="mt-4 flex items-center gap-2 text-sm">
-            <span className="flex items-center gap-1 font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-              <ArrowUpRight className="h-3 w-3 rotate-180" />
-              0.2s
+            <span
+              className={`flex items-center gap-1 font-medium px-2 py-0.5 rounded-full ${
+                userPlan?.status === "active"
+                  ? "text-emerald-600 bg-emerald-50"
+                  : "text-slate-600 bg-slate-100"
+              }`}
+            >
+              <CheckCircle2 className="h-3 w-3" />
+              {userPlan?.status === "active" ? "Active" : "Inactive"}
             </span>
-            <span className="text-slate-500">improvement</span>
+            <span className="text-slate-500">Click to manage</span>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Platform Status Section */}
@@ -522,6 +737,110 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* New User Workspace Creation Modal */}
+      {showNewUserModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in-up">
+            {/* Header */}
+            <div className="relative p-8 pb-6 bg-gradient-to-br from-sky-50 to-white border-b border-slate-100">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-sky-500 to-sky-600 flex items-center justify-center shadow-lg shadow-sky-500/30">
+                  <Plus className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-3xl font-bold text-slate-900">
+                    Welcome to Yetti! 👋
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">
+                    Let's create your first workspace
+                  </p>
+                </div>
+              </div>
+              <p className="text-slate-600 leading-relaxed">
+                A workspace is where you'll manage your AI agents, knowledge
+                base, and integrations. Give it a memorable name to get started.
+              </p>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleCreateFirstWorkspace} className="p-8">
+              <div className="mb-6">
+                <label
+                  htmlFor="first-workspace-name"
+                  className="block text-sm font-bold text-slate-700 mb-3"
+                >
+                  Workspace Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="first-workspace-name"
+                  type="text"
+                  value={newWorkspaceName}
+                  onChange={(e) => setNewWorkspaceName(e.target.value)}
+                  placeholder="e.g., My Business, Personal Projects, Team Workspace"
+                  className="w-full px-4 py-4 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 transition-all hover:border-sky-300 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-500/10 text-base"
+                  minLength={3}
+                  required
+                  autoFocus
+                />
+                <div className="flex items-center gap-2 mt-3">
+                  <div
+                    className={`h-2 w-2 rounded-full transition-colors ${
+                      newWorkspaceName.trim().length >= 3
+                        ? "bg-green-500"
+                        : "bg-slate-300"
+                    }`}
+                  />
+                  <p
+                    className={`text-xs transition-colors ${
+                      newWorkspaceName.trim().length >= 3
+                        ? "text-green-600 font-medium"
+                        : "text-slate-500"
+                    }`}
+                  >
+                    {newWorkspaceName.trim().length >= 3
+                      ? "✓ Perfect! You're ready to continue"
+                      : "Minimum 3 characters required"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <button
+                type="submit"
+                disabled={
+                  creatingWorkspace || newWorkspaceName.trim().length < 3
+                }
+                className="w-full px-6 py-4 rounded-xl bg-linear-to-r from-sky-500 to-sky-600 text-white font-bold text-lg shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none flex items-center justify-center gap-3"
+              >
+                {creatingWorkspace ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Creating Your Workspace...</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-5 w-5" />
+                    <span>Create Workspace & Continue</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Onboarding Modal */}
+      <WorkspaceOnboardingModal
+        isOpen={showOnboardingModal}
+        workspaceId={pendingWorkspace?.id ?? null}
+        workspaceName={pendingWorkspace?.name}
+        onClose={() => {
+          setShowOnboardingModal(false);
+          setPendingWorkspace(null);
+        }}
+        onCompleted={handleOnboardingCompleted}
+      />
     </div>
   );
 }

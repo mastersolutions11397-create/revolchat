@@ -3,10 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
-import {
-  type Conversation,
-  type Message,
-} from "@/lib/api/integrations";
+import { type Conversation, type Message } from "@/lib/api/integrations";
 import { MessageSquare, Search, Info, ArrowLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -45,7 +42,9 @@ interface SupabaseChatHistoryRow {
 }
 
 // Fetch chat history from Supabase
-const fetchChatHistory = async (workspaceId: string): Promise<ChatHistoryResponse> => {
+const fetchChatHistory = async (
+  workspaceId: string
+): Promise<ChatHistoryResponse> => {
   const { data, error } = await supabase
     .from("yetti_chat_history")
     .select("*")
@@ -59,13 +58,19 @@ const fetchChatHistory = async (workspaceId: string): Promise<ChatHistoryRespons
   }
 
   // Initialize grouped data structure
-  const groupedData: { Instagram: ChatHistoryItem[]; Telegram: ChatHistoryItem[] } = {
+  const groupedData: {
+    Instagram: ChatHistoryItem[];
+    Telegram: ChatHistoryItem[];
+  } = {
     Instagram: [],
     Telegram: [],
   };
 
   // Group messages by chat_id
-  const messagesByChat: Record<string, { source: "IG" | "TG"; messages: ChatHistoryMessage[] }> = {};
+  const messagesByChat: Record<
+    string,
+    { source: "IG" | "TG"; messages: ChatHistoryMessage[] }
+  > = {};
 
   data.forEach((row: SupabaseChatHistoryRow) => {
     if (!messagesByChat[row.chat_id]) {
@@ -109,7 +114,8 @@ const transformChatHistoryToConversations = (
   return platformData.map((chat) => {
     // Sort messages descending to find the most recent message for the conversation
     const sortedMessages = [...chat.messages].sort(
-      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
     const lastMessage = sortedMessages[0];
 
@@ -151,7 +157,7 @@ const transformChatHistoryToMessages = (
   }));
 };
 
-export default function LeadsPage() {
+export default function InboxPage() {
   const { selectedWorkspaceId, currentWorkspace } = useWorkspace();
   const workspaceId = useMemo(
     () => selectedWorkspaceId || currentWorkspace?.id || null,
@@ -269,7 +275,6 @@ export default function LeadsPage() {
     );
   }
 
-
   // Handle conversation selection (mobile: show chat view, desktop: keep sidebar visible)
   const handleConversationSelect = (conversation: Conversation) => {
     setSelectedConversation(conversation);
@@ -366,9 +371,7 @@ export default function LeadsPage() {
           ) : conversations.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 gap-2 p-4 text-center">
               <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8 text-slate-300" />
-              <p className="text-slate-500 text-xs sm:text-sm">
-                No chat found
-              </p>
+              <p className="text-slate-500 text-xs sm:text-sm">No chat found</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">

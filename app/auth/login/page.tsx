@@ -16,6 +16,7 @@ export default function LoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
   const router = useRouter();
 
   // Load remember me preference on mount and check for error/success in URL
@@ -28,6 +29,12 @@ export default function LoginPage() {
       const urlParams = new URLSearchParams(window.location.search);
       const urlError = urlParams.get("error");
       const urlMessage = urlParams.get("message");
+      const redirect = urlParams.get("redirect");
+
+      // Store redirect URL if present
+      if (redirect) {
+        setRedirectUrl(decodeURIComponent(redirect));
+      }
 
       if (urlError) {
         // Decode the error message if it's URL encoded
@@ -80,7 +87,8 @@ export default function LoginPage() {
       if (error) {
         setError(error.message);
       } else if (data.user) {
-        router.push("/workspace");
+        // Redirect to the specified URL or default to dashboard
+        router.push(redirectUrl || "/dashboard");
       }
     } catch {
       setError("An unexpected error occurred");
@@ -94,7 +102,9 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const { error } = await authService.signInWithGoogle();
+      const { error } = await authService.signInWithGoogle(
+        redirectUrl || undefined
+      );
       if (error) {
         setError(error.message);
         setGoogleLoading(false);
@@ -250,7 +260,11 @@ export default function LoginPage() {
                 <span className="text-slate-500 text-xs">
                   {t("login.noAccount")}{" "}
                   <Link
-                    href="/auth/signup"
+                    href={
+                      redirectUrl
+                        ? `/auth/signup?redirect=${encodeURIComponent(redirectUrl)}`
+                        : "/auth/signup"
+                    }
                     className="text-sky-500 hover:text-sky-700 font-bold hover:underline transition-all"
                   >
                     {t("login.signUp")}

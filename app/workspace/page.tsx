@@ -71,7 +71,9 @@ export default function WorkspaceSelectionPage() {
     }
   };
 
-  const handleCreateWorkspace = async (e?: React.FormEvent | React.MouseEvent) => {
+  const handleCreateWorkspace = async (
+    e?: React.FormEvent | React.MouseEvent
+  ) => {
     e?.preventDefault();
     e?.stopPropagation();
 
@@ -108,10 +110,35 @@ export default function WorkspaceSelectionPage() {
         logo: workspaceLogo || undefined,
       });
 
+      // Select the newly created workspace
+      await selectWorkspace(workspace.id);
+
       handleCloseModal();
-      // Don't open onboarding modal automatically after workspace creation
-      // User can access it later when they open the workspace
-      // The onboarding will be checked when they select/open the workspace
+
+      // Check onboarding status for newly created workspace
+      const status = await yettiOnboardingAPI
+        .getOnboardingStatus(workspace.id)
+        .catch((err: unknown) => {
+          if (
+            err instanceof Error &&
+            (err.message.includes("404") ||
+              err.message.toLowerCase().includes("not found"))
+          ) {
+            return null;
+          }
+          throw err;
+        });
+
+      if (!status || !status.is_onboarded) {
+        setPendingWorkspace({
+          id: workspace.id,
+          name: workspace.name,
+        });
+        setShowOnboardingModal(true);
+      } else {
+        // If already onboarded, redirect to dashboard
+        router.push(`/dashboard?ws=${encodeURIComponent(workspace.id)}`);
+      }
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error
@@ -150,7 +177,8 @@ export default function WorkspaceSelectionPage() {
         return;
       }
 
-      router.push("/dashboard");
+      // Redirect to dashboard with workspace ID in URL
+      router.push(`/dashboard?ws=${encodeURIComponent(workspaceId)}`);
     } catch (err) {
       console.error("Error selecting workspace:", err);
       const message =
@@ -170,9 +198,16 @@ export default function WorkspaceSelectionPage() {
 
   const handleOnboardingCompleted = () => {
     setShowOnboardingModal(false);
+    const workspaceId = pendingWorkspace?.id;
     setPendingWorkspace(null);
     void fetchWorkspaces();
-    router.push("/dashboard");
+
+    // Redirect to dashboard with workspace ID in URL
+    if (workspaceId) {
+      router.push(`/dashboard?ws=${encodeURIComponent(workspaceId)}`);
+    } else {
+      router.push("/dashboard");
+    }
     toast.success("Welcome to your workspace!");
   };
 
@@ -212,9 +247,9 @@ export default function WorkspaceSelectionPage() {
       <div className="min-h-screen bg-slate-900 relative overflow-hidden">
         {/* Background Effects */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-sky-500/10 to-sky-500/10 blur-[100px] animate-pulse-slow" />
-          <div className="absolute -bottom-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-sky-500/10 to-sky-500/10 blur-[100px] animate-pulse-slow delay-1000" />
-          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-20 [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+          <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-linear-to-br from-sky-500/10 to-sky-500/10 blur-[100px] animate-pulse-slow" />
+          <div className="absolute -bottom-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-linear-to-tr from-sky-500/10 to-sky-500/10 blur-[100px] animate-pulse-slow delay-1000" />
+          <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-20 mask-[linear-gradient(180deg,white,rgba(255,255,255,0))]" />
         </div>
 
         {/* Navigation */}
@@ -305,7 +340,7 @@ export default function WorkspaceSelectionPage() {
                   >
                     <button
                       onClick={() => setIsModalOpen(true)}
-                      className="w-full group min-h-[315px] relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-500 to-sky-500 p-1 text-left transition-all hover:shadow-2xl hover:shadow-sky-500/25 hover:-translate-y-1"
+                      className="w-full group min-h-[315px] relative overflow-hidden rounded-3xl bg-linear-to-br from-sky-500 to-sky-500 p-1 text-left transition-all hover:shadow-2xl hover:shadow-sky-500/25 hover:-translate-y-1"
                     >
                       <div className="relative h-full rounded-[20px] min-h-[315px] bg-slate-900/40 backdrop-blur-sm p-8 transition-all group-hover:bg-slate-900/20">
                         <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20 group-hover:scale-110 transition-transform duration-300">
@@ -387,9 +422,9 @@ export default function WorkspaceSelectionPage() {
       >
         <div className="grid grid-cols-1 md:grid-cols-2 w-full">
           {/* Left visual */}
-          <div className="relative hidden md:flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-950 p-8 border-r border-white/5">
-            <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-20 [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-sky-500/10 to-sky-500/10 blur-3xl opacity-50" />
+          <div className="relative hidden md:flex items-center justify-center bg-linear-to-br from-slate-900 to-slate-950 p-8 border-r border-white/5">
+            <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-20 mask-[linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+            <div className="absolute top-0 left-0 w-full h-full bg-linear-to-br from-sky-500/10 to-sky-500/10 blur-3xl opacity-50" />
 
             <div className="relative z-10 w-full aspect-square max-w-[280px]">
               <Image
@@ -463,12 +498,12 @@ export default function WorkspaceSelectionPage() {
               </div>
             </div>
 
-            <form 
+            <form
               onSubmit={(e) => {
                 e.preventDefault();
                 // Only allow form submission if explicitly triggered by button click
                 // This prevents auto-submission when reaching step 3
-              }} 
+              }}
               className="space-y-6"
             >
               <div className="space-y-4">
@@ -505,7 +540,7 @@ export default function WorkspaceSelectionPage() {
                         htmlFor="logoUpload"
                         className="group relative flex flex-col items-center justify-center w-full h-28 sm:h-32 rounded-xl border-2 border-dashed border-white/10 bg-white/5 hover:bg-white/10 hover:border-sky-500/50 transition-all cursor-pointer overflow-hidden"
                       >
-                        <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 to-sky-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute inset-0 bg-linear-to-br from-sky-500/5 to-sky-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                         <Upload className="w-6 h-6 sm:w-8 sm:h-8 text-slate-500 group-hover:text-sky-500 transition-colors mb-2" />
                         <p className="text-xs sm:text-sm text-slate-400 group-hover:text-slate-300 transition-colors text-center px-4">
                           Click to upload or drag and drop
@@ -599,7 +634,7 @@ export default function WorkspaceSelectionPage() {
                     type="button"
                     onClick={handleCreateWorkspace}
                     disabled={isSubmitting || !workspaceName.trim()}
-                    className="flex-1 h-12 rounded-xl bg-gradient-to-r from-sky-500 to-sky-500 hover:from-sky-500 hover:to-sky-500 text-white font-semibold shadow-lg shadow-sky-500/20"
+                    className="flex-1 h-12 rounded-xl bg-linear-to-r from-sky-500 to-sky-500 hover:from-sky-500 hover:to-sky-500 text-white font-semibold shadow-lg shadow-sky-500/20"
                   >
                     {isSubmitting ? (
                       <span className="inline-flex items-center">
@@ -618,7 +653,7 @@ export default function WorkspaceSelectionPage() {
                       currentStep === 1 &&
                       (!workspaceName.trim() || workspaceName.length < 3)
                     }
-                    className="flex-1 h-12 rounded-xl bg-gradient-to-r from-sky-500 to-sky-500 hover:from-sky-500 hover:to-sky-500 text-white font-semibold shadow-lg shadow-sky-500/20"
+                    className="flex-1 h-12 rounded-xl bg-linear-to-r from-sky-500 to-sky-500 hover:from-sky-500 hover:to-sky-500 text-white font-semibold shadow-lg shadow-sky-500/20"
                   >
                     Next
                   </Button>

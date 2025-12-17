@@ -74,7 +74,7 @@ type KnowledgeTableRow =
 
 export default function KnowledgePage() {
   const { user } = useAuth();
-  console.log("user", user)
+  console.log("user", user);
   const { currentWorkspace, selectedWorkspaceId } = useWorkspace();
   const [localSelectedId, setLocalSelectedId] = useState<string | null>(null);
   const [knowledgeItems, setKnowledgeItems] = useState<KnowledgeRecord[]>([]);
@@ -217,7 +217,9 @@ export default function KnowledgePage() {
             ? item.usage_count.toString()
             : "—",
         updated: formatDateTime(
-          item.last_used_at || (item as { updated_at?: string }).updated_at || item.created_at,
+          item.last_used_at ||
+            (item as { updated_at?: string }).updated_at ||
+            item.created_at,
           "Never"
         ),
         importance: item.importance ?? null,
@@ -228,12 +230,13 @@ export default function KnowledgePage() {
     });
 
     const sheetRows = googleSheets.map((sheet) => {
-      const sheetTypeLabel = typeof sheet.sheet_type === "string" && sheet.sheet_type
-        ? sheet.sheet_type
-            .split("_")
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" ")
-        : "Google Sheet";
+      const sheetTypeLabel =
+        typeof sheet.sheet_type === "string" && sheet.sheet_type
+          ? sheet.sheet_type
+              .split("_")
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(" ")
+          : "Google Sheet";
       const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheet.sheet_id}/edit`;
 
       return {
@@ -263,7 +266,9 @@ export default function KnowledgePage() {
       setKnowledgeItems(response?.results ?? []);
     } catch (error: unknown) {
       setKnowledgeError(
-        error instanceof Error ? error.message : "Failed to fetch knowledge for this workspace"
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch knowledge for this workspace"
       );
       setKnowledgeItems([]);
     } finally {
@@ -279,7 +284,9 @@ export default function KnowledgePage() {
       setGoogleSheets(response?.data ?? []);
     } catch (error: unknown) {
       setSheetsError(
-        error instanceof Error ? error.message : "Failed to fetch Google Sheets for this workspace"
+        error instanceof Error
+          ? error.message
+          : "Failed to fetch Google Sheets for this workspace"
       );
       setGoogleSheets([]);
     } finally {
@@ -366,7 +373,14 @@ export default function KnowledgePage() {
     setIsAddMenuOpen(false);
   };
 
+  // Check if text/PDF can be added (not allowed if Google Sheet exists)
+  const canAddTextOrPdf = !hasGoogleSheet;
+
+  // Check if Google Sheet can be added (not allowed if text/PDF exists or if a sheet already exists)
+  const canAddGoogleSheet = knowledgeItems.length === 0 && !hasGoogleSheet;
+
   const openTextForm = () => {
+    if (!canAddTextOrPdf) return;
     resetPdfForm();
     setClickedTemplateIndex(null);
     setShowLinkInput(false);
@@ -376,6 +390,7 @@ export default function KnowledgePage() {
   };
 
   const openPdfForm = () => {
+    if (!canAddTextOrPdf) return;
     resetTextForm();
     setClickedTemplateIndex(null);
     setShowLinkInput(false);
@@ -385,6 +400,7 @@ export default function KnowledgePage() {
   };
 
   const openSheetsForm = () => {
+    if (!canAddGoogleSheet) return;
     resetTextForm();
     resetPdfForm();
     setClickedTemplateIndex(null);
@@ -571,7 +587,11 @@ export default function KnowledgePage() {
       setClickedTemplateIndex(null);
       setShowTemplateCards(false);
     } catch (error: unknown) {
-      setLinkInputError(error instanceof Error ? error.message : "Failed to save Google Sheet link");
+      setLinkInputError(
+        error instanceof Error
+          ? error.message
+          : "Failed to save Google Sheet link"
+      );
       console.error("Error saving Google Sheet link:", error);
     } finally {
       setSubmittingSheet(false);
@@ -591,7 +611,9 @@ export default function KnowledgePage() {
       // Refresh Google Sheets list
       await loadGoogleSheets(workspaceId);
     } catch (error: unknown) {
-      setSheetsError(error instanceof Error ? error.message : "Failed to delete Google Sheet");
+      setSheetsError(
+        error instanceof Error ? error.message : "Failed to delete Google Sheet"
+      );
       console.error("Error deleting Google Sheet:", error);
     }
   };
@@ -613,7 +635,11 @@ export default function KnowledgePage() {
       // Refresh knowledge list
       await loadKnowledge(workspaceId);
     } catch (error: unknown) {
-      setKnowledgeError(error instanceof Error ? error.message : "Failed to delete knowledge entry");
+      setKnowledgeError(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete knowledge entry"
+      );
       console.error("Error deleting knowledge entry:", error);
     }
   };
@@ -712,9 +738,14 @@ export default function KnowledgePage() {
     }
   };
 
-
   // Tooltip Component
-  const Tooltip = ({ text, children }: { text: string; children?: React.ReactNode }) => {
+  const Tooltip = ({
+    text,
+    children,
+  }: {
+    text: string;
+    children?: React.ReactNode;
+  }) => {
     const [show, setShow] = useState(false);
     return (
       <div className="relative inline-flex items-center group">
@@ -737,21 +768,22 @@ export default function KnowledgePage() {
     );
   };
 
-
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto lg:min-h-[calc(100vh-8rem)]">
       {/* Header - Navy Banner */}
       <div className="relative rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-xl overflow-visible">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
         <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
-        
+
         <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-6">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20">
               <FileText className="h-8 w-8 text-sky-500" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-white">Knowledge Base</h1>
+              <h1 className="text-3xl font-bold tracking-tight text-white">
+                Knowledge Base
+              </h1>
               <p className="mt-2 text-lg text-sky-100/80 max-w-xl">
                 Manage knowledge and chat with your data in one place.
               </p>
@@ -773,9 +805,21 @@ export default function KnowledgePage() {
                   <button
                     type="button"
                     onClick={openTextForm}
-                    className="flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left transition-colors hover:bg-slate-50 group"
+                    disabled={!canAddTextOrPdf}
+                    className={`flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left transition-colors ${
+                      canAddTextOrPdf
+                        ? "hover:bg-slate-50 cursor-pointer"
+                        : "opacity-50 cursor-not-allowed"
+                    } group relative`}
+                    title={
+                      !canAddTextOrPdf
+                        ? "Cannot add text when a Google Sheet is connected"
+                        : ""
+                    }
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-sky-500 group-hover:scale-110 transition-transform">
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-sky-500 ${canAddTextOrPdf ? "group-hover:scale-110" : ""} transition-transform`}
+                    >
                       <FileText className="h-5 w-5" />
                     </div>
                     <div>
@@ -783,16 +827,30 @@ export default function KnowledgePage() {
                         Text Document
                       </div>
                       <div className="text-xs text-slate-500 font-medium">
-                        Write or paste knowledge
+                        {canAddTextOrPdf
+                          ? "Write or paste knowledge"
+                          : "Unavailable (Sheet connected)"}
                       </div>
                     </div>
                   </button>
                   <button
                     type="button"
                     onClick={openPdfForm}
-                    className="flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left transition-colors hover:bg-slate-50 group"
+                    disabled={!canAddTextOrPdf}
+                    className={`flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left transition-colors ${
+                      canAddTextOrPdf
+                        ? "hover:bg-slate-50 cursor-pointer"
+                        : "opacity-50 cursor-not-allowed"
+                    } group relative`}
+                    title={
+                      !canAddTextOrPdf
+                        ? "Cannot add PDF when a Google Sheet is connected"
+                        : ""
+                    }
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-rose-50 text-rose-600 group-hover:scale-110 transition-transform">
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-lg bg-rose-50 text-rose-600 ${canAddTextOrPdf ? "group-hover:scale-110" : ""} transition-transform`}
+                    >
                       <FileDown className="h-5 w-5" />
                     </div>
                     <div>
@@ -800,16 +858,32 @@ export default function KnowledgePage() {
                         PDF Upload
                       </div>
                       <div className="text-xs text-slate-500 font-medium">
-                        Import multi-page documents
+                        {canAddTextOrPdf
+                          ? "Import multi-page documents"
+                          : "Unavailable (Sheet connected)"}
                       </div>
                     </div>
                   </button>
                   <button
                     type="button"
                     onClick={openSheetsForm}
-                    className="flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left transition-colors hover:bg-slate-50 group"
+                    disabled={!canAddGoogleSheet}
+                    className={`flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left transition-colors ${
+                      canAddGoogleSheet
+                        ? "hover:bg-slate-50 cursor-pointer"
+                        : "opacity-50 cursor-not-allowed"
+                    } group relative`}
+                    title={
+                      !canAddGoogleSheet
+                        ? hasGoogleSheet
+                          ? "Only one Google Sheet allowed per workspace"
+                          : "Cannot add Google Sheet when text/PDF exists"
+                        : ""
+                    }
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 group-hover:scale-110 transition-transform">
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 ${canAddGoogleSheet ? "group-hover:scale-110" : ""} transition-transform`}
+                    >
                       <FileSpreadsheet className="h-5 w-5" />
                     </div>
                     <div>
@@ -817,7 +891,11 @@ export default function KnowledgePage() {
                         Google Sheet
                       </div>
                       <div className="text-xs text-slate-500 font-medium">
-                        Sync structured data
+                        {canAddGoogleSheet
+                          ? "Sync structured data"
+                          : hasGoogleSheet
+                            ? "Already connected"
+                            : "Unavailable (Text/PDF exists)"}
                       </div>
                     </div>
                   </button>
@@ -857,23 +935,35 @@ export default function KnowledgePage() {
               <div className="hidden xl:flex items-center gap-4">
                 <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 ">
                   <FileText className="h-4 w-4 text-sky-500" />
-                  <span className="text-xs font-medium text-slate-700">Text</span>
+                  <span className="text-xs font-medium text-slate-700">
+                    Text
+                  </span>
                   <div className="flex items-center justify-center size-6 rounded-full bg-sky-100">
-                    <span className="text-xs font-bold text-sky-700">{textDocumentsCount}</span>
+                    <span className="text-xs font-bold text-sky-700">
+                      {textDocumentsCount}
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 ">
                   <FileDown className="h-4 w-4 text-sky-500" />
-                  <span className="text-xs font-medium text-slate-700">PDF</span>
+                  <span className="text-xs font-medium text-slate-700">
+                    PDF
+                  </span>
                   <div className="flex items-center justify-center size-6 rounded-full shrink-0 bg-sky-100">
-                    <span className="text-xs font-bold text-sky-700">{pdfFilesCount}</span>
+                    <span className="text-xs font-bold text-sky-700">
+                      {pdfFilesCount}
+                    </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 ">
                   <FileSpreadsheet className="h-4 w-4 text-sky-500" />
-                  <span className="text-xs font-medium text-slate-700">Sheets</span>
+                  <span className="text-xs font-medium text-slate-700">
+                    Sheets
+                  </span>
                   <div className="flex items-center justify-center size-6 rounded-full shrink-0 bg-sky-100">
-                    <span className="text-xs font-bold text-sky-700">{connectedSheetsCount}</span>
+                    <span className="text-xs font-bold text-sky-700">
+                      {connectedSheetsCount}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -896,21 +986,29 @@ export default function KnowledgePage() {
                 <FileText className="h-4 w-4 text-sky-500" />
                 <span className="text-xs font-medium text-slate-700">Text</span>
                 <div className="flex items-center justify-center size-6 rounded-full bg-sky-100">
-                  <span className="text-xs font-bold p-1 text-sky-700">{textDocumentsCount}</span>
+                  <span className="text-xs font-bold p-1 text-sky-700">
+                    {textDocumentsCount}
+                  </span>
                 </div>
               </div>
               <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 shadow-sm border border-slate-200">
                 <FileDown className="h-4 w-4 text-sky-500" />
                 <span className="text-xs font-medium text-slate-700">PDF</span>
                 <div className="flex items-center justify-center size-6 rounded-full shrink-0 bg-sky-100">
-                  <span className="text-xs font-bold p-1 text-sky-700">{pdfFilesCount}</span>
+                  <span className="text-xs font-bold p-1 text-sky-700">
+                    {pdfFilesCount}
+                  </span>
                 </div>
               </div>
               <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 shadow-sm border border-slate-200">
                 <FileSpreadsheet className="h-4 w-4 text-sky-500" />
-                <span className="text-xs font-medium text-slate-700">Sheets</span>
+                <span className="text-xs font-medium text-slate-700">
+                  Sheets
+                </span>
                 <div className="flex items-center justify-center size-6 rounded-full bg-emerald-100">
-                  <span className="text-xs font-bold p-1 text-sky-700">{connectedSheetsCount}</span>
+                  <span className="text-xs font-bold p-1 text-sky-700">
+                    {connectedSheetsCount}
+                  </span>
                 </div>
               </div>
             </div>
@@ -1222,7 +1320,8 @@ export default function KnowledgePage() {
                                     .split("_")
                                     .map(
                                       (word) =>
-                                        word.charAt(0).toUpperCase() + word.slice(1)
+                                        word.charAt(0).toUpperCase() +
+                                        word.slice(1)
                                     )
                                     .join(" ")
                                 : "General"}
@@ -1280,213 +1379,274 @@ export default function KnowledgePage() {
       {activeTab && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="w-full max-h-[90vh] max-w-2xl overflow-y-auto rounded-2xl border border-white/20 bg-white shadow-2xl ring-1 ring-black/5 animate-in zoom-in-95 duration-200">
-          {activeTab === "text" && (
-            <div className="p-6 space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-500 shadow-sm">
-                    <FileText className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900">Add Text</h3>
-                    <p className="text-xs text-slate-500">Create a new knowledge entry</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    resetTextForm();
-                    closeActiveTab();
-                  }}
-                  className="rounded-lg p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-
-              {submitError && (
-                <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-xs font-medium text-red-600 flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4" />
-                  {submitError}
-                </div>
-              )}
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    value={textTitle}
-                    onChange={(e) => setTextTitle(e.target.value)}
-                    placeholder="e.g., Company Overview"
-                    className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all placeholder:text-slate-400"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
-                    Content
-                  </label>
-                  <textarea
-                    value={textContent}
-                    onChange={(e) => setTextContent(e.target.value)}
-                    placeholder="Paste or type your knowledge content here..."
-                    rows={5}
-                    className="w-full px-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all resize-none placeholder:text-slate-400"
-                  />
-                  <div className="flex justify-end mt-1">
-                    <span className={`text-[10px] font-medium ${textContent.length > MAX_CONTENT_LENGTH ? "text-red-500" : "text-slate-400"}`}>
-                      {textContent.length.toLocaleString()} / {MAX_CONTENT_LENGTH.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-1.5 ml-1">
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Category
-                      </label>
-                      <Tooltip text="Group your knowledge for better organization and retrieval" />
+            {activeTab === "text" && (
+              <div className="p-6 space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-500 shadow-sm">
+                      <FileText className="h-5 w-5" />
                     </div>
-                    <div className="relative">
-                      <select
-                        value={textCategory}
-                        onChange={(e) => setTextCategory(e.target.value)}
-                        className="w-full appearance-none px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
-                      >
-                        <option value="branding">Branding</option>
-                        <option value="products">Products</option>
-                        <option value="policies">Policies</option>
-                        <option value="support">Support</option>
-                        <option value="operations">Operations</option>
-                      </select>
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                      </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900">
+                        Add Text
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        Create a new knowledge entry
+                      </p>
                     </div>
                   </div>
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-1.5 ml-1">
-                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Importance
-                      </label>
-                      <Tooltip text="Set how critical this information is for the AI to know" />
-                    </div>
-                    <div className="relative">
-                      <select
-                        value={importanceLevel}
-                        onChange={(e) => setImportanceLevel(parseInt(e.target.value, 10))}
-                        className="w-full appearance-none px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
-                      >
-                        <option value={1}>Low Priority</option>
-                        <option value={2}>Normal Priority</option>
-                        <option value={3}>High Priority</option>
-                        <option value={4}>Critical Priority</option>
-                      </select>
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
-                    Tags
-                  </label>
-                  <div className="flex flex-wrap gap-2 mb-2 min-h-[32px]">
-                    {tags.map((t, i) => (
-                      <span key={`${t}-${i}`} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-50 text-sky-700 border border-sky-100">
-                        #{t}
-                        <button
-                          type="button"
-                          onClick={() => setTags((prev) => prev.filter((_, idx) => idx !== i))}
-                          className="hover:text-sky-900"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                    <input
-                      type="text"
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if ((e.key === "Enter" || e.key === ",") && tagInput.trim()) {
-                          e.preventDefault();
-                          const newTag = tagInput.trim();
-                          if (!tags.includes(newTag)) setTags((prev) => [...prev, newTag]);
-                          setTagInput("");
-                        }
-                      }}
-                      placeholder={tags.length === 0 ? "Type tag & press Enter..." : ""}
-                      className="flex-1 min-w-[120px] bg-transparent text-sm focus:outline-none placeholder:text-slate-400"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={async () => {
-                    const activeWorkspaceId = workspaceId;
-                    if (!activeWorkspaceId) {
-                      setSubmitError("Please select a workspace first");
-                      return;
-                    }
-                    setSubmitError(null);
-                    const importance: KnowledgeImportance =
-                      importanceLevel === 1 ? "low" : importanceLevel === 2 ? "normal" : importanceLevel === 3 ? "high" : "critical";
-                    if (!textTitle.trim()) {
-                      setSubmitError("Title is required");
-                      return;
-                    }
-                    if (!textContent.trim()) {
-                      setSubmitError("Content is required");
-                      return;
-                    }
-                    try {
-                      setSubmittingText(true);
-                      await knowledgeAPI.addTextKnowledge(activeWorkspaceId, {
-                        title: textTitle.trim(),
-                        content: textContent.length > MAX_CONTENT_LENGTH ? textContent.slice(0, MAX_CONTENT_LENGTH) : textContent.trim(),
-                        category: textCategory,
-                        importance,
-                        tags,
-                      });
-                      await loadKnowledge(activeWorkspaceId);
+                  <button
+                    onClick={() => {
                       resetTextForm();
                       closeActiveTab();
-                    } catch (error: unknown) {
-                      setSubmitError(error instanceof Error ? error.message : "Failed to add text knowledge");
-                    } finally {
-                      setSubmittingText(false);
+                    }}
+                    className="rounded-lg p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+
+                {submitError && (
+                  <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-xs font-medium text-red-600 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    {submitError}
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                      Title
+                    </label>
+                    <input
+                      type="text"
+                      value={textTitle}
+                      onChange={(e) => setTextTitle(e.target.value)}
+                      placeholder="e.g., Company Overview"
+                      className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all placeholder:text-slate-400"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                      Content
+                    </label>
+                    <textarea
+                      value={textContent}
+                      onChange={(e) => setTextContent(e.target.value)}
+                      placeholder="Paste or type your knowledge content here..."
+                      rows={5}
+                      className="w-full px-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all resize-none placeholder:text-slate-400"
+                    />
+                    <div className="flex justify-end mt-1">
+                      <span
+                        className={`text-[10px] font-medium ${textContent.length > MAX_CONTENT_LENGTH ? "text-red-500" : "text-slate-400"}`}
+                      >
+                        {textContent.length.toLocaleString()} /{" "}
+                        {MAX_CONTENT_LENGTH.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-1.5 ml-1">
+                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                          Category
+                        </label>
+                        <Tooltip text="Group your knowledge for better organization and retrieval" />
+                      </div>
+                      <div className="relative">
+                        <select
+                          value={textCategory}
+                          onChange={(e) => setTextCategory(e.target.value)}
+                          className="w-full appearance-none px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                        >
+                          <option value="branding">Branding</option>
+                          <option value="products">Products</option>
+                          <option value="policies">Policies</option>
+                          <option value="support">Support</option>
+                          <option value="operations">Operations</option>
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M19 9l-7 7-7-7"
+                            ></path>
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-1.5 ml-1">
+                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                          Importance
+                        </label>
+                        <Tooltip text="Set how critical this information is for the AI to know" />
+                      </div>
+                      <div className="relative">
+                        <select
+                          value={importanceLevel}
+                          onChange={(e) =>
+                            setImportanceLevel(parseInt(e.target.value, 10))
+                          }
+                          className="w-full appearance-none px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                        >
+                          <option value={1}>Low Priority</option>
+                          <option value={2}>Normal Priority</option>
+                          <option value={3}>High Priority</option>
+                          <option value={4}>Critical Priority</option>
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                          <svg
+                            className="w-4 h-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="2"
+                              d="M19 9l-7 7-7-7"
+                            ></path>
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                      Tags
+                    </label>
+                    <div className="flex flex-wrap gap-2 mb-2 min-h-[32px]">
+                      {tags.map((t, i) => (
+                        <span
+                          key={`${t}-${i}`}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-50 text-sky-700 border border-sky-100"
+                        >
+                          #{t}
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setTags((prev) =>
+                                prev.filter((_, idx) => idx !== i)
+                              )
+                            }
+                            className="hover:text-sky-900"
+                          >
+                            ×
+                          </button>
+                        </span>
+                      ))}
+                      <input
+                        type="text"
+                        value={tagInput}
+                        onChange={(e) => setTagInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (
+                            (e.key === "Enter" || e.key === ",") &&
+                            tagInput.trim()
+                          ) {
+                            e.preventDefault();
+                            const newTag = tagInput.trim();
+                            if (!tags.includes(newTag))
+                              setTags((prev) => [...prev, newTag]);
+                            setTagInput("");
+                          }
+                        }}
+                        placeholder={
+                          tags.length === 0 ? "Type tag & press Enter..." : ""
+                        }
+                        className="flex-1 min-w-[120px] bg-transparent text-sm focus:outline-none placeholder:text-slate-400"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={async () => {
+                      const activeWorkspaceId = workspaceId;
+                      if (!activeWorkspaceId) {
+                        setSubmitError("Please select a workspace first");
+                        return;
+                      }
+                      setSubmitError(null);
+                      const importance: KnowledgeImportance =
+                        importanceLevel === 1
+                          ? "low"
+                          : importanceLevel === 2
+                            ? "normal"
+                            : importanceLevel === 3
+                              ? "high"
+                              : "critical";
+                      if (!textTitle.trim()) {
+                        setSubmitError("Title is required");
+                        return;
+                      }
+                      if (!textContent.trim()) {
+                        setSubmitError("Content is required");
+                        return;
+                      }
+                      try {
+                        setSubmittingText(true);
+                        await knowledgeAPI.addTextKnowledge(activeWorkspaceId, {
+                          title: textTitle.trim(),
+                          content:
+                            textContent.length > MAX_CONTENT_LENGTH
+                              ? textContent.slice(0, MAX_CONTENT_LENGTH)
+                              : textContent.trim(),
+                          category: textCategory,
+                          importance,
+                          tags,
+                        });
+                        await loadKnowledge(activeWorkspaceId);
+                        resetTextForm();
+                        closeActiveTab();
+                      } catch (error: unknown) {
+                        setSubmitError(
+                          error instanceof Error
+                            ? error.message
+                            : "Failed to add text knowledge"
+                        );
+                      } finally {
+                        setSubmittingText(false);
+                      }
+                    }}
+                    disabled={
+                      submittingText || !textTitle.trim() || !textContent.trim()
                     }
-                  }}
-                  disabled={submittingText || !textTitle.trim() || !textContent.trim()}
-                  className="flex-1 bg-sky-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:bg-sky-700 transition-all shadow-lg shadow-sky-500/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-                >
-                  {submittingText ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" /> Saving...
-                    </span>
-                  ) : (
-                    "Save Knowledge"
-                  )}
-                </button>
-                <button
-                  onClick={() => {
-                    resetTextForm();
-                  }}
-                  className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-all active:scale-[0.98]"
-                >
-                  Clear
-                </button>
+                    className="flex-1 bg-sky-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:bg-sky-700 transition-all shadow-lg shadow-sky-500/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                  >
+                    {submittingText ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" /> Saving...
+                      </span>
+                    ) : (
+                      "Save Knowledge"
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      resetTextForm();
+                    }}
+                    className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-all active:scale-[0.98]"
+                  >
+                    Clear
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
             {activeTab === "pdf" && (
               <div className="p-6 space-y-6">
@@ -1496,8 +1656,12 @@ export default function KnowledgePage() {
                       <FileDown className="h-5 w-5" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-slate-900">Upload PDF</h3>
-                      <p className="text-xs text-slate-500">Import documents to your library</p>
+                      <h3 className="text-lg font-bold text-slate-900">
+                        Upload PDF
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        Import documents to your library
+                      </p>
                     </div>
                   </div>
                   <button
@@ -1636,7 +1800,19 @@ export default function KnowledgePage() {
                               <option value="operations">Operations</option>
                             </select>
                             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth="2"
+                                  d="M19 9l-7 7-7-7"
+                                ></path>
+                              </svg>
                             </div>
                           </div>
                         </div>
@@ -1651,14 +1827,50 @@ export default function KnowledgePage() {
                               max={4}
                               step={1}
                               value={pdfImportanceLevel}
-                              onChange={(e) => setPdfImportanceLevel(parseInt(e.target.value, 10))}
+                              onChange={(e) =>
+                                setPdfImportanceLevel(
+                                  parseInt(e.target.value, 10)
+                                )
+                              }
                               className="w-full accent-rose-500 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer"
                             />
                             <div className="flex justify-between text-[10px] font-medium text-slate-400 mt-1.5">
-                              <span className={pdfImportanceLevel === 1 ? "text-rose-600" : ""}>Low</span>
-                              <span className={pdfImportanceLevel === 2 ? "text-rose-600" : ""}>Normal</span>
-                              <span className={pdfImportanceLevel === 3 ? "text-rose-600" : ""}>High</span>
-                              <span className={pdfImportanceLevel === 4 ? "text-rose-600" : ""}>Critical</span>
+                              <span
+                                className={
+                                  pdfImportanceLevel === 1
+                                    ? "text-rose-600"
+                                    : ""
+                                }
+                              >
+                                Low
+                              </span>
+                              <span
+                                className={
+                                  pdfImportanceLevel === 2
+                                    ? "text-rose-600"
+                                    : ""
+                                }
+                              >
+                                Normal
+                              </span>
+                              <span
+                                className={
+                                  pdfImportanceLevel === 3
+                                    ? "text-rose-600"
+                                    : ""
+                                }
+                              >
+                                High
+                              </span>
+                              <span
+                                className={
+                                  pdfImportanceLevel === 4
+                                    ? "text-rose-600"
+                                    : ""
+                                }
+                              >
+                                Critical
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -1670,11 +1882,18 @@ export default function KnowledgePage() {
                         </label>
                         <div className="flex flex-wrap gap-2 mb-2 min-h-[32px]">
                           {pdfTags.map((t, i) => (
-                            <span key={`${t}-${i}`} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-rose-50 text-rose-700 border border-rose-100">
+                            <span
+                              key={`${t}-${i}`}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-rose-50 text-rose-700 border border-rose-100"
+                            >
                               #{t}
                               <button
                                 type="button"
-                                onClick={() => setPdfTags((prev) => prev.filter((_, idx) => idx !== i))}
+                                onClick={() =>
+                                  setPdfTags((prev) =>
+                                    prev.filter((_, idx) => idx !== i)
+                                  )
+                                }
                                 className="hover:text-rose-900"
                               >
                                 ×
@@ -1686,14 +1905,22 @@ export default function KnowledgePage() {
                             value={pdfTagInput}
                             onChange={(e) => setPdfTagInput(e.target.value)}
                             onKeyDown={(e) => {
-                              if ((e.key === "Enter" || e.key === ",") && pdfTagInput.trim()) {
+                              if (
+                                (e.key === "Enter" || e.key === ",") &&
+                                pdfTagInput.trim()
+                              ) {
                                 e.preventDefault();
                                 const newTag = pdfTagInput.trim();
-                                if (!pdfTags.includes(newTag)) setPdfTags((prev) => [...prev, newTag]);
+                                if (!pdfTags.includes(newTag))
+                                  setPdfTags((prev) => [...prev, newTag]);
                                 setPdfTagInput("");
                               }
                             }}
-                            placeholder={pdfTags.length === 0 ? "Type tag & press Enter..." : ""}
+                            placeholder={
+                              pdfTags.length === 0
+                                ? "Type tag & press Enter..."
+                                : ""
+                            }
                             className="flex-1 min-w-[120px] bg-transparent text-sm focus:outline-none placeholder:text-slate-400"
                           />
                         </div>
@@ -1710,7 +1937,8 @@ export default function KnowledgePage() {
                   >
                     {isProcessingPdfs ? (
                       <span className="flex items-center justify-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" /> Uploading...
+                        <Loader2 className="h-4 w-4 animate-spin" />{" "}
+                        Uploading...
                       </span>
                     ) : (
                       "Upload Files"
@@ -1718,9 +1946,19 @@ export default function KnowledgePage() {
                   </button>
                   <button
                     onClick={resetPdfForm}
-                    className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-all active:scale-[0.98]"
+                    className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-50 hover:text-red-600 hover:border-red-200 transition-all active:scale-[0.98]"
+                    title="Clear all files"
                   >
-                    Clear
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      resetPdfForm();
+                      closeActiveTab();
+                    }}
+                    className="px-6 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-semibold text-sm hover:bg-slate-200 transition-all active:scale-[0.98]"
+                  >
+                    Done
                   </button>
                 </div>
               </div>
@@ -1734,8 +1972,12 @@ export default function KnowledgePage() {
                       <FileSpreadsheet className="h-5 w-5" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-slate-900">Google Sheets</h3>
-                      <p className="text-xs text-slate-500">Sync structured data</p>
+                      <h3 className="text-lg font-bold text-slate-900">
+                        Google Sheets
+                      </h3>
+                      <p className="text-xs text-slate-500">
+                        Sync structured data
+                      </p>
                     </div>
                   </div>
                   <button
@@ -1760,15 +2002,18 @@ export default function KnowledgePage() {
                         {sheetsError}
                       </div>
                     )}
-                    
+
                     <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl flex items-start gap-3">
                       <div className="bg-white p-1.5 rounded-lg shadow-sm">
-                         <span className="text-emerald-500 text-lg">✅</span>
+                        <span className="text-emerald-500 text-lg">✅</span>
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-emerald-900">Sheet Connected</h4>
+                        <h4 className="text-sm font-bold text-emerald-900">
+                          Sheet Connected
+                        </h4>
                         <p className="text-xs text-emerald-700 mt-0.5">
-                          Your workspace is synced with a Google Sheet. View details in the library below.
+                          Your workspace is synced with a Google Sheet. View
+                          details in the library below.
                         </p>
                       </div>
                     </div>
@@ -1780,12 +2025,16 @@ export default function KnowledgePage() {
                       {sheetsLoading && (
                         <div className="flex items-center justify-center py-4">
                           <Loader2 className="h-5 w-5 text-emerald-600 animate-spin mr-2" />
-                          <span className="text-sm text-slate-600">Refreshing...</span>
+                          <span className="text-sm text-slate-600">
+                            Refreshing...
+                          </span>
                         </div>
                       )}
                       <div className="space-y-2">
                         {googleSheets.map((sheet) => {
-                          const sheetTypeLabel = formatSheetTypeLabel(sheet.sheet_type);
+                          const sheetTypeLabel = formatSheetTypeLabel(
+                            sheet.sheet_type
+                          );
                           const sheetUrl = `https://docs.google.com/spreadsheets/d/${sheet.sheet_id}/edit`;
 
                           return (
@@ -1795,7 +2044,7 @@ export default function KnowledgePage() {
                             >
                               <div className="flex items-center space-x-3 flex-1">
                                 <div className="h-10 w-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
-                                   <FileSpreadsheet className="h-5 w-5" />
+                                  <FileSpreadsheet className="h-5 w-5" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2">
@@ -1841,31 +2090,69 @@ export default function KnowledgePage() {
                         {sheetsError}
                       </div>
                     )}
-                    
+
                     {hasGoogleSheet && (
                       <div className="p-4 bg-sky-50 border border-sky-100 rounded-xl text-sm text-sky-800 flex items-start gap-3">
-                         <Info className="h-5 w-5 text-sky-500 flex-shrink-0" />
-                         <p>To connect a different sheet, please disconnect the existing one first.</p>
+                        <Info className="h-5 w-5 text-sky-500 flex-shrink-0" />
+                        <p>
+                          To connect a different sheet, please disconnect the
+                          existing one first.
+                        </p>
                       </div>
                     )}
 
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                         <div>
-                            <h4 className="text-sm font-bold text-slate-900">Select Template</h4>
-                            <p className="text-xs text-slate-500">Choose a structure for your data</p>
-                         </div>
-                         {showTemplateCards && (
-                            <button
-                              onClick={() => setShowTemplateCards(false)}
-                              className="text-xs font-medium text-slate-500 hover:text-slate-900"
-                            >
-                              Cancel
-                            </button>
-                         )}
+                        <div>
+                          <h4 className="text-sm font-bold text-slate-900">
+                            Select Template
+                          </h4>
+                          <p className="text-xs text-slate-500">
+                            Choose a structure for your data
+                          </p>
+                          <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                            <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                              How it works
+                            </h5>
+                            <ol className="space-y-2 text-xs text-slate-600 list-decimal list-inside">
+                              <li>
+                                Select a template above to open it in Google
+                                Sheets
+                              </li>
+                              <li>
+                                Click{" "}
+                                <span className="font-mono bg-white px-1 border border-slate-200 rounded">
+                                  File
+                                </span>{" "}
+                                →{" "}
+                                <span className="font-mono bg-white px-1 border border-slate-200 rounded">
+                                  Make a copy
+                                </span>
+                              </li>
+                              <li>
+                                Share with{" "}
+                                <span className="font-medium text-emerald-700">
+                                  ai.agent.dispatch@gmail.com
+                                </span>{" "}
+                                (Editor access)
+                              </li>
+                              <li>Paste the URL of your copy when prompted</li>
+                            </ol>
+                          </div>
+                        </div>
+                        {showTemplateCards && (
+                          <button
+                            onClick={() => setShowTemplateCards(false)}
+                            className="text-xs font-medium text-slate-500 hover:text-slate-900"
+                          >
+                            Cancel
+                          </button>
+                        )}
                       </div>
 
-                      <div className={`grid grid-cols-1 gap-3 ${hasGoogleSheet ? "opacity-50 pointer-events-none" : ""}`}>
+                      <div
+                        className={`grid grid-cols-1 gap-3 ${hasGoogleSheet ? "opacity-50 pointer-events-none" : ""}`}
+                      >
                         {templateCards.map((template, index) => (
                           <button
                             key={index}
@@ -1873,27 +2160,21 @@ export default function KnowledgePage() {
                             className="group relative flex items-center p-4 bg-white border border-slate-200 rounded-xl hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-500/10 transition-all text-left"
                           >
                             <div className="h-10 w-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
-                               <FileSpreadsheet className="h-5 w-5" />
+                              <FileSpreadsheet className="h-5 w-5" />
                             </div>
                             <div>
-                               <h5 className="font-semibold text-slate-900 text-sm group-hover:text-emerald-700 transition-colors">{template}</h5>
-                               <p className="text-xs text-slate-500 mt-0.5">Click to open & copy</p>
+                              <h5 className="font-semibold text-slate-900 text-sm group-hover:text-emerald-700 transition-colors">
+                                {template}
+                              </h5>
+                              <p className="text-xs text-slate-500 mt-0.5">
+                                Click to open & copy
+                              </p>
                             </div>
                             <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                               <ExternalLink className="h-4 w-4 text-emerald-400" />
+                              <ExternalLink className="h-4 w-4 text-emerald-400" />
                             </div>
                           </button>
                         ))}
-                      </div>
-                      
-                      <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-                         <h5 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">How it works</h5>
-                         <ol className="space-y-2 text-xs text-slate-600 list-decimal list-inside">
-                            <li>Select a template above to open it in Google Sheets</li>
-                            <li>Click <span className="font-mono bg-white px-1 border border-slate-200 rounded">File</span> → <span className="font-mono bg-white px-1 border border-slate-200 rounded">Make a copy</span></li>
-                            <li>Share with <span className="font-medium text-emerald-700">ai.agent.dispatch@gmail.com</span> (Editor access)</li>
-                            <li>Paste the URL of your copy when prompted</li>
-                         </ol>
                       </div>
                     </div>
                   </div>
@@ -1914,8 +2195,12 @@ export default function KnowledgePage() {
                   <LinkIcon className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">Connect Sheet</h3>
-                  <p className="text-xs text-slate-500">Paste your Google Sheet link</p>
+                  <h3 className="text-lg font-bold text-slate-900">
+                    Connect Sheet
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Paste your Google Sheet link
+                  </p>
                 </div>
               </div>
               <button
@@ -1933,7 +2218,9 @@ export default function KnowledgePage() {
             <div className="space-y-4">
               <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
                 <p className="text-sm text-slate-600">
-                  Paste the link for the <strong>{templateCards[clickedTemplateIndex]}</strong> sheet you just copied.
+                  Paste the link for the{" "}
+                  <strong>{templateCards[clickedTemplateIndex]}</strong> sheet
+                  you just copied.
                 </p>
               </div>
 
@@ -1955,7 +2242,9 @@ export default function KnowledgePage() {
                     onChange={(e) => {
                       setGoogleSheetLink(e.target.value);
                       if (e.target.value.trim()) {
-                        const validation = validateGoogleSheetsLink(e.target.value);
+                        const validation = validateGoogleSheetsLink(
+                          e.target.value
+                        );
                         if (!validation.isValid) {
                           setLinkInputError(validation.error || "");
                         } else {
@@ -1972,21 +2261,39 @@ export default function KnowledgePage() {
                     }}
                     placeholder="https://docs.google.com/spreadsheets/d/..."
                     className={`w-full px-4 py-3 pr-10 text-sm bg-slate-50 border rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400 ${
-                      linkInputError ? "border-red-200 focus:border-red-500 focus:ring-red-500/20" : "border-slate-200"
+                      linkInputError
+                        ? "border-red-200 focus:border-red-500 focus:ring-red-500/20"
+                        : "border-slate-200"
                     }`}
                   />
-                  {googleSheetLink.trim() && validateGoogleSheetsLink(googleSheetLink).isValid && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                    </div>
-                  )}
+                  {googleSheetLink.trim() &&
+                    validateGoogleSheetsLink(googleSheetLink).isValid && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500">
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M5 13l4 4L19 7"
+                          ></path>
+                        </svg>
+                      </div>
+                    )}
                 </div>
               </div>
 
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={handleSubmitLink}
-                  disabled={submittingSheet || !validateGoogleSheetsLink(googleSheetLink).isValid}
+                  disabled={
+                    submittingSheet ||
+                    !validateGoogleSheetsLink(googleSheetLink).isValid
+                  }
                   className="flex-1 bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                 >
                   {submittingSheet ? (
@@ -2030,7 +2337,7 @@ interface ChatPanelProps {
   hasKnowledge: boolean;
   hasGoogleSheet: boolean;
   user?: User | null;
-};
+}
 
 function ChatPanel({
   workspaceId,
@@ -2152,13 +2459,14 @@ function ChatPanel({
     } catch (error: unknown) {
       console.error("Error sending message:", error);
       const errorMessage =
-        (error instanceof Error ? error.message : undefined) || "Failed to send message. Please try again.";
+        (error instanceof Error ? error.message : undefined) ||
+        "Failed to send message. Please try again.";
       setMessages((prev) => [
         ...prev,
-        { 
-          role: "assistant", 
+        {
+          role: "assistant",
           content: `⚠️ **Connection Error**\n\nI'm having trouble connecting right now. ${errorMessage}\n\nPlease try again in a moment.`,
-          isError: true 
+          isError: true,
         } as ChatMessage,
       ]);
     } finally {
@@ -2220,8 +2528,8 @@ function ChatPanel({
                   message.role === "user"
                     ? "rounded-br-md bg-gradient-to-br from-sky-500 via-sky-500 to-sky-500 text-white shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/30"
                     : message.isError
-                    ? "rounded-bl-md border-2 border-red-200 bg-red-50 text-red-900 shadow-sm"
-                    : "rounded-bl-md border border-slate-200 bg-white text-slate-800 shadow-md hover:shadow-lg"
+                      ? "rounded-bl-md border-2 border-red-200 bg-red-50 text-red-900 shadow-sm"
+                      : "rounded-bl-md border border-slate-200 bg-white text-slate-800 shadow-md hover:shadow-lg"
                 }`}
               >
                 {message.role === "assistant" ? (
@@ -2245,7 +2553,9 @@ function ChatPanel({
                           <li className="ml-2">{children}</li>
                         ),
                         h1: ({ children }) => (
-                          <h1 className="mb-2 text-base font-bold">{children}</h1>
+                          <h1 className="mb-2 text-base font-bold">
+                            {children}
+                          </h1>
                         ),
                         h2: ({ children }) => (
                           <h2 className="mb-2 text-sm font-bold">{children}</h2>
@@ -2254,7 +2564,9 @@ function ChatPanel({
                           <h3 className="mb-2 text-xs font-bold">{children}</h3>
                         ),
                         strong: ({ children }) => (
-                          <strong className="font-semibold text-slate-900">{children}</strong>
+                          <strong className="font-semibold text-slate-900">
+                            {children}
+                          </strong>
                         ),
                         em: ({ children }) => (
                           <em className="italic">{children}</em>
@@ -2289,23 +2601,31 @@ function ChatPanel({
           <div className="absolute inset-0 -z-10 bg-white/50 backdrop-blur-sm p-6 space-y-4 overflow-hidden">
             {hasGoogleSheet && workspaceId ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                 <div className="bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-slate-100 flex flex-col items-center gap-2 text-center max-w-xs">
-                    <div className="h-10 w-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 mb-1">
-                      <FileSpreadsheet className="h-5 w-5" />
-                    </div>
-                    <p className="text-sm font-semibold text-slate-800">Chat Disabled</p>
-                    <p className="text-xs text-slate-500">Chat is not available when a Google Sheet is connected.</p>
-                 </div>
+                <div className="bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-slate-100 flex flex-col items-center gap-2 text-center max-w-xs">
+                  <div className="h-10 w-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 mb-1">
+                    <FileSpreadsheet className="h-5 w-5" />
+                  </div>
+                  <p className="text-sm font-semibold text-slate-800">
+                    Chat Disabled
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Chat is not available when a Google Sheet is connected.
+                  </p>
+                </div>
               </div>
             ) : !hasKnowledge && workspaceId ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                 <div className="bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-slate-100 flex flex-col items-center gap-2 text-center max-w-xs">
-                    <div className="h-10 w-10 rounded-full bg-sky-50 flex items-center justify-center text-sky-500 mb-1">
-                      <FileText className="h-5 w-5" />
-                    </div>
-                    <p className="text-sm font-semibold text-slate-800">No knowledge yet</p>
-                    <p className="text-xs text-slate-500">Use &quot;Add Knowledge&quot; to get started.</p>
-                 </div>
+                <div className="bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-slate-100 flex flex-col items-center gap-2 text-center max-w-xs">
+                  <div className="h-10 w-10 rounded-full bg-sky-50 flex items-center justify-center text-sky-500 mb-1">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                  <p className="text-sm font-semibold text-slate-800">
+                    No knowledge yet
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Use &quot;Add Knowledge&quot; to get started.
+                  </p>
+                </div>
               </div>
             ) : (
               <>
@@ -2330,7 +2650,9 @@ function ChatPanel({
                   <div className="bg-white/90 backdrop-blur-md px-6 py-3 rounded-full shadow-xl border border-slate-100 flex items-center gap-3">
                     <Loader2 className="h-5 w-5 text-sky-500 animate-spin" />
                     <span className="text-sm font-medium text-slate-600">
-                      {!workspaceId ? "Select a workspace..." : "Loading chat..."}
+                      {!workspaceId
+                        ? "Select a workspace..."
+                        : "Loading chat..."}
                     </span>
                   </div>
                 </div>
@@ -2352,7 +2674,7 @@ function ChatPanel({
               rows={1}
               disabled={!!disabledReason}
               className="w-full resize-none rounded-xl border-2 border-slate-200 bg-white px-4 py-3 pr-12 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 transition-all shadow-sm hover:border-slate-300"
-              style={{ minHeight: '50px', maxHeight: '120px' }}
+              style={{ minHeight: "50px", maxHeight: "120px" }}
             />
           </div>
           <button
@@ -2370,7 +2692,6 @@ function ChatPanel({
             <div className="absolute inset-0 rounded-xl bg-white opacity-0 transition-opacity group-hover:opacity-10"></div>
           </button>
         </div>
-       
       </div>
     </div>
   );

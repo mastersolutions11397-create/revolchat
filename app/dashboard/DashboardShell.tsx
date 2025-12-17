@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, useRef, Suspense } from "react";
 import type { ChangeEvent } from "react";
@@ -24,23 +25,15 @@ import {
   Activity,
   Menu,
   X,
+  Plus,
+  Folders,
 } from "lucide-react";
 import { yettiOnboardingAPI } from "@/lib/api";
 import WorkspaceOnboardingModal from "@/components/workspace/WorkspaceOnboardingModal";
 
 function WorkspaceSelector() {
-  const searchParams = useSearchParams();
-  const { selectWorkspace } = useWorkspace();
-
-  useEffect(() => {
-    const ws = searchParams.get("ws");
-    if (ws) {
-      selectWorkspace(ws).catch((err) =>
-        console.error("Failed to select workspace:", err)
-      );
-    }
-  }, [searchParams, selectWorkspace]);
-
+  // This component is handled by the main DashboardContent component
+  // Keeping it here for backwards compatibility but functionality is in DashboardContent
   return null;
 }
 
@@ -55,10 +48,11 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     workspaces,
     selectWorkspace,
     fetchWorkspaces,
+    createWorkspace,
     loading: workspaceLoading,
     error: workspaceError,
   } = useWorkspace();
-  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [localWorkspaceSelection, setLocalWorkspaceSelection] =
     useState<string>(selectedWorkspaceId ?? "");
@@ -72,6 +66,74 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     name?: string;
   } | null>(null);
   const previousWorkspaceIdRef = useRef<string | null>(selectedWorkspaceId);
+  const [showNewWorkspaceModal, setShowNewWorkspaceModal] = useState(false);
+  const [newWorkspaceName, setNewWorkspaceName] = useState("");
+  const [creatingWorkspace, setCreatingWorkspace] = useState(false);
+
+  // Handle workspace selection from URL query params
+  useEffect(() => {
+    const ws = searchParams.get("ws");
+    // Only select workspace from URL if it differs from currently selected one
+    // and we're not already switching workspaces
+    if (
+      ws &&
+      ws !== selectedWorkspaceId &&
+      !switchingWorkspace &&
+      workspaces.length > 0
+    ) {
+      // Verify the workspace exists in the list
+      const workspaceExists = workspaces.some((w) => w.id === ws);
+      if (workspaceExists) {
+        const selectFromUrl = async () => {
+          setSwitchingWorkspace(true);
+          setWorkspaceSwitchError(null);
+          try {
+            await selectWorkspace(ws);
+
+            // Check onboarding status
+            const status = await yettiOnboardingAPI
+              .getOnboardingStatus(ws)
+              .catch((err: unknown) => {
+                if (
+                  err instanceof Error &&
+                  (err.message.includes("404") ||
+                    err.message.toLowerCase().includes("not found"))
+                ) {
+                  return null;
+                }
+                throw err;
+              });
+
+            if (!status || !status.is_onboarded) {
+              const selectedWorkspace = workspaces.find(
+                (workspace) => workspace.id === ws
+              );
+              setPendingWorkspace({
+                id: ws,
+                name: selectedWorkspace?.name,
+              });
+              setShowOnboardingModal(true);
+            } else {
+              setPendingWorkspace(null);
+              setShowOnboardingModal(false);
+            }
+          } catch (err: unknown) {
+            console.error("Failed to select workspace from URL", err);
+            setWorkspaceSwitchError(
+              err instanceof Error
+                ? err.message
+                : "Unable to select workspace from URL."
+            );
+          } finally {
+            setSwitchingWorkspace(false);
+          }
+        };
+
+        selectFromUrl();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, selectedWorkspaceId, switchingWorkspace, workspaces]);
 
   // Close mobile sidebar when route changes
   useEffect(() => {
@@ -131,12 +193,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     setSwitchingWorkspace(true);
     try {
       await selectWorkspace(newWorkspaceId);
-      
+
       // Update URL query parameter
       const params = new URLSearchParams(searchParams.toString());
       params.set("ws", newWorkspaceId);
       router.replace(`${pathname}?${params.toString()}`);
-      
+
       const status = await yettiOnboardingAPI
         .getOnboardingStatus(newWorkspaceId)
         .catch((err: unknown) => {
@@ -194,6 +256,62 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const handleCreateNewWorkspace = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmedName = newWorkspaceName.trim();
+    if (!trimmedName || trimmedName.length < 3) {
+      return;
+    }
+
+    setCreatingWorkspace(true);
+    try {
+      const workspace = await createWorkspace({
+        name: trimmedName,
+        workspace_type: "personal",
+      });
+
+      // Select the newly created workspace
+      await selectWorkspace(workspace.id);
+
+      // Update URL with new workspace
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("ws", workspace.id);
+      router.replace(`${pathname}?${params.toString()}`);
+
+      setShowNewWorkspaceModal(false);
+      setNewWorkspaceName("");
+
+      // Check onboarding status for newly created workspace
+      const status = await yettiOnboardingAPI
+        .getOnboardingStatus(workspace.id)
+        .catch((err: unknown) => {
+          if (
+            err instanceof Error &&
+            (err.message.includes("404") ||
+              err.message.toLowerCase().includes("not found"))
+          ) {
+            return null;
+          }
+          throw err;
+        });
+
+      if (!status || !status.is_onboarded) {
+        setPendingWorkspace({
+          id: workspace.id,
+          name: workspace.name,
+        });
+        setShowOnboardingModal(true);
+      }
+    } catch (err) {
+      console.error("Failed to create workspace:", err);
+      setWorkspaceSwitchError(
+        err instanceof Error ? err.message : "Failed to create workspace"
+      );
+    } finally {
+      setCreatingWorkspace(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50/50">
       {/* Mobile Overlay */}
@@ -206,6 +324,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside
+        onMouseEnter={() => setSidebarExpanded(true)}
+        onMouseLeave={() => setSidebarExpanded(false)}
         className={`fixed inset-y-0 left-0 z-50 bg-white border-r border-slate-200 transition-all duration-300 ease-in-out shadow-sm ${
           // Mobile: always full width when open, hidden when closed
           mobileSidebarOpen ? "w-72 translate-x-0" : "-translate-x-full"
@@ -218,40 +338,61 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       >
         <div className="flex h-full flex-col">
           {/* Logo */}
-          <div className="flex h-20 items-center justify-between px-6 border-b border-slate-100">
-            <Link
-              href="/"
-              className={`flex items-center gap-2 transition-all duration-300 ${
-                sidebarExpanded || mobileSidebarOpen
-                  ? "opacity-100"
-                  : "opacity-0 w-0 overflow-hidden"
-              }`}
-            >
-              <div className="text-2xl font-extrabold tracking-tight">
-                <span className="text-slate-900">Yetti</span>
-                <span className="text-sky-500">.ai</span>
-              </div>
-            </Link>
-            {!sidebarExpanded && !mobileSidebarOpen && (
-              <div className="mx-auto text-xl font-extrabold tracking-tight text-sky-500">
-                Y
-              </div>
+          <div className="flex h-20 items-center border-b border-slate-100 px-3 md:px-6">
+            {/* Expanded sidebar logo */}
+            {(sidebarExpanded || mobileSidebarOpen) && (
+              <Link
+                href="/"
+                className="flex items-center gap-3 transition-all duration-300"
+              >
+                <Image
+                  src="/yetti/logo.png"
+                  alt="Yetti Logo"
+                  width={40}
+                  height={40}
+                  className="shrink-0"
+                />
+                <div className="text-2xl font-extrabold tracking-tight">
+                  <span className="text-slate-900">Yetti</span>
+                  <span className="text-sky-500">.ai</span>
+                </div>
+              </Link>
             )}
+
+            {/* Collapsed sidebar logo - centered */}
+            {!sidebarExpanded && !mobileSidebarOpen && (
+              <Link
+                href="/"
+                className="flex items-center justify-center w-full"
+              >
+                <Image
+                  src="/yetti/logo.png"
+                  alt="Yetti Logo"
+                  width={48}
+                  height={48}
+                  className="shrink-0"
+                />
+              </Link>
+            )}
+
             {/* Mobile Close Button */}
-            <button
-              onClick={() => setMobileSidebarOpen(false)}
-              className="md:hidden p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-              aria-label="Close sidebar"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            {mobileSidebarOpen && (
+              <button
+                onClick={() => setMobileSidebarOpen(false)}
+                className="ml-auto p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                aria-label="Close sidebar"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            )}
           </div>
 
           {/* Navigation */}
           <nav className="flex-1 space-y-1 px-3 py-6">
             {[
               { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-              { href: "/dashboard/leads", icon: MessageSquare, label: "Leads" },
+              { href: "/workspace", icon: Folders, label: "Workspaces" },
+              { href: "/dashboard/inbox", icon: MessageSquare, label: "Inbox" },
               {
                 href: "/dashboard/knowledge-base",
                 icon: BookOpen,
@@ -351,8 +492,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        {/* Desktop Toggle Button */}
-        <button
+        {/* Desktop Toggle Button - Hidden as sidebar now opens on hover */}
+        {/* <button
           onClick={() => setSidebarExpanded(!sidebarExpanded)}
           className="hidden md:flex absolute -right-3 top-24 h-6 w-6 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-400 shadow-sm hover:text-sky-500 hover:border-sky-200 transition-all z-10"
         >
@@ -361,7 +502,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           ) : (
             <ChevronRight className="h-3 w-3" />
           )}
-        </button>
+        </button> */}
       </aside>
 
       {/* Main Content */}
@@ -418,6 +559,16 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 )}
               </div>
             </div>
+
+            {/* New Workspace Button */}
+            <button
+              onClick={() => setShowNewWorkspaceModal(true)}
+              className="hidden sm:inline-flex items-center gap-2 rounded-xl border-2 border-slate-100 bg-white px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-slate-900 transition-all hover:bg-sky-50 hover:border-sky-300 hover:shadow-sm"
+              title="Create new workspace"
+            >
+              <Plus className="h-4 w-4" />
+              <span>New Workspace</span>
+            </button>
 
             {(workspaceSwitchError || workspaceError) && (
               <p className="hidden sm:block text-xs text-red-500 font-medium bg-red-50 px-3 py-1 rounded-full border border-red-100 whitespace-nowrap">
@@ -501,6 +652,116 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           onClose={handleOnboardingModalClose}
           onCompleted={handleOnboardingCompleted}
         />
+
+        {/* New Workspace Modal */}
+        {showNewWorkspaceModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in-up">
+              {/* Header */}
+              <div className="relative p-6 pb-4 bg-linear-to-br from-sky-50 to-white border-b border-slate-100">
+                <button
+                  onClick={() => {
+                    setShowNewWorkspaceModal(false);
+                    setNewWorkspaceName("");
+                  }}
+                  className="absolute top-4 right-4 p-2 rounded-lg text-slate-400 hover:bg-white hover:text-slate-900 transition-all hover:shadow-sm"
+                  aria-label="Close"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-linear-to-br from-sky-500 to-sky-600 flex items-center justify-center shadow-lg shadow-sky-500/30">
+                    <Plus className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-slate-900">
+                      Create New Workspace
+                    </h3>
+                    <p className="text-sm text-slate-500 mt-0.5">
+                      Set up a fresh space for your projects
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleCreateNewWorkspace} className="p-6">
+                <div className="mb-6">
+                  <label
+                    htmlFor="workspace-name"
+                    className="block text-sm font-bold text-slate-700 mb-2.5"
+                  >
+                    Workspace Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="workspace-name"
+                    type="text"
+                    value={newWorkspaceName}
+                    onChange={(e) => setNewWorkspaceName(e.target.value)}
+                    placeholder="e.g., My Awesome Project"
+                    className="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 transition-all hover:border-sky-300 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-500/10 text-base"
+                    minLength={3}
+                    required
+                    autoFocus
+                  />
+                  <div className="flex items-center gap-1.5 mt-2.5">
+                    <div
+                      className={`h-1.5 w-1.5 rounded-full transition-colors ${
+                        newWorkspaceName.trim().length >= 3
+                          ? "bg-green-500"
+                          : "bg-slate-300"
+                      }`}
+                    />
+                    <p
+                      className={`text-xs transition-colors ${
+                        newWorkspaceName.trim().length >= 3
+                          ? "text-green-600 font-medium"
+                          : "text-slate-500"
+                      }`}
+                    >
+                      {newWorkspaceName.trim().length >= 3
+                        ? "✓ Looks good!"
+                        : "Minimum 3 characters required"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowNewWorkspaceModal(false);
+                      setNewWorkspaceName("");
+                    }}
+                    className="flex-1 px-5 py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={
+                      creatingWorkspace || newWorkspaceName.trim().length < 3
+                    }
+                    className="flex-1 px-5 py-3.5 rounded-xl bg-linear-to-r from-sky-500 to-sky-600 text-white font-bold shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none flex items-center justify-center gap-2 whitespace-nowrap"
+                  >
+                    {creatingWorkspace ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+                        <span>Creating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4 shrink-0" />
+                        <span>Create Workspace</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

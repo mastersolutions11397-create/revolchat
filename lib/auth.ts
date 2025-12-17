@@ -118,7 +118,7 @@ export const authService = {
     return { data, error };
   },
 
-  async signInWithGoogle() {
+  async signInWithGoogle(redirectAfterLogin?: string) {
     try {
       // Get the current origin, handling both client and server environments
       const origin =
@@ -126,12 +126,15 @@ export const authService = {
           ? window.location.origin
           : process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-      const redirectTo = `${origin}/auth/callback`;
+      // Include the redirect URL in the callback URL as a query parameter
+      const callbackUrl = redirectAfterLogin
+        ? `${origin}/auth/callback?next=${encodeURIComponent(redirectAfterLogin)}`
+        : `${origin}/auth/callback`;
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo,
+          redirectTo: callbackUrl,
           queryParams: {
             access_type: "offline",
             prompt: "consent",
