@@ -28,6 +28,7 @@ import {
   Plus,
 } from "lucide-react";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
+import { useOnboardingTour } from "@/lib/contexts/OnboardingTourContext";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
@@ -45,6 +46,13 @@ export default function DashboardPage() {
     selectWorkspace,
     loading: workspaceLoading,
   } = useWorkspace();
+  const {
+    startTour,
+    onWorkspaceCreated,
+    onOnboardingModalCompleted,
+    tourStatus,
+    loading: tourLoading,
+  } = useOnboardingTour();
   const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(
     null
   );
@@ -94,6 +102,30 @@ export default function DashboardPage() {
       setShowNewUserModal(true);
     }
   }, [user, workspaceLoading, hasWorkspaces]);
+
+  // Auto-start tour for new users who haven't completed it
+  useEffect(() => {
+    if (
+      user &&
+      !tourLoading &&
+      !workspaceLoading &&
+      hasWorkspaces &&
+      tourStatus === "not_started"
+    ) {
+      // Small delay to ensure UI is ready
+      const timer = setTimeout(() => {
+        startTour();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [
+    user,
+    tourLoading,
+    workspaceLoading,
+    hasWorkspaces,
+    tourStatus,
+    startTour,
+  ]);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -421,6 +453,9 @@ export default function DashboardPage() {
         });
         setShowOnboardingModal(true);
       }
+
+      // Trigger tour callback for workspace creation
+      onWorkspaceCreated();
     } catch (err) {
       console.error("Failed to create workspace:", err);
       toast.error(
@@ -435,6 +470,9 @@ export default function DashboardPage() {
     setShowOnboardingModal(false);
     setPendingWorkspace(null);
     toast.success("Workspace setup complete!");
+
+    // Trigger tour callback for onboarding modal completion
+    onOnboardingModalCompleted();
   };
 
   if (loading || workspaceLoading) {

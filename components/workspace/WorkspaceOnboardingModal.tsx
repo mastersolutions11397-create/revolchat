@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, AlertCircle, ChevronLeft, ChevronRight, Check } from "lucide-react";
+import {
+  Loader2,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+} from "lucide-react";
 import Image from "next/image";
 
 import Modal from "@/components/ui/modal-drop";
@@ -215,17 +221,31 @@ export function WorkspaceOnboardingModal({
 
         if (cancelled) return;
 
-        const questionnaireTyped = questionnaire as {
-          questions?: unknown[];
-          questionnaire?: unknown[];
-        } | unknown[];
+        const questionnaireTyped = questionnaire as
+          | {
+              questions?: unknown[];
+              questionnaire?: unknown[];
+            }
+          | unknown[];
 
         let extractedQuestionsRaw: unknown[] = [];
 
-        if (Array.isArray((questionnaireTyped as { questions?: unknown[] }).questions)) {
-          extractedQuestionsRaw = (questionnaireTyped as { questions: unknown[] }).questions;
-        } else if (Array.isArray((questionnaireTyped as { questionnaire?: unknown[] }).questionnaire)) {
-          extractedQuestionsRaw = (questionnaireTyped as { questionnaire: unknown[] }).questionnaire;
+        if (
+          Array.isArray(
+            (questionnaireTyped as { questions?: unknown[] }).questions
+          )
+        ) {
+          extractedQuestionsRaw = (
+            questionnaireTyped as { questions: unknown[] }
+          ).questions;
+        } else if (
+          Array.isArray(
+            (questionnaireTyped as { questionnaire?: unknown[] }).questionnaire
+          )
+        ) {
+          extractedQuestionsRaw = (
+            questionnaireTyped as { questionnaire: unknown[] }
+          ).questionnaire;
         } else if (Array.isArray(questionnaire)) {
           extractedQuestionsRaw = questionnaire;
         }
@@ -327,7 +347,7 @@ export function WorkspaceOnboardingModal({
   const handleNext = (event?: React.MouseEvent<HTMLButtonElement>) => {
     event?.preventDefault();
     event?.stopPropagation();
-    
+
     if (currentQuestionIndex >= normalizedQuestions.length - 1) {
       return;
     }
@@ -353,7 +373,7 @@ export function WorkspaceOnboardingModal({
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    console.log("ANSWERS",answers);
+    console.log("ANSWERS", answers);
     if (!workspaceId) return;
 
     const missingRequired = normalizedQuestions.filter(
@@ -405,6 +425,7 @@ export function WorkspaceOnboardingModal({
           : DEFAULT_SUBTITLE
       }
       disablePadding
+      data-tour="onboarding-modal"
       className="max-w-2xl p-0 text-white overflow-hidden bg-slate-900 border border-white/10 shadow-2xl shadow-black/50"
     >
       <div className="max-h-[85vh] overflow-y-auto">
@@ -421,7 +442,11 @@ export function WorkspaceOnboardingModal({
               <AlertCircle className="w-8 h-8 text-red-500" />
             </div>
             <p className="text-red-400 mb-4">{error}</p>
-            <Button onClick={onClose} variant="outline" className="border-white/10 text-white hover:bg-white/5">
+            <Button
+              onClick={onClose}
+              variant="outline"
+              className="border-white/10 text-white hover:bg-white/5"
+            >
               Close
             </Button>
           </div>
@@ -430,15 +455,15 @@ export function WorkspaceOnboardingModal({
             <p>No onboarding questions are configured yet.</p>
           </div>
         ) : (
-          <form 
-            onSubmit={handleSubmit} 
+          <form
+            onSubmit={handleSubmit}
             onKeyDown={(e) => {
               // Prevent Enter from submitting form unless on last question
               // Allow Enter in textareas for new lines
               if (
-                e.key === 'Enter' && 
+                e.key === "Enter" &&
                 currentQuestionIndex < normalizedQuestions.length - 1 &&
-                (e.target as HTMLElement).tagName !== 'TEXTAREA'
+                (e.target as HTMLElement).tagName !== "TEXTAREA"
               ) {
                 e.preventDefault();
                 handleNext();
@@ -449,14 +474,25 @@ export function WorkspaceOnboardingModal({
             {/* Progress Bar */}
             <div className="mb-8">
               <div className="flex justify-between text-xs font-medium text-slate-400 mb-2">
-                <span>Question {currentQuestionIndex + 1} of {normalizedQuestions.length}</span>
-                <span>{Math.round(((currentQuestionIndex + 1) / normalizedQuestions.length) * 100)}% Complete</span>
+                <span>
+                  Question {currentQuestionIndex + 1} of{" "}
+                  {normalizedQuestions.length}
+                </span>
+                <span>
+                  {Math.round(
+                    ((currentQuestionIndex + 1) / normalizedQuestions.length) *
+                      100
+                  )}
+                  % Complete
+                </span>
               </div>
               <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                <motion.div 
+                <motion.div
                   className="h-full bg-gradient-to-r from-sky-500 to-sky-500"
                   initial={{ width: 0 }}
-                  animate={{ width: `${((currentQuestionIndex + 1) / normalizedQuestions.length) * 100}%` }}
+                  animate={{
+                    width: `${((currentQuestionIndex + 1) / normalizedQuestions.length) * 100}%`,
+                  }}
                   transition={{ duration: 0.3 }}
                 />
               </div>
@@ -475,7 +511,10 @@ export function WorkspaceOnboardingModal({
                   {(() => {
                     const { question, type, options, key } =
                       normalizedQuestions[currentQuestionIndex];
-                    const label = getQuestionLabel(question, currentQuestionIndex);
+                    const label = getQuestionLabel(
+                      question,
+                      currentQuestionIndex
+                    );
                     const description =
                       question.description || question.helper_text;
                     const value = answers[key];
@@ -490,9 +529,7 @@ export function WorkspaceOnboardingModal({
                             )}
                           </h3>
                           {description && (
-                            <p className="text-slate-400">
-                              {description}
-                            </p>
+                            <p className="text-slate-400">{description}</p>
                           )}
                         </div>
 
@@ -542,7 +579,9 @@ export function WorkspaceOnboardingModal({
                                 const numericValue = event.target.value;
                                 handleAnswerChange(
                                   key,
-                                  numericValue === "" ? null : Number(numericValue)
+                                  numericValue === ""
+                                    ? null
+                                    : Number(numericValue)
                                 );
                               }}
                               placeholder={
@@ -584,11 +623,19 @@ export function WorkspaceOnboardingModal({
                               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all outline-none appearance-none"
                               autoFocus
                             >
-                              <option value="" disabled className="bg-slate-900 text-slate-400">
+                              <option
+                                value=""
+                                disabled
+                                className="bg-slate-900 text-slate-400"
+                              >
                                 {question.placeholder || "Select an option"}
                               </option>
                               {options.map((option) => (
-                                <option key={option.value} value={option.value} className="bg-slate-900 text-white">
+                                <option
+                                  key={option.value}
+                                  value={option.value}
+                                  className="bg-slate-900 text-white"
+                                >
                                   {option.label}
                                 </option>
                               ))}
@@ -604,20 +651,28 @@ export function WorkspaceOnboardingModal({
                                   const existing = Array.isArray(value)
                                     ? value
                                     : [];
-                                  const checked = existing.includes(option.value);
+                                  const checked = existing.includes(
+                                    option.value
+                                  );
                                   return (
                                     <label
                                       key={option.value}
                                       className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
-                                        checked 
-                                          ? "bg-sky-500/10 border-sky-500/50" 
+                                        checked
+                                          ? "bg-sky-500/10 border-sky-500/50"
                                           : "bg-white/5 border-white/10 hover:bg-white/10"
                                       }`}
                                     >
-                                      <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-                                        checked ? "bg-sky-500 border-sky-500" : "border-slate-500"
-                                      }`}>
-                                        {checked && <Check className="w-3.5 h-3.5 text-white" />}
+                                      <div
+                                        className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                                          checked
+                                            ? "bg-sky-500 border-sky-500"
+                                            : "border-slate-500"
+                                        }`}
+                                      >
+                                        {checked && (
+                                          <Check className="w-3.5 h-3.5 text-white" />
+                                        )}
                                       </div>
                                       <input
                                         type="checkbox"
@@ -630,22 +685,32 @@ export function WorkspaceOnboardingModal({
                                         }
                                         className="hidden"
                                       />
-                                      <span className="text-white font-medium">{option.label}</span>
+                                      <span className="text-white font-medium">
+                                        {option.label}
+                                      </span>
                                     </label>
                                   );
                                 })
                               )}
                             </div>
                           ) : type === "boolean" ? (
-                            <label className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
-                              Boolean(value)
-                                ? "bg-sky-500/10 border-sky-500/50" 
-                                : "bg-white/5 border-white/10 hover:bg-white/10"
-                            }`}>
-                              <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-                                Boolean(value) ? "bg-sky-500 border-sky-500" : "border-slate-500"
-                              }`}>
-                                {Boolean(value) && <Check className="w-3.5 h-3.5 text-white" />}
+                            <label
+                              className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
+                                Boolean(value)
+                                  ? "bg-sky-500/10 border-sky-500/50"
+                                  : "bg-white/5 border-white/10 hover:bg-white/10"
+                              }`}
+                            >
+                              <div
+                                className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+                                  Boolean(value)
+                                    ? "bg-sky-500 border-sky-500"
+                                    : "border-slate-500"
+                                }`}
+                              >
+                                {Boolean(value) && (
+                                  <Check className="w-3.5 h-3.5 text-white" />
+                                )}
                               </div>
                               <input
                                 type="checkbox"
@@ -655,7 +720,9 @@ export function WorkspaceOnboardingModal({
                                 }
                                 className="hidden"
                               />
-                              <span className="text-white font-medium">{question.placeholder || "Yes"}</span>
+                              <span className="text-white font-medium">
+                                {question.placeholder || "Yes"}
+                              </span>
                             </label>
                           ) : (
                             <input

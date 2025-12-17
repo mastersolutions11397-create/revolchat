@@ -1,5 +1,7 @@
 import ProtectedRoute from "@/components/ProtectedRoute";
 import DashboardShell from "@/components/dashboard/DashboardShell";
+import { OnboardingTourProvider } from "@/lib/contexts/OnboardingTourContext";
+import { OnboardingTour } from "@/components/onboarding/OnboardingTour";
 import React from "react";
 
 export default function DashboardLayout({
@@ -9,7 +11,10 @@ export default function DashboardLayout({
 }) {
   return (
     <ProtectedRoute>
-      <DashboardShell>{children}</DashboardShell>
+      <OnboardingTourProvider>
+        <OnboardingTour />
+        <DashboardShell>{children}</DashboardShell>
+      </OnboardingTourProvider>
     </ProtectedRoute>
   );
 }

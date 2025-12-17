@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { integrationsAPI } from "@/lib/api";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { useAuth } from "@/lib/auth-context";
+import { useOnboardingTour } from "@/lib/contexts/OnboardingTourContext";
 
 type InstagramIntegration = {
   username: string;
@@ -106,10 +107,16 @@ export default function IntegrationsPage() {
     loading: workspaceLoading,
   } = useWorkspace();
   const { user } = useAuth();
+  const { onNavigateToIntegrations } = useOnboardingTour();
   const workspaceId = useMemo(
     () => selectedWorkspaceId || currentWorkspace?.id || null,
     [selectedWorkspaceId, currentWorkspace?.id]
   );
+
+  // Trigger tour callback when landing on integrations page
+  useEffect(() => {
+    onNavigateToIntegrations();
+  }, [onNavigateToIntegrations]);
 
   const [instagramIntegration, setInstagramIntegration] =
     useState<InstagramIntegration | null>(null);
@@ -406,6 +413,7 @@ export default function IntegrationsPage() {
           {CHANNELS.map((channel, index) => (
             <div
               key={channel.name}
+              data-tour={index === 0 ? "integration-card" : undefined}
               className="group relative overflow-hidden rounded-2xl sm:rounded-3xl bg-white border border-slate-200 hover:border-sky-300 transition-all duration-300 shadow-lg hover:shadow-2xl"
               style={{
                 animation: `fadeInUp 0.5s ease-out ${index * 0.1}s both`,
@@ -673,7 +681,9 @@ export default function IntegrationsPage() {
                                 Connected Account
                               </p>
                               <p className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2 truncate">
-                                <span className="truncate">@{instagramIntegration.username}</span>
+                                <span className="truncate">
+                                  @{instagramIntegration.username}
+                                </span>
                                 <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-sky-500 flex-shrink-0" />
                               </p>
                             </div>
@@ -736,7 +746,9 @@ export default function IntegrationsPage() {
           <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
             <div className="rounded-t-xl bg-gradient-to-br from-[#0b1220] to-[#1a1f35] text-white px-4 py-3 mb-2 flex items-start sm:items-center justify-between gap-3">
               <div className="flex-1 min-w-0">
-                <h3 className="text-base sm:text-lg font-bold">Connect Telegram Bot</h3>
+                <h3 className="text-base sm:text-lg font-bold">
+                  Connect Telegram Bot
+                </h3>
                 <p className="text-xs text-white/70 mt-1">
                   Enter your Telegram bot access token to connect.
                 </p>

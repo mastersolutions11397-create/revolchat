@@ -390,30 +390,59 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           {/* Navigation */}
           <nav className="flex-1 space-y-1 px-3 py-6">
             {[
-              { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-              { href: "/workspace", icon: Folders, label: "Workspaces" },
-              { href: "/dashboard/inbox", icon: MessageSquare, label: "Inbox" },
+              {
+                href: "/dashboard",
+                icon: LayoutDashboard,
+                label: "Dashboard",
+                tourId: null,
+              },
+              {
+                href: "/workspace",
+                icon: Folders,
+                label: "Workspaces",
+                tourId: null,
+              },
+              {
+                href: "/dashboard/inbox",
+                icon: MessageSquare,
+                label: "Inbox",
+                tourId: null,
+              },
               {
                 href: "/dashboard/knowledge-base",
                 icon: BookOpen,
                 label: "Knowledge Base",
+                tourId: "knowledge-base-nav",
               },
               {
                 href: "/dashboard/integrations",
                 icon: Link2,
                 label: "Integrations",
+                tourId: "integrations-nav",
               },
-              { href: "/dashboard/plans", icon: Crown, label: "Plans" },
+              {
+                href: "/dashboard/plans",
+                icon: Crown,
+                label: "Plans",
+                tourId: null,
+              },
               {
                 href: "/dashboard/billing",
                 icon: CreditCard,
                 label: "Billing",
+                tourId: null,
               },
-              { href: "/dashboard/usage", icon: Activity, label: "Usage" },
+              {
+                href: "/dashboard/usage",
+                icon: Activity,
+                label: "Usage",
+                tourId: null,
+              },
               {
                 href: "/dashboard/settings",
                 icon: Settings,
                 label: "Settings",
+                tourId: "settings-nav",
               },
             ].map((item) => {
               const active = isActive(item.href);
@@ -422,6 +451,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                   key={item.href}
                   href={buildLink(item.href)}
                   onClick={() => setMobileSidebarOpen(false)}
+                  data-tour={item.tourId || undefined}
                   className={`group flex items-center rounded-xl px-3 py-3 transition-all duration-200 ${
                     active
                       ? "bg-sky-50 text-sky-500 shadow-sm ring-1 ring-sky-100"
@@ -563,6 +593,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             {/* New Workspace Button */}
             <button
               onClick={() => setShowNewWorkspaceModal(true)}
+              data-tour="create-workspace-button"
               className="hidden sm:inline-flex items-center gap-2 rounded-xl border-2 border-slate-100 bg-white px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-slate-900 transition-all hover:bg-sky-50 hover:border-sky-300 hover:shadow-sm"
               title="Create new workspace"
             >

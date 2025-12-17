@@ -11,6 +11,7 @@ import {
 import { User } from "@supabase/supabase-js";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
+import { useOnboardingTour } from "@/lib/contexts/OnboardingTourContext";
 import { knowledgeAPI } from "@/lib/api/knowledge";
 import type { KnowledgeRecord, KnowledgeImportance } from "@/lib/api/knowledge";
 import {
@@ -76,6 +77,7 @@ export default function KnowledgePage() {
   const { user } = useAuth();
   console.log("user", user);
   const { currentWorkspace, selectedWorkspaceId } = useWorkspace();
+  const { onNavigateToKnowledgeBase } = useOnboardingTour();
   const [localSelectedId, setLocalSelectedId] = useState<string | null>(null);
   const [knowledgeItems, setKnowledgeItems] = useState<KnowledgeRecord[]>([]);
   const [knowledgeLoading, setKnowledgeLoading] = useState(false);
@@ -92,6 +94,11 @@ export default function KnowledgePage() {
       }
     } catch {}
   }, []);
+
+  // Trigger tour callback when landing on knowledge base page
+  useEffect(() => {
+    onNavigateToKnowledgeBase();
+  }, [onNavigateToKnowledgeBase]);
   const [activeTab, setActiveTab] = useState<"text" | "pdf" | "sheets" | null>(
     null
   );
@@ -793,6 +800,7 @@ export default function KnowledgePage() {
           <div className="relative z-50" ref={addMenuRef}>
             <button
               type="button"
+              data-tour="add-knowledge-button"
               onClick={() => setIsAddMenuOpen((prev) => !prev)}
               className="inline-flex items-center gap-2 rounded-xl bg-white text-slate-900 px-6 py-3 text-sm font-bold transition-all hover:bg-sky-50 hover:text-sky-700 shadow-lg shadow-black/10 active:scale-[0.98]"
             >

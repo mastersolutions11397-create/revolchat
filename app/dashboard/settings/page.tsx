@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
+import { useOnboardingTour } from "@/lib/contexts/OnboardingTourContext";
 import {
   Settings as SettingsIcon,
   Bell,
@@ -241,6 +242,7 @@ export default function SettingsPage() {
 
   // Yetti Hours State
   const { selectedWorkspaceId, currentWorkspace } = useWorkspace();
+  const { onNavigateToSettings } = useOnboardingTour();
   const workspaceId = selectedWorkspaceId || currentWorkspace?.id || null;
   const [hoursLoading, setHoursLoading] = useState(false);
   const [hoursSaving, setHoursSaving] = useState(false);
@@ -275,6 +277,11 @@ export default function SettingsPage() {
 
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, []);
+
+  // Trigger tour callback when landing on settings page
+  useEffect(() => {
+    onNavigateToSettings();
+  }, [onNavigateToSettings]);
 
   useEffect(() => {
     if (!workspaceId) return;
@@ -739,7 +746,10 @@ export default function SettingsPage() {
           </div>
 
           {/* Yetti Hours Section */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm space-y-8">
+          <div
+            data-tour="workspace-hours-section"
+            className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm space-y-8"
+          >
             <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
               <div className="p-2 bg-sky-50 rounded-lg text-sky-500">
                 <CalendarClock className="h-5 w-5" />
