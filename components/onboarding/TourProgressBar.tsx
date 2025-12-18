@@ -21,7 +21,7 @@ export function TourProgressBar({ currentStep, onSkip }: TourProgressBarProps) {
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: -100, opacity: 0 }}
         transition={{ duration: 0.3 }}
-        className="fixed top-0 left-0 right-0 z-[9999] bg-gradient-to-r from-slate-900 via-slate-800 to-sky-900 shadow-xl"
+        className="fixed top-16 md:top-20 left-0 right-0 z-[9999] bg-gradient-to-r from-slate-900 via-slate-800 to-sky-900 shadow-xl"
       >
         {isMinimized ? (
           // Minimized view
