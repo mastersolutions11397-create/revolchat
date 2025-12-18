@@ -77,6 +77,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     // and we're not already switching workspaces
     if (
       ws &&
+      ws !== "undefined" &&
+      ws !== "null" &&
       ws !== selectedWorkspaceId &&
       !switchingWorkspace &&
       workspaces.length > 0
@@ -94,6 +96,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             const status = await yettiOnboardingAPI
               .getOnboardingStatus(ws)
               .catch((err: unknown) => {
+                console.error("Failed to fetch Yetti onboarding status:", err);
                 if (
                   err instanceof Error &&
                   (err.message.includes("404") ||
@@ -101,7 +104,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 ) {
                   return null;
                 }
-                throw err;
+                // Don't throw on onboarding status errors - just log and continue
+                return null;
               });
 
             if (!status || !status.is_onboarded) {
@@ -186,7 +190,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     setLocalWorkspaceSelection(newWorkspaceId);
     setWorkspaceSwitchError(null);
 
-    if (!newWorkspaceId) {
+    if (!newWorkspaceId || newWorkspaceId === "undefined") {
+      console.error("Invalid workspace ID:", newWorkspaceId);
       return;
     }
 
@@ -202,6 +207,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       const status = await yettiOnboardingAPI
         .getOnboardingStatus(newWorkspaceId)
         .catch((err: unknown) => {
+          console.error("Failed to fetch Yetti onboarding status:", err);
           if (
             err instanceof Error &&
             (err.message.includes("404") ||
@@ -209,7 +215,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           ) {
             return null;
           }
-          throw err;
+          // Don't throw on onboarding status errors - just log and continue
+          return null;
         });
 
       if (!status || !status.is_onboarded) {
@@ -270,6 +277,13 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         workspace_type: "personal",
       });
 
+      // Validate workspace ID exists
+      if (!workspace || !workspace.id) {
+        throw new Error("Failed to create workspace: Invalid workspace data returned");
+      }
+
+      console.log("Created workspace:", workspace);
+
       // Select the newly created workspace
       await selectWorkspace(workspace.id);
 
@@ -285,6 +299,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       const status = await yettiOnboardingAPI
         .getOnboardingStatus(workspace.id)
         .catch((err: unknown) => {
+          console.error("Failed to fetch Yetti onboarding status:", err);
           if (
             err instanceof Error &&
             (err.message.includes("404") ||
@@ -292,7 +307,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           ) {
             return null;
           }
-          throw err;
+          // Don't throw on onboarding status errors - just log and continue
+          return null;
         });
 
       if (!status || !status.is_onboarded) {

@@ -94,6 +94,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const persistWorkspaceId = (workspaceId: string) => {
     try {
       if (typeof window === "undefined") return;
+      // Don't persist invalid workspace IDs
+      if (!workspaceId || workspaceId === "undefined" || workspaceId === "null") {
+        console.error("Attempted to persist invalid workspace ID:", workspaceId);
+        return;
+      }
       localStorage.setItem("selectedWorkspaceId", workspaceId);
       setSelectedWorkspaceId(workspaceId);
     } catch {
@@ -143,6 +148,13 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           workspace_type: data.workspace_type || "personal",
         });
 
+        // Validate returned workspace has a valid ID
+        if (!workspace || !workspace.id || workspace.id === "undefined") {
+          throw new Error("Invalid workspace data returned from server");
+        }
+
+        console.log("Workspace created successfully:", workspace.id);
+
         // Refresh workspaces list
         await fetchWorkspaces();
 
@@ -154,6 +166,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         return workspace;
       } catch (err: any) {
         const errorMessage = err.message || "Failed to create workspace";
+        console.error("Create workspace error:", errorMessage, err);
         setError(errorMessage);
         throw err;
       } finally {
@@ -166,6 +179,14 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const selectWorkspace = useCallback(
     async (workspaceId: string) => {
       if (!user?.id) return;
+
+      // Validate workspace ID before attempting to select
+      if (!workspaceId || workspaceId === "undefined" || workspaceId === "null") {
+        const errorMsg = `Invalid workspace ID: ${workspaceId}`;
+        console.error(errorMsg);
+        setError(errorMsg);
+        return;
+      }
 
       setLoading(true);
       setError(null);
