@@ -20,6 +20,17 @@ export function CustomTooltip({
   size,
   isLastStep,
 }: CustomTooltipProps) {
+  // Get custom data from step to determine if this is the actual last step
+  const stepData = step.data as
+    | {
+        isActualLastStep?: boolean;
+        currentStepIndex?: number;
+        totalSteps?: number;
+      }
+    | undefined;
+  const isActualLastStep = stepData?.isActualLastStep ?? isLastStep;
+  const actualStepIndex = stepData?.currentStepIndex ?? index;
+  const totalSteps = stepData?.totalSteps ?? size;
   return (
     <div
       {...tooltipProps}
@@ -36,11 +47,11 @@ export function CustomTooltip({
             <div className="flex items-center gap-2 mb-2">
               <div className="flex items-center justify-center w-8 h-8 rounded-full bg-sky-500/20 ring-2 ring-sky-500/50">
                 <span className="text-sm font-bold text-sky-400">
-                  {index + 1}
+                  {actualStepIndex + 1}
                 </span>
               </div>
               <span className="text-xs font-semibold text-sky-400 uppercase tracking-wider">
-                Step {index + 1} of {size}
+                Step {actualStepIndex + 1} of {totalSteps}
               </span>
             </div>
           </div>
@@ -74,7 +85,7 @@ export function CustomTooltip({
 
           <div className="flex items-center gap-2">
             {/* Back button */}
-            {index > 0 && (
+            {actualStepIndex > 0 && (
               <button
                 {...backProps}
                 className="flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-white/10"
@@ -88,14 +99,30 @@ export function CustomTooltip({
             {continuous ? (
               <button
                 {...primaryProps}
+                onClick={(e) => {
+                  console.log("Tooltip button clicked:", {
+                    isActualLastStep,
+                    isLastStep,
+                    continuous,
+                    actualStepIndex,
+                    index,
+                    totalSteps,
+                    size,
+                  });
+                  primaryProps.onClick(e);
+                }}
                 className="flex items-center gap-1 rounded-lg bg-gradient-to-r from-sky-500 to-sky-600 px-5 py-2 text-sm font-bold text-white shadow-lg shadow-sky-500/30 transition-all hover:shadow-sky-500/50 hover:from-sky-600 hover:to-sky-700"
               >
-                {isLastStep ? "Finish" : "Next"}
-                {!isLastStep && <ChevronRight className="h-4 w-4" />}
+                {isActualLastStep ? "Finish" : "Next"}
+                {!isActualLastStep && <ChevronRight className="h-4 w-4" />}
               </button>
             ) : (
               <button
                 {...closeProps}
+                onClick={(e) => {
+                  console.log("Got it button clicked");
+                  closeProps.onClick(e);
+                }}
                 className="rounded-lg bg-gradient-to-r from-sky-500 to-sky-600 px-5 py-2 text-sm font-bold text-white shadow-lg shadow-sky-500/30 transition-all hover:shadow-sky-500/50"
               >
                 Got it

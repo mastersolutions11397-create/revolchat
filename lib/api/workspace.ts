@@ -64,6 +64,10 @@ class WorkspaceAPI {
         let errorMessage = `Request failed with status ${response.status}`;
         try {
           const errorData = await response.json();
+          console.error(
+            "Workspace creation failed - Error response:",
+            errorData
+          );
           const detail =
             errorData?.detail ?? errorData?.message ?? errorData?.error;
           if (typeof detail === "string") {
@@ -81,16 +85,23 @@ class WorkspaceAPI {
         throw new Error(errorMessage);
       }
 
-      return response.json();
+      const result = await response.json();
+      console.log("Workspace API Response:", result);
+      return result;
     } else {
-      return apiRequest<WorkspaceResponse>("/api/yetti/workspaces", {
-        method: "POST",
-        body: JSON.stringify({
-          name: data.name,
-          description: data.description,
-          workspace_type: data.workspace_type,
-        }),
-      });
+      const result = await apiRequest<WorkspaceResponse>(
+        "/api/yetti/workspaces",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name: data.name,
+            description: data.description,
+            workspace_type: data.workspace_type,
+          }),
+        }
+      );
+      console.log("Workspace API Response:", result);
+      return result;
     }
   }
 

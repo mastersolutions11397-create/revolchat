@@ -7,6 +7,7 @@ import { useEffect, useState, useRef, Suspense } from "react";
 import type { ChangeEvent } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
+import { useOnboardingTour } from "@/lib/contexts/OnboardingTourContext";
 import { useCredits } from "@/lib/hooks/useCredits";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -52,6 +53,13 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     loading: workspaceLoading,
     error: workspaceError,
   } = useWorkspace();
+  const {
+    tourActive,
+    tourStatus,
+    onNavigateToKnowledgeBase,
+    onNavigateToIntegrations,
+    onNavigateToSettings,
+  } = useOnboardingTour();
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [localWorkspaceSelection, setLocalWorkspaceSelection] =
@@ -108,15 +116,22 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 return null;
               });
 
+            // Don't show workspace onboarding modal if tour is active or completed
             if (!status || !status.is_onboarded) {
-              const selectedWorkspace = workspaces.find(
-                (workspace) => workspace.id === ws
-              );
-              setPendingWorkspace({
-                id: ws,
-                name: selectedWorkspace?.name,
-              });
-              setShowOnboardingModal(true);
+              if (
+                !tourActive &&
+                tourStatus !== "in_progress" &&
+                tourStatus !== "completed"
+              ) {
+                const selectedWorkspace = workspaces.find(
+                  (workspace) => workspace.id === ws
+                );
+                setPendingWorkspace({
+                  id: ws,
+                  name: selectedWorkspace?.name,
+                });
+                setShowOnboardingModal(true);
+              }
             } else {
               setPendingWorkspace(null);
               setShowOnboardingModal(false);
@@ -161,6 +176,26 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   };
 
   const isActive = (path: string) => pathname === path;
+
+  // Handle navigation link clicks for onboarding tour
+  const handleNavClick = (href: string) => {
+    console.log("Navigation clicked:", href, { tourActive });
+    if (tourActive) {
+      // Trigger appropriate onboarding callback based on destination
+      if (href === "/dashboard/knowledge-base") {
+        console.log("Triggering Knowledge Base callback");
+        onNavigateToKnowledgeBase();
+      } else if (href === "/dashboard/integrations") {
+        console.log("Triggering Integrations callback");
+        onNavigateToIntegrations();
+      } else if (href === "/dashboard/settings") {
+        console.log("Triggering Settings callback");
+        onNavigateToSettings();
+      }
+    }
+    // Close mobile sidebar after navigation
+    setMobileSidebarOpen(false);
+  };
 
   const buildLink = (path: string) => {
     let workspaceId = selectedWorkspaceId || searchParams.get("ws");
@@ -219,15 +254,22 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           return null;
         });
 
+      // Don't show workspace onboarding modal if tour is active or completed
       if (!status || !status.is_onboarded) {
-        const selectedWorkspace = workspaces.find(
-          (workspace) => workspace.id === newWorkspaceId
-        );
-        setPendingWorkspace({
-          id: newWorkspaceId,
-          name: selectedWorkspace?.name,
-        });
-        setShowOnboardingModal(true);
+        if (
+          !tourActive &&
+          tourStatus !== "in_progress" &&
+          tourStatus !== "completed"
+        ) {
+          const selectedWorkspace = workspaces.find(
+            (workspace) => workspace.id === newWorkspaceId
+          );
+          setPendingWorkspace({
+            id: newWorkspaceId,
+            name: selectedWorkspace?.name,
+          });
+          setShowOnboardingModal(true);
+        }
       } else {
         setPendingWorkspace(null);
         setShowOnboardingModal(false);
@@ -279,7 +321,9 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
       // Validate workspace ID exists
       if (!workspace || !workspace.id) {
-        throw new Error("Failed to create workspace: Invalid workspace data returned");
+        throw new Error(
+          "Failed to create workspace: Invalid workspace data returned"
+        );
       }
 
       console.log("Created workspace:", workspace);
@@ -311,12 +355,19 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           return null;
         });
 
+      // Don't show workspace onboarding modal if tour is active or completed
       if (!status || !status.is_onboarded) {
-        setPendingWorkspace({
-          id: workspace.id,
-          name: workspace.name,
-        });
-        setShowOnboardingModal(true);
+        if (
+          !tourActive &&
+          tourStatus !== "in_progress" &&
+          tourStatus !== "completed"
+        ) {
+          setPendingWorkspace({
+            id: workspace.id,
+            name: workspace.name,
+          });
+          setShowOnboardingModal(true);
+        }
       }
     } catch (err) {
       console.error("Failed to create workspace:", err);
@@ -466,7 +517,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.href}
                   href={buildLink(item.href)}
-                  onClick={() => setMobileSidebarOpen(false)}
+                  onClick={() => handleNavClick(item.href)}
                   data-tour={item.tourId || undefined}
                   className={`group flex items-center rounded-xl px-3 py-3 transition-all duration-200 ${
                     active

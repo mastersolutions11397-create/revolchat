@@ -95,8 +95,15 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     try {
       if (typeof window === "undefined") return;
       // Don't persist invalid workspace IDs
-      if (!workspaceId || workspaceId === "undefined" || workspaceId === "null") {
-        console.error("Attempted to persist invalid workspace ID:", workspaceId);
+      if (
+        !workspaceId ||
+        workspaceId === "undefined" ||
+        workspaceId === "null"
+      ) {
+        console.error(
+          "Attempted to persist invalid workspace ID:",
+          workspaceId
+        );
         return;
       }
       localStorage.setItem("selectedWorkspaceId", workspaceId);
@@ -118,14 +125,34 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       // Only set workspace if none has been loaded yet
       if (data.workspaces.length > 0 && !hasLoadedWorkspace.current) {
         const persistedId = getPersistedWorkspaceId();
+
+        // Clear persisted ID if it's not in the list of accessible workspaces
+        if (persistedId && !data.workspaces.some((w) => w.id === persistedId)) {
+          console.log("Clearing invalid persisted workspace ID");
+          try {
+            localStorage.removeItem("selectedWorkspaceId");
+          } catch {
+            // ignore localStorage errors
+          }
+        }
+
         const targetId =
           persistedId && data.workspaces.some((w) => w.id === persistedId)
             ? persistedId
             : data.workspaces[0].id;
-        const target = await workspaceAPI.getWorkspace(targetId);
-        setCurrentWorkspace(target);
-        persistWorkspaceId(target.id);
-        hasLoadedWorkspace.current = true;
+
+        try {
+          const target = await workspaceAPI.getWorkspace(targetId);
+          setCurrentWorkspace(target);
+          persistWorkspaceId(target.id);
+          hasLoadedWorkspace.current = true;
+        } catch (workspaceErr: any) {
+          console.error("Failed to load workspace details:", workspaceErr);
+          // If failed to get workspace details, at least set the first one from the list
+          setCurrentWorkspace(data.workspaces[0] as any);
+          persistWorkspaceId(data.workspaces[0].id);
+          hasLoadedWorkspace.current = true;
+        }
       }
     } catch (err: any) {
       setError(err.message || "Failed to fetch workspaces");
@@ -148,22 +175,48 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           workspace_type: data.workspace_type || "personal",
         });
 
+        // Log the full response for debugging
+        console.log(
+          "Full workspace response:",
+          JSON.stringify(workspace, null, 2)
+        );
+        console.log("Workspace type:", typeof workspace);
+        console.log(
+          "Workspace keys:",
+          workspace ? Object.keys(workspace) : "null/undefined"
+        );
+
+        // Check if response is wrapped in a data field
+        const workspaceData = (workspace as any)?.data || workspace;
+
         // Validate returned workspace has a valid ID
-        if (!workspace || !workspace.id || workspace.id === "undefined") {
-          throw new Error("Invalid workspace data returned from server");
+        if (
+          !workspaceData ||
+          !workspaceData.id ||
+          workspaceData.id === "undefined" ||
+          workspaceData.id === null
+        ) {
+          console.error("Invalid workspace response:", workspace);
+          console.error("Attempted to extract:", workspaceData);
+          throw new Error(
+            `Invalid workspace data returned from server.\n` +
+              `Response type: ${typeof workspace}\n` +
+              `Has 'data' field: ${!!(workspace as any)?.data}\n` +
+              `Received: ${JSON.stringify(workspace)?.substring(0, 500)}`
+          );
         }
 
-        console.log("Workspace created successfully:", workspace.id);
+        console.log("Workspace created successfully:", workspaceData.id);
 
         // Refresh workspaces list
         await fetchWorkspaces();
 
         // Set newly created workspace as current
-        setCurrentWorkspace(workspace);
-        persistWorkspaceId(workspace.id);
+        setCurrentWorkspace(workspaceData);
+        persistWorkspaceId(workspaceData.id);
         hasLoadedWorkspace.current = true;
 
-        return workspace;
+        return workspaceData;
       } catch (err: any) {
         const errorMessage = err.message || "Failed to create workspace";
         console.error("Create workspace error:", errorMessage, err);
@@ -181,7 +234,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       if (!user?.id) return;
 
       // Validate workspace ID before attempting to select
-      if (!workspaceId || workspaceId === "undefined" || workspaceId === "null") {
+      if (
+        !workspaceId ||
+        workspaceId === "undefined" ||
+        workspaceId === "null"
+      ) {
         const errorMsg = `Invalid workspace ID: ${workspaceId}`;
         console.error(errorMsg);
         setError(errorMsg);
@@ -197,7 +254,39 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         persistWorkspaceId(workspaceId);
         hasLoadedWorkspace.current = true;
       } catch (err: any) {
-        setError(err.message || "Failed to load workspace");
+        const errorMessage = err.message || "Failed to load workspace";
+        console.error("Failed to select workspace:", errorMessage);
+
+        // If access denied, clear the invalid workspace ID
+        if (errorMessage.toLowerCase().includes("access denied")) {
+          console.log("Access denied - clearing invalid workspace ID");
+          try {
+            localStorage.removeItem("selectedWorkspaceId");
+          } catch {
+            // ignore localStorage errors
+          }
+
+          // Try to load workspaces again and select the first one
+          try {
+            const data = await workspaceAPI.getWorkspaces();
+            if (data.workspaces.length > 0) {
+              console.log(
+                "Selecting first available workspace after access denied"
+              );
+              const firstWorkspace = data.workspaces[0];
+              setCurrentWorkspace(firstWorkspace as any);
+              setSelectedWorkspaceId(firstWorkspace.id);
+              persistWorkspaceId(firstWorkspace.id);
+              hasLoadedWorkspace.current = true;
+              setError(null); // Clear the error since we recovered
+              return; // Exit early after successful recovery
+            }
+          } catch (recoveryErr) {
+            console.error("Failed to recover from access denied:", recoveryErr);
+          }
+        }
+
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }

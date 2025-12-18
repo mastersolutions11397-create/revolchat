@@ -26,36 +26,104 @@ export function OnboardingTour() {
   // Get the appropriate step based on current route and step index
   const currentStep = getCurrentStep(currentStepIndex, pathname);
 
-  // Update Joyride when tour becomes active
+  // Update Joyride when tour becomes active or step changes
   useEffect(() => {
+    console.log("OnboardingTour state:", {
+      tourActive,
+      loading,
+      currentStep: currentStep?.target,
+      currentStepIndex,
+      pathname,
+    });
+
     if (tourActive && !loading && currentStep) {
-      setRun(true);
+      console.log("Restarting Joyride with step:", currentStep);
+      // Restart Joyride to pick up new step
+      setRun(false);
       setStepIndex(0);
+
+      // Small delay to ensure Joyride properly restarts
+      const timer = setTimeout(() => {
+        setRun(true);
+      }, 100);
+
+      return () => clearTimeout(timer);
     } else {
       setRun(false);
+      if (!tourActive) console.log("Tour not active");
+      if (loading) console.log("Tour still loading");
+      if (!currentStep)
+        console.log("No current step found for route:", pathname);
     }
-  }, [tourActive, loading, currentStep]);
+  }, [tourActive, loading, currentStep, currentStepIndex, pathname]);
 
   // Handle Joyride callback events
   const handleJoyrideCallback = useCallback(
     (data: CallBackProps) => {
-      const { status, action, index, type } = data;
+      const { status, action, index, type, lifecycle } = data;
+
+      console.log("Joyride callback:", {
+        status,
+        action,
+        type,
+        lifecycle,
+        currentStepIndex,
+        currentStep: currentStep?.target,
+        pathname,
+      });
 
       // Handle tour completion or skipping
       if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
+        console.log(
+          "Tour finished or skipped - checking if we should advance",
+          {
+            status,
+            action,
+            currentStepIndex,
+            totalSteps: 5,
+          }
+        );
         setRun(false);
         if (action === ACTIONS.SKIP) {
           skipTour();
+        } else if (status === STATUS.FINISHED) {
+          if (currentStepIndex < 4) {
+            // Joyride thinks it's finished but we have more steps - advance!
+            console.log(
+              "Joyride finished but more steps remain - advancing tour"
+            );
+            nextStep();
+          } else {
+            // We're on the last step (step 4) - complete the tour
+            console.log("Joyride finished on last step - completing tour");
+            nextStep(); // This will trigger completeTour() since we're at the last step
+          }
         }
       }
 
       // Handle step navigation
       if (type === EVENTS.STEP_AFTER) {
+        console.log(
+          "STEP_AFTER event - action:",
+          action,
+          "lifecycle:",
+          lifecycle
+        );
         if (action === ACTIONS.NEXT) {
           // Move to next step in context (not just next Joyride step)
+          console.log(
+            "Calling nextStep() to advance tour from step",
+            currentStepIndex,
+            "to",
+            currentStepIndex + 1
+          );
           nextStep();
         } else if (action === ACTIONS.PREV) {
+          console.log("Calling prevStep() to go back");
           prevStep();
+        } else if (action === ACTIONS.CLOSE) {
+          console.log("Close action detected - advancing tour");
+          nextStep();
         }
       }
 
@@ -65,7 +133,7 @@ export function OnboardingTour() {
         // Could auto-advance or wait
       }
     },
-    [skipTour, nextStep, prevStep, currentStep]
+    [skipTour, nextStep, prevStep, currentStep, currentStepIndex, pathname]
   );
 
   // Don't render if tour is not active or still loading
@@ -80,6 +148,12 @@ export function OnboardingTour() {
       // Override some properties for consistency
       disableOverlayClose: true,
       spotlightClicks: true,
+      // Pass custom data about the actual tour progress
+      data: {
+        isActualLastStep: currentStepIndex === 4, // Step 4 is the last step (0-indexed)
+        currentStepIndex,
+        totalSteps: 5,
+      },
     },
   ];
 

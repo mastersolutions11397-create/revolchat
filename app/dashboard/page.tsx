@@ -105,6 +105,14 @@ export default function DashboardPage() {
 
   // Auto-start tour for new users who haven't completed it
   useEffect(() => {
+    console.log("Tour auto-start check:", {
+      user: !!user,
+      tourLoading,
+      workspaceLoading,
+      hasWorkspaces,
+      tourStatus,
+    });
+
     if (
       user &&
       !tourLoading &&
@@ -112,10 +120,18 @@ export default function DashboardPage() {
       hasWorkspaces &&
       tourStatus === "not_started"
     ) {
+      console.log("Starting tour automatically for new user");
       // Small delay to ensure UI is ready
       const timer = setTimeout(() => {
-        startTour();
-      }, 1000);
+        console.log("Calling startTour()");
+        startTour()
+          .then(() => {
+            console.log("Tour started successfully");
+          })
+          .catch((err) => {
+            console.error("Failed to start tour:", err);
+          });
+      }, 1500);
       return () => clearTimeout(timer);
     }
   }, [
@@ -186,9 +202,11 @@ export default function DashboardPage() {
         if (
           err instanceof Error &&
           (err.message.includes("404") ||
-            err.message.toLowerCase().includes("not found"))
+            err.message.toLowerCase().includes("not found") ||
+            err.message.toLowerCase().includes("schedule"))
         ) {
           // Workspace schedule not found - this is normal for new workspaces
+          console.log("Workspace hours not configured yet, using defaults");
           setWorkspaceOnline(true);
         } else {
           const errorMessage =
@@ -197,11 +215,9 @@ export default function DashboardPage() {
               : "Failed to load workspace availability";
           console.error("Failed to load workspace availability", err);
           setAvailabilityError(errorMessage);
-          // Only show toast for non-404 errors
-          toast.error("Could not load workspace status", {
-            description:
-              "Using default settings. You can update them in Working Hours.",
-          });
+          // Don't show toast for new workspaces - just log and use defaults
+          console.warn("Using default workspace settings for new workspace");
+          setWorkspaceOnline(true);
         }
       } finally {
         setAvailabilityLoading(false);
@@ -266,6 +282,26 @@ export default function DashboardPage() {
         } catch (err) {
           if (!cancelled) {
             console.error("Failed to load workspace details", err);
+
+            // If access denied, clear the invalid workspace ID from localStorage
+            if (
+              err instanceof Error &&
+              err.message.toLowerCase().includes("access denied")
+            ) {
+              console.log("Clearing invalid workspace ID from localStorage");
+              try {
+                localStorage.removeItem("selectedWorkspaceId");
+              } catch {
+                // ignore localStorage errors
+              }
+
+              // Try to select the first available workspace
+              if (workspaces.length > 0) {
+                console.log("Selecting first available workspace");
+                selectWorkspace(workspaces[0].id).catch(console.error);
+              }
+            }
+
             setWorkspaceName("Workspace");
           }
         }
@@ -454,8 +490,26 @@ export default function DashboardPage() {
         setShowOnboardingModal(true);
       }
 
-      // Trigger tour callback for workspace creation
-      onWorkspaceCreated();
+      // Start the tour for new users creating their first workspace
+      if (tourStatus === "not_started" && !tourLoading) {
+        console.log(
+          "Starting tour for new user after first workspace creation"
+        );
+        startTour()
+          .then(() => {
+            console.log("Tour started, triggering workspace created callback");
+            // Give the tour a moment to activate before triggering callback
+            setTimeout(() => {
+              onWorkspaceCreated();
+            }, 500);
+          })
+          .catch((err) => {
+            console.error("Failed to start tour:", err);
+          });
+      } else {
+        // Trigger tour callback for workspace creation (if tour already active)
+        onWorkspaceCreated();
+      }
     } catch (err) {
       console.error("Failed to create workspace:", err);
       toast.error(
@@ -473,6 +527,16 @@ export default function DashboardPage() {
 
     // Trigger tour callback for onboarding modal completion
     onOnboardingModalCompleted();
+
+    // Also start the tour if it's not started yet
+    if (tourStatus === "not_started" && !tourLoading) {
+      console.log("Starting tour after workspace onboarding completion");
+      setTimeout(() => {
+        startTour().catch((err) => {
+          console.error("Failed to start tour after onboarding:", err);
+        });
+      }, 500);
+    }
   };
 
   if (loading || workspaceLoading) {

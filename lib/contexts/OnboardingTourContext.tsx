@@ -58,6 +58,11 @@ export function OnboardingTourProvider({
   const [loading, setLoading] = useState(true);
   const isInitialized = useRef(false);
 
+  // Log when currentStepIndex changes
+  useEffect(() => {
+    console.log("Tour step changed to:", currentStepIndex);
+  }, [currentStepIndex]);
+
   // Total number of steps in the tour
   const TOTAL_STEPS = 5;
 
@@ -68,7 +73,9 @@ export function OnboardingTourProvider({
     const loadTourStatus = async () => {
       try {
         setLoading(true);
+        console.log("Loading tour status for user:", user.id);
         const data = await tourAPI.getTourStatus(user.id);
+        console.log("Tour status data:", data);
 
         if (data) {
           setTourData(data);
@@ -78,19 +85,25 @@ export function OnboardingTourProvider({
 
           // Automatically activate tour if in_progress
           if (data.tour_status === "in_progress") {
+            console.log("Tour is in_progress, activating tour");
             setTourActive(true);
           }
           // Auto-start tour if not started and user is new
           else if (data.tour_status === "not_started") {
+            console.log(
+              "Tour is not_started, waiting for dashboard to auto-start"
+            );
             // We'll auto-start from the dashboard page
             setTourActive(false);
           }
         } else {
+          console.log("No tour data found, creating new tour record");
           // Create initial tour record for new user
           const newTourData = await tourAPI.createTourStatus({
             user_id: user.id,
             tour_status: "not_started",
           });
+          console.log("New tour record created:", newTourData);
           setTourData(newTourData);
           setTourStatus("not_started");
         }
@@ -98,8 +111,14 @@ export function OnboardingTourProvider({
         isInitialized.current = true;
       } catch (error) {
         console.error("Error loading tour status:", error);
+        // Set a default state so the app doesn't break
+        console.log("Setting default tour state due to error");
+        setTourStatus("not_started");
+        setTourData(null);
+        isInitialized.current = true;
       } finally {
         setLoading(false);
+        console.log("Tour status loading completed");
       }
     };
 
@@ -108,14 +127,20 @@ export function OnboardingTourProvider({
 
   // Start the tour
   const startTour = useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.log("Cannot start tour: no user ID");
+      return;
+    }
 
+    console.log("Starting tour for user:", user.id);
     try {
       const data = await tourAPI.startTour(user.id);
+      console.log("Tour started, data:", data);
       setTourData(data);
       setTourStatus("in_progress");
       setTourActive(true);
       setCurrentStepIndex(0);
+      console.log("Tour state updated: tourActive=true, currentStepIndex=0");
     } catch (error) {
       console.error("Error starting tour:", error);
     }
@@ -181,8 +206,15 @@ export function OnboardingTourProvider({
 
   // Move to next step
   const nextStep = useCallback(() => {
+    console.log("nextStep() called:", {
+      currentStepIndex,
+      maxSteps: TOTAL_STEPS - 1,
+      canAdvance: currentStepIndex < TOTAL_STEPS - 1,
+    });
+
     if (currentStepIndex < TOTAL_STEPS - 1) {
       const nextIndex = currentStepIndex + 1;
+      console.log("Advancing to step:", nextIndex);
       setCurrentStepIndex(nextIndex);
 
       // Update database
@@ -191,12 +223,16 @@ export function OnboardingTourProvider({
           .updateTourStep(user.id, {
             current_step: nextIndex,
           })
+          .then(() => {
+            console.log("Database updated with new step:", nextIndex);
+          })
           .catch((error) => {
             console.error("Error updating tour step:", error);
           });
       }
     } else {
       // Last step completed
+      console.log("Last step reached, completing tour");
       completeTour();
     }
   }, [currentStepIndex, TOTAL_STEPS, user?.id, completeTour]);
@@ -238,27 +274,63 @@ export function OnboardingTourProvider({
 
   // Callback for knowledge base navigation (Step 3 -> Step 4)
   const onNavigateToKnowledgeBase = useCallback(() => {
+    console.log("onNavigateToKnowledgeBase called", {
+      tourActive,
+      currentStepIndex,
+    });
     if (tourActive && currentStepIndex === 2) {
+      console.log("Advancing tour from Knowledge Base (step 2 -> 3)");
       markStepCompleted(2);
       nextStep();
+    } else {
+      console.log("Tour not advancing from Knowledge Base", {
+        tourActive,
+        currentStepIndex,
+        expectedIndex: 2,
+      });
     }
   }, [tourActive, currentStepIndex, markStepCompleted, nextStep]);
 
   // Callback for integrations navigation (Step 4 -> Step 5)
   const onNavigateToIntegrations = useCallback(() => {
+    console.log("onNavigateToIntegrations called", {
+      tourActive,
+      currentStepIndex,
+    });
     if (tourActive && currentStepIndex === 3) {
+      console.log("Advancing tour from Integrations (step 3 -> 4)");
       markStepCompleted(3);
       nextStep();
+    } else {
+      console.log("Tour not advancing from Integrations", {
+        tourActive,
+        currentStepIndex,
+        expectedIndex: 3,
+      });
     }
   }, [tourActive, currentStepIndex, markStepCompleted, nextStep]);
 
   // Callback for settings navigation (Step 5 -> Complete)
   const onNavigateToSettings = useCallback(() => {
+    console.log("onNavigateToSettings called", {
+      tourActive,
+      currentStepIndex,
+    });
     if (tourActive && currentStepIndex === 4) {
+      console.log(
+        "Advancing tour from Settings navigation (step 4 -> showing workspace hours)"
+      );
       markStepCompleted(4);
-      completeTour();
+      // Don't call nextStep here - let the Settings page handle tour completion after showing the tooltip
+      // The Settings page will complete the tour after 3 seconds
+    } else {
+      console.log("Tour not advancing from Settings", {
+        tourActive,
+        currentStepIndex,
+        expectedIndex: 4,
+      });
     }
-  }, [tourActive, currentStepIndex, markStepCompleted, completeTour]);
+  }, [tourActive, currentStepIndex, markStepCompleted]);
 
   const value: OnboardingTourContextType = {
     tourActive,

@@ -242,7 +242,7 @@ export default function SettingsPage() {
 
   // Yetti Hours State
   const { selectedWorkspaceId, currentWorkspace } = useWorkspace();
-  const { onNavigateToSettings } = useOnboardingTour();
+  const { tourActive, currentStepIndex, completeTour } = useOnboardingTour();
   const workspaceId = selectedWorkspaceId || currentWorkspace?.id || null;
   const [hoursLoading, setHoursLoading] = useState(false);
   const [hoursSaving, setHoursSaving] = useState(false);
@@ -278,10 +278,20 @@ export default function SettingsPage() {
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, []);
 
-  // Trigger tour callback when landing on settings page
+  // Complete tour when landing on Settings page during tour step 4
   useEffect(() => {
-    onNavigateToSettings();
-  }, [onNavigateToSettings]);
+    if (tourActive && currentStepIndex === 4) {
+      console.log(
+        "Settings page loaded during tour step 4 - completing tour after delay"
+      );
+      // Wait a bit to show the workspace hours tooltip before completing
+      const timer = setTimeout(() => {
+        console.log("Completing tour from Settings page");
+        completeTour();
+      }, 3000); // Show the tooltip for 3 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [tourActive, currentStepIndex, completeTour]);
 
   useEffect(() => {
     if (!workspaceId) return;
