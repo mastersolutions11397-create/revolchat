@@ -77,7 +77,7 @@ export default function KnowledgePage() {
   const { user } = useAuth();
   console.log("user", user);
   const { currentWorkspace, selectedWorkspaceId } = useWorkspace();
-  const { onNavigateToKnowledgeBase } = useOnboardingTour();
+  const { onNavigateToKnowledgeBase, onKnowledgeBaseCompleted } = useOnboardingTour();
   const [localSelectedId, setLocalSelectedId] = useState<string | null>(null);
   const [knowledgeItems, setKnowledgeItems] = useState<KnowledgeRecord[]>([]);
   const [knowledgeLoading, setKnowledgeLoading] = useState(false);
@@ -1456,7 +1456,7 @@ export default function KnowledgePage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4" data-tour="knowledge-options">
                     <div>
                       <div className="flex items-center gap-1.5 mb-1.5 ml-1">
                         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -1583,6 +1583,7 @@ export default function KnowledgePage() {
 
                 <div className="flex gap-3 pt-2">
                   <button
+                    data-tour="save-knowledge-button"
                     onClick={async () => {
                       const activeWorkspaceId = workspaceId;
                       if (!activeWorkspaceId) {
@@ -1621,6 +1622,8 @@ export default function KnowledgePage() {
                         await loadKnowledge(activeWorkspaceId);
                         resetTextForm();
                         closeActiveTab();
+                        // Trigger tour callback to show Test Yetti step
+                        onKnowledgeBaseCompleted();
                       } catch (error: unknown) {
                         setSubmitError(
                           error instanceof Error
@@ -2493,7 +2496,7 @@ function ChatPanel({
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-      <div className="flex-none border-b border-gray-200 px-6 py-4">
+      <div className="flex-none border-b border-gray-200 px-6 py-4" data-tour="test-yetti-section">
         <h3 className="text-xl font-semibold text-gray-900">Test Yetti</h3>
         <p className="text-xs text-gray-500">
           {workspaceName

@@ -115,7 +115,11 @@ export default function IntegrationsPage() {
 
   // Trigger tour callback when landing on integrations page
   useEffect(() => {
-    onNavigateToIntegrations();
+    // Small delay to ensure page is fully loaded
+    const timer = setTimeout(() => {
+      onNavigateToIntegrations();
+    }, 500);
+    return () => clearTimeout(timer);
   }, [onNavigateToIntegrations]);
 
   const [instagramIntegration, setInstagramIntegration] =
@@ -408,12 +412,12 @@ export default function IntegrationsPage() {
         </div>
       ) : (
         <div
+          data-tour="integrations-page"
           className={`grid gap-4 sm:gap-6 transition-all duration-300 ${isPageDisabled ? "opacity-60 pointer-events-none" : "animate-in fade-in duration-300"}`}
         >
           {CHANNELS.map((channel, index) => (
             <div
               key={channel.name}
-              data-tour={index === 0 ? "integration-card" : undefined}
               className="group relative overflow-hidden rounded-2xl sm:rounded-3xl bg-white border border-slate-200 hover:border-sky-300 transition-all duration-300 shadow-lg hover:shadow-2xl"
               style={{
                 animation: `fadeInUp 0.5s ease-out ${index * 0.1}s both`,

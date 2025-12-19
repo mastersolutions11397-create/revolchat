@@ -6,13 +6,13 @@ import { usePathname } from "next/navigation";
 import { useOnboardingTour } from "@/lib/contexts/OnboardingTourContext";
 import { getCurrentStep } from "@/lib/tour/steps";
 import { CustomTooltip } from "./CustomTooltip";
-import { TourProgressBar } from "./TourProgressBar";
 
 export function OnboardingTour() {
   const pathname = usePathname();
   const {
     tourActive,
     currentStepIndex,
+    currentSubStepIndex,
     tourStatus,
     loading,
     skipTour,
@@ -23,8 +23,8 @@ export function OnboardingTour() {
   const [run, setRun] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
 
-  // Get the appropriate step based on current route and step index
-  const currentStep = getCurrentStep(currentStepIndex, pathname);
+  // Get the appropriate step based on current route, step index, and sub-step index
+  const currentStep = getCurrentStep(currentStepIndex, pathname, currentSubStepIndex);
 
   // Update Joyride when tour becomes active or step changes
   useEffect(() => {
@@ -150,18 +150,15 @@ export function OnboardingTour() {
       spotlightClicks: true,
       // Pass custom data about the actual tour progress
       data: {
-        isActualLastStep: currentStepIndex === 4, // Step 4 is the last step (0-indexed)
+        isActualLastStep: currentStepIndex === 3, // Step 3 is the last step (0-indexed)
         currentStepIndex,
-        totalSteps: 5,
+        totalSteps: 4,
       },
     },
   ];
 
   return (
     <>
-      {/* Progress Bar */}
-      <TourProgressBar currentStep={currentStepIndex} onSkip={skipTour} />
-
       {/* Joyride Component */}
       <Joyride
         steps={steps}

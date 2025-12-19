@@ -11,11 +11,13 @@ import React, {
 import { useAuth } from "@/lib/auth-context";
 import * as tourAPI from "@/lib/api/onboarding-tour";
 import type { TourStatus, OnboardingTourData } from "@/lib/api/onboarding-tour";
+import { TOUR_STEPS } from "@/lib/tour/steps";
 
 interface OnboardingTourContextType {
   // Tour state
   tourActive: boolean;
   currentStepIndex: number;
+  currentSubStepIndex: number; // Track sub-steps within main steps
   tourStatus: TourStatus;
   stepsCompleted: number[];
   loading: boolean;
@@ -33,6 +35,7 @@ interface OnboardingTourContextType {
   onWorkspaceCreated: () => void;
   onOnboardingModalCompleted: () => void;
   onNavigateToKnowledgeBase: () => void;
+  onKnowledgeBaseCompleted: () => void;
   onNavigateToIntegrations: () => void;
   onNavigateToSettings: () => void;
 
@@ -52,6 +55,7 @@ export function OnboardingTourProvider({
   const { user } = useAuth();
   const [tourActive, setTourActive] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [currentSubStepIndex, setCurrentSubStepIndex] = useState(0);
   const [tourStatus, setTourStatus] = useState<TourStatus>("not_started");
   const [stepsCompleted, setStepsCompleted] = useState<number[]>([]);
   const [tourData, setTourData] = useState<OnboardingTourData | null>(null);
@@ -64,7 +68,7 @@ export function OnboardingTourProvider({
   }, [currentStepIndex]);
 
   // Total number of steps in the tour
-  const TOTAL_STEPS = 5;
+  const TOTAL_STEPS = 4;
 
   // Load tour status when user is available
   useEffect(() => {
@@ -204,18 +208,30 @@ export function OnboardingTourProvider({
     [user?.id, currentStepIndex, stepsCompleted]
   );
 
-  // Move to next step
+  // Move to next step (or sub-step)
   const nextStep = useCallback(() => {
     console.log("nextStep() called:", {
       currentStepIndex,
+      currentSubStepIndex,
       maxSteps: TOTAL_STEPS - 1,
       canAdvance: currentStepIndex < TOTAL_STEPS - 1,
     });
 
-    if (currentStepIndex < TOTAL_STEPS - 1) {
+    // Check if there are more sub-steps for current step
+    const stepsForCurrentIndex = TOUR_STEPS.filter((s) => s.stepIndex === currentStepIndex);
+    const maxSubStep = Math.max(...stepsForCurrentIndex.map((s) => s.subStepIndex || 0));
+    
+    if (currentSubStepIndex < maxSubStep) {
+      // Advance to next sub-step
+      const nextSubStep = currentSubStepIndex + 1;
+      console.log("Advancing to sub-step:", nextSubStep);
+      setCurrentSubStepIndex(nextSubStep);
+    } else if (currentStepIndex < TOTAL_STEPS - 1) {
+      // Advance to next main step
       const nextIndex = currentStepIndex + 1;
       console.log("Advancing to step:", nextIndex);
       setCurrentStepIndex(nextIndex);
+      setCurrentSubStepIndex(0); // Reset sub-step for new main step
 
       // Update database
       if (user?.id) {
@@ -235,7 +251,7 @@ export function OnboardingTourProvider({
       console.log("Last step reached, completing tour");
       completeTour();
     }
-  }, [currentStepIndex, TOTAL_STEPS, user?.id, completeTour]);
+  }, [currentStepIndex, currentSubStepIndex, TOTAL_STEPS, user?.id, completeTour]);
 
   // Move to previous step
   const prevStep = useCallback(() => {
@@ -256,85 +272,83 @@ export function OnboardingTourProvider({
     }
   }, [currentStepIndex, user?.id]);
 
-  // Callback for workspace creation (Step 1 -> Step 2)
+  // Callback for workspace creation (Step 0, sub-step 0 -> sub-step 1)
   const onWorkspaceCreated = useCallback(() => {
     if (tourActive && currentStepIndex === 0) {
-      markStepCompleted(0);
-      nextStep();
+      // Advance to onboarding modal sub-step instead of next main step
+      setCurrentSubStepIndex(1);
     }
-  }, [tourActive, currentStepIndex, markStepCompleted, nextStep]);
+  }, [tourActive, currentStepIndex]);
 
-  // Callback for onboarding modal completion (Step 2 -> Step 3)
+  // Callback for onboarding modal completion (Step 0, sub-step 1 -> Step 1)
   const onOnboardingModalCompleted = useCallback(() => {
-    if (tourActive && currentStepIndex === 1) {
-      markStepCompleted(1);
-      nextStep();
+    if (tourActive && currentStepIndex === 0 && currentSubStepIndex === 1) {
+      markStepCompleted(0);
+      // Advance to next main step (Knowledge Base)
+      setCurrentStepIndex(1);
+      setCurrentSubStepIndex(0);
+      
+      // Update database
+      if (user?.id) {
+        tourAPI
+          .updateTourStep(user.id, {
+            current_step: 1,
+          })
+          .catch((error) => {
+            console.error("Error updating tour step:", error);
+          });
+      }
     }
-  }, [tourActive, currentStepIndex, markStepCompleted, nextStep]);
+  }, [tourActive, currentStepIndex, currentSubStepIndex, markStepCompleted, user?.id]);
 
-  // Callback for knowledge base navigation (Step 3 -> Step 4)
+  // Callback for knowledge base navigation (Step 1 - just navigate, don't advance)
   const onNavigateToKnowledgeBase = useCallback(() => {
     console.log("onNavigateToKnowledgeBase called", {
       tourActive,
       currentStepIndex,
     });
-    if (tourActive && currentStepIndex === 2) {
-      console.log("Advancing tour from Knowledge Base (step 2 -> 3)");
-      markStepCompleted(2);
-      nextStep();
-    } else {
-      console.log("Tour not advancing from Knowledge Base", {
-        tourActive,
-        currentStepIndex,
-        expectedIndex: 2,
-      });
-    }
-  }, [tourActive, currentStepIndex, markStepCompleted, nextStep]);
+    // Just navigate to knowledge base, stay on step 1 for sub-steps
+    // Step will advance when knowledge is saved (handled by save button interaction)
+  }, []);
 
-  // Callback for integrations navigation (Step 4 -> Step 5)
+  // Callback for knowledge base completion - advance to Test Yetti sub-step
+  const onKnowledgeBaseCompleted = useCallback(() => {
+    if (tourActive && currentStepIndex === 1) {
+      // Advance to Test Yetti sub-step (subStepIndex 4) instead of next main step
+      setCurrentSubStepIndex(4);
+    }
+  }, [tourActive, currentStepIndex]);
+
+  // Callback for integrations navigation (Step 2 - auto-advance after 3 seconds)
   const onNavigateToIntegrations = useCallback(() => {
     console.log("onNavigateToIntegrations called", {
       tourActive,
       currentStepIndex,
     });
-    if (tourActive && currentStepIndex === 3) {
-      console.log("Advancing tour from Integrations (step 3 -> 4)");
-      markStepCompleted(3);
-      nextStep();
-    } else {
-      console.log("Tour not advancing from Integrations", {
-        tourActive,
-        currentStepIndex,
-        expectedIndex: 3,
-      });
+    // Auto-advance to next step after 3 seconds when user is on integrations page
+    if (tourActive && currentStepIndex === 2) {
+      setTimeout(() => {
+        console.log("Auto-advancing from integrations page after 3 seconds");
+        markStepCompleted(2);
+        nextStep();
+      }, 3000);
     }
   }, [tourActive, currentStepIndex, markStepCompleted, nextStep]);
 
-  // Callback for settings navigation (Step 5 -> Complete)
+  // Callback for settings navigation (Step 3 - just navigate, don't advance)
   const onNavigateToSettings = useCallback(() => {
     console.log("onNavigateToSettings called", {
       tourActive,
       currentStepIndex,
     });
-    if (tourActive && currentStepIndex === 4) {
-      console.log(
-        "Advancing tour from Settings navigation (step 4 -> showing workspace hours)"
-      );
-      markStepCompleted(4);
-      // Don't call nextStep here - let the Settings page handle tour completion after showing the tooltip
-      // The Settings page will complete the tour after 3 seconds
-    } else {
-      console.log("Tour not advancing from Settings", {
-        tourActive,
-        currentStepIndex,
-        expectedIndex: 4,
-      });
-    }
-  }, [tourActive, currentStepIndex, markStepCompleted]);
+    // Just navigate to settings, stay on step 3
+    // Step will complete when workspace hours are saved
+  }, []);
 
   const value: OnboardingTourContextType = {
     tourActive,
     currentStepIndex,
+    currentSubStepIndex,
     tourStatus,
     stepsCompleted,
     loading,
@@ -348,6 +362,7 @@ export function OnboardingTourProvider({
     onWorkspaceCreated,
     onOnboardingModalCompleted,
     onNavigateToKnowledgeBase,
+    onKnowledgeBaseCompleted,
     onNavigateToIntegrations,
     onNavigateToSettings,
     tourData,

@@ -117,7 +117,6 @@ export default function DashboardPage() {
       user &&
       !tourLoading &&
       !workspaceLoading &&
-      hasWorkspaces &&
       tourStatus === "not_started"
     ) {
       console.log("Starting tour automatically for new user");
@@ -138,7 +137,6 @@ export default function DashboardPage() {
     user,
     tourLoading,
     workspaceLoading,
-    hasWorkspaces,
     tourStatus,
     startTour,
   ]);
@@ -499,16 +497,36 @@ export default function DashboardPage() {
           .then(() => {
             console.log("Tour started, triggering workspace created callback");
             // Give the tour a moment to activate before triggering callback
-            setTimeout(() => {
-              onWorkspaceCreated();
-            }, 500);
+            // Only advance if onboarding modal won't show (already onboarded)
+            if (status && status.is_onboarded) {
+              setTimeout(() => {
+                onWorkspaceCreated();
+              }, 500);
+            } else {
+              // Wait for onboarding modal to open, then advance sub-step
+              setTimeout(() => {
+                onWorkspaceCreated();
+              }, 1000);
+            }
           })
           .catch((err) => {
             console.error("Failed to start tour:", err);
           });
       } else {
         // Trigger tour callback for workspace creation (if tour already active)
-        onWorkspaceCreated();
+        // Only advance if onboarding modal won't show
+        if (status && status.is_onboarded) {
+          // Skip onboarding, go directly to knowledge base
+          onWorkspaceCreated();
+          setTimeout(() => {
+            onOnboardingModalCompleted();
+          }, 100);
+        } else {
+          // Wait for onboarding modal to open
+          setTimeout(() => {
+            onWorkspaceCreated();
+          }, 1000);
+        }
       }
     } catch (err) {
       console.error("Failed to create workspace:", err);
@@ -884,6 +902,7 @@ export default function DashboardPage() {
                   minLength={3}
                   required
                   autoFocus
+                  data-tour="workspace-name-input"
                 />
                 <div className="flex items-center gap-2 mt-3">
                   <div

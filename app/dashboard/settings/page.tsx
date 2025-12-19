@@ -515,6 +515,10 @@ export default function SettingsPage() {
       setWorkspaceOnline(response.workspace_online);
       setHoursSuccess("Workspace hours updated successfully.");
       toast.success("Workspace hours updated successfully");
+      // Complete tour if on last step
+      if (tourActive && currentStepIndex === 3) {
+        completeTour();
+      }
     } catch (err: any) {
       const errorMessage = err.message || "Failed to save working hours";
       setHoursError(errorMessage);
@@ -978,6 +982,7 @@ export default function SettingsPage() {
             <div className="flex justify-end pt-6 border-t border-slate-100">
               <button
                 type="button"
+                data-tour="save-workspace-hours-button"
                 onClick={handleSaveWorkspaceHours}
                 disabled={
                   hoursSaving || hoursLoading || statusSaving || !workspaceId

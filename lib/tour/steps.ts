@@ -7,18 +7,20 @@ import { Step } from "react-joyride";
 
 export interface TourStepConfig extends Step {
   stepIndex: number;
+  subStepIndex?: number; // For tracking sub-steps within a main step
   requiresAction?: boolean; // If true, tour won't auto-advance
   route?: string; // Expected route for this step
 }
 
 export const TOUR_STEPS: TourStepConfig[] = [
-  // Step 1: Create Workspace
+  // Step 1: Create Workspace - point to input field
   {
     stepIndex: 0,
-    target: '[data-tour="create-workspace-button"]',
+    subStepIndex: 0,
+    target: '[data-tour="workspace-name-input"]',
     content:
-      '👋 Welcome to Yetti! Let\'s get started by creating your first workspace. Click the "+ New Workspace" button.',
-    placement: "bottom",
+      '👋 Welcome to Yetti! Let\'s get started by creating your first workspace. <strong>Enter a name for your workspace</strong> in the input field below (minimum 3 characters), then click "Create Workspace & Continue" when you\'re ready.',
+    placement: "top",
     disableBeacon: true,
     requiresAction: true,
     route: "/dashboard",
@@ -29,15 +31,17 @@ export const TOUR_STEPS: TourStepConfig[] = [
     },
   },
 
-  // Step 2: Fill Onboarding Modal
+  // Step 1a: Onboarding Modal - wait for user to complete questions
   {
-    stepIndex: 1,
+    stepIndex: 0,
+    subStepIndex: 1,
     target: '[data-tour="onboarding-modal"]',
     content:
-      "✨ Great! Now tell us a bit about your workspace. This helps us personalize your experience.",
+      "✨ Great! Now tell us a bit about your workspace by <strong>answering the onboarding questions</strong>. This helps us personalize your experience. <strong>Complete all the questions</strong> and click <strong>Submit</strong> when you're done.",
     placement: "center",
     disableBeacon: true,
     requiresAction: true,
+    route: "/dashboard",
     styles: {
       options: {
         width: 450,
@@ -45,12 +49,13 @@ export const TOUR_STEPS: TourStepConfig[] = [
     },
   },
 
-  // Step 3: Navigate to Knowledge Base
+  // Step 2: Navigate to Knowledge Base
   {
-    stepIndex: 2,
+    stepIndex: 1,
+    subStepIndex: 0,
     target: '[data-tour="knowledge-base-nav"]',
     content:
-      '📚 Excellent! Now let\'s add some knowledge to train your AI. Click on "Knowledge Base" in the sidebar.',
+      '📚 Great! Now let\'s add some knowledge to train your AI. Click on "Knowledge Base" in the sidebar.',
     placement: "right",
     disableBeacon: true,
     requiresAction: true,
@@ -62,14 +67,16 @@ export const TOUR_STEPS: TourStepConfig[] = [
     },
   },
 
-  // Step 3b: Add Knowledge (sub-step shown after navigation)
+  // Step 2a: Click Add Knowledge button
   {
-    stepIndex: 2,
+    stepIndex: 1,
+    subStepIndex: 1,
     target: '[data-tour="add-knowledge-button"]',
     content:
-      "💡 Here you can add documents, FAQs, and other information to help your AI respond to customer queries. Feel free to add some knowledge now or explore later!",
+      '💡 Perfect! Now click the "+ Add Knowledge" button to add your first knowledge item.',
     placement: "bottom",
     disableBeacon: true,
+    requiresAction: true,
     route: "/dashboard/knowledge-base",
     styles: {
       options: {
@@ -78,12 +85,67 @@ export const TOUR_STEPS: TourStepConfig[] = [
     },
   },
 
-  // Step 4: Navigate to Integrations
+  // Step 2b: Point to Options section (Category/Importance)
   {
-    stepIndex: 3,
+    stepIndex: 1,
+    subStepIndex: 2,
+    target: '[data-tour="knowledge-options"]',
+    content:
+      "⚙️ Here you can set the Category and Importance level for your knowledge. Fill in the Title and Content fields above, then configure these options. Once you're ready, click the Save button below.",
+    placement: "top",
+    disableBeacon: true,
+    requiresAction: true,
+    route: "/dashboard/knowledge-base",
+    styles: {
+      options: {
+        width: 400,
+      },
+    },
+  },
+
+  // Step 2c: Point to Save button (after content is entered)
+  {
+    stepIndex: 1,
+    subStepIndex: 3,
+    target: '[data-tour="save-knowledge-button"]',
+    content:
+      "💾 Once you've filled in the Title and Content, click the Save button to add your knowledge to the library.",
+    placement: "top",
+    disableBeacon: true,
+    requiresAction: true,
+    route: "/dashboard/knowledge-base",
+    styles: {
+      options: {
+        width: 400,
+      },
+    },
+  },
+
+  // Step 2d: Point to Test Yetti section (shown after saving)
+  {
+    stepIndex: 1,
+    subStepIndex: 4,
+    target: '[data-tour="test-yetti-section"]',
+    content:
+      "🧪 Excellent! Now you can test your AI by asking questions in the Test Yetti section. Try asking something based on the knowledge you just added! When you're ready, click Next to continue.",
+    placement: "left",
+    disableBeacon: true,
+    requiresAction: true,
+    route: "/dashboard/knowledge-base",
+    styles: {
+      options: {
+        width: 400,
+      },
+    },
+  },
+
+  // Step 3: Navigate to Integrations
+  {
+    stepIndex: 2,
+    subStepIndex: 0,
     target: '[data-tour="integrations-nav"]',
     content:
-      '🔗 Perfect! Next, let\'s connect your channels. Click on "Integrations" to see available platforms.',
+      '🔗 Great job! Now let\'s explore integrations. Click on "Integrations" in the sidebar to see available platforms.',
     placement: "right",
     disableBeacon: true,
     requiresAction: true,
@@ -95,14 +157,16 @@ export const TOUR_STEPS: TourStepConfig[] = [
     },
   },
 
-  // Step 4b: View Integrations (sub-step)
+  // Step 3a: Integrations page opened (auto-advance after 3 seconds)
   {
-    stepIndex: 3,
-    target: '[data-tour="integration-card"]',
+    stepIndex: 2,
+    subStepIndex: 1,
+    target: '[data-tour="integrations-page"]',
     content:
-      "📱 Connect Instagram, Telegram, Messenger, and more! These integrations let your AI interact with customers on their favorite platforms.",
+      "📱 Here you can connect Instagram, Telegram, and other platforms. You don't need to connect anything right now - just know this is where you'll manage your integrations! The tour will continue automatically in a few seconds.",
     placement: "top",
     disableBeacon: true,
+    requiresAction: false,
     route: "/dashboard/integrations",
     styles: {
       options: {
@@ -111,12 +175,13 @@ export const TOUR_STEPS: TourStepConfig[] = [
     },
   },
 
-  // Step 5: Navigate to Settings
+  // Step 4: Navigate to Settings
   {
-    stepIndex: 4,
+    stepIndex: 3,
+    subStepIndex: 0,
     target: '[data-tour="settings-nav"]',
     content:
-      '⚙️ Almost done! Finally, let\'s set your workspace hours. Click on "Settings".',
+      '⚙️ Almost done! Finally, let\'s set your workspace hours. Click on "Settings" in the sidebar.',
     placement: "right",
     disableBeacon: true,
     requiresAction: true,
@@ -128,14 +193,34 @@ export const TOUR_STEPS: TourStepConfig[] = [
     },
   },
 
-  // Step 5b: Configure Workspace Hours (sub-step)
+  // Step 4a: Configure Workspace Hours and Save
   {
-    stepIndex: 4,
+    stepIndex: 3,
+    subStepIndex: 1,
     target: '[data-tour="workspace-hours-section"]',
     content:
-      "⏰ Set when your AI is available to respond to customers. You can configure working hours, timezone, and availability settings here.",
+      "⏰ Set when your AI is available to respond to customers. Configure your working hours, timezone, and availability settings, then click the Save button below.",
     placement: "top",
     disableBeacon: true,
+    requiresAction: true,
+    route: "/dashboard/settings",
+    styles: {
+      options: {
+        width: 400,
+      },
+    },
+  },
+
+  // Step 4b: Point to Save button for workspace hours
+  {
+    stepIndex: 3,
+    subStepIndex: 2,
+    target: '[data-tour="save-workspace-hours-button"]',
+    content:
+      "💾 Once you've configured your workspace hours, click Save to apply your settings and complete the tour!",
+    placement: "top",
+    disableBeacon: true,
+    requiresAction: true,
     route: "/dashboard/settings",
     styles: {
       options: {
@@ -150,12 +235,21 @@ export function getStepsForIndex(stepIndex: number): TourStepConfig[] {
   return TOUR_STEPS.filter((step) => step.stepIndex === stepIndex);
 }
 
-// Get current route-specific step
+// Get current route-specific step with sub-step support
 export function getCurrentStep(
   stepIndex: number,
-  route: string
+  route: string,
+  subStepIndex?: number
 ): TourStepConfig | undefined {
   const stepsForIndex = getStepsForIndex(stepIndex);
+
+  // If subStepIndex is provided, try to find that specific sub-step
+  if (subStepIndex !== undefined) {
+    const subStep = stepsForIndex.find(
+      (step) => step.subStepIndex === subStepIndex && step.route && route.startsWith(step.route)
+    );
+    if (subStep) return subStep;
+  }
 
   // Find the step that matches the current route
   const routeStep = stepsForIndex.find(
@@ -178,12 +272,11 @@ export function getStepRoute(stepIndex: number): string | undefined {
 }
 
 // Total unique steps (not counting sub-steps)
-export const TOTAL_TOUR_STEPS = 5;
+export const TOTAL_TOUR_STEPS = 4;
 
 // Step names for display
 export const STEP_NAMES = [
   "Create Workspace",
-  "Complete Onboarding",
   "Add Knowledge",
   "Connect Channels",
   "Set Availability",
