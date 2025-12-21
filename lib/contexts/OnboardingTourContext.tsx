@@ -12,6 +12,9 @@ import { useAuth } from "@/lib/auth-context";
 import * as tourAPI from "@/lib/api/onboarding-tour";
 import type { TourStatus, OnboardingTourData } from "@/lib/api/onboarding-tour";
 import { TOUR_STEPS } from "@/lib/tour/steps";
+import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
+import { yettiOnboardingAPI } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
 
 interface OnboardingTourContextType {
   // Tour state
@@ -53,6 +56,7 @@ export function OnboardingTourProvider({
   children: React.ReactNode;
 }) {
   const { user } = useAuth();
+  const { currentWorkspace, hasWorkspaces } = useWorkspace();
   const [tourActive, setTourActive] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [currentSubStepIndex, setCurrentSubStepIndex] = useState(0);
@@ -61,6 +65,7 @@ export function OnboardingTourProvider({
   const [tourData, setTourData] = useState<OnboardingTourData | null>(null);
   const [loading, setLoading] = useState(true);
   const isInitialized = useRef(false);
+  const hasUpdatedTourForWorkspace = useRef(false);
 
   // Log when currentStepIndex changes
   useEffect(() => {
@@ -68,7 +73,7 @@ export function OnboardingTourProvider({
   }, [currentStepIndex]);
 
   // Total number of steps in the tour
-  const TOTAL_STEPS = 4;
+  const TOTAL_STEPS = 6;
 
   // Load tour status when user is available
   useEffect(() => {
@@ -128,6 +133,84 @@ export function OnboardingTourProvider({
 
     loadTourStatus();
   }, [user?.id]);
+
+  // Reset the update flag when workspace changes
+  useEffect(() => {
+    hasUpdatedTourForWorkspace.current = false;
+  }, [currentWorkspace?.id]);
+
+  // Check if workspace exists and update tour accordingly
+  useEffect(() => {
+    if (!user?.id || !hasWorkspaces || !currentWorkspace) return;
+    if (!tourData) return;
+    
+    // If workspace exists and tour is not_started, update to in_progress with step 1
+    if (tourStatus === "not_started" && !hasUpdatedTourForWorkspace.current) {
+      hasUpdatedTourForWorkspace.current = true;
+      const updateTourForExistingWorkspace = async () => {
+        try {
+          console.log("Workspace found with tour not_started. Updating to in_progress, current_step=1, steps_completed=[1]");
+          
+          // First, update tour status to in_progress
+          const { data: updatedStatus, error: statusError } = await supabase
+            .from("user_onboarding_tour")
+            .update({
+              tour_status: "in_progress",
+              started_at: new Date().toISOString(),
+              current_step: 1,
+              steps_completed: [1],
+            })
+            .eq("user_id", user.id)
+            .select()
+            .single();
+
+          if (statusError) {
+            console.error("Error updating tour status:", statusError);
+            hasUpdatedTourForWorkspace.current = false; // Reset on error
+            throw statusError;
+          }
+
+          if (updatedStatus) {
+            setTourData(updatedStatus);
+            setTourStatus("in_progress");
+            setTourActive(true);
+            setCurrentStepIndex(1);
+            setStepsCompleted([1]);
+            console.log("Tour updated: status=in_progress, current_step=1, steps_completed=[1]");
+          }
+        } catch (error) {
+          console.error("Error updating tour for existing workspace:", error);
+          hasUpdatedTourForWorkspace.current = false; // Reset on error
+        }
+      };
+
+      updateTourForExistingWorkspace();
+      return;
+    }
+    
+    // If tour is in_progress, current_step is 0, and steps_completed is empty, update to step 1
+    if (tourStatus === "in_progress") {
+      if (tourData.current_step === 0 && (!tourData.steps_completed || tourData.steps_completed.length === 0)) {
+        const updateTourForExistingWorkspace = async () => {
+          try {
+            console.log("Workspace found with tour in_progress, current_step=0, steps_completed=[]. Updating to step 1");
+            const updatedData = await tourAPI.updateTourStep(user.id, {
+              current_step: 1,
+              steps_completed: [0],
+            });
+            setTourData(updatedData);
+            setCurrentStepIndex(1);
+            setStepsCompleted([0]);
+            console.log("Tour updated: current_step=1, steps_completed=[0]");
+          } catch (error) {
+            console.error("Error updating tour for existing workspace:", error);
+          }
+        };
+
+        updateTourForExistingWorkspace();
+      }
+    }
+  }, [user?.id, hasWorkspaces, currentWorkspace, tourStatus, tourData]);
 
   // Start the tour
   const startTour = useCallback(async () => {
@@ -209,13 +292,30 @@ export function OnboardingTourProvider({
   );
 
   // Move to next step (or sub-step)
-  const nextStep = useCallback(() => {
+  const nextStep = useCallback(async () => {
     console.log("nextStep() called:", {
       currentStepIndex,
       currentSubStepIndex,
       maxSteps: TOTAL_STEPS - 1,
       canAdvance: currentStepIndex < TOTAL_STEPS - 1,
     });
+
+    // Find current step to check for onNext action
+    const currentStep = TOUR_STEPS.find(
+      (s) => s.stepIndex === currentStepIndex && s.subStepIndex === currentSubStepIndex
+    );
+
+    // Perform action before advancing (e.g., navigate, click button)
+    if (currentStep?.onNext) {
+      console.log("Performing onNext action for step:", currentStepIndex, currentSubStepIndex);
+      try {
+        await currentStep.onNext();
+        // Small delay to allow navigation/action to complete
+        await new Promise((resolve) => setTimeout(resolve, 300));
+      } catch (error) {
+        console.error("Error performing onNext action:", error);
+      }
+    }
 
     // Check if there are more sub-steps for current step
     const stepsForCurrentIndex = TOUR_STEPS.filter((s) => s.stepIndex === currentStepIndex);
@@ -226,6 +326,23 @@ export function OnboardingTourProvider({
       const nextSubStep = currentSubStepIndex + 1;
       console.log("Advancing to sub-step:", nextSubStep);
       setCurrentSubStepIndex(nextSubStep);
+
+      // Update database with current step (sub-step doesn't change main step index)
+      if (user?.id) {
+        const updatedStepsCompleted = [...new Set([...stepsCompleted, currentStepIndex])];
+        tourAPI
+          .updateTourStep(user.id, {
+            current_step: currentStepIndex,
+            steps_completed: updatedStepsCompleted,
+          })
+          .then(() => {
+            console.log("Database updated with step:", currentStepIndex, "steps_completed:", updatedStepsCompleted);
+            setStepsCompleted(updatedStepsCompleted);
+          })
+          .catch((error) => {
+            console.error("Error updating tour step:", error);
+          });
+      }
     } else if (currentStepIndex < TOTAL_STEPS - 1) {
       // Advance to next main step
       const nextIndex = currentStepIndex + 1;
@@ -235,42 +352,98 @@ export function OnboardingTourProvider({
 
       // Update database
       if (user?.id) {
+        // Mark previous step as completed
+        const updatedStepsCompleted = [...new Set([...stepsCompleted, currentStepIndex])];
         tourAPI
           .updateTourStep(user.id, {
             current_step: nextIndex,
+            steps_completed: updatedStepsCompleted,
           })
           .then(() => {
-            console.log("Database updated with new step:", nextIndex);
+            console.log("Database updated with new step:", nextIndex, "steps_completed:", updatedStepsCompleted);
+            setStepsCompleted(updatedStepsCompleted);
           })
           .catch((error) => {
             console.error("Error updating tour step:", error);
           });
       }
-    } else {
-      // Last step completed
+    } else if (currentStepIndex >= TOTAL_STEPS - 1) {
+      // Last step completed (step 5 - Thank You)
       console.log("Last step reached, completing tour");
-      completeTour();
-    }
-  }, [currentStepIndex, currentSubStepIndex, TOTAL_STEPS, user?.id, completeTour]);
-
-  // Move to previous step
-  const prevStep = useCallback(() => {
-    if (currentStepIndex > 0) {
-      const prevIndex = currentStepIndex - 1;
-      setCurrentStepIndex(prevIndex);
-
-      // Update database
+      // Update database to mark final step as completed
       if (user?.id) {
+        const finalStepsCompleted = [...new Set([...stepsCompleted, currentStepIndex])];
         tourAPI
           .updateTourStep(user.id, {
-            current_step: prevIndex,
+            current_step: currentStepIndex,
+            steps_completed: finalStepsCompleted,
+          })
+          .then(() => {
+            console.log("Final step saved to database");
+            // Complete the tour immediately when Finish button is clicked
+            completeTour();
           })
           .catch((error) => {
-            console.error("Error updating tour step:", error);
+            console.error("Error updating final tour step:", error);
+            // Still complete tour even if database update fails
+            completeTour();
           });
+      } else {
+        // Complete tour even without user ID
+        completeTour();
       }
     }
-  }, [currentStepIndex, user?.id]);
+  }, [currentStepIndex, currentSubStepIndex, TOTAL_STEPS, user?.id, completeTour, stepsCompleted]);
+
+  // Move to previous step
+  const prevStep = useCallback(async () => {
+    console.log("prevStep() called:", {
+      currentStepIndex,
+      currentSubStepIndex,
+    });
+
+    // If we're on a sub-step > 0, go to previous sub-step
+    if (currentSubStepIndex > 0) {
+      const prevSubStep = currentSubStepIndex - 1;
+      console.log("Going to previous sub-step:", prevSubStep);
+      setCurrentSubStepIndex(prevSubStep);
+      // Don't update database for sub-step changes, only for main step changes
+      return;
+    }
+
+    // If we're on sub-step 0, go to previous main step
+    if (currentStepIndex > 0) {
+      const prevIndex = currentStepIndex - 1;
+      console.log("Going to previous main step:", prevIndex);
+
+      // Go to sub-step 0 of the previous main step
+      setCurrentStepIndex(prevIndex);
+      setCurrentSubStepIndex(0);
+
+      // Remove the last step from steps_completed array
+      const updatedStepsCompleted = stepsCompleted.filter(
+        (step) => step !== currentStepIndex
+      );
+
+      // Update database with current_step - 1 and updated steps_completed
+      if (user?.id) {
+        try {
+          const updatedData = await tourAPI.updateTourStep(user.id, {
+            current_step: prevIndex,
+            steps_completed: updatedStepsCompleted,
+          });
+          console.log("Database updated on back button:", {
+            current_step: prevIndex,
+            steps_completed: updatedStepsCompleted,
+          });
+          setStepsCompleted(updatedStepsCompleted);
+          setTourData(updatedData);
+        } catch (error) {
+          console.error("Error updating tour step on back button:", error);
+        }
+      }
+    }
+  }, [currentStepIndex, currentSubStepIndex, user?.id, stepsCompleted]);
 
   // Callback for workspace creation (Step 0, sub-step 0 -> sub-step 1)
   const onWorkspaceCreated = useCallback(() => {
@@ -319,21 +492,15 @@ export function OnboardingTourProvider({
     }
   }, [tourActive, currentStepIndex]);
 
-  // Callback for integrations navigation (Step 2 - auto-advance after 3 seconds)
+  // Callback for integrations navigation (Step 2 - just navigate, don't auto-advance)
   const onNavigateToIntegrations = useCallback(() => {
     console.log("onNavigateToIntegrations called", {
       tourActive,
       currentStepIndex,
     });
-    // Auto-advance to next step after 3 seconds when user is on integrations page
-    if (tourActive && currentStepIndex === 2) {
-      setTimeout(() => {
-        console.log("Auto-advancing from integrations page after 3 seconds");
-        markStepCompleted(2);
-        nextStep();
-      }, 3000);
-    }
-  }, [tourActive, currentStepIndex, markStepCompleted, nextStep]);
+    // Just navigate to integrations, stay on step 2
+    // Step will advance when user clicks Next button
+  }, []);
 
   // Callback for settings navigation (Step 3 - just navigate, don't advance)
   const onNavigateToSettings = useCallback(() => {

@@ -31,12 +31,14 @@ import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { useOnboardingTour } from "@/lib/contexts/OnboardingTourContext";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import WorkspaceOnboardingModal from "@/components/workspace/WorkspaceOnboardingModal";
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlWorkspaceId = searchParams.get("ws");
   const {
     currentWorkspace,
     selectedWorkspaceId,
@@ -97,13 +99,52 @@ export default function DashboardPage() {
   } | null>(null);
 
   // Check if new user needs to create a workspace
+  // NEVER open modal if there's already a workspace created
   useEffect(() => {
-    if (user && !workspaceLoading && !hasWorkspaces) {
-      setShowNewUserModal(true);
+    // ALWAYS close modal if any workspace exists (multiple checks for safety)
+    if (
+      workspaces.length > 0 ||
+      selectedWorkspaceId ||
+      currentWorkspace ||
+      urlWorkspaceId ||
+      workspaceId
+    ) {
+      setShowNewUserModal(false);
+      return;
     }
-  }, [user, workspaceLoading, hasWorkspaces]);
+
+    // Only show modal if:
+    // 1. User is logged in
+    // 2. Workspaces have finished loading
+    // 3. No workspaces exist (double-check)
+    // 4. No workspace ID in URL
+    if (
+      user &&
+      !workspaceLoading &&
+      !hasWorkspaces &&
+      workspaces.length === 0 &&
+      !urlWorkspaceId &&
+      !selectedWorkspaceId &&
+      !currentWorkspace
+    ) {
+      setShowNewUserModal(true);
+    } else {
+      // Ensure modal is closed if any condition fails
+      setShowNewUserModal(false);
+    }
+  }, [
+    user,
+    workspaceLoading,
+    hasWorkspaces,
+    workspaces.length,
+    selectedWorkspaceId,
+    currentWorkspace,
+    urlWorkspaceId,
+    workspaceId,
+  ]);
 
   // Auto-start tour for new users who haven't completed it
+  // Skip if workspace ID is in URL (ws parameter)
   useEffect(() => {
     console.log("Tour auto-start check:", {
       user: !!user,
@@ -111,7 +152,14 @@ export default function DashboardPage() {
       workspaceLoading,
       hasWorkspaces,
       tourStatus,
+      urlWorkspaceId,
     });
+
+    // Don't auto-start tour if workspace ID is in URL
+    if (urlWorkspaceId) {
+      console.log("Workspace ID in URL, skipping tour auto-start");
+      return;
+    }
 
     if (
       user &&
@@ -139,6 +187,7 @@ export default function DashboardPage() {
     workspaceLoading,
     tourStatus,
     startTour,
+    urlWorkspaceId,
   ]);
 
   useEffect(() => {
@@ -281,17 +330,19 @@ export default function DashboardPage() {
           if (!cancelled) {
             console.error("Failed to load workspace details", err);
 
-            // If access denied, clear the invalid workspace ID from localStorage
-            if (
-              err instanceof Error &&
-              err.message.toLowerCase().includes("access denied")
-            ) {
-              console.log("Clearing invalid workspace ID from localStorage");
-              try {
-                localStorage.removeItem("selectedWorkspaceId");
-              } catch {
-                // ignore localStorage errors
-              }
+              // If access denied, clear the invalid workspace ID from localStorage
+              if (
+                err instanceof Error &&
+                err.message.toLowerCase().includes("access denied")
+              ) {
+                console.log("Clearing invalid workspace ID from localStorage");
+                try {
+                  localStorage.removeItem("selectedWorkspaceId");
+                  // Also clear cookie
+                  document.cookie = "selectedWorkspaceId=; path=/; max-age=0; SameSite=Lax";
+                } catch {
+                  // ignore localStorage errors
+                }
 
               // Try to select the first available workspace
               if (workspaces.length > 0) {
@@ -467,29 +518,36 @@ export default function DashboardPage() {
       setNewWorkspaceName("");
 
       // Check onboarding status
-      const status = await yettiOnboardingAPI
-        .getOnboardingStatus(workspace.id)
-        .catch((err: unknown) => {
-          if (
-            err instanceof Error &&
-            (err.message.includes("404") ||
-              err.message.toLowerCase().includes("not found"))
-          ) {
-            return null;
-          }
-          throw err;
-        });
+      // Skip onboarding modal and tour if workspace ID is in URL (ws parameter)
+      let status = null;
+      if (!urlWorkspaceId) {
+        status = await yettiOnboardingAPI
+          .getOnboardingStatus(workspace.id)
+          .catch((err: unknown) => {
+            if (
+              err instanceof Error &&
+              (err.message.includes("404") ||
+                err.message.toLowerCase().includes("not found"))
+            ) {
+              return null;
+            }
+            throw err;
+          });
 
-      if (!status || !status.is_onboarded) {
-        setPendingWorkspace({
-          id: workspace.id,
-          name: workspace.name,
-        });
-        setShowOnboardingModal(true);
+        if (!status || !status.is_onboarded) {
+          setPendingWorkspace({
+            id: workspace.id,
+            name: workspace.name,
+          });
+          setShowOnboardingModal(true);
+        }
+      } else {
+        console.log("Workspace ID in URL, skipping onboarding modal and tour");
       }
 
       // Start the tour for new users creating their first workspace
-      if (tourStatus === "not_started" && !tourLoading) {
+      // Skip if workspace ID is in URL
+      if (!urlWorkspaceId && tourStatus === "not_started" && !tourLoading) {
         console.log(
           "Starting tour for new user after first workspace creation"
         );
@@ -512,7 +570,7 @@ export default function DashboardPage() {
           .catch((err) => {
             console.error("Failed to start tour:", err);
           });
-      } else {
+      } else if (!urlWorkspaceId) {
         // Trigger tour callback for workspace creation (if tour already active)
         // Only advance if onboarding modal won't show
         if (status && status.is_onboarded) {
@@ -547,13 +605,16 @@ export default function DashboardPage() {
     onOnboardingModalCompleted();
 
     // Also start the tour if it's not started yet
-    if (tourStatus === "not_started" && !tourLoading) {
+    // Skip if workspace ID is in URL (ws parameter)
+    if (!urlWorkspaceId && tourStatus === "not_started" && !tourLoading) {
       console.log("Starting tour after workspace onboarding completion");
       setTimeout(() => {
         startTour().catch((err) => {
           console.error("Failed to start tour after onboarding:", err);
         });
       }, 500);
+    } else if (urlWorkspaceId) {
+      console.log("Workspace ID in URL, skipping tour start after onboarding");
     }
   };
 

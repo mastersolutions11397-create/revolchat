@@ -91,6 +91,17 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const clearWorkspaceId = () => {
+    try {
+      if (typeof window === "undefined") return;
+      localStorage.removeItem("selectedWorkspaceId");
+      // Also clear cookie
+      document.cookie = "selectedWorkspaceId=; path=/; max-age=0; SameSite=Lax";
+    } catch {
+      // ignore errors
+    }
+  };
+
   const persistWorkspaceId = (workspaceId: string) => {
     try {
       if (typeof window === "undefined") return;
@@ -108,6 +119,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       }
       localStorage.setItem("selectedWorkspaceId", workspaceId);
       setSelectedWorkspaceId(workspaceId);
+      
+      // Also set cookie for middleware to use
+      document.cookie = `selectedWorkspaceId=${workspaceId}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax${process.env.NODE_ENV === "production" ? "; Secure" : ""}`;
     } catch {
       // ignore persistence errors
     }
@@ -129,11 +143,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         // Clear persisted ID if it's not in the list of accessible workspaces
         if (persistedId && !data.workspaces.some((w) => w.id === persistedId)) {
           console.log("Clearing invalid persisted workspace ID");
-          try {
-            localStorage.removeItem("selectedWorkspaceId");
-          } catch {
-            // ignore localStorage errors
-          }
+          clearWorkspaceId();
         }
 
         const targetId =
@@ -260,11 +270,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         // If access denied, clear the invalid workspace ID
         if (errorMessage.toLowerCase().includes("access denied")) {
           console.log("Access denied - clearing invalid workspace ID");
-          try {
-            localStorage.removeItem("selectedWorkspaceId");
-          } catch {
-            // ignore localStorage errors
-          }
+          clearWorkspaceId();
 
           // Try to load workspaces again and select the first one
           try {

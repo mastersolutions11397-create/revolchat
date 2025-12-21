@@ -392,7 +392,7 @@ export default function PlansPage() {
   console.log("PlansPage: Rendering main component");
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto animate-fade-in-up">
+    <div className="space-y-8 max-w-7xl mx-auto animate-fade-in-up" data-tour="plans-page">
       {/* Header Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-xl">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>

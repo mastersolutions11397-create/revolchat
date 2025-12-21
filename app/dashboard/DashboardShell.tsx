@@ -159,6 +159,13 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     setMobileSidebarOpen(false);
   }, [pathname]);
 
+  // Collapse sidebar when tour becomes active or in progress
+  useEffect(() => {
+    if (tourActive || tourStatus === "in_progress") {
+      setSidebarExpanded(false);
+    }
+  }, [tourActive, tourStatus]);
+
   // Prevent body scroll when mobile sidebar is open
   useEffect(() => {
     if (mobileSidebarOpen) {
@@ -391,8 +398,16 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside
-        onMouseEnter={() => setSidebarExpanded(true)}
-        onMouseLeave={() => setSidebarExpanded(false)}
+        onMouseEnter={() => {
+          // Don't expand sidebar if tour is active or in progress
+          if (!tourActive && tourStatus !== "in_progress") {
+            setSidebarExpanded(true);
+          }
+        }}
+        onMouseLeave={() => {
+          // Always collapse on mouse leave
+          setSidebarExpanded(false);
+        }}
         className={`fixed inset-y-0 left-0 z-50 bg-white border-r border-slate-200 transition-all duration-300 ease-in-out shadow-sm ${
           // Mobile: always full width when open, hidden when closed
           mobileSidebarOpen ? "w-72 translate-x-0" : "-translate-x-full"
@@ -491,7 +506,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 href: "/dashboard/plans",
                 icon: Crown,
                 label: "Plans",
-                tourId: null,
+                tourId: "plans-nav",
               },
               {
                 href: "/dashboard/billing",
@@ -679,6 +694,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             {/* Credits Button */}
             <Link
               href="/dashboard/billing"
+              data-tour="credits-button"
               className="hidden sm:inline-flex items-center gap-2 rounded-xl border-2 border-slate-100 bg-white px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-slate-900 transition-all hover:bg-sky-100 hover:border-sky-300 hover:shadow-sm"
             >
               <CreditCard className="h-4 w-4" />

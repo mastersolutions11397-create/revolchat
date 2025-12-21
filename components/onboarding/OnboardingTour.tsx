@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import Joyride, { CallBackProps, STATUS, EVENTS, ACTIONS } from "react-joyride";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useOnboardingTour } from "@/lib/contexts/OnboardingTourContext";
 import { getCurrentStep } from "@/lib/tour/steps";
 import { CustomTooltip } from "./CustomTooltip";
@@ -18,6 +18,7 @@ export function OnboardingTour() {
     skipTour,
     nextStep,
     prevStep,
+    completeTour,
   } = useOnboardingTour();
 
   const [run, setRun] = useState(false);
@@ -80,23 +81,29 @@ export function OnboardingTour() {
             status,
             action,
             currentStepIndex,
-            totalSteps: 5,
+            totalSteps: 6,
           }
         );
         setRun(false);
         if (action === ACTIONS.SKIP) {
           skipTour();
         } else if (status === STATUS.FINISHED) {
-          if (currentStepIndex < 4) {
+          if (currentStepIndex < 5) {
             // Joyride thinks it's finished but we have more steps - advance!
             console.log(
               "Joyride finished but more steps remain - advancing tour"
             );
             nextStep();
           } else {
-            // We're on the last step (step 4) - complete the tour
-            console.log("Joyride finished on last step - completing tour");
-            nextStep(); // This will trigger completeTour() since we're at the last step
+            // We're on the last step (step 5) - complete the tour immediately
+            console.log("Finish button clicked on last step - completing tour");
+            // Mark step as completed and finish the tour
+            // nextStep will handle marking the step and completing the tour
+            nextStep().catch((error: unknown) => {
+              console.error("Error completing tour:", error);
+              // If nextStep fails, still try to complete the tour
+              completeTour();
+            });
           }
         }
       }
@@ -111,19 +118,24 @@ export function OnboardingTour() {
         );
         if (action === ACTIONS.NEXT) {
           // Move to next step in context (not just next Joyride step)
+          // nextStep now performs actions (navigation, clicks) and updates database
           console.log(
             "Calling nextStep() to advance tour from step",
             currentStepIndex,
-            "to",
-            currentStepIndex + 1
+            "sub-step",
+            currentSubStepIndex
           );
-          nextStep();
+          nextStep().catch((error) => {
+            console.error("Error advancing tour step:", error);
+          });
         } else if (action === ACTIONS.PREV) {
           console.log("Calling prevStep() to go back");
           prevStep();
         } else if (action === ACTIONS.CLOSE) {
           console.log("Close action detected - advancing tour");
-          nextStep();
+          nextStep().catch((error) => {
+            console.error("Error advancing tour step:", error);
+          });
         }
       }
 
@@ -133,7 +145,7 @@ export function OnboardingTour() {
         // Could auto-advance or wait
       }
     },
-    [skipTour, nextStep, prevStep, currentStep, currentStepIndex, pathname]
+    [skipTour, nextStep, prevStep, completeTour, currentStep, currentStepIndex, pathname]
   );
 
   // Don't render if tour is not active or still loading
@@ -150,9 +162,9 @@ export function OnboardingTour() {
       spotlightClicks: true,
       // Pass custom data about the actual tour progress
       data: {
-        isActualLastStep: currentStepIndex === 3, // Step 3 is the last step (0-indexed)
+        isActualLastStep: currentStepIndex === 5, // Step 5 is the last step (0-indexed)
         currentStepIndex,
-        totalSteps: 4,
+        totalSteps: 6,
       },
     },
   ];
@@ -180,7 +192,7 @@ export function OnboardingTour() {
             arrowColor: "transparent",
           },
           overlay: {
-            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            backgroundColor: "rgba(0, 0, 0, 0)",
             mixBlendMode: "normal",
           },
           spotlight: {

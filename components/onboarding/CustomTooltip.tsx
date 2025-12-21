@@ -34,7 +34,10 @@ export function CustomTooltip({
   return (
     <div
       {...tooltipProps}
-      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-6 text-white shadow-2xl ring-1 ring-white/10 max-w-md animate-in fade-in zoom-in-95 duration-200"
+      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-6 text-white border-2 border-white ring-1 ring-white/10 max-w-md animate-in fade-in zoom-in-95 duration-200"
+      style={{
+        boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1), 0 0 40px rgba(14, 165, 233, 0.4), 0 10px 25px -5px rgba(0, 0, 0, 0.4)",
+      }}
     >
       {/* Decorative gradient blobs */}
       <div className="absolute top-0 right-0 -mt-10 -mr-10 h-32 w-32 rounded-full bg-sky-500/20 blur-3xl" />

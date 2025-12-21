@@ -10,16 +10,17 @@ export interface TourStepConfig extends Step {
   subStepIndex?: number; // For tracking sub-steps within a main step
   requiresAction?: boolean; // If true, tour won't auto-advance
   route?: string; // Expected route for this step
+  onNext?: () => void | Promise<void>; // Action to perform when Next is clicked
 }
 
 export const TOUR_STEPS: TourStepConfig[] = [
-  // Step 1: Create Workspace - point to input field
+  // Step 0: Create Workspace - point to input field
   {
     stepIndex: 0,
     subStepIndex: 0,
     target: '[data-tour="workspace-name-input"]',
     content:
-      '👋 Welcome to Yetti! Let\'s get started by creating your first workspace. <strong>Enter a name for your workspace</strong> in the input field below (minimum 3 characters), then click "Create Workspace & Continue" when you\'re ready.',
+      "👋 Welcome to Yetti! Let's get started by creating your first workspace. <strong>Enter a name for your workspace</strong> in the input field below (minimum 3 characters), then click \"Create Workspace & Continue\" when you're ready.",
     placement: "top",
     disableBeacon: true,
     requiresAction: true,
@@ -31,7 +32,7 @@ export const TOUR_STEPS: TourStepConfig[] = [
     },
   },
 
-  // Step 1a: Onboarding Modal - wait for user to complete questions
+  // Step 0a: Onboarding Modal - wait for user to complete questions
   {
     stepIndex: 0,
     subStepIndex: 1,
@@ -49,7 +50,7 @@ export const TOUR_STEPS: TourStepConfig[] = [
     },
   },
 
-  // Step 2: Navigate to Knowledge Base
+  // Step 1: Navigate to Knowledge Base
   {
     stepIndex: 1,
     subStepIndex: 0,
@@ -60,6 +61,15 @@ export const TOUR_STEPS: TourStepConfig[] = [
     disableBeacon: true,
     requiresAction: true,
     route: "/dashboard",
+    onNext: () => {
+      // Navigate to knowledge base by clicking the navigation link
+      const navLink = document.querySelector(
+        '[data-tour="knowledge-base-nav"]'
+      ) as HTMLElement;
+      if (navLink) {
+        navLink.click();
+      }
+    },
     styles: {
       options: {
         width: 380,
@@ -67,7 +77,7 @@ export const TOUR_STEPS: TourStepConfig[] = [
     },
   },
 
-  // Step 2a: Click Add Knowledge button
+  // Step 1a: Click Add Knowledge button
   {
     stepIndex: 1,
     subStepIndex: 1,
@@ -78,6 +88,15 @@ export const TOUR_STEPS: TourStepConfig[] = [
     disableBeacon: true,
     requiresAction: true,
     route: "/dashboard/knowledge-base",
+    onNext: () => {
+      // Click the Add Knowledge button
+      const addButton = document.querySelector(
+        '[data-tour="add-knowledge-button"]'
+      ) as HTMLElement;
+      if (addButton) {
+        addButton.click();
+      }
+    },
     styles: {
       options: {
         width: 400,
@@ -85,7 +104,7 @@ export const TOUR_STEPS: TourStepConfig[] = [
     },
   },
 
-  // Step 2b: Point to Options section (Category/Importance)
+  // Step 1b: Point to Options section (Category/Importance)
   {
     stepIndex: 1,
     subStepIndex: 2,
@@ -103,7 +122,7 @@ export const TOUR_STEPS: TourStepConfig[] = [
     },
   },
 
-  // Step 2c: Point to Save button (after content is entered)
+  // Step 1c: Point to Save button (after content is entered)
   {
     stepIndex: 1,
     subStepIndex: 3,
@@ -121,7 +140,7 @@ export const TOUR_STEPS: TourStepConfig[] = [
     },
   },
 
-  // Step 2d: Point to Test Yetti section (shown after saving)
+  // Step 1d: Point to Test Yetti section (shown after saving)
   {
     stepIndex: 1,
     subStepIndex: 4,
@@ -139,7 +158,7 @@ export const TOUR_STEPS: TourStepConfig[] = [
     },
   },
 
-  // Step 3: Navigate to Integrations
+  // Step 2: Navigate to Integrations
   {
     stepIndex: 2,
     subStepIndex: 0,
@@ -150,6 +169,15 @@ export const TOUR_STEPS: TourStepConfig[] = [
     disableBeacon: true,
     requiresAction: true,
     route: "/dashboard/knowledge-base",
+    onNext: () => {
+      // Navigate to integrations by clicking the navigation link
+      const navLink = document.querySelector(
+        '[data-tour="integrations-nav"]'
+      ) as HTMLElement;
+      if (navLink) {
+        navLink.click();
+      }
+    },
     styles: {
       options: {
         width: 380,
@@ -157,16 +185,34 @@ export const TOUR_STEPS: TourStepConfig[] = [
     },
   },
 
-  // Step 3a: Integrations page opened (auto-advance after 3 seconds)
+  // Step 2a: Integrations page - explain integrations
   {
     stepIndex: 2,
     subStepIndex: 1,
-    target: '[data-tour="integrations-page"]',
+    target: "body",
     content:
-      "📱 Here you can connect Instagram, Telegram, and other platforms. You don't need to connect anything right now - just know this is where you'll manage your integrations! The tour will continue automatically in a few seconds.",
-    placement: "top",
+      "🔗 <strong>Integrations</strong> allow you to connect your AI agent to different platforms like Instagram and Telegram. When customers message you on these platforms, your AI will automatically respond using the knowledge you've added. <strong>Connect your preferred channels</strong> to start engaging with your customers! Click Next when you're ready to continue.",
+    placement: "center",
     disableBeacon: true,
-    requiresAction: false,
+    requiresAction: true,
+    route: "/dashboard/integrations",
+    styles: {
+      options: {
+        width: 450,
+      },
+    },
+  },
+
+  // Step 3: Credits Button in Navbar
+  {
+    stepIndex: 3,
+    subStepIndex: 0,
+    target: '[data-tour="credits-button"]',
+    content:
+      "💳 This is your <strong>Credits</strong> button. Credits are used for every message your AI processes. <strong>One credit is deducted for each message</strong> your AI responds to. You can purchase more credits anytime from the billing page. Click Next to continue.",
+    placement: "bottom",
+    disableBeacon: true,
+    requiresAction: true,
     route: "/dashboard/integrations",
     styles: {
       options: {
@@ -175,56 +221,65 @@ export const TOUR_STEPS: TourStepConfig[] = [
     },
   },
 
-  // Step 4: Navigate to Settings
+  // Step 4: Plans Button in Sidebar
   {
-    stepIndex: 3,
+    stepIndex: 4,
     subStepIndex: 0,
-    target: '[data-tour="settings-nav"]',
+    target: '[data-tour="plans-nav"]',
     content:
-      '⚙️ Almost done! Finally, let\'s set your workspace hours. Click on "Settings" in the sidebar.',
+      '💎 Click on "Plans" in the sidebar to see your current plan and upgrade options. This is where you can manage your subscription and choose a plan that fits your needs.',
     placement: "right",
     disableBeacon: true,
     requiresAction: true,
     route: "/dashboard/integrations",
+    onNext: () => {
+      // Navigate to plans by clicking the navigation link
+      const navLink = document.querySelector(
+        '[data-tour="plans-nav"]'
+      ) as HTMLElement;
+      if (navLink) {
+        navLink.click();
+      }
+    },
     styles: {
       options: {
-        width: 350,
+        width: 380,
       },
     },
   },
 
-  // Step 4a: Configure Workspace Hours and Save
+  // Step 4a: Plans Page - Explain plans
   {
-    stepIndex: 3,
+    stepIndex: 4,
     subStepIndex: 1,
-    target: '[data-tour="workspace-hours-section"]',
+    target: "body",
     content:
-      "⏰ Set when your AI is available to respond to customers. Configure your working hours, timezone, and availability settings, then click the Save button below.",
-    placement: "top",
+      "💎 <strong>Plans & Pricing:</strong> Here you can view and manage your subscription plan. Each plan includes different amounts of Yetti Tokens (credits) that power your AI responses. <strong>Upgrade anytime</strong> to get more credits and unlock premium features. Choose the plan that best fits your business needs!",
+    placement: "center",
     disableBeacon: true,
     requiresAction: true,
-    route: "/dashboard/settings",
+    route: "/dashboard/plans",
     styles: {
       options: {
-        width: 400,
+        width: 480,
       },
     },
   },
 
-  // Step 4b: Point to Save button for workspace hours
+  // Step 5: Thank You Message (shown gracefully after plans explanation)
   {
-    stepIndex: 3,
-    subStepIndex: 2,
-    target: '[data-tour="save-workspace-hours-button"]',
+    stepIndex: 5,
+    subStepIndex: 0,
+    target: "body",
     content:
-      "💾 Once you've configured your workspace hours, click Save to apply your settings and complete the tour!",
-    placement: "top",
+      "🎊 <strong>Thank you for completing the Yetti onboarding tour!</strong><br/><br/>You're now ready to build amazing AI experiences. Your workspace is set up, and you know how to add knowledge, connect integrations, and manage your plan.<br/><br/>If you need help anytime, check out our documentation or reach out to support. <strong>Happy building! 🚀</strong>",
+    placement: "center",
     disableBeacon: true,
     requiresAction: true,
-    route: "/dashboard/settings",
+    route: "/dashboard/plans",
     styles: {
       options: {
-        width: 400,
+        width: 520,
       },
     },
   },
@@ -246,7 +301,10 @@ export function getCurrentStep(
   // If subStepIndex is provided, try to find that specific sub-step
   if (subStepIndex !== undefined) {
     const subStep = stepsForIndex.find(
-      (step) => step.subStepIndex === subStepIndex && step.route && route.startsWith(step.route)
+      (step) =>
+        step.subStepIndex === subStepIndex &&
+        step.route &&
+        route.startsWith(step.route)
     );
     if (subStep) return subStep;
   }
@@ -272,12 +330,14 @@ export function getStepRoute(stepIndex: number): string | undefined {
 }
 
 // Total unique steps (not counting sub-steps)
-export const TOTAL_TOUR_STEPS = 4;
+export const TOTAL_TOUR_STEPS = 6;
 
 // Step names for display
 export const STEP_NAMES = [
   "Create Workspace",
   "Add Knowledge",
   "Connect Channels",
-  "Set Availability",
+  "Credits",
+  "Plans",
+  "Thank You",
 ];
