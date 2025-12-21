@@ -479,12 +479,6 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 tourId: null,
               },
               {
-                href: "/workspace",
-                icon: Folders,
-                label: "Workspaces",
-                tourId: null,
-              },
-              {
                 href: "/dashboard/inbox",
                 icon: MessageSquare,
                 label: "Inbox",

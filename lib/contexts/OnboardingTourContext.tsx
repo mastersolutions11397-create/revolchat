@@ -31,8 +31,8 @@ interface OnboardingTourContextType {
   completeTour: () => Promise<void>;
   goToStep: (stepIndex: number) => void;
   markStepCompleted: (stepIndex: number) => void;
-  nextStep: () => void;
-  prevStep: () => void;
+  nextStep: () => Promise<void>;
+  prevStep: () => Promise<void>;
 
   // Callbacks for specific actions
   onWorkspaceCreated: () => void;

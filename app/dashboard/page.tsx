@@ -646,7 +646,7 @@ export default function DashboardPage() {
                 Welcome back, {getUserName()}
               </h1>
               <p className="mt-1 text-slate-300 text-lg">
-                Here's what's happening in your workspace today.
+                Here&apos;s what's happening in your workspace today.
               </p>
             </div>
           </div>
