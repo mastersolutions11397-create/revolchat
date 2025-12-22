@@ -2485,8 +2485,11 @@ function ChatPanel({
       }
 
       setMessages((prev) => {
-        const newMessages = [...prev, { role: "assistant", content }];
-        
+        const newMessages: ChatMessage[] = [
+          ...prev,
+          { role: "assistant" as const, content }
+        ];
+
         // Call callback if message was sent and response received successfully
         // Only call once per session (check if we have at least one user message and one assistant response)
         if (onTestAgentMessageCompleted) {
