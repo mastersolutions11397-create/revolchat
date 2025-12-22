@@ -26,9 +26,10 @@ import { yettiOnboardingAPI } from "@/lib/api";
 import WorkspaceOnboardingModal from "@/components/workspace/WorkspaceOnboardingModal";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import * as tourAPI from "@/lib/api/onboarding-tour";
 
 export default function WorkspaceSelectionPage() {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const {
     workspaces,
     createWorkspace,
@@ -196,11 +197,30 @@ export default function WorkspaceSelectionPage() {
     setPendingWorkspace(null);
   };
 
-  const handleOnboardingCompleted = () => {
+  const handleOnboardingCompleted = async () => {
     setShowOnboardingModal(false);
     const workspaceId = pendingWorkspace?.id;
     setPendingWorkspace(null);
     void fetchWorkspaces();
+
+    // Check and update tour step if needed
+    if (user?.id) {
+      try {
+        const tourData = await tourAPI.getTourStatus(user.id);
+        
+        if (tourData && tourData.current_step === 0) {
+          console.log("Tour step is 0, updating to step 1 after onboarding completion");
+          await tourAPI.updateTourStep(user.id, {
+            current_step: 1,
+            steps_completed: [0], // Mark step 0 as completed
+          });
+          console.log("Tour step updated to 1");
+        }
+      } catch (error) {
+        console.error("Error updating tour step after onboarding completion:", error);
+        // Don't show error to user, just log it
+      }
+    }
 
     // Redirect to dashboard with workspace ID in URL
     if (workspaceId) {

@@ -128,7 +128,7 @@ export const TOUR_STEPS: TourStepConfig[] = [
     subStepIndex: 3,
     target: '[data-tour="save-knowledge-button"]',
     content:
-      "💾 Once you've filled in the Title and Content, click the Save button to add your knowledge to the library.",
+      "💾 Once you've filled in the Title and Content, click the Save button to add your knowledge to the library. <strong>Once you're done, click Next</strong> to continue.",
     placement: "top",
     disableBeacon: true,
     requiresAction: true,
@@ -140,13 +140,14 @@ export const TOUR_STEPS: TourStepConfig[] = [
     },
   },
 
-  // Step 1d: Point to Test Yetti section (shown after saving)
+  // Step 1.5: Test Agent (shown after knowledge is saved)
+  // This is stored as 1.5 in DB but handled as a separate step in frontend
   {
-    stepIndex: 1,
-    subStepIndex: 4,
+    stepIndex: 1.5,
+    subStepIndex: 0,
     target: '[data-tour="test-yetti-section"]',
     content:
-      "🧪 Excellent! Now you can test your AI by asking questions in the Test Yetti section. Try asking something based on the knowledge you just added! When you're ready, click Next to continue.",
+      "🧪 Excellent! Now you can test your AI by asking questions in the Test Yetti section. <strong>Send at least one message</strong> and wait for a response to see how your AI works with the knowledge you just added!",
     placement: "left",
     disableBeacon: true,
     requiresAction: true,
@@ -290,6 +291,11 @@ export function getStepsForIndex(stepIndex: number): TourStepConfig[] {
   return TOUR_STEPS.filter((step) => step.stepIndex === stepIndex);
 }
 
+// Check if step index is 1.5 (test agent step)
+export function isTestAgentStep(stepIndex: number): boolean {
+  return stepIndex === 1.5;
+}
+
 // Get current route-specific step with sub-step support
 export function getCurrentStep(
   stepIndex: number,
@@ -330,12 +336,14 @@ export function getStepRoute(stepIndex: number): string | undefined {
 }
 
 // Total unique steps (not counting sub-steps)
-export const TOTAL_TOUR_STEPS = 6;
+// Note: Step 1.5 is counted separately, so we have 0, 1, 1.5, 2, 3, 4, 5 = 7 steps total
+export const TOTAL_TOUR_STEPS = 7;
 
 // Step names for display
 export const STEP_NAMES = [
   "Create Workspace",
   "Add Knowledge",
+  "Test Agent",
   "Connect Channels",
   "Credits",
   "Plans",

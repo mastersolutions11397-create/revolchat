@@ -19,18 +19,19 @@ import {
   Loader2,
   CreditCard,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
   MessageSquare,
   Crown,
   Activity,
   Menu,
   X,
   Plus,
-  Folders,
+  Pencil,
+  Check,
+  ChevronDown,
 } from "lucide-react";
 import { yettiOnboardingAPI } from "@/lib/api";
 import WorkspaceOnboardingModal from "@/components/workspace/WorkspaceOnboardingModal";
+import { supabase } from "@/lib/supabase";
 
 function WorkspaceSelector() {
   // This component is handled by the main DashboardContent component
@@ -77,6 +78,11 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const [showNewWorkspaceModal, setShowNewWorkspaceModal] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
   const [creatingWorkspace, setCreatingWorkspace] = useState(false);
+  const [workspaceDropdownOpen, setWorkspaceDropdownOpen] = useState(false);
+  const [editingWorkspaceId, setEditingWorkspaceId] = useState<string | null>(null);
+  const [editingWorkspaceName, setEditingWorkspaceName] = useState("");
+  const [updatingWorkspace, setUpdatingWorkspace] = useState(false);
+  const workspaceDropdownRef = useRef<HTMLDivElement>(null);
 
   // Handle workspace selection from URL query params
   useEffect(() => {
@@ -177,6 +183,21 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       document.body.style.overflow = "";
     };
   }, [mobileSidebarOpen]);
+
+  // Close workspace dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        workspaceDropdownRef.current &&
+        !workspaceDropdownRef.current.contains(event.target as Node)
+      ) {
+        setWorkspaceDropdownOpen(false);
+        setEditingWorkspaceId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSignOut = async () => {
     await signOut();
@@ -310,6 +331,48 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error("Failed to refresh workspaces after onboarding", err);
     }
+  };
+
+  const handleUpdateWorkspaceName = async (workspaceId: string) => {
+    const trimmedName = editingWorkspaceName.trim();
+    if (!trimmedName || trimmedName.length < 3) {
+      setEditingWorkspaceId(null);
+      return;
+    }
+
+    setUpdatingWorkspace(true);
+    try {
+      const { error } = await supabase
+        .from("yetti_workspaces")
+        .update({ name: trimmedName })
+        .eq("id", workspaceId);
+
+      if (error) {
+        throw error;
+      }
+
+      // Refresh workspaces list
+      await fetchWorkspaces();
+      setEditingWorkspaceId(null);
+      setEditingWorkspaceName("");
+    } catch (err) {
+      console.error("Failed to update workspace name:", err);
+      setWorkspaceSwitchError(
+        err instanceof Error ? err.message : "Failed to update workspace name"
+      );
+    } finally {
+      setUpdatingWorkspace(false);
+    }
+  };
+
+  const handleStartEdit = (workspaceId: string, currentName: string) => {
+    setEditingWorkspaceId(workspaceId);
+    setEditingWorkspaceName(currentName);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingWorkspaceId(null);
+    setEditingWorkspaceName("");
   };
 
   const handleCreateNewWorkspace = async (e: React.FormEvent) => {
@@ -630,38 +693,154 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             </button>
 
             {/* Workspace Switcher */}
-            <div className="relative group flex-1 min-w-0 max-w-full sm:max-w-64">
-              <select
-                id="dashboard-header-workspace-select"
-                value={localWorkspaceSelection}
-                onChange={handleWorkspaceChange}
+            <div
+              ref={workspaceDropdownRef}
+              className="relative flex-1 min-w-0 max-w-full sm:max-w-64"
+            >
+              <button
+                type="button"
+                onClick={() => setWorkspaceDropdownOpen(!workspaceDropdownOpen)}
                 disabled={
                   switchingWorkspace ||
                   workspaceLoading ||
                   workspaces.length === 0
                 }
-                className="w-full appearance-none rounded-lg sm:rounded-xl border-2 border-slate-100 bg-white py-1.5 sm:py-2 md:py-2.5 pl-2 sm:pl-3 md:pl-4 pr-6 sm:pr-8 md:pr-10 text-xs sm:text-sm md:text-base font-bold text-slate-900 transition-all hover:border-sky-300 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/10 disabled:cursor-not-allowed disabled:bg-slate-50 min-w-0 truncate"
+                className="w-full flex items-center justify-between rounded-lg sm:rounded-xl border-2 border-slate-100 bg-white py-1.5 sm:py-2 md:py-2.5 pl-2 sm:pl-3 md:pl-4 pr-2 sm:pr-3 md:pr-4 text-xs sm:text-sm md:text-base font-bold text-slate-900 transition-all hover:border-sky-300 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/10 disabled:cursor-not-allowed disabled:bg-slate-50 min-w-0"
                 aria-label="Select workspace"
+                aria-haspopup="listbox"
+                aria-expanded={workspaceDropdownOpen}
               >
-                {workspaces.length === 0 ? (
-                  <option value="">
-                    {workspaceLoading ? "Loading..." : "No workspaces"}
-                  </option>
-                ) : (
-                  workspaces.map((workspace) => (
-                    <option key={workspace.id} value={workspace.id}>
-                      {workspace.name || "Untitled workspace"}
-                    </option>
-                  ))
-                )}
-              </select>
-              <div className="pointer-events-none absolute right-1.5 sm:right-2 md:right-3 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-sky-500 transition-colors">
-                {switchingWorkspace || workspaceLoading ? (
-                  <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 animate-spin" />
-                ) : (
-                  <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 rotate-90" />
-                )}
-              </div>
+                <span className="truncate flex-1 text-left">
+                  {workspaces.length === 0
+                    ? workspaceLoading
+                      ? "Loading..."
+                      : "No workspaces"
+                    : workspaces.find((w) => w.id === localWorkspaceSelection)
+                        ?.name || "Select workspace"}
+                </span>
+                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-2">
+                  {switchingWorkspace || workspaceLoading ? (
+                    <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 animate-spin text-slate-400" />
+                  ) : (
+                    <ChevronDown
+                      className={`h-3 w-3 sm:h-4 sm:w-4 md:h-5 md:w-5 text-slate-400 transition-transform ${
+                        workspaceDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  )}
+                </div>
+              </button>
+
+              {/* Dropdown Menu */}
+              {workspaceDropdownOpen && workspaces.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1.5 sm:mt-2 z-50 bg-white rounded-xl border-2 border-slate-200 shadow-xl shadow-slate-900/10 overflow-hidden">
+                  <div className="max-h-64 sm:max-h-80 overflow-y-auto">
+                    {workspaces.map((workspace) => {
+                      const isSelected = workspace.id === localWorkspaceSelection;
+                      const isEditing = editingWorkspaceId === workspace.id;
+
+                      return (
+                        <div
+                          key={workspace.id}
+                          className={`group relative ${
+                            isSelected
+                              ? "bg-sky-50 border-l-4 border-sky-500"
+                              : "hover:bg-slate-50"
+                          } transition-colors`}
+                        >
+                          {isEditing ? (
+                            <div className="flex items-center gap-2 p-3 sm:p-4">
+                              <input
+                                type="text"
+                                value={editingWorkspaceName}
+                                onChange={(e) =>
+                                  setEditingWorkspaceName(e.target.value)
+                                }
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    handleUpdateWorkspaceName(workspace.id);
+                                  } else if (e.key === "Escape") {
+                                    handleCancelEdit();
+                                  }
+                                }}
+                                autoFocus
+                                className="flex-1 min-w-0 max-w-[calc(100%-120px)] px-3 py-2 rounded-lg border-2 border-sky-300 bg-white text-sm font-medium text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/10"
+                                disabled={updatingWorkspace}
+                              />
+                              <button
+                                onClick={() =>
+                                  handleUpdateWorkspaceName(workspace.id)
+                                }
+                                disabled={
+                                  updatingWorkspace ||
+                                  editingWorkspaceName.trim().length < 3
+                                }
+                                className="p-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Save"
+                              >
+                                {updatingWorkspace ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Check className="h-4 w-4" />
+                                )}
+                              </button>
+                              <button
+                                onClick={handleCancelEdit}
+                                disabled={updatingWorkspace}
+                                className="p-2 rounded-lg bg-slate-200 text-slate-600 hover:bg-slate-300 transition-colors disabled:opacity-50"
+                                title="Cancel"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4">
+                              <button
+                                onClick={() => {
+                                  if (workspace.id !== localWorkspaceSelection) {
+                                    handleWorkspaceChange({
+                                      target: {
+                                        value: workspace.id,
+                                      },
+                                    } as ChangeEvent<HTMLSelectElement>);
+                                  }
+                                  setWorkspaceDropdownOpen(false);
+                                }}
+                                className={`flex-1 text-left ${
+                                  isSelected
+                                    ? "text-sky-600 font-bold"
+                                    : "text-slate-700 font-medium"
+                                } text-xs sm:text-sm transition-colors`}
+                              >
+                                <span className="block truncate">
+                                  {workspace.name || "Untitled workspace"}
+                                </span>
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleStartEdit(
+                                    workspace.id,
+                                    workspace.name || "Untitled workspace"
+                                  );
+                                }}
+                                className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-sky-500 hover:bg-sky-50 transition-all opacity-0 group-hover:opacity-100"
+                                title="Edit workspace name"
+                              >
+                                <Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                              </button>
+                              {isSelected && (
+                                <div className="h-2 w-2 rounded-full bg-sky-500 shrink-0" />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* New Workspace Button */}

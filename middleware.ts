@@ -15,24 +15,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Get workspace ID from cookie first (fastest option)
-  const workspaceIdFromCookie = request.cookies.get(
-    "selectedWorkspaceId"
-  )?.value;
-  if (
-    workspaceIdFromCookie &&
-    workspaceIdFromCookie !== "undefined" &&
-    workspaceIdFromCookie !== "null"
-  ) {
-    const url = new URL(request.url);
-    url.searchParams.set("ws", workspaceIdFromCookie);
-    // Use rewrite instead of redirect to avoid extra round trip
-    // But since we're adding a query param, we need to redirect
-    return NextResponse.redirect(url);
-  }
-
-  // If no cookie, try to get workspace from API
-  // First, check if user is authenticated
+  // Get Supabase environment variables
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -81,56 +64,54 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // User is authenticated, fetch workspaces
+  // User is authenticated, fetch workspaces from Supabase
   try {
-    const accessToken = session.access_token;
-    const API_BASE_URL =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const userId = session.user.id;
 
-    const workspacesResponse = await fetch(
-      `${API_BASE_URL}/api/yetti/workspaces`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    // Query workspaces from Supabase directly
+    // Try owner_id first (most common), fallback to user_id if it exists
+    const { data: workspaces, error: workspaceError } = await supabase
+      .from("workspaces")
+      .select("id, owner_id, user_id, created_at")
+      .or(`owner_id.eq.${userId},user_id.eq.${userId}`)
+      .order("created_at", { ascending: false })
+      .limit(1);
 
-    if (workspacesResponse.ok) {
-      const data = await workspacesResponse.json();
-      const workspaces = data.workspaces || [];
+    if (workspaceError) {
+      console.error("Error fetching workspaces from Supabase:", workspaceError);
+      // Let request proceed - client-side code will handle workspace selection
+      return NextResponse.next();
+    }
 
-      if (workspaces.length > 0) {
-        // Get the most recent workspace (first one in the list)
-        // The API typically returns workspaces sorted by most recent first
-        const mostRecentWorkspaceId = workspaces[0].id;
+    if (workspaces && workspaces.length > 0) {
+      const workspaceId = workspaces[0].id;
 
-        if (mostRecentWorkspaceId) {
-          // Redirect with ws parameter
-          const url = new URL(request.url);
-          url.searchParams.set("ws", mostRecentWorkspaceId);
+      if (workspaceId) {
+        // Redirect with ws parameter
+        const url = new URL(request.url);
+        url.searchParams.set("ws", workspaceId);
 
-          // Create redirect response and set cookie
-          const redirectResponse = NextResponse.redirect(url);
-          redirectResponse.cookies.set({
-            name: "selectedWorkspaceId",
-            value: mostRecentWorkspaceId,
-            path: "/",
-            maxAge: 60 * 60 * 24 * 30, // 30 days
-            sameSite: "lax",
-            secure: process.env.NODE_ENV === "production",
-          });
+        // Create redirect response and set cookie
+        const redirectResponse = NextResponse.redirect(url);
+        redirectResponse.cookies.set({
+          name: "selectedWorkspaceId",
+          value: workspaceId,
+          path: "/",
+          maxAge: 60 * 60 * 24 * 30, // 30 days
+          sameSite: "lax",
+          secure: process.env.NODE_ENV === "production",
+        });
 
-          return redirectResponse;
-        }
+        return redirectResponse;
       }
     }
   } catch (error) {
-    // If API call fails, log error but let request proceed
+    // If database query fails, log error but let request proceed
     // Client-side code will handle workspace selection
-    console.error("Failed to fetch workspaces in middleware:", error);
+    console.error(
+      "Failed to fetch workspaces from Supabase in middleware:",
+      error
+    );
   }
 
   // If we can't get workspace, let the request proceed

@@ -2,8 +2,27 @@
 
 import { Play, Maximize2, MoreHorizontal } from "lucide-react";
 import { motion } from "framer-motion";
+import { useEffect } from "react";
 
 const VideoDemo = () => {
+  useEffect(() => {
+    // Load Storylane script
+    const script = document.createElement("script");
+    script.src = "https://js.storylane.io/js/v2/storylane.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      // Cleanup: remove script on unmount
+      const existingScript = document.querySelector(
+        'script[src="https://js.storylane.io/js/v2/storylane.js"]'
+      );
+      if (existingScript) {
+        document.body.removeChild(existingScript);
+      }
+    };
+  }, []);
+
   return (
     <section className="py-16 md:py-20 lg:py-32 bg-background relative overflow-hidden">
       {/* Background Elements */}
@@ -37,56 +56,38 @@ const VideoDemo = () => {
           transition={{ duration: 0.7, delay: 0.2 }}
           className="max-w-5xl mx-auto"
         >
-          <div className="relative rounded-2xl bg-white/50 backdrop-blur-sm border border-white/60 shadow-2xl overflow-hidden">
-            {/* Browser Header */}
-            <div className="h-12 bg-white/80 border-b border-gray-100 flex items-center px-4 gap-2">
-              <div className="flex gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-400/80"></div>
-                <div className="w-3 h-3 rounded-full bg-amber-400/80"></div>
-                <div className="w-3 h-3 rounded-full bg-green-400/80"></div>
-              </div>
-              <div className="flex-1 flex justify-center">
-                <div className="h-6 w-64 bg-gray-100/50 rounded-full flex items-center justify-center text-[10px] text-gray-400 font-medium">
-                  yetti.ai/demo
-                </div>
-              </div>
-              <div className="flex gap-2 text-gray-400">
-                <MoreHorizontal size={16} />
-              </div>
-            </div>
-
+          <div className="relative rounded-2xl bg-white/50 backdrop-blur-sm border border-white/60 shadow-2xl overflow-hidden w-full">
             {/* Video Area */}
-            <div className="relative aspect-video bg-slate-900 group cursor-pointer overflow-hidden">
-              {/* Placeholder Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-[#0f172a] to-sky-900/20 opacity-90"></div>
-              
-              {/* Grid Overlay */}
-              <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:32px_32px]"></div>
-
-              {/* Play Button Overlay */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-sky-500/30 rounded-full blur-xl animate-pulse"></div>
-                  <div className="relative w-24 h-24 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <div className="w-16 h-16 rounded-full bg-sky-500 flex items-center justify-center shadow-lg shadow-sky-500/40 group-hover:bg-sky-500 transition-colors">
-                      <Play className="w-6 h-6 text-white fill-current ml-1" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Controls Mockup */}
-              <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/60 to-transparent flex items-end px-6 py-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <div className="w-full flex items-center justify-between text-white/80">
-                  <div className="flex gap-4 text-sm font-medium">
-                    <span>0:00</span>
-                    <div className="w-96 h-1.5 bg-white/20 rounded-full my-auto relative overflow-hidden">
-                      <div className="absolute left-0 top-0 bottom-0 w-1/3 bg-sky-500 rounded-full"></div>
-                    </div>
-                    <span>2:14</span>
-                  </div>
-                  <Maximize2 size={18} />
-                </div>
+            <div className="relative bg-slate-900 overflow-hidden w-full">
+              <div
+                className="sl-embed w-full"
+                style={{
+                  position: "relative",
+                  paddingBottom: "calc(53.44% + 25px)",
+                  width: "100%",
+                  height: 0,
+                  transform: "scale(1)",
+                }}
+              >
+                <iframe
+                  loading="lazy"
+                  className="sl-demo"
+                  src="https://app.storylane.io/demo/3ocaczjihcxr?embed=inline"
+                  name="sl-embed"
+                  allow="fullscreen"
+                  allowFullScreen
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    border: "1px solid rgba(63,95,172,0.35)",
+                    boxShadow: "0px 0px 18px rgba(26, 19, 72, 0.15)",
+                    borderRadius: "10px",
+                    boxSizing: "border-box",
+                  }}
+                />
               </div>
             </div>
           </div>

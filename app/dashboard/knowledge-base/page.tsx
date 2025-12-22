@@ -77,7 +77,7 @@ export default function KnowledgePage() {
   const { user } = useAuth();
   console.log("user", user);
   const { currentWorkspace, selectedWorkspaceId } = useWorkspace();
-  const { onNavigateToKnowledgeBase, onKnowledgeBaseCompleted } = useOnboardingTour();
+  const { onNavigateToKnowledgeBase, onKnowledgeBaseCompleted, onTestAgentMessageCompleted } = useOnboardingTour();
   const [localSelectedId, setLocalSelectedId] = useState<string | null>(null);
   const [knowledgeItems, setKnowledgeItems] = useState<KnowledgeRecord[]>([]);
   const [knowledgeLoading, setKnowledgeLoading] = useState(false);
@@ -588,11 +588,16 @@ export default function KnowledgePage() {
       // Refresh Google Sheets list
       await loadGoogleSheets(workspaceId);
 
-      // Reset states
+      // Reset states and close modals
       setGoogleSheetLink("");
       setShowLinkInput(false);
       setClickedTemplateIndex(null);
       setShowTemplateCards(false);
+      
+      // Trigger tour callback after a small delay to ensure modals are closed
+      setTimeout(() => {
+        onKnowledgeBaseCompleted();
+      }, 100);
     } catch (error: unknown) {
       setLinkInputError(
         error instanceof Error
@@ -735,6 +740,14 @@ export default function KnowledgePage() {
       setPdfImportanceLevel(3);
       setPdfTags([]);
       setPdfTagInput("");
+      
+      // Close the PDF form tab
+      closeActiveTab();
+      
+      // Trigger tour callback after a small delay to ensure modal is closed
+      setTimeout(() => {
+        onKnowledgeBaseCompleted();
+      }, 100);
     } catch (error: unknown) {
       const message =
         (error instanceof Error ? error.message : undefined) ||
@@ -1379,6 +1392,7 @@ export default function KnowledgePage() {
             hasKnowledge={hasKnowledge}
             hasGoogleSheet={hasGoogleSheet}
             user={user}
+            onTestAgentMessageCompleted={onTestAgentMessageCompleted}
           />
         </div>
       </div>
@@ -1622,8 +1636,10 @@ export default function KnowledgePage() {
                         await loadKnowledge(activeWorkspaceId);
                         resetTextForm();
                         closeActiveTab();
-                        // Trigger tour callback to show Test Yetti step
-                        onKnowledgeBaseCompleted();
+                        // Trigger tour callback after a small delay to ensure modal is closed
+                        setTimeout(() => {
+                          onKnowledgeBaseCompleted();
+                        }, 100);
                       } catch (error: unknown) {
                         setSubmitError(
                           error instanceof Error
@@ -2348,6 +2364,7 @@ interface ChatPanelProps {
   hasKnowledge: boolean;
   hasGoogleSheet: boolean;
   user?: User | null;
+  onTestAgentMessageCompleted?: () => void;
 }
 
 function ChatPanel({
@@ -2356,6 +2373,7 @@ function ChatPanel({
   hasKnowledge,
   hasGoogleSheet,
   user,
+  onTestAgentMessageCompleted,
 }: ChatPanelProps) {
   const listRef = useRef<HTMLDivElement | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
@@ -2466,7 +2484,25 @@ function ChatPanel({
             : JSON.stringify(fallbackAnswer ?? "");
       }
 
-      setMessages((prev) => [...prev, { role: "assistant", content }]);
+      setMessages((prev) => {
+        const newMessages = [...prev, { role: "assistant", content }];
+        
+        // Call callback if message was sent and response received successfully
+        // Only call once per session (check if we have at least one user message and one assistant response)
+        if (onTestAgentMessageCompleted) {
+          const userMessages = prev.filter(m => m.role === "user").length;
+          // After adding the assistant message, we'll have userMessages + 1 total messages
+          // We want to call the callback after the first successful exchange
+          if (userMessages === 0) {
+            // This is the first message exchange, call the callback
+            setTimeout(() => {
+              onTestAgentMessageCompleted();
+            }, 500); // Small delay to ensure state is updated
+          }
+        }
+        
+        return newMessages;
+      });
     } catch (error: unknown) {
       console.error("Error sending message:", error);
       const errorMessage =
