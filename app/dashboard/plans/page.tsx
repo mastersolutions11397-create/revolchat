@@ -71,45 +71,22 @@ export default function PlansPage() {
 
   const plans: Plan[] = [
     {
-      name: "Free",
-      price: "0",
-      period: "",
-      description: "Perfect for trying out Yetti",
-      tokens: "100 Yetti Tokens",
-      features: [
-        { name: "100 Yetti Tokens", included: true },
-        { name: "Basic AI capabilities", included: true },
-        { name: "Community support", included: true },
-        { name: "Standard response time", included: true },
-        { name: "1 workspace", included: false },
-        { name: "Multiple AI agents", included: false },
-        { name: "Advanced analytics", included: false },
-        { name: "Priority support", included: false },
-      ],
-      icon: Sparkles,
-      color: "slate",
-      popular: false,
-      planKey: "free",
-      cta: "Current Plan",
-    },
-    {
       name: "Starter",
       price: "$29",
       period: "/month",
-      description: "For individuals and hobbyists",
+      description: "Best for: up to 5 conversations/day",
       tokens: `${PLAN_CONFIGS.starter.credits.toLocaleString()} Yetti Tokens`,
       features: [
         {
           name: `${PLAN_CONFIGS.starter.credits.toLocaleString()} Yetti Tokens`,
           included: true,
         },
-        { name: "Standard AI models", included: true },
-        { name: "Email support", included: true },
-        { name: "API access", included: true },
         { name: "1 workspace", included: true },
         { name: "1 AI agent", included: true },
+        { name: "Connect 1 social account", included: true },
+        { name: "1 User", included: true },
         { name: "Basic analytics", included: true },
-        { name: "Priority support", included: false },
+        { name: "Email support", included: true },
       ],
       icon: Zap,
       color: "sky",
@@ -121,20 +98,20 @@ export default function PlansPage() {
       name: "Growth",
       price: "$59",
       period: "/month",
-      description: "For growing projects",
+      description: "Best for: 5 to 20 conversations/day",
       tokens: `${PLAN_CONFIGS.growth.credits.toLocaleString()} Yetti Tokens`,
       features: [
         {
           name: `${PLAN_CONFIGS.growth.credits.toLocaleString()} Yetti Tokens`,
           included: true,
         },
-        { name: "Faster processing", included: true },
-        { name: "Priority email support", included: true },
-        { name: "Advanced analytics", included: true },
         { name: "3 workspaces", included: true },
         { name: "Up to 3 AI agents", included: true },
+        { name: "Connect upto 3 social accounts", included: true },
         { name: "Team seats (2 users)", included: true },
-        { name: "Custom integrations", included: false },
+        { name: "Token Usage & analytics", included: true },
+        { name: "Advanced analytics", included: true },
+        { name: "Chat support", included: true },
       ],
       icon: Shield,
       color: "blue",
@@ -146,20 +123,19 @@ export default function PlansPage() {
       name: "Pro",
       price: "$99",
       period: "/month",
-      description: "For professional developers",
+      description: "Best for: 20 to 50 conversations/day",
       tokens: `${PLAN_CONFIGS.pro.credits.toLocaleString()} Yetti Tokens`,
       features: [
         {
           name: `${PLAN_CONFIGS.pro.credits.toLocaleString()} Yetti Tokens`,
           included: true,
         },
-        { name: "Priority processing", included: true },
-        { name: "24/7 support", included: true },
-        { name: "Custom integrations", included: true },
         { name: "5 workspaces", included: true },
-        { name: "5 AI agents", included: true },
-        { name: "Team seats (3 users)", included: true },
-        { name: "Dedicated account manager", included: false },
+        { name: "5 AI agents (any mix)", included: true },
+        { name: "Connect 5 social accounts", included: true },
+        { name: "Team seats (up to 3 users)", included: true },
+        { name: "Advanced token usage & analytics", included: true },
+        { name: "Priority chat support", included: true },
       ],
       icon: Star,
       color: "indigo",
@@ -171,20 +147,19 @@ export default function PlansPage() {
       name: "Enterprise",
       price: "$179",
       period: "/month",
-      description: "For large scale applications",
+      description: "Best for: 50+ conversations/day",
       tokens: `${PLAN_CONFIGS.enterprise.credits.toLocaleString()} Yetti Tokens`,
       features: [
         {
           name: `${PLAN_CONFIGS.enterprise.credits.toLocaleString()} Yetti Tokens`,
           included: true,
         },
-        { name: "Dedicated infrastructure", included: true },
-        { name: "SLA guarantee", included: true },
-        { name: "Dedicated account manager", included: true },
         { name: "Unlimited workspaces", included: true },
         { name: "Unlimited AI agents", included: true },
-        { name: "Connect all socials", included: true },
+        { name: "Connect all socials + custom integrations", included: true },
         { name: "Unlimited Team seats", included: true },
+        { name: "Advanced token usage & analytics", included: true },
+        { name: "Priority chat support", included: true },
       ],
       icon: Crown,
       color: "violet",
@@ -343,16 +318,27 @@ export default function PlansPage() {
   };
 
   const getCurrentPlanKey = () => {
-    if (!currentPlan) return "free";
-    return currentPlan.plan_name?.toLowerCase() || "free";
+    if (!currentPlan) return null;
+    const planName = currentPlan.plan_name?.toLowerCase() || null;
+    // Map plan names to planKeys (handle case variations)
+    const planNameMap: Record<string, string> = {
+      starter: "starter",
+      growth: "growth",
+      pro: "pro",
+      enterprise: "enterprise",
+      free: "starter", // Map old "free" to "starter"
+    };
+    return planName ? planNameMap[planName] || planName : null;
   };
 
   const isCurrentPlan = (planKey: string) => {
-    return getCurrentPlanKey() === planKey.toLowerCase();
+    const currentKey = getCurrentPlanKey();
+    if (!currentKey) return false;
+    return currentKey === planKey.toLowerCase();
   };
 
   const getPlanHierarchy = () => {
-    return ["free", "starter", "growth", "pro", "enterprise"];
+    return ["starter", "growth", "pro", "enterprise"];
   };
 
   const getButtonLabel = (planKey: string) => {
@@ -361,8 +347,14 @@ export default function PlansPage() {
     }
 
     const hierarchy = getPlanHierarchy();
-    const currentPlanIndex = hierarchy.indexOf(getCurrentPlanKey());
+    const currentKey = getCurrentPlanKey();
+    const currentPlanIndex = currentKey ? hierarchy.indexOf(currentKey) : -1;
     const targetPlanIndex = hierarchy.indexOf(planKey.toLowerCase());
+
+    if (currentPlanIndex === -1) {
+      // No current plan, show Subscribe Now
+      return "Subscribe Now";
+    }
 
     if (targetPlanIndex > currentPlanIndex) {
       return "Upgrade";
@@ -377,7 +369,11 @@ export default function PlansPage() {
     "PlansPage: Loading state:",
     loading,
     "Current plan:",
-    currentPlan
+    currentPlan,
+    "Current plan key:",
+    getCurrentPlanKey(),
+    "All plans:",
+    plans.map((p) => ({ name: p.name, planKey: p.planKey }))
   );
 
   if (loading) {
@@ -392,7 +388,10 @@ export default function PlansPage() {
   console.log("PlansPage: Rendering main component");
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto animate-fade-in-up" data-tour="plans-page">
+    <div
+      className="space-y-8 max-w-7xl mx-auto animate-fade-in-up"
+      data-tour="plans-page"
+    >
       {/* Header Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-xl">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
@@ -464,139 +463,130 @@ export default function PlansPage() {
 
       {/* All Plans Grid */}
       <div className="space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {plans
-            .filter((plan) => !isCurrentPlan(plan.planKey))
-            .map((plan, index) => {
-              const Icon = plan.icon;
-              const isCurrent = isCurrentPlan(plan.planKey);
-              console.log(
-                `PlansPage: Rendering plan ${index + 1}/${plans.length}:`,
-                plan.name,
-                "isCurrent:",
-                isCurrent
-              );
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {plans.map((plan, index) => {
+            const Icon = plan.icon;
+            const isCurrent = isCurrentPlan(plan.planKey);
+            console.log(
+              `PlansPage: Rendering plan ${index + 1}/${plans.length}:`,
+              plan.name,
+              "isCurrent:",
+              isCurrent
+            );
 
-              return (
-                <div
-                  key={index}
-                  className={`relative flex flex-col rounded-2xl bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border-2 ${
-                    plan.popular
-                      ? "ring-2 ring-sky-500 scale-105 z-10 border-sky-500"
-                      : isCurrent
-                        ? "border-sky-500 ring-2 ring-sky-500 bg-sky-50/50"
-                        : "border-slate-200 hover:border-sky-300"
-                  }`}
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  {plan.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-sky-500 text-white text-xs font-bold rounded-full shadow-sm">
-                      Most Popular
-                    </div>
-                  )}
-
-                  {isCurrent && !plan.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-sky-500 text-white text-xs font-bold rounded-full shadow-sm">
-                      Current Plan
-                    </div>
-                  )}
-
-                  <div className="mb-6">
-                    <div
-                      className={`w-12 h-12 rounded-xl bg-${plan.color}-50 flex items-center justify-center mb-4`}
-                    >
-                      <Icon className={`w-6 h-6 text-${plan.color}-500`} />
-                    </div>
-                    <h3 className="text-xl font-bold text-slate-900">
-                      {plan.name}
-                    </h3>
-                    <p className="text-sm text-slate-500 mt-1">
-                      {plan.description}
-                    </p>
+            return (
+              <div
+                key={index}
+                className={`relative flex flex-col rounded-2xl bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border-2 ${
+                  plan.popular
+                    ? "ring-2 ring-sky-500 scale-105 z-10 border-sky-500"
+                    : isCurrent
+                      ? "border-sky-500 ring-2 ring-sky-500 bg-sky-50/50"
+                      : "border-slate-200 hover:border-sky-300"
+                }`}
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-sky-500 text-white text-xs font-bold rounded-full shadow-sm">
+                    Most Popular
                   </div>
+                )}
 
-                  <div className="mb-6">
-                    <div className="flex items-baseline">
-                      <span className="text-3xl font-bold text-slate-900">
-                        {plan.price}
-                      </span>
-                      {plan.period && (
-                        <span className="text-slate-500 ml-1">
-                          {plan.period}
-                        </span>
-                      )}
-                    </div>
-                    <div className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
-                      {plan.tokens}
-                    </div>
+                {isCurrent && !plan.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-sky-500 text-white text-xs font-bold rounded-full shadow-sm">
+                    Current Plan
                   </div>
+                )}
 
-                  <ul className="space-y-3 mb-8 flex-1">
-                    {plan.features.map((feature, featureIndex) => (
-                      <li
-                        key={featureIndex}
-                        className="flex items-start text-sm"
-                      >
-                        <Check
-                          className={`w-4 h-4 mr-2 shrink-0 mt-0.5 ${
-                            feature.included
-                              ? "text-green-500"
-                              : "text-slate-300"
-                          }`}
-                        />
-                        <span
-                          className={
-                            feature.included
-                              ? "text-slate-900"
-                              : "text-slate-400 line-through"
-                          }
-                        >
-                          {feature.name}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {isCurrent ? (
-                    <button
-                      disabled
-                      className="w-full text-center py-3 px-6 rounded-xl font-semibold bg-sky-500 text-white cursor-not-allowed opacity-75"
-                    >
-                      Current Plan
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => {
-                        console.log(
-                          "PlansPage: Plan button clicked for plan:",
-                          plan.name,
-                          "planKey:",
-                          plan.planKey
-                        );
-                        if (plan.planKey) {
-                          handlePlanSelect(plan.planKey);
-                        }
-                      }}
-                      disabled={checkoutLoading === plan.planKey}
-                      className={`w-full text-center py-3 px-6 rounded-xl font-semibold transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
-                        plan.popular
-                          ? "bg-sky-500 hover:bg-sky-500 text-white shadow-sky-200"
-                          : "bg-slate-900 hover:bg-slate-800 text-white"
-                      }`}
-                    >
-                      {checkoutLoading === plan.planKey ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        getButtonLabel(plan.planKey)
-                      )}
-                    </button>
-                  )}
+                <div className="mb-6">
+                  <div
+                    className={`w-12 h-12 rounded-xl bg-${plan.color}-50 flex items-center justify-center mb-4`}
+                  >
+                    <Icon className={`w-6 h-6 text-${plan.color}-500`} />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900">
+                    {plan.name}
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">
+                    {plan.description}
+                  </p>
                 </div>
-              );
-            })}
+
+                <div className="mb-6">
+                  <div className="flex items-baseline">
+                    <span className="text-3xl font-bold text-slate-900">
+                      {plan.price}
+                    </span>
+                    {plan.period && (
+                      <span className="text-slate-500 ml-1">{plan.period}</span>
+                    )}
+                  </div>
+                  <div className="mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
+                    {plan.tokens}
+                  </div>
+                </div>
+
+                <ul className="space-y-3 mb-8 flex-1">
+                  {plan.features.map((feature, featureIndex) => (
+                    <li key={featureIndex} className="flex items-start text-sm">
+                      <Check
+                        className={`w-4 h-4 mr-2 shrink-0 mt-0.5 ${
+                          feature.included ? "text-green-500" : "text-slate-300"
+                        }`}
+                      />
+                      <span
+                        className={
+                          feature.included
+                            ? "text-slate-900"
+                            : "text-slate-400 line-through"
+                        }
+                      >
+                        {feature.name}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                {isCurrent ? (
+                  <button
+                    disabled
+                    className="w-full text-center py-3 px-6 rounded-xl font-semibold bg-sky-500 text-white cursor-not-allowed opacity-75"
+                  >
+                    Current Plan
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      console.log(
+                        "PlansPage: Plan button clicked for plan:",
+                        plan.name,
+                        "planKey:",
+                        plan.planKey
+                      );
+                      if (plan.planKey) {
+                        handlePlanSelect(plan.planKey);
+                      }
+                    }}
+                    disabled={checkoutLoading === plan.planKey}
+                    className={`w-full text-center py-3 px-6 rounded-xl font-semibold transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+                      plan.popular
+                        ? "bg-sky-500 hover:bg-sky-500 text-white shadow-sky-200"
+                        : "bg-slate-900 hover:bg-slate-800 text-white"
+                    }`}
+                  >
+                    {checkoutLoading === plan.planKey ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      getButtonLabel(plan.planKey)
+                    )}
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

@@ -49,36 +49,44 @@ const Hero = () => {
       <div className="container relative z-10 px-4 py-6 mx-auto">
         <div className="max-w-5xl mx-auto text-center space-y-2">
           {/* Main Visual & Logo */}
-          <div className="relative flex justify-center py-6">
-             {/* Floating Cards - Left */}
-             <motion.div 
+          <div className="relative flex justify-center py-4 sm:py-6">
+            {/* Floating Cards - Left */}
+            <motion.div
               initial={{ x: -50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 0.8, duration: 0.8 }}
-              className="absolute left-1/2 -translate-x-[350px] top-1/2 -translate-y-1/2 hidden md:flex items-center gap-3 p-3 rounded-2xl bg-white/80 backdrop-blur-md border border-white/40 shadow-xl z-20"
+              className="absolute left-1/2 -translate-x-[350px] top-1/2 -translate-y-1/2 hidden lg:flex items-center gap-3 p-3 rounded-2xl bg-white/80 backdrop-blur-md border border-white/40 shadow-xl z-20"
             >
               <div className="p-2 bg-green-100 rounded-full text-green-600">
                 <TrendingUp size={20} />
               </div>
               <div className="text-left">
-                <p className="text-xs text-muted-foreground font-medium">Sales Growth</p>
-                <p className="text-sm font-bold text-foreground">+124% this week</p>
+                <p className="text-xs text-muted-foreground font-medium">
+                  Sales Growth
+                </p>
+                <p className="text-sm font-bold text-foreground">
+                  +124% this week
+                </p>
               </div>
             </motion.div>
 
             {/* Floating Cards - Right */}
-            <motion.div 
+            <motion.div
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: 1, duration: 0.8 }}
-              className="absolute left-1/2 translate-x-[180px] top-10 hidden md:flex items-center gap-3 p-3 rounded-2xl bg-white/80 backdrop-blur-md border border-white/40 shadow-xl z-20"
+              className="absolute left-1/2 translate-x-[180px] top-10 hidden lg:flex items-center gap-3 p-3 rounded-2xl bg-white/80 backdrop-blur-md border border-white/40 shadow-xl z-20"
             >
               <div className="p-2 bg-blue-100 rounded-full text-sky-500">
                 <MessageCircle size={20} />
               </div>
               <div className="text-left">
-                <p className="text-xs text-muted-foreground font-medium">Active Chats</p>
-                <p className="text-sm font-bold text-foreground">24/7 Response</p>
+                <p className="text-xs text-muted-foreground font-medium">
+                  Active Chats
+                </p>
+                <p className="text-sm font-bold text-foreground">
+                  24/7 Response
+                </p>
               </div>
             </motion.div>
 
@@ -88,12 +96,12 @@ const Hero = () => {
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="relative z-10"
             >
-              <div className="relative w-40 h-40 rounded-full bg-gradient-to-b from-white to-sky-50 shadow-[0_0_60px_-15px_rgba(45,102,149,0.3)] flex items-center justify-center p-1 ring-1 ring-white/50">
+              <div className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-full bg-gradient-to-b from-white to-sky-50 shadow-[0_0_60px_-15px_rgba(45,102,149,0.3)] flex items-center justify-center p-1 ring-1 ring-white/50">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-sky-500/20 to-transparent opacity-50 blur-xl"></div>
                 <img
                   src="/yetti/logo.png"
                   alt="Yetti.ai"
-                  className="w-28 h-28 object-contain relative z-10 drop-shadow-lg"
+                  className="w-24 h-24 sm:w-28 sm:h-28 object-contain relative z-10 drop-shadow-lg"
                 />
               </div>
             </motion.div>
@@ -104,9 +112,11 @@ const Hero = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.2 }}
-            className="text-5xl md:text-7xl  lg:text-8xl font-bold tracking-tight leading-[1]"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl xl:text-8xl font-bold tracking-tight leading-[1.1] sm:leading-[1] px-2"
           >
-            <span className="text-foreground drop-shadow-sm">Never Miss Another </span>
+            <span className="text-foreground drop-shadow-sm">
+              Never Miss Another{" "}
+            </span>
             <span className="bg-gradient-to-r from-sky-500 via-sky-500 to-sky-500 bg-clip-text text-transparent pb-2">
               Customer Again
             </span>
@@ -117,10 +127,13 @@ const Hero = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.4 }}
-            className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed"
+            className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4"
           >
-            Losing sales because you can&apos;t respond 24/7? Your <span className="text-foreground font-semibold">Yetti AI agent</span> works
-            around the clock on social media selling products, scheduling
+            Losing sales because you can&apos;t respond 24/7? Your{" "}
+            <span className="text-foreground font-semibold">
+              Yetti AI agent
+            </span>{" "}
+            works around the clock on social media selling products, scheduling
             meetings, and answering questions.
           </motion.p>
 
@@ -129,18 +142,17 @@ const Hero = () => {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.6 }}
-            className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-6"
+            className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 pt-4 sm:pt-6 px-4"
           >
             <Button
               size="lg"
-              onClick={() => router.push('/auth/login')}
-              className="h-14 px-8 text-lg rounded-full bg-sky-500 hover:bg-sky-500/90 text-white shadow-[0_10px_40px_-10px_rgba(45,102,149,0.4)] hover:shadow-[0_20px_40px_-10px_rgba(45,102,149,0.5)] hover:-translate-y-1 transition-all duration-300"
+              onClick={() => router.push("/auth/login")}
+              className="w-full sm:w-auto h-12 sm:h-14 px-6 sm:px-8 text-base sm:text-lg rounded-full bg-sky-500 hover:bg-sky-500/90 text-white shadow-[0_10px_40px_-10px_rgba(45,102,149,0.4)] hover:shadow-[0_20px_40px_-10px_rgba(45,102,149,0.5)] hover:-translate-y-1 transition-all duration-300"
             >
               Start Now
-              <ArrowRight className="w-5 h-5 ml-2" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
             </Button>
           </motion.div>
-        
         </div>
       </div>
     </section>
