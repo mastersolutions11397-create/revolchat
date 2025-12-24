@@ -326,7 +326,7 @@ export default function PlansPage() {
       growth: "growth",
       pro: "pro",
       enterprise: "enterprise",
-      free: "starter", // Map old "free" to "starter"
+      free: "free", // Map old "free" to "starter"
     };
     return planName ? planNameMap[planName] || planName : null;
   };

@@ -20,7 +20,7 @@ export const TOUR_STEPS: TourStepConfig[] = [
     subStepIndex: 0,
     target: '[data-tour="workspace-name-input"]',
     content:
-      "👋 Welcome to Yetti! Let's get started by creating your first workspace. <strong>Enter a name for your workspace</strong> in the input field below (minimum 3 characters), then click \"Create Workspace & Continue\" when you're ready.",
+      "<strong>Welcome to Yetti.ai 👋</strong><br/><br/>Pick a name for your workspace and let's get started 🚀",
     placement: "top",
     disableBeacon: true,
     requiresAction: true,
@@ -110,7 +110,7 @@ export const TOUR_STEPS: TourStepConfig[] = [
     subStepIndex: 2,
     target: '[data-tour="knowledge-options"]',
     content:
-      "⚙️ Here you can set the Category and Importance level for your knowledge. Fill in the Title and Content fields above, then configure these options. Once you're ready, click the Save button below.",
+      "Here you can set the Category and Importance level for your knowledge. Fill in the Title and Content fields, Once you're ready, click the Save button below.",
     placement: "top",
     disableBeacon: true,
     requiresAction: true,
@@ -147,7 +147,7 @@ export const TOUR_STEPS: TourStepConfig[] = [
     subStepIndex: 0,
     target: '[data-tour="test-yetti-section"]',
     content:
-      "🧪 Excellent! Now you can test your AI by asking questions in the Test Yetti section. <strong>Send at least one message</strong> and wait for a response to see how your AI works with the knowledge you just added!",
+      "<strong>Test Your Yetti 🧪</strong><br/><br/>Now ask your Yetti a quick question below.<br/>Send one message and watch it reply ✨<br/><br/><strong>Click Next to close this popup and interact with the chat. When you're ready to continue, the tour will resume.</strong>",
     placement: "left",
     disableBeacon: true,
     requiresAction: true,
@@ -192,7 +192,7 @@ export const TOUR_STEPS: TourStepConfig[] = [
     subStepIndex: 1,
     target: "body",
     content:
-      "🔗 <strong>Integrations</strong> allow you to connect your AI agent to different platforms like Instagram and Telegram. When customers message you on these platforms, your AI will automatically respond using the knowledge you've added. <strong>Connect your preferred channels</strong> to start engaging with your customers! Click Next when you're ready to continue.",
+      "<strong>Connect Your Channels 🔗</strong><br/><br/>Pick where you want Yetti to chat for you (like Instagram or Telegram).<br/>Hit Connect and you're live 🚀",
     placement: "center",
     disableBeacon: true,
     requiresAction: true,
@@ -210,14 +210,14 @@ export const TOUR_STEPS: TourStepConfig[] = [
     subStepIndex: 0,
     target: '[data-tour="credits-button"]',
     content:
-      "💳 This is your <strong>Credits</strong> button. Credits are used for every message your AI processes. <strong>One credit is deducted for each message</strong> your AI responds to. You can purchase more credits anytime from the billing page. Click Next to continue.",
+      "Yetti uses credits to reply to messages.<br/>Each time your AI sends a response, 1 credit is used.<br/><br/>To help you get started, you receive 100 free credits 🎉<br/>You can track your usage anytime and add more credits from the Billing page — no pressure, no surprises.",
     placement: "bottom",
     disableBeacon: true,
     requiresAction: true,
     route: "/dashboard/integrations",
     styles: {
       options: {
-        width: 400,
+        width: 450,
       },
     },
   },
@@ -255,14 +255,14 @@ export const TOUR_STEPS: TourStepConfig[] = [
     subStepIndex: 1,
     target: "body",
     content:
-      "💎 <strong>Plans & Pricing:</strong> Here you can view and manage your subscription plan. Each plan includes different amounts of Yetti Tokens (credits) that power your AI responses. <strong>Upgrade anytime</strong> to get more credits and unlock premium features. Choose the plan that best fits your business needs!",
+      "Plans decide how many messages your Yetti can handle and which features you unlock.<br/>Each plan includes credits that power your AI responses.<br/><br/>💡 Most users start with the growth plan and upgrade as they grow.<br/>You can change plans anytime, no pressure, no long-term commitment 😊",
     placement: "center",
     disableBeacon: true,
     requiresAction: true,
     route: "/dashboard/plans",
     styles: {
       options: {
-        width: 480,
+        width: 500,
       },
     },
   },
@@ -273,14 +273,14 @@ export const TOUR_STEPS: TourStepConfig[] = [
     subStepIndex: 0,
     target: "body",
     content:
-      "🎊 <strong>Thank you for completing the Yetti onboarding tour!</strong><br/><br/>You're now ready to build amazing AI experiences. Your workspace is set up, and you know how to add knowledge, connect integrations, and manage your plan.<br/><br/>If you need help anytime, check out our documentation or reach out to support. <strong>Happy building! 🚀</strong>",
+      "<strong>Nice work! your Yetti is ready!</strong><br/><br/>Take a look around and explore the other features we offer.<br/>There's plenty more to discover 🚀",
     placement: "center",
     disableBeacon: true,
     requiresAction: true,
     route: "/dashboard/plans",
     styles: {
       options: {
-        width: 520,
+        width: 500,
       },
     },
   },

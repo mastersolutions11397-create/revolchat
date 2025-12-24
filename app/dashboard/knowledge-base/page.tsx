@@ -2491,13 +2491,18 @@ function ChatPanel({
         ];
 
         // Call callback if message was sent and response received successfully
-        // Only call once per session (check if we have at least one user message and one assistant response)
+        // Check if we have more than 1 assistant message (user has sent message and received response)
         if (onTestAgentMessageCompleted) {
-          const userMessages = prev.filter(m => m.role === "user").length;
-          // After adding the assistant message, we'll have userMessages + 1 total messages
-          // We want to call the callback after the first successful exchange
-          if (userMessages === 0) {
-            // This is the first message exchange, call the callback
+          const assistantMessages = newMessages.filter(m => m.role === "assistant" && m.content && !m.isError);
+          const userMessages = newMessages.filter(m => m.role === "user").length;
+          
+          // Only call callback if:
+          // 1. User has sent at least one message (userMessages > 0)
+          // 2. We now have more than 1 assistant message (initial welcome message + response)
+          // 3. The assistant message is not an error
+          if (userMessages > 0 && assistantMessages.length > 1) {
+            console.log("Agent message received (more than 1 assistant message), triggering tour callback");
+            // User has sent a message and received a response, call the callback
             setTimeout(() => {
               onTestAgentMessageCompleted();
             }, 500); // Small delay to ensure state is updated

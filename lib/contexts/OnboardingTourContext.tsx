@@ -65,6 +65,7 @@ export function OnboardingTourProvider({
   const [stepsCompleted, setStepsCompleted] = useState<number[]>([]);
   const [tourData, setTourData] = useState<OnboardingTourData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [testAgentMessageReceived, setTestAgentMessageReceived] = useState(false);
   const isInitialized = useRef(false);
   const hasUpdatedTourForWorkspace = useRef(false);
   const hasStartedTourForNoWorkspace = useRef(false);
@@ -75,9 +76,10 @@ export function OnboardingTourProvider({
   }, [currentStepIndex]);
 
   // Total number of steps in the tour
-  // Note: Step 1.5 (test agent) is included, so we have 0, 1, 1.5, 2, 3, 4, 5 = 7 steps total
-  const TOTAL_STEPS = 7;
+  // Note: Step 1.5 (test agent) and 1.7 (waiting for message) are included, so we have 0, 1, 1.5, 1.7, 2, 3, 4, 5 = 8 steps total
+  const TOTAL_STEPS = 8;
   const TEST_AGENT_STEP = 1.5;
+  const TEST_AGENT_WAIT_STEP = 1.7;
 
   // Load tour status when user is available
   useEffect(() => {
@@ -100,6 +102,8 @@ export function OnboardingTourProvider({
           if (data.tour_status === "in_progress") {
             console.log("Tour is in_progress, activating tour");
             setTourActive(true);
+            // Ensure sub-step is also set correctly
+            setCurrentSubStepIndex(0);
           }
           // Auto-start tour if not started and user is new
           else if (data.tour_status === "not_started") {
@@ -149,6 +153,26 @@ export function OnboardingTourProvider({
       hasStartedTourForNoWorkspace.current = false;
     }
   }, [hasWorkspaces, currentWorkspace]);
+
+  // Reset test agent message received flag when leaving step 1.5 and 1.7
+  useEffect(() => {
+    if (currentStepIndex !== TEST_AGENT_STEP && currentStepIndex !== TEST_AGENT_WAIT_STEP) {
+      setTestAgentMessageReceived(false);
+    }
+  }, [currentStepIndex, TEST_AGENT_STEP, TEST_AGENT_WAIT_STEP]);
+
+  // Ensure tour is activated when status becomes in_progress
+  useEffect(() => {
+    if (!loading && isInitialized.current && tourStatus === "in_progress" && !tourActive) {
+      console.log("Tour status is in_progress but not active, activating now");
+      setTourActive(true);
+      // Ensure step indices are set correctly
+      if (tourData) {
+        setCurrentStepIndex(tourData.current_step);
+        setCurrentSubStepIndex(0);
+      }
+    }
+  }, [tourStatus, tourActive, loading, tourData]);
 
   // Auto-start tour if no workspace found and tour status is in_progress/not_started with step 0
   useEffect(() => {
@@ -457,27 +481,71 @@ export function OnboardingTourProvider({
       return; // Don't show step 1.5 yet, wait for knowledge to be saved
     }
 
-    // Special handling for step 1.5 (Test Agent) - advance to step 2
+    // Special handling for step 1.5 (Test Agent) - advance to 1.7 when Next is clicked
     if (currentStepIndex === TEST_AGENT_STEP) {
-      console.log("Step 1.5: Advancing to step 2 (Integrations)");
-      markStepCompleted(TEST_AGENT_STEP);
+      console.log("Step 1.5: Next clicked - advancing to step 1.7 and closing popup");
+      // Close the tour popup so user can interact with chat
+      setTourActive(false);
+      // Advance to step 1.7 (waiting for message)
+      setCurrentStepIndex(TEST_AGENT_WAIT_STEP);
+      setCurrentSubStepIndex(0);
+      
+      if (user?.id) {
+        // Mark step 1.7 as completed when advancing to it
+        const updatedStepsCompleted = [...new Set([...stepsCompleted, TEST_AGENT_WAIT_STEP])];
+        tourAPI
+          .updateTourStep(user.id, {
+            current_step: TEST_AGENT_WAIT_STEP,
+            steps_completed: updatedStepsCompleted,
+          })
+          .then((data) => {
+            console.log("Database updated to step 1.7, steps_completed:", updatedStepsCompleted);
+            setTourData(data);
+            setStepsCompleted(updatedStepsCompleted);
+          })
+          .catch((error) => {
+            console.error("Error updating tour step to 1.7:", error);
+          });
+      }
+      return;
+    }
+
+    // Special handling for step 1.7 (Waiting for message) - advance to step 2 when message is received
+    if (currentStepIndex === TEST_AGENT_WAIT_STEP) {
+      if (!testAgentMessageReceived) {
+        console.log("Step 1.7: No message received yet - waiting");
+        // Keep tour closed, waiting for message
+        return;
+      }
+      
+      // Message has been received, advance to step 2
+      console.log("Step 1.7: Message received, advancing to step 2 (Integrations)");
+      markStepCompleted(TEST_AGENT_WAIT_STEP);
       setCurrentStepIndex(2);
       setCurrentSubStepIndex(0);
       
       if (user?.id) {
-        const updatedStepsCompleted = [...new Set([...stepsCompleted, TEST_AGENT_STEP])];
+        const updatedStepsCompleted = [...new Set([...stepsCompleted, 2])];
         tourAPI
           .updateTourStep(user.id, {
             current_step: 2,
             steps_completed: updatedStepsCompleted,
           })
-          .then(() => {
-            console.log("Database updated to step 2");
+          .then((data) => {
+            console.log("Database updated to step 2, steps_completed:", updatedStepsCompleted);
+            setTourData(data);
             setStepsCompleted(updatedStepsCompleted);
+            // Re-activate tour for step 2
+            setTourActive(true);
           })
           .catch((error) => {
             console.error("Error updating tour step to 2:", error);
+            // Still re-activate tour even if database update fails
+            setTourActive(true);
           });
+      } else {
+        // Re-activate tour even without user ID
+        setTourActive(true);
       }
       return;
     }
@@ -539,9 +607,22 @@ export function OnboardingTourProvider({
             console.error("Error updating tour step:", error);
           });
       }
-    } else if (currentStepIndex > TEST_AGENT_STEP && currentStepIndex < 5) {
-      // Advance to next main step (for steps after 1.5, but before last step)
-      const nextIndex = currentStepIndex + 1;
+    } else if (currentStepIndex === TEST_AGENT_WAIT_STEP) {
+      // Step 1.7 - handled separately above, should not reach here
+      return;
+    } else if (currentStepIndex > TEST_AGENT_WAIT_STEP && currentStepIndex < 5) {
+      // Advance to next main step (for steps after 1.7, but before last step)
+      // Step order: 0, 1, 1.5, 1.7, 2, 3, 4, 5
+      let nextIndex: number;
+      if (currentStepIndex === 2) {
+        nextIndex = 3;
+      } else if (currentStepIndex === 3) {
+        nextIndex = 4;
+      } else if (currentStepIndex === 4) {
+        nextIndex = 5;
+      } else {
+        nextIndex = currentStepIndex + 1;
+      }
       console.log("Advancing to step:", nextIndex);
       setCurrentStepIndex(nextIndex);
       setCurrentSubStepIndex(0); // Reset sub-step for new main step
@@ -591,31 +672,96 @@ export function OnboardingTourProvider({
         completeTour();
       }
     }
-  }, [currentStepIndex, currentSubStepIndex, TOTAL_STEPS, TEST_AGENT_STEP, user?.id, completeTour, stepsCompleted, markStepCompleted]);
+  }, [currentStepIndex, currentSubStepIndex, TOTAL_STEPS, TEST_AGENT_STEP, TEST_AGENT_WAIT_STEP, user?.id, completeTour, stepsCompleted, markStepCompleted, testAgentMessageReceived]);
 
   // Move to previous step
   const prevStep = useCallback(async () => {
     console.log("prevStep() called:", {
       currentStepIndex,
       currentSubStepIndex,
+      stepsCompleted,
     });
 
-    // If we're on a sub-step > 0, go to previous sub-step
+    // Helper function to get the last sub-step index for a given step
+    const getLastSubStepIndex = (stepIdx: number): number => {
+      const stepsForIndex = TOUR_STEPS.filter((s) => s.stepIndex === stepIdx);
+      if (stepsForIndex.length === 0) return 0;
+      return Math.max(...stepsForIndex.map((s) => s.subStepIndex || 0));
+    };
+
+    // Helper function to get the previous main step index
+    // Step order: 0, 1, 1.5, 1.7, 2, 3, 4, 5
+    const getPreviousMainStepIndex = (stepIdx: number): number => {
+      if (stepIdx === 0) {
+        return 0; // Can't go back from step 0
+      }
+      if (stepIdx === 1) {
+        return 0; // From 1, go back to 0
+      }
+      if (stepIdx === TEST_AGENT_STEP) {
+        return 1; // From 1.5, go back to 1
+      }
+      if (stepIdx === TEST_AGENT_WAIT_STEP) {
+        return TEST_AGENT_STEP; // From 1.7, go back to 1.5
+      }
+      if (stepIdx === 2) {
+        return TEST_AGENT_WAIT_STEP; // From 2, go back to 1.7
+      }
+      if (stepIdx === 3) {
+        return 2; // From 3, go back to 2
+      }
+      if (stepIdx === 4) {
+        return 3; // From 4, go back to 3
+      }
+      if (stepIdx === 5) {
+        return 4; // From 5, go back to 4
+      }
+      return stepIdx - 1; // Fallback
+    };
+
+    // If we're on a sub-step > 0, go to previous sub-step of the same main step
     if (currentSubStepIndex > 0) {
       const prevSubStep = currentSubStepIndex - 1;
-      console.log("Going to previous sub-step:", prevSubStep);
+      console.log("Going to previous sub-step:", prevSubStep, "of step", currentStepIndex);
       setCurrentSubStepIndex(prevSubStep);
-      // Don't update database for sub-step changes, only for main step changes
+      
+      // When going forward, a step is added to steps_completed when advancing to sub-step 1
+      // So when going back from sub-step 1 to sub-step 0, we should remove it
+      // This ensures consistency with forward navigation
+      if (prevSubStep === 0 && stepsCompleted.includes(currentStepIndex)) {
+        const updatedStepsCompleted = stepsCompleted.filter(
+          (step) => step !== currentStepIndex
+        );
+        
+        if (user?.id) {
+          try {
+            const updatedData = await tourAPI.updateTourStep(user.id, {
+              current_step: currentStepIndex,
+              steps_completed: updatedStepsCompleted,
+            });
+            console.log("Database updated: going back to sub-step 0, removed step", currentStepIndex, "from steps_completed");
+            setStepsCompleted(updatedStepsCompleted);
+            setTourData(updatedData);
+          } catch (error) {
+            console.error("Error updating tour step on sub-step back:", error);
+          }
+        }
+      } else {
+        // Just moving between sub-steps > 0, no database update needed
+        console.log("Moving between sub-steps, no database update needed");
+      }
       return;
     }
 
-    // Special handling for step 1.5 - go back to step 1, sub-step 3
+    // We're on sub-step 0, need to go to previous main step
+    // Special handling for step 1.5 - go back to step 1, last sub-step (3)
     if (currentStepIndex === TEST_AGENT_STEP) {
-      console.log("Going back from step 1.5 to step 1, sub-step 3");
+      console.log("Going back from step 1.5 to step 1, last sub-step");
+      const targetSubStep = getLastSubStepIndex(1);
       setCurrentStepIndex(1);
-      setCurrentSubStepIndex(3);
+      setCurrentSubStepIndex(targetSubStep);
       
-      // Remove step 1.5 from steps_completed
+      // Remove step 1.5 from steps_completed (but keep step 1)
       const updatedStepsCompleted = stepsCompleted.filter(
         (step) => step !== TEST_AGENT_STEP
       );
@@ -626,7 +772,7 @@ export function OnboardingTourProvider({
             current_step: 1,
             steps_completed: updatedStepsCompleted,
           });
-          console.log("Database updated on back button from step 1.5");
+          console.log("Database updated: step 1.5 -> step 1, sub-step", targetSubStep, "steps_completed:", updatedStepsCompleted);
           setStepsCompleted(updatedStepsCompleted);
           setTourData(updatedData);
         } catch (error) {
@@ -636,10 +782,10 @@ export function OnboardingTourProvider({
       return;
     }
 
-    // Special handling for step 2 - go back to step 1.5
+    // Special handling for step 2 - go back to step 1.7
     if (currentStepIndex === 2) {
-      console.log("Going back from step 2 to step 1.5");
-      setCurrentStepIndex(TEST_AGENT_STEP);
+      console.log("Going back from step 2 to step 1.7");
+      setCurrentStepIndex(TEST_AGENT_WAIT_STEP);
       setCurrentSubStepIndex(0);
       
       // Remove step 2 from steps_completed
@@ -650,10 +796,10 @@ export function OnboardingTourProvider({
       if (user?.id) {
         try {
           const updatedData = await tourAPI.updateTourStep(user.id, {
-            current_step: TEST_AGENT_STEP,
+            current_step: TEST_AGENT_WAIT_STEP,
             steps_completed: updatedStepsCompleted,
           });
-          console.log("Database updated on back button from step 2");
+          console.log("Database updated: step 2 -> step 1.7, steps_completed:", updatedStepsCompleted);
           setStepsCompleted(updatedStepsCompleted);
           setTourData(updatedData);
         } catch (error) {
@@ -663,21 +809,69 @@ export function OnboardingTourProvider({
       return;
     }
 
-    // If we're on sub-step 0, go to previous main step
-    if (currentStepIndex > 0 && currentStepIndex !== TEST_AGENT_STEP) {
-      const prevIndex = currentStepIndex === 2 ? TEST_AGENT_STEP : currentStepIndex - 1;
-      console.log("Going to previous main step:", prevIndex);
-
-      // Go to sub-step 0 of the previous main step
-      setCurrentStepIndex(prevIndex);
+    // Special handling for step 1.7 - go back to step 1.5
+    if (currentStepIndex === TEST_AGENT_WAIT_STEP) {
+      console.log("Going back from step 1.7 to step 1.5");
+      setCurrentStepIndex(TEST_AGENT_STEP);
       setCurrentSubStepIndex(0);
-
-      // Remove the last step from steps_completed array
+      
+      // Remove step 1.7 from steps_completed
       const updatedStepsCompleted = stepsCompleted.filter(
-        (step) => step !== currentStepIndex
+        (step) => step !== TEST_AGENT_WAIT_STEP
       );
 
-      // Update database with current_step - 1 and updated steps_completed
+      if (user?.id) {
+        try {
+          const updatedData = await tourAPI.updateTourStep(user.id, {
+            current_step: TEST_AGENT_STEP,
+            steps_completed: updatedStepsCompleted,
+          });
+          console.log("Database updated: step 1.7 -> step 1.5, steps_completed:", updatedStepsCompleted);
+          setStepsCompleted(updatedStepsCompleted);
+          setTourData(updatedData);
+        } catch (error) {
+          console.error("Error updating tour step on back button:", error);
+        }
+      }
+      return;
+    }
+
+    // General case: going back from any other step
+    if (currentStepIndex > 0) {
+      const prevIndex = getPreviousMainStepIndex(currentStepIndex);
+      
+      // Find the last sub-step of the previous step
+      const prevLastSubStep = getLastSubStepIndex(prevIndex);
+      
+      console.log("Going back from step", currentStepIndex, "to step", prevIndex, "sub-step", prevLastSubStep);
+      
+      setCurrentStepIndex(prevIndex);
+      setCurrentSubStepIndex(prevLastSubStep);
+
+      // Remove current step from steps_completed array
+      // Also remove any steps that come after the previous step
+      // Step order: 0, 1, 1.5, 1.7, 2, 3, 4, 5
+      const updatedStepsCompleted = stepsCompleted.filter((step) => {
+        // Keep steps that are before or equal to the previous step
+        if (prevIndex === 0) {
+          return step === 0;
+        }
+        if (prevIndex === 1) {
+          return step === 0 || step === 1;
+        }
+        if (prevIndex === TEST_AGENT_STEP) {
+          // If going to 1.5, keep steps 0, 1, and 1.5
+          return step === 0 || step === 1 || step === TEST_AGENT_STEP;
+        }
+        if (prevIndex === TEST_AGENT_WAIT_STEP) {
+          // If going to 1.7, keep steps 0, 1, 1.5, and 1.7
+          return step === 0 || step === 1 || step === TEST_AGENT_STEP || step === TEST_AGENT_WAIT_STEP;
+        }
+        // For other steps (2, 3, 4, 5), keep steps <= prevIndex
+        return step <= prevIndex;
+      });
+
+      // Update database
       if (user?.id) {
         try {
           const updatedData = await tourAPI.updateTourStep(user.id, {
@@ -686,6 +880,7 @@ export function OnboardingTourProvider({
           });
           console.log("Database updated on back button:", {
             current_step: prevIndex,
+            sub_step: prevLastSubStep,
             steps_completed: updatedStepsCompleted,
           });
           setStepsCompleted(updatedStepsCompleted);
@@ -695,7 +890,7 @@ export function OnboardingTourProvider({
         }
       }
     }
-  }, [currentStepIndex, currentSubStepIndex, TEST_AGENT_STEP, user?.id, stepsCompleted]);
+  }, [currentStepIndex, currentSubStepIndex, TEST_AGENT_STEP, TEST_AGENT_WAIT_STEP, user?.id, stepsCompleted]);
 
   // Callback for workspace creation (Step 0, sub-step 0 -> sub-step 1)
   const onWorkspaceCreated = useCallback(() => {
@@ -790,33 +985,48 @@ export function OnboardingTourProvider({
     // Step will complete when workspace hours are saved
   }, [tourActive, currentStepIndex]);
 
-  // Callback for test agent message completion - advance to step 2 (Integrations)
+  // Callback for test agent message completion - mark that message was received
   const onTestAgentMessageCompleted = useCallback(() => {
-    if (tourActive && currentStepIndex === TEST_AGENT_STEP) {
-      // Mark step 1.5 as completed and advance to step 2 (Integrations)
-      console.log("Test agent message completed, advancing to step 2 (Integrations)");
-      markStepCompleted(TEST_AGENT_STEP);
+    // Check if we're on step 1.7 (waiting for message)
+    if (currentStepIndex === TEST_AGENT_WAIT_STEP) {
+      console.log("Test agent message received on step 1.7 - marking as received, will advance to step 2");
+      // Mark that we've received an agent message
+      setTestAgentMessageReceived(true);
+      
+      // Automatically advance to step 2
+      markStepCompleted(TEST_AGENT_WAIT_STEP);
       setCurrentStepIndex(2);
       setCurrentSubStepIndex(0);
       
-      // Update database with step 2
       if (user?.id) {
+        const updatedStepsCompleted = [...new Set([...stepsCompleted, 2])];
         tourAPI
           .updateTourStep(user.id, {
             current_step: 2,
-            steps_completed: [...new Set([...stepsCompleted, TEST_AGENT_STEP])],
+            steps_completed: updatedStepsCompleted,
           })
           .then((data) => {
-            console.log("Database updated to step 2:", data);
+            console.log("Database updated: advanced to step 2 after message received, steps_completed:", updatedStepsCompleted);
             setTourData(data);
-            setStepsCompleted([...new Set([...stepsCompleted, TEST_AGENT_STEP])]);
+            setStepsCompleted(updatedStepsCompleted);
+            // Re-activate tour for step 2
+            setTourActive(true);
           })
           .catch((error) => {
-            console.error("Error updating tour step to 2:", error);
+            console.error("Error updating tour step:", error);
+            // Still re-activate tour even if database update fails
+            setTourActive(true);
           });
+      } else {
+        // Re-activate tour even without user ID
+        setTourActive(true);
       }
+    } else if (currentStepIndex === TEST_AGENT_STEP) {
+      // If still on step 1.5, just mark message as received (will be handled when advancing to 1.7)
+      console.log("Test agent message received on step 1.5 - marking as received");
+      setTestAgentMessageReceived(true);
     }
-  }, [tourActive, currentStepIndex, markStepCompleted, user?.id, stepsCompleted]);
+  }, [currentStepIndex, user?.id, stepsCompleted, markStepCompleted]);
 
   const value: OnboardingTourContextType = {
     tourActive,

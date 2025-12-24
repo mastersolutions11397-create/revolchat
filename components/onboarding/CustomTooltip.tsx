@@ -2,7 +2,7 @@
 
 import React from "react";
 import { TooltipRenderProps } from "react-joyride";
-import { X, ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 
 interface CustomTooltipProps extends TooltipRenderProps {
   stepName?: string;
@@ -44,7 +44,7 @@ export function CustomTooltip({
       <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-24 w-24 rounded-full bg-sky-500/20 blur-3xl" />
 
       <div className="relative z-10">
-        {/* Header with close button */}
+        {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
@@ -58,14 +58,6 @@ export function CustomTooltip({
               </span>
             </div>
           </div>
-
-          <button
-            {...closeProps}
-            className="ml-4 rounded-lg p-1.5 text-slate-400 transition-all hover:bg-white/10 hover:text-white"
-            aria-label="Close tour"
-          >
-            <X className="h-4 w-4" />
-          </button>
         </div>
 
         {/* Content */}

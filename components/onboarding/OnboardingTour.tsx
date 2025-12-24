@@ -247,10 +247,8 @@ export function OnboardingTour() {
           console.log("Calling prevStep() to go back");
           prevStep();
         } else if (action === ACTIONS.CLOSE) {
-          console.log("Close action detected - advancing tour");
-          nextStep().catch((error) => {
-            console.error("Error advancing tour step:", error);
-          });
+          console.log("Close action detected - ignoring (close button removed)");
+          // Close button removed, do nothing
         }
       }
 

@@ -34,6 +34,9 @@ import { supabase } from "@/lib/supabase";
 import { useRouter, useSearchParams } from "next/navigation";
 import WorkspaceOnboardingModal from "@/components/workspace/WorkspaceOnboardingModal";
 
+// Stable empty array constant to avoid creating new references
+const EMPTY_STEPS_COMPLETED: number[] = [];
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -54,6 +57,9 @@ export default function DashboardPage() {
     onOnboardingModalCompleted,
     tourStatus,
     loading: tourLoading,
+    currentStepIndex = 0,
+    stepsCompleted = EMPTY_STEPS_COMPLETED,
+    tourActive = false,
   } = useOnboardingTour();
   const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(
     null
@@ -100,14 +106,20 @@ export default function DashboardPage() {
 
   // Check if new user needs to create a workspace
   // NEVER open modal if there's already a workspace created
+  // BUT keep it open if tour is active on step 0
   useEffect(() => {
     // ALWAYS close modal if any workspace exists (multiple checks for safety)
+    // UNLESS tour is active on step 0 (tour needs the modal to be open)
+    const shouldKeepModalOpenForTour =
+      tourActive && currentStepIndex === 0 && (!stepsCompleted || stepsCompleted.length === 0);
+
     if (
-      workspaces.length > 0 ||
-      selectedWorkspaceId ||
-      currentWorkspace ||
-      urlWorkspaceId ||
-      workspaceId
+      (workspaces.length > 0 ||
+        selectedWorkspaceId ||
+        currentWorkspace ||
+        urlWorkspaceId ||
+        workspaceId) &&
+      !shouldKeepModalOpenForTour
     ) {
       setShowNewUserModal(false);
       return;
@@ -118,18 +130,20 @@ export default function DashboardPage() {
     // 2. Workspaces have finished loading
     // 3. No workspaces exist (double-check)
     // 4. No workspace ID in URL
+    // OR if tour is active on step 0
     if (
-      user &&
-      !workspaceLoading &&
-      !hasWorkspaces &&
-      workspaces.length === 0 &&
-      !urlWorkspaceId &&
-      !selectedWorkspaceId &&
-      !currentWorkspace
+      (user &&
+        !workspaceLoading &&
+        !hasWorkspaces &&
+        workspaces.length === 0 &&
+        !urlWorkspaceId &&
+        !selectedWorkspaceId &&
+        !currentWorkspace) ||
+      shouldKeepModalOpenForTour
     ) {
       setShowNewUserModal(true);
-    } else {
-      // Ensure modal is closed if any condition fails
+    } else if (!shouldKeepModalOpenForTour) {
+      // Ensure modal is closed if any condition fails (unless tour needs it)
       setShowNewUserModal(false);
     }
   }, [
@@ -141,6 +155,53 @@ export default function DashboardPage() {
     currentWorkspace,
     urlWorkspaceId,
     workspaceId,
+    tourActive,
+    currentStepIndex,
+    stepsCompleted,
+  ]);
+
+  // Ensure modal is open when tour is active on step 0 (workspace creation step)
+  useEffect(() => {
+    // Only open modal if:
+    // 1. User is logged in
+    // 2. Tour is active
+    // 3. Current step is 0 (workspace creation)
+    // 4. No workspaces exist
+    // 5. Modal is not already open
+    // 6. Not loading
+    // 7. No workspace ID in URL
+    if (
+      user &&
+      tourActive &&
+      currentStepIndex === 0 &&
+      !hasWorkspaces &&
+      workspaces.length === 0 &&
+      !showNewUserModal &&
+      !workspaceLoading &&
+      !tourLoading &&
+      !urlWorkspaceId &&
+      !selectedWorkspaceId &&
+      !currentWorkspace
+    ) {
+      console.log("Tour is active on step 0, opening workspace creation modal");
+      // Small delay to ensure other effects have run
+      const timer = setTimeout(() => {
+        setShowNewUserModal(true);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [
+    user,
+    tourActive,
+    currentStepIndex,
+    hasWorkspaces,
+    workspaces.length,
+    showNewUserModal,
+    workspaceLoading,
+    tourLoading,
+    urlWorkspaceId,
+    selectedWorkspaceId,
+    currentWorkspace,
   ]);
 
   // Auto-start tour for new users who haven't completed it
@@ -152,6 +213,9 @@ export default function DashboardPage() {
       workspaceLoading,
       hasWorkspaces,
       tourStatus,
+      currentStepIndex,
+      stepsCompleted,
+      tourActive,
       urlWorkspaceId,
     });
 
@@ -161,12 +225,13 @@ export default function DashboardPage() {
       return;
     }
 
-    if (
-      user &&
-      !tourLoading &&
-      !workspaceLoading &&
-      tourStatus === "not_started"
-    ) {
+    // Wait for all loading to complete
+    if (!user || tourLoading || workspaceLoading) {
+      return;
+    }
+
+    // Auto-start tour if it's not started
+    if (tourStatus === "not_started") {
       console.log("Starting tour automatically for new user");
       // Small delay to ensure UI is ready
       const timer = setTimeout(() => {
@@ -178,7 +243,50 @@ export default function DashboardPage() {
           .catch((err) => {
             console.error("Failed to start tour:", err);
           });
-      }, 1500);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+
+    // If tour is in_progress with step 0 and empty steps_completed, auto-start it
+    // This handles the case where onboarding status is in_progress but tour hasn't started yet
+    if (
+      tourStatus === "in_progress" &&
+      currentStepIndex === 0 &&
+      (!stepsCompleted || stepsCompleted.length === 0) &&
+      !tourActive
+    ) {
+      console.log(
+        "Tour is in_progress with step 0 and empty steps_completed, auto-starting"
+      );
+      // Small delay to ensure UI is ready
+      const timer = setTimeout(() => {
+        console.log("Calling startTour() to activate in_progress tour");
+        startTour()
+          .then(() => {
+            console.log("Tour activated successfully");
+          })
+          .catch((err) => {
+            console.error("Failed to activate tour:", err);
+          });
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+
+    // If tour is in_progress but not active, ensure it's activated
+    // This handles the case where the page was refreshed
+    if (tourStatus === "in_progress" && !tourActive) {
+      console.log("Tour is in_progress but not active, ensuring it's activated");
+      // The context should handle activation, but we can trigger a re-check
+      // by calling startTour again (it will just update the state if already started)
+      const timer = setTimeout(() => {
+        startTour()
+          .then(() => {
+            console.log("Tour reactivated after page load");
+          })
+          .catch((err) => {
+            console.error("Failed to reactivate tour:", err);
+          });
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [
@@ -186,6 +294,9 @@ export default function DashboardPage() {
     tourLoading,
     workspaceLoading,
     tourStatus,
+    currentStepIndex,
+    stepsCompleted,
+    tourActive,
     startTour,
     urlWorkspaceId,
   ]);
@@ -647,7 +758,7 @@ export default function DashboardPage() {
                 Welcome back, {getUserName()}
               </h1>
               <p className="mt-1 text-slate-300 text-sm sm:text-base md:text-lg">
-                Here&apos;s what's happening in your workspace today.
+                Here&apos;s what&apos;s happening in your workspace today.
               </p>
             </div>
           </div>
@@ -924,10 +1035,10 @@ export default function DashboardPage() {
 
       {/* New User Workspace Creation Modal */}
       {showNewUserModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fade-in-up">
+        <div className="fixed inset-0 z-[50] flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4 animate-fade-in">
+          <div className="bg-white   rounded-2xl  shadow-2xl w-full max-w-lg max-h-[80vh] overflow-y-hidden animate-fade-in-up">
             {/* Header */}
-            <div className="relative p-4 sm:p-6 md:p-8 pb-4 sm:pb-6 bg-gradient-to-br from-sky-50 to-white border-b border-slate-100">
+            <div className="relative p-4 rounded-2xl   sm:p-6 md:p-8 pb-4 sm:pb-6 bg-gradient-to-br from-sky-50 to-white border-b border-slate-100">
               <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
                 <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl bg-linear-to-br from-sky-500 to-sky-600 flex items-center justify-center shadow-lg shadow-sky-500/30 shrink-0">
                   <Plus className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-white" />
@@ -937,12 +1048,12 @@ export default function DashboardPage() {
                     Welcome to Yetti! 👋
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                    Let's create your first workspace
+                    Let&apos;s create your first workspace
                   </p>
                 </div>
               </div>
               <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-                A workspace is where you'll manage your AI agents, knowledge
+                A workspace is where you&apos;ll manage your AI agents, knowledge
                 base, and integrations. Give it a memorable name to get started.
               </p>
             </div>
