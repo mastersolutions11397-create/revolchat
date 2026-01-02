@@ -1,11 +1,15 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 
 import { Shield, Lock, Eye, FileText } from "lucide-react";
 import Navbar from "../../components_lovable/Navbar";
 import Footer from "../../components_lovable/Footer";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 
 export default function PrivacyPolicyPage() {
+  const { t } = useLanguage();
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar/>
@@ -23,10 +27,10 @@ export default function PrivacyPolicyPage() {
                 <Shield className="w-10 h-10 text-white" />
               </div>
               <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">
-                Privacy Policy
+                {t("privacy.title")}
               </h1>
               <p className="text-lg md:text-xl text-sky-100/80 font-medium">
-                Last updated: December 15, 2024
+                {t("privacy.lastUpdated")}
               </p>
             </div>
            
@@ -42,17 +46,13 @@ export default function PrivacyPolicyPage() {
               <section className="mb-12">
                 <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
                   <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-100 text-slate-900 text-lg">1</span>
-                  Introduction
+                  {t("privacy.section1.title")}
                 </h2>
                 <p className="leading-relaxed">
-                  yetti AI (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting your
-                  privacy. This Privacy Policy explains how we collect, use,
-                  disclose, and safeguard your information when you use our AI
-                  integration platform and services.
+                  {t("privacy.section1.content1")}
                 </p>
                 <p className="leading-relaxed">
-                  By using our services, you agree to the collection and use of
-                  information in accordance with this policy.
+                  {t("privacy.section1.content2")}
                 </p>
               </section>
 
@@ -61,49 +61,48 @@ export default function PrivacyPolicyPage() {
                   <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-sky-100 text-sky-500">
                     <FileText className="w-6 h-6" />
                   </span>
-                  Information We Collect
+                  {t("privacy.section2.title")}
                 </h2>
 
                 <div className="bg-slate-50 rounded-2xl p-8 mb-8 border border-slate-100">
                   <h3 className="text-xl font-bold mb-4 text-slate-900">
-                    2.1 Personal Information
+                    {t("privacy.section2.subsection1.title")}
                   </h3>
                   <p className="mb-4">
-                    We may collect the following types of personal information:
+                    {t("privacy.section2.subsection1.intro")}
                   </p>
                   <ul className="space-y-2 mb-8">
-                    <li>Name and contact information (email address, phone number)</li>
-                    <li>Account credentials and profile information</li>
-                    <li>Payment and billing information</li>
-                    <li>Communication preferences</li>
-                    <li>Support and customer service interactions</li>
+                    <li>{t("privacy.section2.subsection1.item1")}</li>
+                    <li>{t("privacy.section2.subsection1.item2")}</li>
+                    <li>{t("privacy.section2.subsection1.item3")}</li>
+                    <li>{t("privacy.section2.subsection1.item4")}</li>
+                    <li>{t("privacy.section2.subsection1.item5")}</li>
                   </ul>
 
                   <h3 className="text-xl font-bold mb-4 text-slate-900">
-                    2.2 Usage Information
+                    {t("privacy.section2.subsection2.title")}
                   </h3>
                   <p className="mb-4">
-                    We automatically collect certain information about your use of
-                    our services:
+                    {t("privacy.section2.subsection2.intro")}
                   </p>
                   <ul className="space-y-2 mb-8">
-                    <li>Device information (IP address, browser type, operating system)</li>
-                    <li>Usage patterns and preferences</li>
-                    <li>Log data and analytics information</li>
-                    <li>Cookies and similar tracking technologies</li>
+                    <li>{t("privacy.section2.subsection2.item1")}</li>
+                    <li>{t("privacy.section2.subsection2.item2")}</li>
+                    <li>{t("privacy.section2.subsection2.item3")}</li>
+                    <li>{t("privacy.section2.subsection2.item4")}</li>
                   </ul>
 
                   <h3 className="text-xl font-bold mb-4 text-slate-900">
-                    2.3 AI Agent Data
+                    {t("privacy.section2.subsection3.title")}
                   </h3>
                   <p className="mb-4">
-                    When you use our AI integration services, we may process:
+                    {t("privacy.section2.subsection3.intro")}
                   </p>
                   <ul className="space-y-2">
-                    <li>Messages and conversations processed by your AI agents</li>
-                    <li>Integration configurations and settings</li>
-                    <li>Performance metrics and analytics data</li>
-                    <li>Knowledge base content and training data</li>
+                    <li>{t("privacy.section2.subsection3.item1")}</li>
+                    <li>{t("privacy.section2.subsection3.item2")}</li>
+                    <li>{t("privacy.section2.subsection3.item3")}</li>
+                    <li>{t("privacy.section2.subsection3.item4")}</li>
                   </ul>
                 </div>
               </section>
@@ -111,20 +110,20 @@ export default function PrivacyPolicyPage() {
               <section className="mb-12">
                 <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
                   <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-100 text-slate-900 text-lg">3</span>
-                  How We Use Your Information
+                  {t("privacy.section3.title")}
                 </h2>
                 <p className="leading-relaxed mb-4">
-                  We use the collected information for the following purposes:
+                  {t("privacy.section3.intro")}
                 </p>
                 <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {[
-                    "Provide, maintain, and improve our services",
-                    "Process and fulfill your requests and transactions",
-                    "Communicate with you about our services and updates",
-                    "Provide customer support and technical assistance",
-                    "Analyze usage patterns and optimize service performance",
-                    "Ensure security and prevent fraud",
-                    "Comply with legal obligations"
+                    t("privacy.section3.item1"),
+                    t("privacy.section3.item2"),
+                    t("privacy.section3.item3"),
+                    t("privacy.section3.item4"),
+                    t("privacy.section3.item5"),
+                    t("privacy.section3.item6"),
+                    t("privacy.section3.item7")
                   ].map((item, i) => (
                     <li key={i} className="flex items-start gap-2 bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
                       <span className="w-1.5 h-1.5 rounded-full bg-sky-500 mt-2.5 shrink-0"></span>
@@ -137,19 +136,17 @@ export default function PrivacyPolicyPage() {
               <section className="mb-12">
                 <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
                   <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-100 text-slate-900 text-lg">4</span>
-                  Information Sharing and Disclosure
+                  {t("privacy.section4.title")}
                 </h2>
                 <p className="leading-relaxed mb-4">
-                  We do not sell, trade, or rent your personal information to
-                  third parties. We may share your information in the following
-                  circumstances:
+                  {t("privacy.section4.intro")}
                 </p>
                 <ul className="space-y-2">
-                  <li>With your explicit consent</li>
-                  <li>To comply with legal obligations or court orders</li>
-                  <li>To protect our rights, property, or safety</li>
-                  <li>With trusted service providers who assist in our operations</li>
-                  <li>In connection with a business transfer or acquisition</li>
+                  <li>{t("privacy.section4.item1")}</li>
+                  <li>{t("privacy.section4.item2")}</li>
+                  <li>{t("privacy.section4.item3")}</li>
+                  <li>{t("privacy.section4.item4")}</li>
+                  <li>{t("privacy.section4.item5")}</li>
                 </ul>
               </section>
 
@@ -158,22 +155,19 @@ export default function PrivacyPolicyPage() {
                   <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-sky-100 text-sky-500">
                     <Lock className="w-6 h-6" />
                   </span>
-                  Data Security
+                  {t("privacy.section5.title")}
                 </h2>
                 <div className="bg-sky-50 rounded-2xl p-8 border border-sky-100">
                   <p className="leading-relaxed mb-4 text-slate-700">
-                    We implement appropriate technical and organizational measures
-                    to protect your personal information against unauthorized
-                    access, alteration, disclosure, or destruction. These measures
-                    include:
+                    {t("privacy.section5.intro")}
                   </p>
                   <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {[
-                      "Encryption of data in transit and at rest",
-                      "Regular security assessments and updates",
-                      "Access controls and authentication mechanisms",
-                      "Employee training on data protection practices",
-                      "Incident response and breach notification procedures"
+                      t("privacy.section5.item1"),
+                      t("privacy.section5.item2"),
+                      t("privacy.section5.item3"),
+                      t("privacy.section5.item4"),
+                      t("privacy.section5.item5")
                     ].map((item, i) => (
                       <li key={i} className="flex items-center gap-2 text-slate-700 font-medium">
                         <Shield className="w-4 h-4 text-sky-500" />
@@ -189,102 +183,85 @@ export default function PrivacyPolicyPage() {
                   <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-sky-100 text-sky-500">
                     <Eye className="w-6 h-6" />
                   </span>
-                  Your Rights and Choices
+                  {t("privacy.section6.title")}
                 </h2>
                 <p className="leading-relaxed mb-4">
-                  Depending on your location, you may have certain rights
-                  regarding your personal information:
+                  {t("privacy.section6.intro")}
                 </p>
                 <ul className="space-y-2 mb-6">
-                  <li>Access and obtain a copy of your personal information</li>
-                  <li>Correct or update inaccurate information</li>
-                  <li>Delete your personal information</li>
-                  <li>Restrict or object to certain processing activities</li>
-                  <li>Data portability</li>
-                  <li>Withdraw consent where applicable</li>
+                  <li>{t("privacy.section6.item1")}</li>
+                  <li>{t("privacy.section6.item2")}</li>
+                  <li>{t("privacy.section6.item3")}</li>
+                  <li>{t("privacy.section6.item4")}</li>
+                  <li>{t("privacy.section6.item5")}</li>
+                  <li>{t("privacy.section6.item6")}</li>
                 </ul>
                 <div className="bg-amber-50 p-6 rounded-xl border border-amber-100 text-amber-900">
-                  To exercise these rights, please contact us using the
-                  information provided in the &quot;Contact Us&quot; section.
+                  {t("privacy.section6.contactNote")}
                 </div>
               </section>
 
               <section className="mb-12">
                 <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
                   <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-100 text-slate-900 text-lg">7</span>
-                  Data Retention
+                  {t("privacy.section7.title")}
                 </h2>
                 <p className="leading-relaxed">
-                  We retain your personal information for as long as necessary to
-                  fulfill the purposes outlined in this Privacy Policy, unless a
-                  longer retention period is required or permitted by law. When we
-                  no longer need your information, we will securely delete or
-                  anonymize it.
+                  {t("privacy.section7.content")}
                 </p>
               </section>
 
               <section className="mb-12">
                 <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
                   <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-100 text-slate-900 text-lg">8</span>
-                  International Data Transfers
+                  {t("privacy.section8.title")}
                 </h2>
                 <p className="leading-relaxed">
-                  Your information may be transferred to and processed in
-                  countries other than your own. We ensure that such transfers
-                  comply with applicable data protection laws and implement
-                  appropriate safeguards to protect your information.
+                  {t("privacy.section8.content")}
                 </p>
               </section>
 
               <section className="mb-12">
                 <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
                   <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-100 text-slate-900 text-lg">9</span>
-                  Children&apos;s Privacy
+                  {t("privacy.section9.title")}
                 </h2>
                 <p className="leading-relaxed">
-                  Our services are not intended for children under 13 years of
-                  age. We do not knowingly collect personal information from
-                  children under 13. If we become aware that we have collected
-                  personal information from a child under 13, we will take steps
-                  to delete such information.
+                  {t("privacy.section9.content")}
                 </p>
               </section>
 
               <section className="mb-12">
                 <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
                   <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-100 text-slate-900 text-lg">10</span>
-                  Changes to This Privacy Policy
+                  {t("privacy.section10.title")}
                 </h2>
                 <p className="leading-relaxed">
-                  We may update this Privacy Policy from time to time. We will
-                  notify you of any changes by posting the new Privacy Policy on
-                  this page and updating the &quot;Last updated&quot; date. We encourage you
-                  to review this Privacy Policy periodically for any changes.
+                  {t("privacy.section10.content")}
                 </p>
               </section>
 
               <section>
                 <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
                   <span className="flex items-center justify-center w-10 h-10 rounded-lg bg-slate-100 text-slate-900 text-lg">11</span>
-                  Contact Us
+                  {t("privacy.section11.title")}
                 </h2>
                 <p className="leading-relaxed mb-6">
-                  If you have any questions about this Privacy Policy or our data
-                  practices, please contact us:
+                  {t("privacy.section11.intro")}
                 </p>
                 <div className="bg-sky-500 text-white p-8 rounded-2xl shadow-lg">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                      <p className="text-slate-200 text-sm mb-1 uppercase tracking-wider font-semibold">Email</p>
-                      <p className="font-medium text-lg">privacy@yettiai.com</p>
+                      <p className="text-slate-200 text-sm mb-1 uppercase tracking-wider font-semibold">{t("privacy.section11.email")}</p>
+                      <p className="font-medium text-lg">{t("privacy.section11.emailValue")}</p>
                     </div>
                     <div>
-                      <p className="text-slate-200 text-sm mb-1 uppercase tracking-wider font-semibold">Address</p>
-                      <p className="font-medium text-lg">123 AI Street, San Francisco, CA 94105</p>
+                      <p className="text-slate-200 text-sm mb-1 uppercase tracking-wider font-semibold">{t("privacy.section11.address")}</p>
+                      <p className="font-medium text-lg">{t("privacy.section11.addressValue")}</p>
                     </div>
                     <div>
-                      <p className="text-slate-200 text-sm mb-1 uppercase tracking-wider font-semibold">Phone</p>
-                      <p className="font-medium text-lg">+1 (555) 123-4567</p>
+                      <p className="text-slate-200 text-sm mb-1 uppercase tracking-wider font-semibold">{t("privacy.section11.phone")}</p>
+                      <p className="font-medium text-lg">{t("privacy.section11.phoneValue")}</p>
                     </div>
                   </div>
                 </div>

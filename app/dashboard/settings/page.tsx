@@ -32,18 +32,20 @@ import {
   type TimeRange,
 } from "@/lib/api/workspace-hours";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { toast } from "sonner";
 import { profileAPI, UserProfileUpdate } from "@/lib/api/profile";
 import Link from "next/link";
 
-const DAYS: Array<{ key: DayKey; label: string; short: string }> = [
-  { key: "monday", label: "Monday", short: "Mon" },
-  { key: "tuesday", label: "Tuesday", short: "Tue" },
-  { key: "wednesday", label: "Wednesday", short: "Wed" },
-  { key: "thursday", label: "Thursday", short: "Thu" },
-  { key: "friday", label: "Friday", short: "Fri" },
-  { key: "saturday", label: "Saturday", short: "Sat" },
-  { key: "sunday", label: "Sunday", short: "Sun" },
+// Days will be translated in the component using useLanguage
+const DAYS: Array<{ key: DayKey; labelKey: string; shortKey: string }> = [
+  { key: "monday", labelKey: "settings.days.monday", shortKey: "settings.days.mon" },
+  { key: "tuesday", labelKey: "settings.days.tuesday", shortKey: "settings.days.tue" },
+  { key: "wednesday", labelKey: "settings.days.wednesday", shortKey: "settings.days.wed" },
+  { key: "thursday", labelKey: "settings.days.thursday", shortKey: "settings.days.thu" },
+  { key: "friday", labelKey: "settings.days.friday", shortKey: "settings.days.fri" },
+  { key: "saturday", labelKey: "settings.days.saturday", shortKey: "settings.days.sat" },
+  { key: "sunday", labelKey: "settings.days.sunday", shortKey: "settings.days.sun" },
 ];
 
 const DEFAULT_RANGE: TimeRange = { start: "09:00", end: "17:00" };
@@ -219,6 +221,7 @@ function TimezoneDropdown({
 
 export default function SettingsPage() {
   const { user, signOut } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -318,10 +321,10 @@ export default function SettingsPage() {
           setWorkspaceOnline(true);
           setHoursSuccess(null);
         } else {
-          const errorMessage = err.message || "Failed to load working hours";
+          const errorMessage = err.message || t("settings.workspaceHours.failedToLoad");
           setHoursError(errorMessage);
-          toast.error("Could not load working hours", {
-            description: "Using default schedule. You can customize it below.",
+          toast.error(t("settings.workspaceHours.couldNotLoad"), {
+            description: t("settings.workspaceHours.usingDefault"),
           });
         }
       } finally {
@@ -398,10 +401,10 @@ export default function SettingsPage() {
       };
 
       await profileAPI.updateProfile(updateData);
-      toast.success("Profile updated successfully!");
+      toast.success(t("settings.profile.updated"));
     } catch (err) {
       console.error("Error updating profile:", err);
-      toast.error("Failed to update profile", {
+      toast.error(t("settings.profile.failed"), {
         description: err instanceof Error ? err.message : "Unknown error",
       });
     } finally {
@@ -420,9 +423,9 @@ export default function SettingsPage() {
         },
       };
       await profileAPI.updateProfile(updateData);
-      toast.success("Notification settings saved!");
+      toast.success(t("settings.notifications.saved"));
     } catch (err) {
-      toast.error("Failed to save settings");
+      toast.error(t("settings.notifications.failed"));
     } finally {
       setLoading(false);
     }
@@ -445,7 +448,7 @@ export default function SettingsPage() {
     if (profileData.first_name) {
       return profileData.first_name;
     }
-    return user?.email?.split("@")[0] || "User";
+    return user?.email?.split("@")[0] || t("settings.profile.user");
   };
 
   const handleSignOut = async () => {
@@ -513,16 +516,16 @@ export default function SettingsPage() {
       setSchedule(normalizeSchedule(response.schedule));
       setWorkspaceTimezone(sanitizeTimeZone(response.timezone, timezones));
       setWorkspaceOnline(response.workspace_online);
-      setHoursSuccess("Workspace hours updated successfully.");
-      toast.success("Workspace hours updated successfully");
+      setHoursSuccess(t("settings.workspaceHours.updated"));
+      toast.success(t("settings.workspaceHours.updated"));
       // Complete tour if on last step
       if (tourActive && currentStepIndex === 3) {
         completeTour();
       }
     } catch (err: any) {
-      const errorMessage = err.message || "Failed to save working hours";
+      const errorMessage = err.message || t("settings.workspaceHours.failedToSave");
       setHoursError(errorMessage);
-      toast.error("Failed to save working hours", {
+      toast.error(t("settings.workspaceHours.failedToSave"), {
         description: errorMessage,
       });
     } finally {
@@ -544,14 +547,16 @@ export default function SettingsPage() {
       setWorkspaceOnline(response.workspace_online);
       setSchedule(normalizeSchedule(response.schedule));
       setWorkspaceTimezone(sanitizeTimeZone(response.timezone, timezones));
-      const successMessage = `Workspace ${response.workspace_online ? "enabled" : "paused"} successfully.`;
+      const successMessage = response.workspace_online 
+        ? t("settings.workspaceHours.workspaceEnabled")
+        : t("settings.workspaceHours.workspacePaused");
       setHoursSuccess(successMessage);
       toast.success(successMessage);
     } catch (err: any) {
-      const errorMessage = err.message || "Failed to update workspace status";
+      const errorMessage = err.message || t("settings.workspaceHours.failedToUpdateStatus");
       setHoursError(errorMessage);
       setWorkspaceOnline(previousValue);
-      toast.error("Failed to update workspace status", {
+      toast.error(t("settings.workspaceHours.failedToUpdateStatus"), {
         description: errorMessage,
       });
     } finally {
@@ -572,10 +577,10 @@ export default function SettingsPage() {
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-white">
-              Settings
+              {t("settings.title")}
             </h1>
             <p className="mt-1 text-slate-300 text-lg">
-              Manage your workspace and account preferences
+              {t("settings.subtitle")}
             </p>
           </div>
         </div>
@@ -609,13 +614,13 @@ export default function SettingsPage() {
                 <div className="hidden sm:flex flex-col items-end gap-2">
                   <div className="inline-flex items-center gap-2 rounded-full bg-sky-100 px-4 py-1.5 text-sm font-bold text-sky-700 border border-sky-200">
                     <div className="h-2 w-2 rounded-full bg-sky-500 animate-pulse"></div>
-                    Active
+                    {t("settings.profile.active")}
                   </div>
                   {user?.created_at && (
                     <div className="flex items-center gap-1.5 text-xs text-slate-500">
                       <Calendar className="h-3.5 w-3.5" />
                       <span>
-                        Since{" "}
+                        {t("settings.profile.since")}{" "}
                         {new Date(user.created_at).toLocaleDateString("en-US", {
                           month: "short",
                           year: "numeric",
@@ -641,10 +646,10 @@ export default function SettingsPage() {
                       </div>
                       <div>
                         <h3 className="text-lg font-bold text-slate-900">
-                          Personal Information
+                          {t("settings.profile.title")}
                         </h3>
                         <p className="text-sm text-slate-500">
-                          Update your profile details
+                          {t("settings.profile.subtitle")}
                         </p>
                       </div>
                     </div>
@@ -652,7 +657,7 @@ export default function SettingsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-semibold text-slate-700 mb-2">
-                          First Name
+                          {t("settings.profile.firstName")}
                         </label>
                         <input
                           type="text"
@@ -664,13 +669,13 @@ export default function SettingsPage() {
                             })
                           }
                           className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 transition-all hover:border-sky-300 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
-                          placeholder="Enter first name"
+                          placeholder={t("settings.profile.enterFirstName")}
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-semibold text-slate-700 mb-2">
-                          Last Name
+                          {t("settings.profile.lastName")}
                         </label>
                         <input
                           type="text"
@@ -682,14 +687,14 @@ export default function SettingsPage() {
                             })
                           }
                           className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 transition-all hover:border-sky-300 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
-                          placeholder="Enter last name"
+                          placeholder={t("settings.profile.enterLastName")}
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
                           <Building2 className="h-4 w-4 text-slate-500" />
-                          Company
+                          {t("settings.profile.company")}
                         </label>
                         <input
                           type="text"
@@ -701,14 +706,14 @@ export default function SettingsPage() {
                             })
                           }
                           className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 transition-all hover:border-sky-300 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
-                          placeholder="Enter company name"
+                          placeholder={t("settings.profile.enterCompanyName")}
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
                           <Phone className="h-4 w-4 text-slate-500" />
-                          Phone Number
+                          {t("settings.profile.phone")}
                         </label>
                         <input
                           type="tel"
@@ -720,14 +725,14 @@ export default function SettingsPage() {
                             })
                           }
                           className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 transition-all hover:border-sky-300 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
-                          placeholder="Enter phone number"
+                          placeholder={t("settings.profile.enterPhoneNumber")}
                         />
                       </div>
 
                       <div className="md:col-span-2">
                         <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
                           <Mail className="h-4 w-4 text-slate-500" />
-                          Email Address
+                          {t("settings.profile.email")}
                         </label>
                         <input
                           type="email"
@@ -736,7 +741,7 @@ export default function SettingsPage() {
                           className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-slate-600 cursor-not-allowed"
                         />
                         <p className="text-xs text-slate-500 mt-2">
-                          Email cannot be changed
+                          {t("settings.profile.emailCannotChange")}
                         </p>
                       </div>
                     </div>
@@ -751,7 +756,7 @@ export default function SettingsPage() {
                       {profileSaving && (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       )}
-                      Save Profile
+                      {t("settings.profile.saveProfile")}
                     </button>
                   </div>
                 </div>
@@ -770,7 +775,7 @@ export default function SettingsPage() {
               </div>
               <div>
                 <h2 className="text-xl font-bold text-slate-900">
-                  Yetti Hours
+                  {t("settings.workspaceHours.title")}
                 </h2>
               </div>
             </div>
@@ -798,7 +803,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900">
-                    Availability
+                    {t("settings.workspaceHours.availability")}
                   </h3>
                 </div>
               </div>
@@ -819,7 +824,7 @@ export default function SettingsPage() {
                 {statusSaving && (
                   <div className="inline-flex items-center gap-2 text-xs text-slate-500">
                     <Loader2 className="h-3 w-3 animate-spin" />
-                    Updating...
+                    {t("settings.workspaceHours.updating")}
                   </div>
                 )}
               </div>
@@ -833,7 +838,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900">
-                    Time Zone
+                    {t("settings.workspaceHours.timezone")}
                   </h3>
                 </div>
               </div>
@@ -855,7 +860,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-slate-900">
-                    Weekly Schedule
+                    {t("settings.workspaceHours.weeklySchedule")}
                   </h3>
                 </div>
               </div>
@@ -863,7 +868,7 @@ export default function SettingsPage() {
               {hoursLoading ? (
                 <div className="flex items-center justify-center py-16 text-slate-400">
                   <Loader2 className="h-8 w-8 animate-spin mr-2 text-sky-500" />
-                  Loading schedule...
+                  {t("settings.workspaceHours.loadingSchedule")}
                 </div>
               ) : (
                 <div className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100 overflow-hidden">
@@ -896,13 +901,13 @@ export default function SettingsPage() {
                               <span
                                 className={`text-sm font-bold ${dayEnabled ? "text-slate-900" : "text-slate-500"}`}
                               >
-                                {day.label}
+                                {t(day.labelKey)}
                               </span>
                             </div>
                             <p className="text-xs text-slate-500 mt-1 pl-14 sm:pl-0">
                               {dayEnabled
-                                ? `${ranges.length} window${ranges.length > 1 ? "s" : ""}`
-                                : "Unavailable"}
+                                ? `${ranges.length} ${ranges.length > 1 ? t("settings.workspaceHours.windows") : t("settings.workspaceHours.window")}`
+                                : t("settings.workspaceHours.unavailable")}
                             </p>
                           </div>
 
@@ -929,7 +934,7 @@ export default function SettingsPage() {
                                         className="w-36 rounded-md border-0 bg-transparent px-3 py-1 text-sm font-medium text-slate-900 focus:ring-0"
                                       />
                                       <span className="text-xs font-medium text-slate-400">
-                                        to
+                                        {t("settings.workspaceHours.to")}
                                       </span>
                                       <input
                                         type="time"
@@ -953,7 +958,7 @@ export default function SettingsPage() {
                                           handleRemoveRange(day.key, index)
                                         }
                                         className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                        title="Remove window"
+                                        title={t("settings.workspaceHours.removeWindow")}
                                       >
                                         <Trash2 className="h-4 w-4" />
                                       </button>
@@ -966,7 +971,7 @@ export default function SettingsPage() {
                                   className="inline-flex w-fit items-center gap-2 rounded-lg border border-dashed border-sky-200 px-3 py-2 text-xs font-semibold text-sky-500 hover:bg-sky-50 hover:border-sky-300 transition-all"
                                 >
                                   <Plus className="h-3.5 w-3.5" />
-                                  Add window
+                                  {t("settings.workspaceHours.addWindow")}
                                 </button>
                               </div>
                             )}
@@ -990,7 +995,7 @@ export default function SettingsPage() {
                 className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-sky-500 px-8 py-3.5 text-sm font-bold text-white transition-all hover:from-sky-700 hover:to-sky-500 hover:shadow-lg hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
                 {hoursSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-                Save
+                {t("settings.workspaceHours.save")}
               </button>
             </div>
           </div>
@@ -1002,7 +1007,7 @@ export default function SettingsPage() {
                 <Bell className="h-5 w-5" />
               </div>
               <h2 className="text-xl font-bold text-slate-900">
-                Notifications
+                {t("settings.notifications.title")}
               </h2>
             </div>
 
@@ -1010,10 +1015,10 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between pt-2">
                 <div>
                   <h3 className="text-base font-semibold text-slate-900">
-                    Email Notifications
+                    {t("settings.notifications.email")}
                   </h3>
                   <p className="text-slate-500 text-sm mt-0.5">
-                    Receive weekly summaries and critical alerts via email.
+                    {t("settings.notifications.emailDesc")}
                   </p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
@@ -1035,10 +1040,10 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between pt-6">
                 <div>
                   <h3 className="text-base font-semibold text-slate-900">
-                    SMS Notifications
+                    {t("settings.notifications.sms")}
                   </h3>
                   <p className="text-slate-500 text-sm mt-0.5">
-                    Get instant alerts on your phone for urgent issues.
+                    {t("settings.notifications.smsDesc")}
                   </p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
@@ -1060,10 +1065,10 @@ export default function SettingsPage() {
               <div className="flex items-center justify-between pt-6">
                 <div>
                   <h3 className="text-base font-semibold text-slate-900">
-                    Push Notifications
+                    {t("settings.notifications.push")}
                   </h3>
                   <p className="text-slate-500 text-sm mt-0.5">
-                    Receive real-time updates in your browser.
+                    {t("settings.notifications.pushDesc")}
                   </p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
@@ -1090,7 +1095,7 @@ export default function SettingsPage() {
               <div className="p-2 bg-slate-100 rounded-lg text-slate-600">
                 <Shield className="h-5 w-5" />
               </div>
-              <h2 className="text-xl font-bold text-slate-900">Account</h2>
+              <h2 className="text-xl font-bold text-slate-900">{t("settings.account.title")}</h2>
             </div>
 
             <div className="space-y-4 max-w-xl">
@@ -1102,7 +1107,7 @@ export default function SettingsPage() {
                   <div className="h-8 w-8 rounded-full bg-red-50 flex items-center justify-center text-red-500 group-hover:bg-white transition-colors">
                     <LogOut className="h-4 w-4" />
                   </div>
-                  <span>Sign Out</span>
+                  <span>{t("settings.account.signOut")}</span>
                 </div>
               </button>
             </div>
@@ -1118,12 +1123,12 @@ export default function SettingsPage() {
               {loading ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Saving...
+                  {t("settings.notifications.saving")}
                 </>
               ) : (
                 <>
                   <Save className="h-5 w-5" />
-                  Save Notification Settings
+                  {t("settings.notifications.save")}
                 </>
               )}
             </button>

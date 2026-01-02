@@ -3,12 +3,21 @@
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 import {
   integrationsAPI,
   type Conversation,
   type Message,
 } from "@/lib/api/integrations";
-import { MessageSquare, Send, Search, MoreVertical, Phone, Video, Info } from "lucide-react";
+import {
+  MessageSquare,
+  Send,
+  Search,
+  MoreVertical,
+  Phone,
+  Video,
+  Info,
+} from "lucide-react";
 
 type ChannelType = "instagram" | "telegram";
 
@@ -244,7 +253,9 @@ const dummyTelegramMessages: Record<string, Message[]> = {
       text: "Great! We have a Shopify plugin available. I'll send you the setup guide.",
       sender_id: "me",
       sender_name: "You",
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000 + 5 * 60 * 1000).toISOString(), // 3h 55m ago
+      timestamp: new Date(
+        Date.now() - 4 * 60 * 60 * 1000 + 5 * 60 * 1000
+      ).toISOString(), // 3h 55m ago
       is_from_me: true,
     },
     {
@@ -259,6 +270,7 @@ const dummyTelegramMessages: Record<string, Message[]> = {
 };
 
 export default function LeadsPage() {
+  const { t } = useLanguage();
   const { selectedWorkspaceId, currentWorkspace } = useWorkspace();
   const workspaceId = useMemo(
     () => selectedWorkspaceId || currentWorkspace?.id || null,
@@ -347,7 +359,10 @@ export default function LeadsPage() {
               workspaceId,
               selectedConversation.id
             );
-            if (data.length === 0 && dummyInstagramMessages[selectedConversation.id]) {
+            if (
+              data.length === 0 &&
+              dummyInstagramMessages[selectedConversation.id]
+            ) {
               data = dummyInstagramMessages[selectedConversation.id];
             }
           } catch {
@@ -360,7 +375,10 @@ export default function LeadsPage() {
               workspaceId,
               selectedConversation.id
             );
-            if (data.length === 0 && dummyTelegramMessages[selectedConversation.id]) {
+            if (
+              data.length === 0 &&
+              dummyTelegramMessages[selectedConversation.id]
+            ) {
               data = dummyTelegramMessages[selectedConversation.id];
             }
           } catch {
@@ -398,7 +416,7 @@ export default function LeadsPage() {
         minute: "2-digit",
       });
     } else if (days === 1) {
-      return "Yesterday";
+      return t("messages.yesterday");
     } else if (days < 7) {
       return date.toLocaleDateString("en-US", { weekday: "short" });
     } else {
@@ -412,7 +430,7 @@ export default function LeadsPage() {
   if (!workspaceId) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-gray-500">Please select a workspace</p>
+        <p className="text-gray-500">{t("messages.selectWorkspace")}</p>
       </div>
     );
   }
@@ -423,8 +441,10 @@ export default function LeadsPage() {
       <div className="w-80 flex flex-col border-r border-slate-200 bg-slate-50/50">
         {/* Header */}
         <div className="p-4 border-b border-slate-200 bg-white">
-          <h2 className="text-xl font-bold text-slate-900 mb-4">Leads</h2>
-          
+          <h2 className="text-xl font-bold text-slate-900 mb-4">
+            {t("messages.title")}
+          </h2>
+
           {/* Channel Toggle */}
           <div className="flex p-1 bg-slate-100 rounded-xl">
             <button
@@ -441,7 +461,7 @@ export default function LeadsPage() {
               <div className="relative h-5 w-5">
                 <Image
                   src="/yetti/instagram_logo.png"
-                  alt="Instagram"
+                  alt={t("messages.instagram")}
                   fill
                   className="object-contain"
                 />
@@ -462,7 +482,7 @@ export default function LeadsPage() {
               <div className="relative h-5 w-5">
                 <Image
                   src="/yetti/telegram_logo.png"
-                  alt="Telegram"
+                  alt={t("messages.telegram")}
                   fill
                   className="object-contain"
                 />
@@ -478,7 +498,7 @@ export default function LeadsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Search leads..."
+              placeholder={t("messages.search")}
               className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
             />
           </div>
@@ -489,12 +509,12 @@ export default function LeadsPage() {
           {loading && conversations.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 gap-3">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
-              <p className="text-slate-500 text-sm">Loading leads...</p>
+              <p className="text-slate-500 text-sm">{t("messages.loading")}</p>
             </div>
           ) : conversations.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 gap-2 p-4 text-center">
               <MessageSquare className="h-8 w-8 text-slate-300" />
-              <p className="text-slate-500 text-sm">No leads found</p>
+              <p className="text-slate-500 text-sm">{t("messages.noLeads")}</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
@@ -512,20 +532,34 @@ export default function LeadsPage() {
                     <div className="relative h-12 w-12 flex-shrink-0 rounded-xl overflow-hidden bg-gradient-to-br from-sky-100 to-blue-100 flex items-center justify-center shadow-sm">
                       <MessageSquare className="h-6 w-6 text-sky-500" />
                       {selectedChannel === "instagram" ? (
-                         <div className="absolute bottom-0 right-0 h-4 w-4 bg-white rounded-full p-0.5">
-                           <Image src="/yetti/instagram_logo.png" alt="IG" width={12} height={12} />
-                         </div>
+                        <div className="absolute bottom-0 right-0 h-4 w-4 bg-white rounded-full p-0.5">
+                          <Image
+                            src="/yetti/instagram_logo.png"
+                            alt="IG"
+                            width={12}
+                            height={12}
+                          />
+                        </div>
                       ) : (
                         <div className="absolute bottom-0 right-0 h-4 w-4 bg-white rounded-full p-0.5">
-                           <Image src="/yetti/telegram_logo.png" alt="TG" width={12} height={12} />
-                         </div>
+                          <Image
+                            src="/yetti/telegram_logo.png"
+                            alt="TG"
+                            width={12}
+                            height={12}
+                          />
+                        </div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <h4 className={`text-sm font-semibold truncate ${
-                          selectedConversation?.id === conversation.id ? "text-sky-900" : "text-slate-900"
-                        }`}>
+                        <h4
+                          className={`text-sm font-semibold truncate ${
+                            selectedConversation?.id === conversation.id
+                              ? "text-sky-900"
+                              : "text-slate-900"
+                          }`}
+                        >
                           {conversation.participant_name}
                         </h4>
                         {conversation.last_message_time && (
@@ -534,21 +568,25 @@ export default function LeadsPage() {
                           </span>
                         )}
                       </div>
-                      <p className={`text-sm truncate ${
-                         conversation.unread_count && conversation.unread_count > 0 
-                         ? "text-slate-900 font-medium" 
-                         : "text-slate-500"
-                      }`}>
-                        {conversation.last_message || "No messages yet"}
+                      <p
+                        className={`text-sm truncate ${
+                          conversation.unread_count &&
+                          conversation.unread_count > 0
+                            ? "text-slate-900 font-medium"
+                            : "text-slate-500"
+                        }`}
+                      >
+                        {conversation.last_message || t("messages.noMessages")}
                       </p>
                     </div>
-                    {conversation.unread_count && conversation.unread_count > 0 && (
-                      <div className="flex flex-col justify-center h-full ml-2">
-                        <span className="flex items-center justify-center h-5 min-w-[1.25rem] px-1.5 text-[10px] font-bold text-white bg-sky-500 rounded-full shadow-sm shadow-sky-200">
-                          {conversation.unread_count}
-                        </span>
-                      </div>
-                    )}
+                    {conversation.unread_count &&
+                      conversation.unread_count > 0 && (
+                        <div className="flex flex-col justify-center h-full ml-2">
+                          <span className="flex items-center justify-center h-5 min-w-[1.25rem] px-1.5 text-[10px] font-bold text-white bg-sky-500 rounded-full shadow-sm shadow-sky-200">
+                            {conversation.unread_count}
+                          </span>
+                        </div>
+                      )}
                   </div>
                 </button>
               ))}
@@ -561,7 +599,7 @@ export default function LeadsPage() {
       <div className="flex-1 flex flex-col bg-white relative">
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none" />
-        
+
         {selectedConversation ? (
           <>
             {/* Chat Header */}
@@ -573,20 +611,24 @@ export default function LeadsPage() {
                 <div>
                   <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                     {selectedConversation.participant_name}
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${
-                      selectedChannel === "instagram"
-                        ? "bg-pink-50 text-pink-600 border border-pink-100"
-                        : "bg-sky-50 text-sky-500 border border-sky-100"
-                    }`}>
-                      {selectedChannel}
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${
+                        selectedChannel === "instagram"
+                          ? "bg-pink-50 text-pink-600 border border-pink-100"
+                          : "bg-sky-50 text-sky-500 border border-sky-100"
+                      }`}
+                    >
+                      {selectedChannel === "instagram"
+                        ? t("messages.instagram")
+                        : t("messages.telegram")}
                     </span>
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Lead conversation
+                    {t("messages.leadConversation")}
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
                   <Info className="h-5 w-5" />
@@ -600,7 +642,9 @@ export default function LeadsPage() {
                 <div className="flex items-center justify-center h-full">
                   <div className="flex flex-col items-center gap-3">
                     <div className="h-8 w-8 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
-                    <p className="text-slate-400 text-sm">Loading messages...</p>
+                    <p className="text-slate-400 text-sm">
+                      {t("messages.loadingMessages")}
+                    </p>
                   </div>
                 </div>
               ) : messages.length === 0 ? (
@@ -608,19 +652,21 @@ export default function LeadsPage() {
                   <div className="h-16 w-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                     <MessageSquare className="h-8 w-8 text-slate-300" />
                   </div>
-                  <h3 className="text-slate-900 font-medium mb-1">No messages yet</h3>
+                  <h3 className="text-slate-900 font-medium mb-1">
+                    {t("messages.noMessages")}
+                  </h3>
                   <p className="text-slate-500 text-sm max-w-xs">
-                    Start the conversation by sending a message below.
+                    {t("messages.startConversation")}
                   </p>
                 </div>
               ) : (
                 messages.map((message, index) => {
                   const isLast = index === messages.length - 1;
-                  const showAvatar = !message.is_from_me && (
-                    index === 0 || 
-                    messages[index - 1].is_from_me || 
-                    messages[index - 1].sender_id !== message.sender_id
-                  );
+                  const showAvatar =
+                    !message.is_from_me &&
+                    (index === 0 ||
+                      messages[index - 1].is_from_me ||
+                      messages[index - 1].sender_id !== message.sender_id);
 
                   return (
                     <div
@@ -630,7 +676,9 @@ export default function LeadsPage() {
                       } animate-in fade-in slide-in-from-bottom-2 duration-300`}
                     >
                       {!message.is_from_me && (
-                        <div className={`flex-shrink-0 w-8 ${!showAvatar && "invisible"}`}>
+                        <div
+                          className={`flex-shrink-0 w-8 ${!showAvatar && "invisible"}`}
+                        >
                           {showAvatar && (
                             <div className="relative h-8 w-8 rounded-lg overflow-hidden bg-gradient-to-br from-sky-100 to-blue-100 flex items-center justify-center shadow-sm">
                               <MessageSquare className="h-4 w-4 text-sky-500" />
@@ -638,8 +686,10 @@ export default function LeadsPage() {
                           )}
                         </div>
                       )}
-                      
-                      <div className={`flex flex-col ${message.is_from_me ? "items-end" : "items-start"} max-w-[70%]`}>
+
+                      <div
+                        className={`flex flex-col ${message.is_from_me ? "items-end" : "items-start"} max-w-[70%]`}
+                      >
                         <div
                           className={`px-5 py-3 shadow-sm ${
                             message.is_from_me
@@ -651,9 +701,13 @@ export default function LeadsPage() {
                             {message.text}
                           </p>
                         </div>
-                        <span className={`text-[10px] mt-1.5 px-1 ${
-                          message.is_from_me ? "text-slate-400" : "text-slate-400"
-                        }`}>
+                        <span
+                          className={`text-[10px] mt-1.5 px-1 ${
+                            message.is_from_me
+                              ? "text-slate-400"
+                              : "text-slate-400"
+                          }`}
+                        >
                           {formatTime(message.timestamp)}
                         </span>
                       </div>
@@ -662,7 +716,6 @@ export default function LeadsPage() {
                 })
               )}
             </div>
-
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-50/30">
@@ -670,23 +723,33 @@ export default function LeadsPage() {
               <MessageSquare className="h-10 w-10 text-sky-500" />
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-2">
-              Select a Lead
+              {t("messages.selectLead")}
             </h2>
             <p className="text-slate-500 max-w-md mx-auto mb-8">
-              Choose a lead from the sidebar to view their conversation and manage your potential customers.
+              {t("messages.selectLeadDesc")}
             </p>
             <div className="flex gap-4">
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm text-sm text-slate-600">
                 <div className="relative h-4 w-4">
-                  <Image src="/yetti/instagram_logo.png" alt="IG" fill className="object-contain" />
+                  <Image
+                    src="/yetti/instagram_logo.png"
+                    alt="IG"
+                    fill
+                    className="object-contain"
+                  />
                 </div>
-                Instagram
+                {t("messages.instagram")}
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm text-sm text-slate-600">
                 <div className="relative h-4 w-4">
-                  <Image src="/yetti/telegram_logo.png" alt="TG" fill className="object-contain" />
+                  <Image
+                    src="/yetti/telegram_logo.png"
+                    alt="TG"
+                    fill
+                    className="object-contain"
+                  />
                 </div>
-                Telegram
+                {t("messages.telegram")}
               </div>
             </div>
           </div>
@@ -695,4 +758,3 @@ export default function LeadsPage() {
     </div>
   );
 }
-

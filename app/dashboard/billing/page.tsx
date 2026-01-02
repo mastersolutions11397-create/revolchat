@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { getStripe, PLAN_CONFIGS } from "@/lib/stripe";
 import { supabase } from "@/lib/supabase";
 import {
@@ -56,6 +57,7 @@ const GLOBAL_WORKSPACE_ID = "00000000-0000-0000-0000-000000000000";
 export default function BillingPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { currentWorkspace } = useWorkspace();
 
   const [loading, setLoading] = useState(true);
@@ -224,7 +226,7 @@ export default function BillingPage() {
       }
     } catch (error) {
       console.error('Checkout error:', error);
-      toast.error('Failed to start checkout process');
+      toast.error(t("billing.checkoutError"));
     } finally {
       setCheckoutLoading(false);
     }
@@ -254,9 +256,9 @@ export default function BillingPage() {
             <CreditCard className="h-7 w-7 sm:h-8 sm:w-8 text-sky-500" />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">Billing</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">{t("billing.title")}</h1>
             <p className="mt-2 text-base sm:text-lg text-sky-100/80 max-w-2xl">
-              Manage your global credits, view transactions, and access invoices.
+              {t("billing.subtitle")}
             </p>
           </div>
         </div>
@@ -274,14 +276,14 @@ export default function BillingPage() {
               </div>
               <div className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg text-xs font-medium">
                 <ArrowUpRight className="h-3 w-3" />
-                <span>Global</span>
+                <span>{t("billing.global")}</span>
               </div>
             </div>
-            <p className="text-sm font-medium text-slate-500">Global Credits</p>
+            <p className="text-sm font-medium text-slate-500">{t("billing.globalCredits")}</p>
             <p className="text-3xl font-bold text-slate-900 mt-1 tracking-tight">
               {billingData.globalCredits.toLocaleString()}
             </p>
-            <p className="text-xs text-slate-400 mt-4">Available across all workspaces</p>
+            <p className="text-xs text-slate-400 mt-4">{t("billing.globalCreditsDesc")}</p>
           </div>
         </div>
 
@@ -298,7 +300,7 @@ export default function BillingPage() {
             <p className="text-3xl font-bold text-slate-900 mt-1 tracking-tight">
               {billingData.totalUsedAllWorkspaces.toLocaleString()}
             </p>
-            <p className="text-xs text-slate-400 mt-4">Across all workspaces</p>
+            <p className="text-xs text-slate-400 mt-4">{t("billing.totalUsedDesc")}</p>
           </div>
         </div>
 
@@ -312,7 +314,7 @@ export default function BillingPage() {
               </div>
               <FileText className="h-5 w-5 text-blue-400 opacity-50" />
             </div>
-            <p className="text-sm font-medium text-slate-500">Next Billing Date</p>
+            <p className="text-sm font-medium text-slate-500">{t("billing.nextBillingDate")}</p>
             <div className="flex items-baseline gap-1 mt-1">
               <p className="text-3xl font-bold text-slate-900 tracking-tight">
                 {billingData.nextBillingDate 
@@ -342,7 +344,7 @@ export default function BillingPage() {
                 Active
               </span>
             </div>
-            <p className="text-sm font-medium text-slate-500">Current Plan</p>
+            <p className="text-sm font-medium text-slate-500">{t("billing.currentPlan")}</p>
             <p className="text-3xl font-bold text-slate-900 mt-1 tracking-tight">
               {billingData.currentPlan}
             </p>
@@ -356,14 +358,14 @@ export default function BillingPage() {
         <div className="border-b border-slate-100 bg-slate-50/50 px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-slate-900">Credit Transactions</h2>
+              <h2 className="text-xl font-bold text-slate-900">{t("billing.creditHistory")}</h2>
               <p className="text-sm text-slate-500 mt-1">
-                Global credit purchases and additions
+                {t("billing.creditHistoryDesc")}
               </p>
             </div>
             <button className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
               <Download className="h-4 w-4" />
-              Export CSV
+              {t("billing.exportCsv")}
             </button>
           </div>
         </div>
@@ -373,16 +375,16 @@ export default function BillingPage() {
             <thead className="bg-slate-50 border-b border-slate-100">
               <tr>
                 <th className="px-8 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Date
+                  {t("billing.date")}
                 </th>
                 <th className="px-8 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Description
+                  {t("billing.description")}
                 </th>
                 <th className="px-8 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Credits Added
+                  {t("billing.creditsAdded")}
                 </th>
                 <th className="px-8 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Balance After
+                  {t("billing.balanceAfterHeader")}
                 </th>
               </tr>
             </thead>
@@ -392,8 +394,8 @@ export default function BillingPage() {
                   <td colSpan={4} className="px-8 py-12 text-center">
                     <div className="flex flex-col items-center gap-2">
                       <Wallet className="h-8 w-8 text-slate-300" />
-                      <p className="text-slate-500 text-sm">No credit transactions yet</p>
-                      <p className="text-slate-400 text-xs">Purchase credits to get started</p>
+                      <p className="text-slate-500 text-sm">{t("billing.noTransactions")}</p>
+                      <p className="text-slate-400 text-xs">{t("billing.purchaseCreditsToStart")}</p>
                     </div>
                   </td>
                 </tr>
@@ -413,7 +415,7 @@ export default function BillingPage() {
                     })}
                   </td>
                     <td className="px-8 py-5 text-sm text-slate-900 font-medium">
-                      {transaction.description || 'Credit purchase'}
+                      {transaction.description || t("billing.creditPurchase")}
                     </td>
                     <td className="px-8 py-5 whitespace-nowrap text-right text-sm font-bold text-emerald-600">
                       <span className="inline-flex items-center gap-1">
@@ -434,7 +436,7 @@ export default function BillingPage() {
         {creditTransactions.length > 0 && (
         <div className="border-t border-slate-100 px-8 py-5 text-center bg-slate-50/30">
           <button className="text-sm font-semibold text-sky-500 hover:text-sky-700 transition-colors hover:underline">
-            Load More Transactions
+            {t("billing.loadMore")}
           </button>
         </div>
         )}

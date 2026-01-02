@@ -6,6 +6,7 @@ import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState, useRef, Suspense } from "react";
 import type { ChangeEvent } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { useOnboardingTour } from "@/lib/contexts/OnboardingTourContext";
 import { useCredits } from "@/lib/hooks/useCredits";
@@ -41,6 +42,7 @@ function WorkspaceSelector() {
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
+  const { t } = useLanguage();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -308,7 +310,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       setWorkspaceSwitchError(
         err instanceof Error
           ? err.message
-          : "Unable to switch workspace. Please try again."
+          : t("dashboard.workspaceSelector.unableToSwitch")
       );
       setLocalWorkspaceSelection(previousWorkspaceId ?? "");
       previousWorkspaceIdRef.current = previousWorkspaceId ?? null;
@@ -442,7 +444,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error("Failed to create workspace:", err);
       setWorkspaceSwitchError(
-        err instanceof Error ? err.message : "Failed to create workspace"
+        err instanceof Error ? err.message : t("dashboard.failedToCreateWorkspace")
       );
     } finally {
       setCreatingWorkspace(false);
@@ -525,7 +527,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
               <button
                 onClick={() => setMobileSidebarOpen(false)}
                 className="ml-auto p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-                aria-label="Close sidebar"
+                  aria-label={t("dashboard.workspaceSelector.closeSidebar")}
               >
                 <X className="h-5 w-5" />
               </button>
@@ -538,49 +540,49 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
               {
                 href: "/dashboard",
                 icon: LayoutDashboard,
-                label: "Dashboard",
+                label: t("dashboard.sidebar.dashboard"),
                 tourId: null,
               },
               {
                 href: "/dashboard/inbox",
                 icon: MessageSquare,
-                label: "Inbox",
+                label: t("dashboard.sidebar.inbox"),
                 tourId: null,
               },
               {
                 href: "/dashboard/knowledge-base",
                 icon: BookOpen,
-                label: "Knowledge Base",
+                label: t("dashboard.sidebar.knowledgeBase"),
                 tourId: "knowledge-base-nav",
               },
               {
                 href: "/dashboard/integrations",
                 icon: Link2,
-                label: "Integrations",
+                label: t("dashboard.sidebar.integrations"),
                 tourId: "integrations-nav",
               },
               {
                 href: "/dashboard/plans",
                 icon: Crown,
-                label: "Plans",
+                label: t("dashboard.sidebar.plans"),
                 tourId: "plans-nav",
               },
               {
                 href: "/dashboard/billing",
                 icon: CreditCard,
-                label: "Billing",
+                label: t("dashboard.sidebar.billing"),
                 tourId: null,
               },
               {
                 href: "/dashboard/usage",
                 icon: Activity,
-                label: "Usage",
+                label: t("dashboard.sidebar.usage"),
                 tourId: null,
               },
               {
                 href: "/dashboard/settings",
                 icon: Settings,
-                label: "Settings",
+                label: t("dashboard.sidebar.settings"),
                 tourId: "settings-nav",
               },
             ].map((item) => {
@@ -652,7 +654,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 <button
                   onClick={handleSignOut}
                   className="ml-auto rounded-lg p-2 text-slate-400 hover:bg-white hover:text-red-500 hover:shadow-sm transition-all"
-                  title="Sign Out"
+                  title={t("dashboard.sidebar.signOut")}
                 >
                   <LogOut className="h-4 w-4" />
                 </button>
@@ -687,7 +689,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             <button
               onClick={() => setMobileSidebarOpen(true)}
               className="md:hidden p-1.5 sm:p-2 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors shrink-0"
-              aria-label="Open sidebar"
+              aria-label={t("dashboard.workspaceSelector.openSidebar")}
             >
               <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
@@ -706,17 +708,17 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                   workspaces.length === 0
                 }
                 className="w-full flex items-center justify-between rounded-lg sm:rounded-xl border-2 border-slate-100 bg-white py-1.5 sm:py-2 md:py-2.5 pl-2 sm:pl-3 md:pl-4 pr-2 sm:pr-3 md:pr-4 text-xs sm:text-sm md:text-base font-bold text-slate-900 transition-all hover:border-sky-300 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/10 disabled:cursor-not-allowed disabled:bg-slate-50 min-w-0"
-                aria-label="Select workspace"
+                aria-label={t("dashboard.workspaceSelector.selectWorkspaceAria")}
                 aria-haspopup="listbox"
                 aria-expanded={workspaceDropdownOpen}
               >
                 <span className="truncate flex-1 text-left">
                   {workspaces.length === 0
                     ? workspaceLoading
-                      ? "Loading..."
-                      : "No workspaces"
+                      ? t("dashboard.workspaceSelector.loading")
+                      : t("dashboard.workspaceSelector.noWorkspaces")
                     : workspaces.find((w) => w.id === localWorkspaceSelection)
-                        ?.name || "Select workspace"}
+                        ?.name || t("dashboard.workspaceSelector.selectWorkspace")}
                 </span>
                 <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-2">
                   {switchingWorkspace || workspaceLoading ? (
@@ -777,7 +779,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                                   editingWorkspaceName.trim().length < 3
                                 }
                                 className="p-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Save"
+                                title={t("dashboard.workspaceSelector.save")}
                               >
                                 {updatingWorkspace ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -789,7 +791,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                                 onClick={handleCancelEdit}
                                 disabled={updatingWorkspace}
                                 className="p-2 rounded-lg bg-slate-200 text-slate-600 hover:bg-slate-300 transition-colors disabled:opacity-50"
-                                title="Cancel"
+                                title={t("dashboard.workspaceSelector.cancel")}
                               >
                                 <X className="h-4 w-4" />
                               </button>
@@ -814,7 +816,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                                 } text-xs sm:text-sm transition-colors`}
                               >
                                 <span className="block truncate">
-                                  {workspace.name || "Untitled workspace"}
+                                  {workspace.name || t("dashboard.untitledWorkspace")}
                                 </span>
                               </button>
                               <button
@@ -826,7 +828,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                                   );
                                 }}
                                 className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-sky-500 hover:bg-sky-50 transition-all opacity-0 group-hover:opacity-100"
-                                title="Edit workspace name"
+                                title={t("dashboard.workspaceSelector.editWorkspace")}
                               >
                                 <Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                               </button>
@@ -848,7 +850,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
               onClick={() => setShowNewWorkspaceModal(true)}
               data-tour="create-workspace-button"
               className="hidden sm:inline-flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl border-2 border-slate-100 bg-white px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 text-xs sm:text-sm font-bold text-slate-900 transition-all hover:bg-sky-50 hover:border-sky-300 hover:shadow-sm shrink-0"
-              title="Create new workspace"
+              title={t("dashboard.createNewWorkspace")}
             >
               <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
               <span className="hidden md:inline">New Workspace</span>
@@ -1023,7 +1025,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                     }}
                     className="flex-1 px-4 sm:px-5 py-2.5 sm:py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm transition-all text-sm sm:text-base"
                   >
-                    Cancel
+                    {t("dashboard.workspaceSelector.cancel")}
                   </button>
                   <button
                     type="submit"
@@ -1035,12 +1037,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                     {creatingWorkspace ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin shrink-0" />
-                        <span>Creating...</span>
+                        <span>{t("dashboard.creating")}</span>
                       </>
                     ) : (
                       <>
                         <Plus className="h-4 w-4 shrink-0" />
-                        <span>Create Workspace</span>
+                        <span>{t("dashboard.workspaceSelector.createWorkspace")}</span>
                       </>
                     )}
                   </button>

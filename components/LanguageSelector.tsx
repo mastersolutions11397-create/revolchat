@@ -18,6 +18,7 @@ export default function LanguageSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Handle clicks outside the dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -28,9 +29,25 @@ export default function LanguageSelector() {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    if (isOpen) {
+      // Use a longer delay to ensure button clicks process first
+      const timeoutId = setTimeout(() => {
+        window.addEventListener("click", handleClickOutside);
+      }, 100);
+      
+      return () => {
+        clearTimeout(timeoutId);
+        window.removeEventListener("click", handleClickOutside);
+      };
+    }
+  }, [isOpen]);
+
+  const handleLanguageClick = (langCode: Language, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setLanguage(langCode);
+    setIsOpen(false);
+  };
 
   const currentLanguage = languages.find((lang) => lang.code === language);
 
@@ -38,16 +55,17 @@ export default function LanguageSelector() {
     <div className="fixed bottom-6 right-6 z-50" ref={dropdownRef}>
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute bottom-16 right-0 w-56 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden mb-2 animate-in slide-in-from-bottom-2">
+        <div 
+          className="absolute bottom-16 right-0 w-56 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden mb-2 animate-in slide-in-from-bottom-2 z-50"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="py-2">
             {languages.map((lang) => (
               <button
                 key={lang.code}
-                onClick={() => {
-                  setLanguage(lang.code);
-                  setIsOpen(false);
-                }}
-                className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors ${
+                type="button"
+                onClick={(e) => handleLanguageClick(lang.code, e)}
+                className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors cursor-pointer ${
                   language === lang.code ? "bg-sky-50" : ""
                 }`}
               >
@@ -84,8 +102,13 @@ export default function LanguageSelector() {
 
       {/* Globe Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-14 h-14 rounded-full bg-sky-500 hover:bg-sky-500 text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center group relative"
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
+        className="w-14 h-14 rounded-full bg-sky-500 hover:bg-sky-500 text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center group relative cursor-pointer"
         aria-label="Change language"
       >
         <Globe className="w-6 h-6" />
@@ -98,4 +121,3 @@ export default function LanguageSelector() {
     </div>
   );
 }
-

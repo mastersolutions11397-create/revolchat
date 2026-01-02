@@ -17,7 +17,7 @@ export function Testimonials() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-20 animate-fade-in-up">
           <h2 className="text-4xl md:text-5xl font-black font-lato tracking-tight text-slate-900 mb-6">
-           Loved by <span className="text-sky-500">Businesses Worldwide</span>
+            {t("testimonials.titleLine1")} <span className="text-sky-500">{t("testimonials.titleLine2")}</span>
           </h2>
           <p className="text-lg md:text-xl text-slate-600">
             {t("testimonials.subtitle")}

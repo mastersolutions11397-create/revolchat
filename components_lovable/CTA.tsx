@@ -4,9 +4,11 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 
 const CTA = () => {
   const router = useRouter();
+  const { t } = useLanguage();
 
   const scrollToPricing = () => {
     const pricingSection = document.getElementById("pricing");
@@ -66,19 +68,18 @@ const CTA = () => {
             <div className="relative z-10 space-y-4">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white text-sm font-medium backdrop-blur-sm mb-4">
                 <Sparkles className="w-4 h-4" />
-                <span>Boost Your Sales Instantly</span>
+                <span>{t("cta.boostSales")}</span>
               </div>
 
               <h2 className="text-4xl md:text-6xl font-black font-lato text-white tracking-tight leading-tight">
-                Ready to Transform Your
+                {t("cta.titleLine1")}
                 <span className="block mt-1 text-white">
-                  Social Media Into Sales?
+                  {t("cta.titleLine2")}
                 </span>
               </h2>
 
               <p className="text-xl md:text-2xl text-sky-50 max-w-3xl mx-auto leading-relaxed">
-                Join businesses already using Yetti.ai to automate
-                conversations, capture leads, and grow revenue 24/7.
+                {t("cta.subtitle")}
               </p>
 
               <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-8">
@@ -87,7 +88,7 @@ const CTA = () => {
                   onClick={() => router.push("/auth/signup")}
                   className="h-16 px-10 text-lg rounded-full bg-white !text-gray-900 hover:!bg-white  cursor-pointer  shadow-xl  hover:-translate-y-1 transition-all duration-300 font-bold"
                 >
-                  Get Started Free
+                  {t("cta.startTrial")}
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
                 <Button
@@ -96,7 +97,7 @@ const CTA = () => {
                   onClick={scrollToPricing}
                   className="h-16 px-10 text-lg rounded-full border-2 hover:!text-white border-white/30 bg-transparent text-white transition-all duration-300 font-semibold"
                 >
-                  View Pricing
+                  {t("cta.viewPricing")}
                 </Button>
               </div>
             </div>

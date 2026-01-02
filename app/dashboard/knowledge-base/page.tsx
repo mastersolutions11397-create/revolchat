@@ -12,6 +12,7 @@ import { User } from "@supabase/supabase-js";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { useOnboardingTour } from "@/lib/contexts/OnboardingTourContext";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { knowledgeAPI } from "@/lib/api/knowledge";
 import type { KnowledgeRecord, KnowledgeImportance } from "@/lib/api/knowledge";
 import {
@@ -76,6 +77,7 @@ type KnowledgeTableRow =
 export default function KnowledgePage() {
   const { user } = useAuth();
   console.log("user", user);
+  const { t } = useLanguage();
   const { currentWorkspace, selectedWorkspaceId } = useWorkspace();
   const { onNavigateToKnowledgeBase, onKnowledgeBaseCompleted, onTestAgentMessageCompleted } = useOnboardingTour();
   const [localSelectedId, setLocalSelectedId] = useState<string | null>(null);
@@ -934,21 +936,21 @@ export default function KnowledgePage() {
             <div>
               <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                 <FileText className="h-5 w-5 text-sky-500" />
-                Knowledge Library
+                {t("knowledgeBase.knowledgeLibrary")}
               </h3>
               <p className="text-sm text-slate-600 mt-1">
                 {!workspaceId
-                  ? "Select a workspace to load knowledge"
+                  ? t("knowledgeBase.selectWorkspaceToLoad")
                   : knowledgeLoading &&
                       knowledgeItems.length === 0 &&
                       googleSheets.length === 0
-                    ? "Loading knowledge..."
+                    ? t("knowledgeBase.loadingKnowledge")
                     : (() => {
                         const totalItems =
                           knowledgeItems.length + googleSheets.length;
-                        if (totalItems === 0) return "No items available";
-                        if (totalItems === 1) return "1 item available";
-                        return `${totalItems} items available`;
+                        if (totalItems === 0) return t("knowledgeBase.noItemsAvailable");
+                        if (totalItems === 1) return t("knowledgeBase.oneItemAvailable");
+                        return `${totalItems} ${t("knowledgeBase.itemsAvailable")}`;
                       })()}
               </p>
             </div>
@@ -957,7 +959,7 @@ export default function KnowledgePage() {
                 <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 ">
                   <FileText className="h-4 w-4 text-sky-500" />
                   <span className="text-xs font-medium text-slate-700">
-                    Text
+                    {t("knowledgeBase.text")}
                   </span>
                   <div className="flex items-center justify-center size-6 rounded-full bg-sky-100">
                     <span className="text-xs font-bold text-sky-700">
@@ -968,7 +970,7 @@ export default function KnowledgePage() {
                 <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 ">
                   <FileDown className="h-4 w-4 text-sky-500" />
                   <span className="text-xs font-medium text-slate-700">
-                    PDF
+                    {t("knowledgeBase.pdf")}
                   </span>
                   <div className="flex items-center justify-center size-6 rounded-full shrink-0 bg-sky-100">
                     <span className="text-xs font-bold text-sky-700">
@@ -979,7 +981,7 @@ export default function KnowledgePage() {
                 <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 ">
                   <FileSpreadsheet className="h-4 w-4 text-sky-500" />
                   <span className="text-xs font-medium text-slate-700">
-                    Sheets
+                    {t("knowledgeBase.sheets")}
                   </span>
                   <div className="flex items-center justify-center size-6 rounded-full shrink-0 bg-sky-100">
                     <span className="text-xs font-bold text-sky-700">
@@ -995,7 +997,7 @@ export default function KnowledgePage() {
                   className="inline-flex items-center gap-2 rounded-lg  bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition-all hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 disabled:cursor-not-allowed disabled:opacity-50 "
                 >
                   <RefreshCcwIcon className="h-4 w-4 text-sky-500" />
-                  Refresh
+                  {t("knowledgeBase.refresh")}
                 </button>
               )}
             </div>
@@ -1108,8 +1110,8 @@ export default function KnowledgePage() {
                     <div className="overflow-hidden border border-gray-100 bg-white shadow-sm">
                       <div className="grid grid-cols-[minmax(0,1fr),auto] items-center border-b border-gray-100 bg-gray-50 px-6 py-2 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                         <div className="flex items-center justify-between gap-3">
-                          <div>File</div>
-                          <div>Actions</div>
+                          <div>{t("knowledgeBase.table.file")}</div>
+                          <div>{t("knowledgeBase.table.actions")}</div>
                         </div>
                       </div>
                       <div className="divide-y divide-gray-100">
@@ -1158,7 +1160,7 @@ export default function KnowledgePage() {
                                     )
                                   }
                                   className="group inline-flex h-8 w-8 items-center justify-center rounded-lg border-2 border-slate-200 bg-white text-slate-500 transition-all hover:border-sky-300 hover:bg-sky-50 hover:text-sky-500 hover:scale-105 active:scale-95 shadow-sm"
-                                  title="Preview"
+                                  title={t("knowledgeBase.preview")}
                                 >
                                   <Eye className="h-4 w-4 transition-transform group-hover:scale-110" />
                                 </button>
@@ -1168,7 +1170,7 @@ export default function KnowledgePage() {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="group inline-flex h-8 w-8 items-center justify-center rounded-lg border-2 border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-300 hover:bg-blue-50 hover:text-sky-500 hover:scale-105 active:scale-95 shadow-sm"
-                                    title="Open in new tab"
+                                    title={t("knowledgeBase.openInNewTab")}
                                   >
                                     <ExternalLink className="h-4 w-4 transition-transform group-hover:scale-110" />
                                   </a>
@@ -1184,7 +1186,7 @@ export default function KnowledgePage() {
                                       : handleDeleteSheet(row.deleteId)
                                   }
                                   className="group inline-flex h-8 w-8 items-center justify-center rounded-lg border-2 border-slate-200 bg-white text-slate-500 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600 hover:scale-105 active:scale-95 shadow-sm"
-                                  title="Delete"
+                                  title={t("knowledgeBase.delete")}
                                 >
                                   <Trash2 className="h-4 w-4 transition-transform group-hover:scale-110" />
                                 </button>
@@ -1264,13 +1266,13 @@ export default function KnowledgePage() {
                             <p className="font-medium">
                               {formatDateTime(
                                 previewItem.item.last_used_at,
-                                "Never"
+                                t("knowledgeBase.never")
                               )}
                             </p>
                           </div>
                           <div>
                             <p className="text-xs uppercase text-gray-500">
-                              Usage
+                              {t("knowledgeBase.table.usage")}
                             </p>
                             <p className="font-medium">
                               {typeof previewItem.item.usage_count === "number"
@@ -1330,7 +1332,7 @@ export default function KnowledgePage() {
                           </div>
                           <div>
                             <p className="text-xs uppercase text-gray-500">
-                              Sheet Type
+                              {t("knowledgeBase.sheetType")}
                             </p>
                             <p className="font-medium">
                               {formatSheetTypeLabel(
@@ -1410,10 +1412,10 @@ export default function KnowledgePage() {
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-slate-900">
-                        Add Text
+                        {t("knowledgeBase.addText")}
                       </h3>
                       <p className="text-xs text-slate-500">
-                        Create a new knowledge entry
+                        {t("knowledgeBase.createNewEntry")}
                       </p>
                     </div>
                   </div>
@@ -1438,25 +1440,25 @@ export default function KnowledgePage() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
-                      Title
+                      {t("knowledgeBase.titleLabel")}
                     </label>
                     <input
                       type="text"
                       value={textTitle}
                       onChange={(e) => setTextTitle(e.target.value)}
-                      placeholder="e.g., Company Overview"
+                      placeholder={t("knowledgeBase.titlePlaceholder")}
                       className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all placeholder:text-slate-400"
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
-                      Content
+                      {t("knowledgeBase.contentLabel")}
                     </label>
                     <textarea
                       value={textContent}
                       onChange={(e) => setTextContent(e.target.value)}
-                      placeholder="Paste or type your knowledge content here..."
+                      placeholder={t("knowledgeBase.contentPlaceholder")}
                       rows={5}
                       className="w-full px-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all resize-none placeholder:text-slate-400"
                     />
@@ -1474,9 +1476,9 @@ export default function KnowledgePage() {
                     <div>
                       <div className="flex items-center gap-1.5 mb-1.5 ml-1">
                         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                          Category
+                          {t("knowledgeBase.categoryLabel")}
                         </label>
-                        <Tooltip text="Group your knowledge for better organization and retrieval" />
+                        <Tooltip text={t("knowledgeBase.categoryTooltip")} />
                       </div>
                       <div className="relative">
                         <select
@@ -1510,9 +1512,9 @@ export default function KnowledgePage() {
                     <div>
                       <div className="flex items-center gap-1.5 mb-1.5 ml-1">
                         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                          Importance
+                          {t("knowledgeBase.importanceLabel")}
                         </label>
-                        <Tooltip text="Set how critical this information is for the AI to know" />
+                        <Tooltip text={t("knowledgeBase.importanceTooltip")} />
                       </div>
                       <div className="relative">
                         <select
@@ -1522,10 +1524,10 @@ export default function KnowledgePage() {
                           }
                           className="w-full appearance-none px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
                         >
-                          <option value={1}>Low Priority</option>
-                          <option value={2}>Normal Priority</option>
-                          <option value={3}>High Priority</option>
-                          <option value={4}>Critical Priority</option>
+                          <option value={1}>{t("knowledgeBase.importance.low")} Priority</option>
+                          <option value={2}>{t("knowledgeBase.importance.normal")} Priority</option>
+                          <option value={3}>{t("knowledgeBase.importance.high")} Priority</option>
+                          <option value={4}>{t("knowledgeBase.importance.critical")} Priority</option>
                         </select>
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                           <svg
@@ -1548,7 +1550,7 @@ export default function KnowledgePage() {
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
-                      Tags
+                      {t("knowledgeBase.tagsLabel")}
                     </label>
                     <div className="flex flex-wrap gap-2 mb-2 min-h-[32px]">
                       {tags.map((t, i) => (
@@ -1587,7 +1589,7 @@ export default function KnowledgePage() {
                           }
                         }}
                         placeholder={
-                          tags.length === 0 ? "Type tag & press Enter..." : ""
+                          tags.length === 0 ? t("knowledgeBase.tagsPlaceholder") : ""
                         }
                         className="flex-1 min-w-[120px] bg-transparent text-sm focus:outline-none placeholder:text-slate-400"
                       />
@@ -1601,7 +1603,7 @@ export default function KnowledgePage() {
                     onClick={async () => {
                       const activeWorkspaceId = workspaceId;
                       if (!activeWorkspaceId) {
-                        setSubmitError("Please select a workspace first");
+                        setSubmitError(t("knowledgeBase.selectWorkspaceFirst"));
                         return;
                       }
                       setSubmitError(null);
@@ -1614,11 +1616,11 @@ export default function KnowledgePage() {
                               ? "high"
                               : "critical";
                       if (!textTitle.trim()) {
-                        setSubmitError("Title is required");
+                        setSubmitError(t("knowledgeBase.titleRequired"));
                         return;
                       }
                       if (!textContent.trim()) {
-                        setSubmitError("Content is required");
+                        setSubmitError(t("knowledgeBase.contentRequired"));
                         return;
                       }
                       try {
@@ -1644,7 +1646,7 @@ export default function KnowledgePage() {
                         setSubmitError(
                           error instanceof Error
                             ? error.message
-                            : "Failed to add text knowledge"
+                            : t("knowledgeBase.failedToAddText")
                         );
                       } finally {
                         setSubmittingText(false);
@@ -1657,10 +1659,10 @@ export default function KnowledgePage() {
                   >
                     {submittingText ? (
                       <span className="flex items-center justify-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" /> Saving...
+                        <Loader2 className="h-4 w-4 animate-spin" /> {t("knowledgeBase.saving")}...
                       </span>
                     ) : (
-                      "Save Knowledge"
+                      t("knowledgeBase.saveKnowledge")
                     )}
                   </button>
                   <button
@@ -1669,7 +1671,7 @@ export default function KnowledgePage() {
                     }}
                     className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-all active:scale-[0.98]"
                   >
-                    Clear
+                    {t("knowledgeBase.clear")}
                   </button>
                 </div>
               </div>
@@ -1798,13 +1800,13 @@ export default function KnowledgePage() {
                     <div className="space-y-4 pt-2 border-t border-slate-100">
                       <div>
                         <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
-                          Collection Title
+                          {t("knowledgeBase.collectionTitle")}
                         </label>
                         <input
                           type="text"
                           value={pdfTitle}
                           onChange={(e) => setPdfTitle(e.target.value)}
-                          placeholder="e.g., Q1 Reports"
+                          placeholder={t("knowledgeBase.collectionTitlePlaceholder")}
                           className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all placeholder:text-slate-400"
                         />
                       </div>
@@ -2161,7 +2163,7 @@ export default function KnowledgePage() {
                                 <span className="font-medium text-emerald-700">
                                   ai.agent.dispatch@gmail.com
                                 </span>{" "}
-                                (Editor access)
+                                ({t("knowledgeBase.editorAccess")})
                               </li>
                               <li>Paste the URL of your copy when prompted</li>
                             </ol>
@@ -2375,6 +2377,7 @@ function ChatPanel({
   user,
   onTestAgentMessageCompleted,
 }: ChatPanelProps) {
+  const { t } = useLanguage();
   const listRef = useRef<HTMLDivElement | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
@@ -2413,10 +2416,10 @@ function ChatPanel({
     setMessages((prev) => {
       if (prev.length === 1 && prev[0].role === "assistant") {
         const content = hasGoogleSheet
-          ? "Chat is disabled when a Google Sheet is connected."
+          ? t("knowledgeBase.chatDisabledWithSheet")
           : hasKnowledge
-            ? "Hi! Ask me anything about your knowledge library."
-            : "Add knowledge to enable the chat.";
+            ? t("knowledgeBase.chatWelcome")
+            : t("knowledgeBase.addKnowledgeToEnableChat");
         if (prev[0].content === content) {
           return prev;
         }
@@ -2543,11 +2546,7 @@ function ChatPanel({
       <div className="flex-none border-b border-gray-200 px-6 py-4" data-tour="test-yetti-section">
         <h3 className="text-xl font-semibold text-gray-900">Test Yetti</h3>
         <p className="text-xs text-gray-500">
-          {workspaceName
-            ? `Workspace: ${workspaceName}`
-            : workspaceId
-              ? `Workspace ID: ${workspaceId}`
-              : "Select a workspace to chat"}
+          {workspaceName}
         </p>
       </div>
 
@@ -2644,7 +2643,7 @@ function ChatPanel({
               {/* User Avatar Placeholder */}
               {message.role === "user" && (
                 <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 text-white shadow-sm">
-                  <span className="text-xs font-bold">You</span>
+                  <span className="text-xs font-bold">{t("knowledgeBase.you")}</span>
                 </div>
               )}
             </div>
@@ -2661,10 +2660,10 @@ function ChatPanel({
                     <FileSpreadsheet className="h-5 w-5" />
                   </div>
                   <p className="text-sm font-semibold text-slate-800">
-                    Chat Disabled
+                    {t("knowledgeBase.chatDisabled")}
                   </p>
                   <p className="text-xs text-slate-500">
-                    Chat is not available when a Google Sheet is connected.
+                    {t("knowledgeBase.chatNotAvailableWithSheet")}
                   </p>
                 </div>
               </div>
@@ -2675,10 +2674,10 @@ function ChatPanel({
                     <FileText className="h-5 w-5" />
                   </div>
                   <p className="text-sm font-semibold text-slate-800">
-                    No knowledge yet
+                    {t("knowledgeBase.noKnowledgeYet")}
                   </p>
                   <p className="text-xs text-slate-500">
-                    Use &quot;Add Knowledge&quot; to get started.
+                    {t("knowledgeBase.useAddKnowledgeToStart")}
                   </p>
                 </div>
               </div>
@@ -2706,8 +2705,8 @@ function ChatPanel({
                     <Loader2 className="h-5 w-5 text-sky-500 animate-spin" />
                     <span className="text-sm font-medium text-slate-600">
                       {!workspaceId
-                        ? "Select a workspace..."
-                        : "Loading chat..."}
+                        ? t("knowledgeBase.selectWorkspace")
+                        : t("knowledgeBase.loadingChat")}
                     </span>
                   </div>
                 </div>
@@ -2725,7 +2724,7 @@ function ChatPanel({
               value={input}
               onChange={(event) => setInput(event.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask me anything..."
+              placeholder={t("knowledgeBase.typeMessage")}
               rows={1}
               disabled={!!disabledReason}
               className="w-full resize-none rounded-xl border-2 border-slate-200 bg-white px-4 py-3 pr-12 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 transition-all shadow-sm hover:border-slate-300"
@@ -2737,7 +2736,7 @@ function ChatPanel({
             onClick={handleSend}
             disabled={!input.trim() || sending || !!disabledReason}
             className="group relative flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 via-sky-500 to-sky-500 text-white shadow-lg shadow-sky-500/30 transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-sky-500/40 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-lg"
-            title={sending ? "Sending..." : "Send message"}
+            title={sending ? t("knowledgeBase.sending") : t("knowledgeBase.send")}
           >
             {sending ? (
               <Loader2 className="h-5 w-5 animate-spin" />

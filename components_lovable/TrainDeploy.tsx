@@ -10,74 +10,73 @@ import {
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import Image from "next/image";
-
-const trainingMethods = [
-  {
-    icon: () => (
-      <Image
-        src="/yetti/google-sheets.png"
-        alt="Google Sheets"
-        width={28}
-        height={28}
-        className="w-7 h-7"
-      />
-    ),
-    title: "Google Sheets",
-    description:
-      "Connect your Google Sheets directly. Yetti automatically syncs and learns from your spreadsheets, product catalogs, and data.",
-  },
-  {
-    icon: () => (
-      <Image
-        src="/yetti/pdf.png"
-        alt="PDF Documents"
-        width={28}
-        height={28}
-        className="w-7 h-7"
-      />
-    ),
-    title: "PDF Documents",
-    description:
-      "Upload PDF documents with your product information, FAQs, policies, and business knowledge. Yetti extracts and learns everything.",
-  },
-  {
-    icon: () => (
-      <Image
-        src="/yetti/text.png"
-        alt="Direct Text"
-        width={28}
-        height={28}
-        className="w-7 h-7"
-      />
-    ),
-    title: "Direct Text",
-    description:
-      "Simply paste or type your content. Add product details, brand voice guidelines, or any information you want Yetti to know.",
-  },
-];
-
-const deploymentSteps = [
-  {
-    icon: UserPlus,
-    title: "Sign Up",
-    description: "Create your free account with just your email.",
-    subtext: "No credit card required",
-  },
-  {
-    icon: Brain,
-    title: "Train Yetti",
-    description: "Upload your product info, FAQs, or business details.",
-    subtext: "Learns in seconds",
-  },
-  {
-    icon: Rocket,
-    title: "Go Live",
-    description: "Connect your social accounts and start selling.",
-    subtext: "Immediate deployment",
-  },
-];
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 
 const TrainDeploy = () => {
+  const { t } = useLanguage();
+
+  const trainingMethods = [
+    {
+      icon: () => (
+        <Image
+          src="/yetti/google-sheets.png"
+          alt="Google Sheets"
+          width={28}
+          height={28}
+          className="w-7 h-7"
+        />
+      ),
+      title: t("trainDeploy.method1.title"),
+      description: t("trainDeploy.method1.desc"),
+    },
+    {
+      icon: () => (
+        <Image
+          src="/yetti/pdf.png"
+          alt="PDF Documents"
+          width={28}
+          height={28}
+          className="w-7 h-7"
+        />
+      ),
+      title: t("trainDeploy.method2.title"),
+      description: t("trainDeploy.method2.desc"),
+    },
+    {
+      icon: () => (
+        <Image
+          src="/yetti/text.png"
+          alt="Direct Text"
+          width={28}
+          height={28}
+          className="w-7 h-7"
+        />
+      ),
+      title: t("trainDeploy.method3.title"),
+      description: t("trainDeploy.method3.desc"),
+    },
+  ];
+
+  const deploymentSteps = [
+    {
+      icon: UserPlus,
+      title: t("trainDeploy.step1.title"),
+      description: t("trainDeploy.step1.desc"),
+      subtext: t("trainDeploy.step1.subtext"),
+    },
+    {
+      icon: Brain,
+      title: t("trainDeploy.step2.title"),
+      description: t("trainDeploy.step2.desc"),
+      subtext: t("trainDeploy.step2.subtext"),
+    },
+    {
+      icon: Rocket,
+      title: t("trainDeploy.step3.title"),
+      description: t("trainDeploy.step3.desc"),
+      subtext: t("trainDeploy.step3.subtext"),
+    },
+  ];
   return (
     <section
       id="how-it-works"
@@ -94,12 +93,11 @@ const TrainDeploy = () => {
               transition={{ duration: 0.5 }}
             >
               <h2 className="text-4xl md:text-5xl font-black font-lato text-foreground mb-6">
-                Train Your Yetti in{" "}
-                <span className="text-sky-500">Minutes</span>
+                {t("trainDeploy.trainTitle").split("Minutes")[0]}{" "}
+                <span className="text-sky-500">{t("trainDeploy.trainTitleHighlight")}</span>
               </h2>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                No coding required. No complex setup. Just share your knowledge
-                and watch your AI agent come to life.
+                {t("trainDeploy.trainSubtitle")}
               </p>
             </motion.div>
           </div>
@@ -146,11 +144,11 @@ const TrainDeploy = () => {
               transition={{ duration: 0.5 }}
             >
               <h2 className="text-4xl md:text-5xl font-black font-lato text-foreground mb-6">
-                Get Started in{" "}
-                <span className="text-sky-500">3 Easy Steps</span>
+                {t("trainDeploy.deployTitle").split("3 Easy Steps")[0]}{" "}
+                <span className="text-sky-500">{t("trainDeploy.deployTitleHighlight")}</span>
               </h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-                Launch your AI sales agent in less than 10 minutes.
+                {t("trainDeploy.deploySubtitle")}
               </p>
             </motion.div>
           </div>

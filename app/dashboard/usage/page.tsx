@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { supabase } from "@/lib/supabase";
 import {
   Activity,
@@ -27,6 +28,7 @@ interface Transaction {
 }
 
 export default function UsagePage() {
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const urlWorkspaceId = searchParams.get("ws");
 
@@ -68,15 +70,18 @@ export default function UsagePage() {
         setLoading(true);
 
         // Fetch workspace-specific debit transactions directly from Supabase
-        console.log("\n--- Fetching Workspace Debit Transactions (Supabase) ---");
-        const { data: debitTransactions, error: transactionsError } = await supabase
-          .from("user_credits")
-          .select("*")
-          .eq("user_id", user.id)
-          .eq("workspace_id", effectiveWorkspaceId)
-          .eq("transaction_type", "debit")
-          .order("created_at", { ascending: false })
-          .limit(100);
+        console.log(
+          "\n--- Fetching Workspace Debit Transactions (Supabase) ---"
+        );
+        const { data: debitTransactions, error: transactionsError } =
+          await supabase
+            .from("user_credits")
+            .select("*")
+            .eq("user_id", user.id)
+            .eq("workspace_id", effectiveWorkspaceId)
+            .eq("transaction_type", "debit")
+            .order("created_at", { ascending: false })
+            .limit(100);
 
         if (transactionsError) {
           throw new Error(transactionsError.message);
@@ -126,7 +131,8 @@ export default function UsagePage() {
         );
 
         const totalUsed = allDebitTransactions.reduce(
-          (sum: number, t: Transaction) => sum + parseInt(String(t.credits ?? 0)),
+          (sum: number, t: Transaction) =>
+            sum + parseInt(String(t.credits ?? 0)),
           0
         );
         console.log("Total credits used (all time):", totalUsed);
@@ -138,7 +144,8 @@ export default function UsagePage() {
               new Date(t.created_at).getFullYear() === currentYear
           )
           .reduce(
-            (sum: number, t: Transaction) => sum + parseInt(String(t.credits ?? 0)),
+            (sum: number, t: Transaction) =>
+              sum + parseInt(String(t.credits ?? 0)),
             0
           );
         console.log("Monthly usage (current month):", monthlyUsage);
@@ -186,7 +193,7 @@ export default function UsagePage() {
           "Error stack:",
           error instanceof Error ? error.stack : undefined
         );
-        toast.error("Failed to load usage data");
+        toast.error(t("usage.loadError"));
       } finally {
         setLoading(false);
       }
@@ -217,11 +224,12 @@ export default function UsagePage() {
             </div>
             <div className="min-w-0">
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                Workspace Usage
+                {t("usage.title")}
               </h1>
               <p className="mt-1 sm:mt-2 text-sm sm:text-lg text-slate-300 max-w-2xl">
-                Track credits used in{" "}
-                {currentWorkspace?.name || "your workspace"}
+                {t("usage.subtitle", {
+                  workspace: currentWorkspace?.name || "your workspace",
+                })}
               </p>
             </div>
           </div>
@@ -238,7 +246,11 @@ export default function UsagePage() {
                     : "text-white/80 hover:text-white hover:bg-white/10"
                 }`}
               >
-                {period === "7d" ? "7d" : period === "30d" ? "30d" : "All"}
+                {period === "7d"
+                  ? t("usage.period7d")
+                  : period === "30d"
+                    ? t("usage.period30d")
+                    : t("usage.periodAll")}
               </button>
             ))}
           </div>
@@ -257,13 +269,13 @@ export default function UsagePage() {
               </div>
             </div>
             <p className="text-xs sm:text-sm font-medium text-slate-500">
-              Total Usage
+              {t("usage.totalUsage")}
             </p>
             <p className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1">
               {usageData.workspaceCreditsUsed.toLocaleString()}
             </p>
             <p className="text-[10px] sm:text-xs text-slate-400 mt-1 sm:mt-2">
-              Credits used in workspace
+              {t("usage.totalUsageDesc")}
             </p>
           </div>
         </div>
@@ -278,13 +290,13 @@ export default function UsagePage() {
               </div>
             </div>
             <p className="text-xs sm:text-sm font-medium text-slate-500">
-              Daily Average
+              {t("usage.dailyAverage")}
             </p>
             <p className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1">
               {usageData.dailyAverage.toLocaleString()}
             </p>
             <p className="text-[10px] sm:text-xs text-slate-400 mt-1 sm:mt-2">
-              Credits per day
+              {t("usage.dailyAverageDesc")}
             </p>
           </div>
         </div>
@@ -299,13 +311,13 @@ export default function UsagePage() {
               </div>
             </div>
             <p className="text-xs sm:text-sm font-medium text-slate-500">
-              Transactions
+              {t("usage.transactions")}
             </p>
             <p className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1">
               {usageData.totalTransactions}
             </p>
             <p className="text-[10px] sm:text-xs text-slate-400 mt-1 sm:mt-2">
-              Debit transactions
+              {t("usage.transactionsDesc")}
             </p>
           </div>
         </div>
@@ -317,15 +329,15 @@ export default function UsagePage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-slate-900">
-                Usage History
+                {t("usage.history")}
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                All debit transactions for this workspace
+                {t("usage.historyDesc")}
               </p>
             </div>
             <button className="flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg sm:rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm w-full sm:w-auto">
               <Download className="h-3 w-3 sm:h-4 sm:w-4" />
-              Export CSV
+              {t("usage.exportCsv")}
             </button>
           </div>
         </div>
@@ -336,7 +348,7 @@ export default function UsagePage() {
             <div className="px-4 py-12 text-center">
               <div className="flex flex-col items-center gap-2">
                 <Activity className="h-8 w-8 text-slate-300" />
-                <p className="text-slate-500 text-sm">No usage history found</p>
+                <p className="text-slate-500 text-sm">{t("usage.noHistory")}</p>
               </div>
             </div>
           ) : (
@@ -375,10 +387,10 @@ export default function UsagePage() {
                   </div>
                 </div>
                 <p className="text-sm text-slate-900 mb-2">
-                  {transaction.description || "Credit usage"}
+                  {transaction.description || t("usage.creditUsage")}
                 </p>
                 <div className="flex items-center justify-between text-xs text-slate-500">
-                  <span>Balance After:</span>
+                  <span>{t("usage.balanceAfter")}</span>
                   <span className="font-semibold text-slate-700">
                     {(transaction.balance ?? 0).toLocaleString()}
                   </span>
@@ -394,16 +406,16 @@ export default function UsagePage() {
             <thead className="bg-slate-50 border-b border-slate-100">
               <tr>
                 <th className="px-6 lg:px-8 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Date
+                  {t("usage.date")}
                 </th>
                 <th className="px-6 lg:px-8 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Description
+                  {t("usage.description")}
                 </th>
                 <th className="px-6 lg:px-8 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Credits Used
+                  {t("usage.creditsUsed")}
                 </th>
                 <th className="px-6 lg:px-8 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Balance After
+                  {t("usage.balanceAfterHeader")}
                 </th>
               </tr>
             </thead>
@@ -414,7 +426,7 @@ export default function UsagePage() {
                     <div className="flex flex-col items-center gap-2">
                       <Activity className="h-8 w-8 text-slate-300" />
                       <p className="text-slate-500 text-sm">
-                        No usage history found
+                        {t("usage.noHistory")}
                       </p>
                     </div>
                   </td>

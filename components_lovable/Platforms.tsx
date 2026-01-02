@@ -2,8 +2,12 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 
-const platforms = [
+const Platforms = () => {
+  const { t } = useLanguage();
+
+  const platforms = [
   {
     image: "/yetti/instagram_logo.png",
     name: "Instagram",
@@ -70,7 +74,6 @@ const platforms = [
   },
 ];
 
-const Platforms = () => {
   return (
     <section className="py-10 md:py-20 lg:py-32 bg-secondary/30 relative overflow-hidden">
       {/* Background Pattern */}
@@ -89,11 +92,10 @@ const Platforms = () => {
             transition={{ duration: 0.5 }}
           >
             <h2 className="text-4xl md:text-5xl font-black font-lato text-foreground mb-6">
-              Deploy Where Your <span className="text-sky-500">Customers Are</span>
+              {t("platforms.title").split("Customers Are")[0]} <span className="text-sky-500">{t("platforms.titleHighlight")}</span>
             </h2>
             <p className="text-xl text-muted-foreground">
-              Connect with your customers on their favorite platforms. Yetti
-              integrates seamlessly across all major social channels.
+              {t("platforms.subtitle")}
             </p>
           </motion.div>
         </div>

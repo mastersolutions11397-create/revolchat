@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, MessageCircle, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 
 const Hero = () => {
   const router = useRouter();
+  const { t } = useLanguage();
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-background pt-20">
       {/* Background Gradients & Grid */}
@@ -62,10 +64,10 @@ const Hero = () => {
               </div>
               <div className="text-left">
                 <p className="text-xs text-muted-foreground font-medium">
-                  Sales Growth
+                  {t("hero.salesGrowth")}
                 </p>
                 <p className="text-sm font-bold text-foreground">
-                  +124% this week
+                  {t("hero.salesGrowthValue")}
                 </p>
               </div>
             </motion.div>
@@ -82,10 +84,10 @@ const Hero = () => {
               </div>
               <div className="text-left">
                 <p className="text-xs text-muted-foreground font-medium">
-                  Active Chats
+                  {t("hero.activeChats")}
                 </p>
                 <p className="text-sm font-bold text-foreground">
-                  24/7 Response
+                  {t("hero.alwaysOn")}
                 </p>
               </div>
             </motion.div>
@@ -115,10 +117,10 @@ const Hero = () => {
             className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl xl:text-8xl font-bold tracking-tight leading-[1.1] sm:leading-[1] px-2"
           >
             <span className="text-foreground drop-shadow-sm">
-              Never Miss Another{" "}
+              {t("hero.titleLine1")}{" "}
             </span>
             <span className="bg-gradient-to-r from-sky-500 via-sky-500 to-sky-500 bg-clip-text text-transparent pb-2">
-              Customer Again
+              {t("hero.titleLine2")}
             </span>
           </motion.h1>
 
@@ -129,12 +131,7 @@ const Hero = () => {
             transition={{ duration: 0.7, delay: 0.4 }}
             className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed px-4"
           >
-            Losing sales because you can&apos;t respond 24/7? Your{" "}
-            <span className="text-foreground font-semibold">
-              Yetti AI agent
-            </span>{" "}
-            works around the clock on social media selling products, scheduling
-            meetings, and answering questions.
+            {t("hero.subtitle")}
           </motion.p>
 
           {/* CTA Buttons */}
@@ -149,7 +146,7 @@ const Hero = () => {
               onClick={() => router.push("/auth/login")}
               className="w-full sm:w-auto h-12 sm:h-14 px-6 sm:px-8 text-base sm:text-lg rounded-full bg-sky-500 hover:bg-sky-500/90 text-white shadow-[0_10px_40px_-10px_rgba(45,102,149,0.4)] hover:shadow-[0_20px_40px_-10px_rgba(45,102,149,0.5)] hover:-translate-y-1 transition-all duration-300"
             >
-              Start Now
+              {t("hero.launchNow")}
               <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
             </Button>
           </motion.div>

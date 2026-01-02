@@ -11,6 +11,7 @@ import {
   Clock,
   Power,
 } from "lucide-react";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 import {
   workspaceHoursAPI,
   type DayKey,
@@ -19,14 +20,15 @@ import {
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { toast } from "sonner";
 
-const DAYS: Array<{ key: DayKey; label: string; short: string }> = [
-  { key: "monday", label: "Monday", short: "Mon" },
-  { key: "tuesday", label: "Tuesday", short: "Tue" },
-  { key: "wednesday", label: "Wednesday", short: "Wed" },
-  { key: "thursday", label: "Thursday", short: "Thu" },
-  { key: "friday", label: "Friday", short: "Fri" },
-  { key: "saturday", label: "Saturday", short: "Sat" },
-  { key: "sunday", label: "Sunday", short: "Sun" },
+// Days will be translated in the component using useLanguage
+const DAYS: Array<{ key: DayKey; labelKey: string; shortKey: string }> = [
+  { key: "monday", labelKey: "workspaceHours.days.monday", shortKey: "workspaceHours.days.mon" },
+  { key: "tuesday", labelKey: "workspaceHours.days.tuesday", shortKey: "workspaceHours.days.tue" },
+  { key: "wednesday", labelKey: "workspaceHours.days.wednesday", shortKey: "workspaceHours.days.wed" },
+  { key: "thursday", labelKey: "workspaceHours.days.thursday", shortKey: "workspaceHours.days.thu" },
+  { key: "friday", labelKey: "workspaceHours.days.friday", shortKey: "workspaceHours.days.fri" },
+  { key: "saturday", labelKey: "workspaceHours.days.saturday", shortKey: "workspaceHours.days.sat" },
+  { key: "sunday", labelKey: "workspaceHours.days.sunday", shortKey: "workspaceHours.days.sun" },
 ];
 
 const DEFAULT_RANGE: TimeRange = { start: "09:00", end: "17:00" };
@@ -200,6 +202,7 @@ function TimezoneDropdown({
 }
 
 export default function WorkspaceHoursPage() {
+  const { t } = useLanguage();
   const { selectedWorkspaceId, currentWorkspace } = useWorkspace();
   const workspaceId = selectedWorkspaceId || currentWorkspace?.id || null;
   const [loading, setLoading] = useState(false);
@@ -256,8 +259,8 @@ export default function WorkspaceHoursPage() {
         } else {
           const errorMessage = error.message || "Failed to load working hours";
           setError(errorMessage);
-          toast.error("Could not load working hours", {
-            description: "Using default schedule. You can customize it below."
+          toast.error(t("workspaceHours.loadError"), {
+            description: t("workspaceHours.loadErrorDesc")
           });
         }
       } finally {
@@ -341,13 +344,13 @@ export default function WorkspaceHoursPage() {
       setSchedule(normalizeSchedule(response.schedule));
       setTimezone(sanitizeTimeZone(response.timezone, timezones));
       setWorkspaceOnline(response.workspace_online);
-      setSuccess("Workspace hours updated successfully.");
-      toast.success("Workspace hours updated successfully");
+      setSuccess(t("workspaceHours.updateSuccess"));
+      toast.success(t("workspaceHours.updateSuccess"));
     } catch (err: unknown) {
       const error = err as Error;
       const errorMessage = error.message || "Failed to save working hours";
       setError(errorMessage);
-      toast.error("Failed to save working hours", {
+      toast.error(t("workspaceHours.saveError"), {
         description: errorMessage
       });
     } finally {
@@ -369,7 +372,7 @@ export default function WorkspaceHoursPage() {
       setWorkspaceOnline(response.workspace_online);
       setSchedule(normalizeSchedule(response.schedule));
       setTimezone(sanitizeTimeZone(response.timezone, timezones));
-      const successMessage = `Workspace ${response.workspace_online ? "enabled" : "paused"} successfully.`;
+      const successMessage = response.workspace_online ? t("workspaceHours.enabledSuccess") : t("workspaceHours.pausedSuccess");
       setSuccess(successMessage);
       toast.success(successMessage);
     } catch (err: unknown) {
@@ -377,7 +380,7 @@ export default function WorkspaceHoursPage() {
       const errorMessage = error.message || "Failed to update workspace status";
       setError(errorMessage);
       setWorkspaceOnline(previousValue);
-      toast.error("Failed to update workspace status", {
+      toast.error(t("workspaceHours.statusError"), {
         description: errorMessage
       });
     } finally {
@@ -397,9 +400,9 @@ export default function WorkspaceHoursPage() {
             <CalendarClock className="h-8 w-8 text-sky-500" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">Working Hours</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-white">{t("workspaceHours.title")}</h1>
             <p className="mt-2 text-lg text-sky-100/80 max-w-2xl">
-              Set your AI agent&apos;s availability, timezone, and weekly schedule.
+              {t("workspaceHours.subtitle")}
             </p>
           </div>
         </div>
@@ -427,11 +430,10 @@ export default function WorkspaceHoursPage() {
             </div>
             <div>
               <h2 className="text-lg font-bold text-slate-900">
-                Workspace Availability
+                {t("workspaceHours.availability")}
               </h2>
               <p className="text-slate-600 text-sm mt-1 max-w-md">
-                Turn the workspace on or off instantly. When off, it remains
-                unavailable even during scheduled hours.
+                {t("workspaceHours.availabilityDesc")}
               </p>
             </div>
           </div>
@@ -452,7 +454,7 @@ export default function WorkspaceHoursPage() {
             {statusSaving && (
               <div className="inline-flex items-center gap-2 text-xs text-slate-500">
                 <Loader2 className="h-3 w-3 animate-spin" />
-                Updating...
+                {t("workspaceHours.updating")}
               </div>
             )}
           </div>
@@ -465,9 +467,9 @@ export default function WorkspaceHoursPage() {
               <Globe2 className="h-4 w-4" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900">Time Zone</h2>
+              <h2 className="text-lg font-bold text-slate-900">{t("workspaceHours.timezone")}</h2>
               <p className="text-slate-500 text-sm">
-                All schedules will follow this timezone.
+                {t("workspaceHours.timezoneDesc")}
               </p>
             </div>
           </div>
@@ -489,10 +491,10 @@ export default function WorkspaceHoursPage() {
             </div>
             <div>
               <h2 className="text-lg font-bold text-slate-900">
-                Weekly Schedule
+                {t("workspaceHours.weeklySchedule")}
               </h2>
               <p className="text-sm text-slate-500">
-                Set available windows for each day.
+                {t("workspaceHours.weeklyScheduleDesc")}
               </p>
             </div>
           </div>
@@ -500,7 +502,7 @@ export default function WorkspaceHoursPage() {
           {loading ? (
             <div className="flex items-center justify-center py-16 text-slate-400">
               <Loader2 className="h-8 w-8 animate-spin mr-2 text-sky-500" />
-              Loading schedule...
+              {t("workspaceHours.loadingSchedule")}
             </div>
           ) : (
             <div className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100 overflow-hidden">
@@ -525,13 +527,15 @@ export default function WorkspaceHoursPage() {
                             <span className="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-all peer-checked:translate-x-5 shadow-sm" />
                           </label>
                           <span className={`text-sm font-bold ${dayEnabled ? 'text-slate-900' : 'text-slate-500'}`}>
-                            {day.label}
+                            {t(day.labelKey)}
                           </span>
                         </div>
                         <p className="text-xs text-slate-500 mt-1 pl-14 sm:pl-0">
                           {dayEnabled
-                            ? `${ranges.length} window${ranges.length > 1 ? "s" : ""}`
-                            : "Unavailable"}
+                            ? ranges.length === 1 
+                              ? t("workspaceHours.oneWindow")
+                              : t("workspaceHours.multipleWindows", { count: ranges.length })
+                            : t("workspaceHours.unavailable")}
                         </p>
                       </div>
                       
@@ -558,7 +562,7 @@ export default function WorkspaceHoursPage() {
                                     className="w-28 rounded-md border-0 bg-transparent px-2 py-1 text-sm font-medium text-slate-900 focus:ring-0"
                                   />
                                   <span className="text-xs font-medium text-slate-400">
-                                    to
+                                    {t("workspaceHours.to")}
                                   </span>
                                   <input
                                     type="time"
@@ -580,7 +584,7 @@ export default function WorkspaceHoursPage() {
                                     type="button"
                                     onClick={() => handleRemoveRange(day.key, index)}
                                     className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                    title="Remove window"
+                                    title={t("workspaceHours.removeWindow")}
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </button>
@@ -593,7 +597,7 @@ export default function WorkspaceHoursPage() {
                               className="inline-flex w-fit items-center gap-2 rounded-lg border border-dashed border-sky-200 px-3 py-2 text-xs font-semibold text-sky-500 hover:bg-sky-50 hover:border-sky-300 transition-all"
                             >
                               <Plus className="h-3.5 w-3.5" />
-                              Add window
+                              {t("workspaceHours.addWindow")}
                             </button>
                           </div>
                         )}
@@ -614,7 +618,7 @@ export default function WorkspaceHoursPage() {
             className="inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-sky-500 to-sky-500 px-8 py-3.5 text-sm font-bold text-white transition-all hover:from-sky-700 hover:to-sky-500 hover:shadow-lg hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
           >
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-            Save Changes
+            {t("workspaceHours.saveChanges")}
           </button>
         </div>
       </div>

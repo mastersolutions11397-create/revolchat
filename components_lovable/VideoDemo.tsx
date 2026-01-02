@@ -3,8 +3,10 @@
 import { Play, Maximize2, MoreHorizontal } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 
 const VideoDemo = () => {
+  const { t } = useLanguage();
   useEffect(() => {
     // Load Storylane script
     const script = document.createElement("script");
@@ -39,11 +41,10 @@ const VideoDemo = () => {
             transition={{ duration: 0.5 }}
           >
             <h2 className="text-4xl md:text-5xl font-black font-lato text-foreground mb-6 tracking-tight">
-              See Yetti in <span className="text-sky-500/80">Action</span>
+              {t("videoDemo.title").split("Action")[0]} <span className="text-sky-500/80">{t("videoDemo.titleHighlight")}</span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Watch how Yetti.ai seamlessly handles customer conversations, 
-              boosts engagement, and drives sales on autopilot.
+              {t("videoDemo.subtitle")}
             </p>
           </motion.div>
         </div>

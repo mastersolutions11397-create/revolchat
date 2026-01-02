@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 
 const Footer = () => {
+  const { t } = useLanguage();
   return (
     <footer className="bg-linear-to-br from-slate-50 to-white border-t border-slate-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -18,17 +20,17 @@ const Footer = () => {
                 </span>
               </div>
               <p className="text-gray-600 text-sm text-center md:text-left max-w-sm">
-                Transform your social media presence with AI-powered customer engagement that works around the clock.
+                {t("footer.description")}
               </p>
             </div>
 
             {/* Support Links */}
             <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12">
               <Link href="/privacy" className="text-gray-600 hover:text-sky-500 transition-colors text-sm font-medium">
-                Privacy Policy
+                {t("footer.legal.privacy")}
               </Link>
               <Link href="/terms" className="text-gray-600 hover:text-sky-500 transition-colors text-sm font-medium">
-                Terms of Service
+                {t("footer.legal.terms")}
               </Link>
               <Link
                 href="https://discord.gg/reY96aqzTe"
@@ -36,7 +38,7 @@ const Footer = () => {
                 rel="noopener noreferrer"
                 className="text-gray-600 hover:text-sky-500 transition-colors text-sm font-medium"
               >
-                Contact
+                {t("footer.company.contact")}
               </Link>
             </div>
           </div>

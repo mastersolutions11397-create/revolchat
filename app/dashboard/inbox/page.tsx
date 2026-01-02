@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { type Conversation, type Message } from "@/lib/api/integrations";
 import { MessageSquare, Search, Info, ArrowLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -124,7 +125,7 @@ const transformChatHistoryToConversations = (
       participant_id: `user_${chat.chat_id}`,
       participant_name: `Chat ${chat.chat_id}`,
       participant_avatar: undefined,
-      last_message: lastMessage?.message || "No message",
+      last_message: lastMessage?.message || "",
       last_message_time: lastMessage?.created_at || new Date().toISOString(),
       unread_count: 0,
     };
@@ -150,14 +151,14 @@ const transformChatHistoryToMessages = (
     id: `${channel}_${chatId}_msg_${msg.id}`,
     text: msg.message,
     sender_id: msg.message_source === "agent" ? "agent" : `user_${chatId}`,
-    sender_name:
-      msg.message_source === "agent" ? "Yetti Agent" : `Chat ${chatId}`,
+    sender_name: msg.message_source === "agent" ? "" : `Chat ${chatId}`,
     timestamp: msg.created_at,
     is_from_me: msg.message_source === "agent",
   }));
 };
 
 export default function InboxPage() {
+  const { t } = useLanguage();
   const { selectedWorkspaceId, currentWorkspace } = useWorkspace();
   const workspaceId = useMemo(
     () => selectedWorkspaceId || currentWorkspace?.id || null,
@@ -247,7 +248,7 @@ export default function InboxPage() {
         minute: "2-digit",
       });
     } else if (days === 1) {
-      return "Yesterday";
+      return t("inbox.yesterday");
     } else if (days < 7) {
       return date.toLocaleDateString("en-US", { weekday: "short" });
     } else {
@@ -269,7 +270,7 @@ export default function InboxPage() {
     return (
       <div className="flex h-[calc(100vh-5rem)] md:h-[calc(100vh-8rem)] items-center justify-center">
         <p className="text-sm sm:text-base text-gray-500 px-4 text-center">
-          Please select a workspace
+          {t("inbox.selectWorkspace")}
         </p>
       </div>
     );
@@ -293,7 +294,7 @@ export default function InboxPage() {
         {/* Header */}
         <div className="p-3 sm:p-4 border-b border-slate-200 bg-white">
           <h2 className="text-lg sm:text-xl font-bold text-slate-900 mb-3 sm:mb-4">
-            Chat
+            {t("inbox.chat")}
           </h2>
 
           {/* Channel Toggle */}
@@ -313,13 +314,13 @@ export default function InboxPage() {
               <div className="relative h-4 w-4 sm:h-5 sm:w-5">
                 <Image
                   src="/yetti/instagram_logo.png"
-                  alt="Instagram"
+                  alt={t("inbox.instagram")}
                   fill
                   className="object-contain"
                 />
               </div>
-              <span className="hidden sm:inline">Instagram</span>
-              <span className="sm:hidden">IG</span>
+              <span className="hidden sm:inline">{t("inbox.instagram")}</span>
+              <span className="sm:hidden">{t("inbox.ig")}</span>
             </button>
             <button
               onClick={() => {
@@ -336,13 +337,13 @@ export default function InboxPage() {
               <div className="relative h-4 w-4 sm:h-5 sm:w-5">
                 <Image
                   src="/yetti/telegram_logo.png"
-                  alt="Telegram"
+                  alt={t("inbox.telegram")}
                   fill
                   className="object-contain"
                 />
               </div>
-              <span className="hidden sm:inline">Telegram</span>
-              <span className="sm:hidden">TG</span>
+              <span className="hidden sm:inline">{t("inbox.telegram")}</span>
+              <span className="sm:hidden">{t("inbox.tg")}</span>
             </button>
           </div>
         </div>
@@ -353,7 +354,7 @@ export default function InboxPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Search chat..."
+              placeholder={t("inbox.search")}
               className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
             />
           </div>
@@ -365,13 +366,13 @@ export default function InboxPage() {
             <div className="flex flex-col items-center justify-center h-40 gap-3">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
               <p className="text-slate-500 text-xs sm:text-sm">
-                Loading chat...
+                {t("inbox.loading")}
               </p>
             </div>
           ) : conversations.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 gap-2 p-4 text-center">
               <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8 text-slate-300" />
-              <p className="text-slate-500 text-xs sm:text-sm">No chat found</p>
+              <p className="text-slate-500 text-xs sm:text-sm">{t("inbox.noChat")}</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
@@ -435,7 +436,7 @@ export default function InboxPage() {
                             : "text-slate-500"
                         }`}
                       >
-                        {conversation.last_message || "No message"}
+                        {conversation.last_message || t("inbox.noMessage")}
                       </p>
                     </div>
                     {conversation.unread_count &&
@@ -470,7 +471,7 @@ export default function InboxPage() {
                 <button
                   onClick={() => setShowChatView(false)}
                   className="md:hidden p-2 -ml-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
-                  aria-label="Back to conversations"
+                  aria-label={t("inbox.backToConversations")}
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </button>
@@ -490,11 +491,11 @@ export default function InboxPage() {
                           : "bg-sky-50 text-sky-500 border border-sky-100"
                       }`}
                     >
-                      {selectedChannel}
+                      {selectedChannel === "instagram" ? t("inbox.instagram") : t("inbox.telegram")}
                     </span>
                   </h3>
                   <p className="text-xs text-slate-500 truncate">
-                    Chat conversation
+                    {t("inbox.chatConversation")}
                   </p>
                 </div>
               </div>
@@ -513,7 +514,7 @@ export default function InboxPage() {
                   <div className="flex flex-col items-center gap-3">
                     <div className="h-6 w-6 sm:h-8 sm:w-8 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
                     <p className="text-slate-400 text-xs sm:text-sm">
-                      Loading messages...
+                      {t("inbox.loadingMessages")}
                     </p>
                   </div>
                 </div>
@@ -523,10 +524,10 @@ export default function InboxPage() {
                     <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8 text-slate-300" />
                   </div>
                   <h3 className="text-sm sm:text-base text-slate-900 font-medium mb-1">
-                    No message
+                    {t("inbox.noMessage")}
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-500 max-w-xs">
-                    Start the conversation by sending a message below.
+                    {t("inbox.startConversation")}
                   </p>
                 </div>
               ) : (
@@ -561,7 +562,7 @@ export default function InboxPage() {
                           <div className="relative h-6 w-6 sm:h-8 sm:w-8 rounded-lg overflow-hidden bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center shadow-sm">
                             <Image
                               src="/yetti/yetti_face.png"
-                              alt="Yetti Agent"
+                              alt={t("inbox.yettiAgent")}
                               fill
                               className="object-cover"
                             />
@@ -605,11 +606,10 @@ export default function InboxPage() {
               <MessageSquare className="h-8 w-8 sm:h-10 sm:w-10 text-sky-500" />
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
-              Select a Chat
+              {t("inbox.selectChat")}
             </h2>
             <p className="text-sm sm:text-base text-slate-500 max-w-md mx-auto mb-6 sm:mb-8 px-4">
-              Choose a chat from the sidebar to view their conversation and
-              manage your potential customers.
+              {t("inbox.selectChatDesc")}
             </p>
             <div className="flex gap-2 sm:gap-4">
               <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm text-xs sm:text-sm text-slate-600">
@@ -621,8 +621,8 @@ export default function InboxPage() {
                     className="object-contain"
                   />
                 </div>
-                <span className="hidden sm:inline">Instagram</span>
-                <span className="sm:hidden">IG</span>
+                <span className="hidden sm:inline">{t("inbox.instagram")}</span>
+                <span className="sm:hidden">{t("inbox.ig")}</span>
               </div>
               <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm text-xs sm:text-sm text-slate-600">
                 <div className="relative h-3 w-3 sm:h-4 sm:w-4">
@@ -633,8 +633,8 @@ export default function InboxPage() {
                     className="object-contain"
                   />
                 </div>
-                <span className="hidden sm:inline">Telegram</span>
-                <span className="sm:hidden">TG</span>
+                <span className="hidden sm:inline">{t("inbox.telegram")}</span>
+                <span className="sm:hidden">{t("inbox.tg")}</span>
               </div>
             </div>
           </div>

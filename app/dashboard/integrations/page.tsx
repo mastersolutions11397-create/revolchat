@@ -9,17 +9,19 @@ import { integrationsAPI } from "@/lib/api";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { useAuth } from "@/lib/auth-context";
 import { useOnboardingTour } from "@/lib/contexts/OnboardingTourContext";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 
 type InstagramIntegration = {
   username: string;
   profile_picture: string | null;
 };
 
+// CHANNELS - names will be translated in the component
 const CHANNELS = [
   {
-    name: "Instagram",
-    description:
-      "Connect Instagram to provide real-time support when customers reach out.",
+    nameKey: "integrations.instagram",
+    name: "Instagram", // fallback
+    descriptionKey: "integrations.realTimeSupport",
     icon: "/yetti/instagram_logo.png",
     fallbackIcon: "💬",
     status: "available",
@@ -28,9 +30,9 @@ const CHANNELS = [
     comingSoon: false,
   },
   {
-    name: "Telegram",
-    description:
-      "Connect Telegram Bot to provide real-time support when customers reach out.",
+    nameKey: "integrations.telegram",
+    name: "Telegram", // fallback
+    descriptionKey: "integrations.telegramBotSupport",
     icon: "/yetti/telegram_logo.png",
     fallbackIcon: "✈️",
     status: "available",
@@ -39,9 +41,9 @@ const CHANNELS = [
     comingSoon: false,
   },
   {
-    name: "Messenger",
-    description:
-      "Connect Messenger to enable customer support and engagement directly.",
+    nameKey: "integrations.messenger",
+    name: "Messenger", // fallback
+    descriptionKey: "integrations.messengerSupport",
     icon: "/yetti/messenger_logo.png",
     fallbackIcon: "📞",
     gradient: "from-[#e8f1ff] via-white to-white",
@@ -50,7 +52,8 @@ const CHANNELS = [
   },
 
   {
-    name: "WhatsApp",
+    nameKey: "integrations.whatsapp",
+    name: "WhatsApp", // fallback
     icon: "/yetti/whatsapp_logo.png",
     fallbackIcon: "📱",
     status: "coming-soon",
@@ -83,6 +86,7 @@ function IntegrationSkeleton() {
 
 // Parent Loader Overlay
 function ParentLoader({ isLoading }: { isLoading: boolean }) {
+  const { t } = useLanguage();
   if (!isLoading) return null;
 
   return (
@@ -93,7 +97,7 @@ function ParentLoader({ isLoading }: { isLoading: boolean }) {
           <div className="absolute inset-0 h-16 w-16 rounded-full border-4 border-sky-500 border-t-transparent animate-spin"></div>
         </div>
         <p className="text-sm font-semibold text-slate-700">
-          Loading workspace...
+          {t("integrations.loadingWorkspace")}
         </p>
       </div>
     </div>
@@ -101,6 +105,7 @@ function ParentLoader({ isLoading }: { isLoading: boolean }) {
 }
 
 export default function IntegrationsPage() {
+  const { t } = useLanguage();
   const {
     selectedWorkspaceId,
     currentWorkspace,
@@ -253,13 +258,13 @@ export default function IntegrationsPage() {
 
   const handleInstagramConnect = useCallback(() => {
     if (!workspaceId) {
-      window.alert("Please select a workspace before connecting Instagram.");
+      window.alert(t("integrations.selectWorkspaceFirst"));
       return;
     }
 
     if (instagramIntegration) {
       window.alert(
-        `Instagram account "${instagramIntegration.username}" is already connected.`
+        `${t("integrations.alreadyConnectedAlert")} "${instagramIntegration.username}" ${t("integrations.alreadyConnected")}`
       );
       return;
     }
@@ -277,7 +282,7 @@ export default function IntegrationsPage() {
     if (!workspaceId || !instagramIntegration) return;
 
     const confirmed = window.confirm(
-      `Disconnect Instagram account "${instagramIntegration.username}"?`
+      `${t("integrations.disconnectConfirm")} "${instagramIntegration.username}"?`
     );
     if (!confirmed) return;
 
@@ -288,7 +293,7 @@ export default function IntegrationsPage() {
     try {
       await integrationsAPI.disconnectInstagramIntegration(workspaceId);
       setInstagramIntegration(null);
-      setInstagramStatusMessage("Instagram account disconnected.");
+      setInstagramStatusMessage(t("integrations.instagramDisconnected"));
       setInstagramStatusKind("success");
       // Reset fetched workspace to allow refetch if needed
       fetchedWorkspaceId.current = null;
@@ -296,7 +301,7 @@ export default function IntegrationsPage() {
       setInstagramStatusMessage(
         error instanceof Error
           ? error.message
-          : "Failed to disconnect Instagram."
+          : t("integrations.failedToDisconnectInstagram")
       );
       setInstagramStatusKind("error");
     } finally {
@@ -306,12 +311,14 @@ export default function IntegrationsPage() {
 
   const handleTelegramConnect = useCallback(() => {
     if (!workspaceId) {
-      window.alert("Please select a workspace before connecting Telegram.");
+      window.alert(
+        t("integrations.selectWorkspaceFirst").replace("Instagram", "Telegram")
+      );
       return;
     }
 
     if (!user?.id) {
-      window.alert("Please log in to connect Telegram.");
+      window.alert(t("integrations.loginRequired"));
       return;
     }
 
@@ -323,12 +330,12 @@ export default function IntegrationsPage() {
 
   const handleTelegramSubmit = useCallback(async () => {
     if (!workspaceId || !user?.id) {
-      setTelegramError("Workspace or user information missing.");
+      setTelegramError(t("integrations.workspaceOrUserMissing"));
       return;
     }
 
     if (!telegramBotToken.trim()) {
-      setTelegramError("Please enter a Telegram bot token.");
+      setTelegramError(t("integrations.telegram.tokenRequired"));
       return;
     }
 
@@ -360,7 +367,7 @@ export default function IntegrationsPage() {
       setTelegramError(
         error instanceof Error
           ? error.message
-          : "Failed to connect Telegram. Please try again."
+          : t("integrations.telegram.connectError")
       );
     } finally {
       setTelegramConnecting(false);
@@ -394,10 +401,10 @@ export default function IntegrationsPage() {
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-              Integrations
+              {t("integrations.title")}
             </h1>
             <p className="mt-1 text-slate-300 text-base sm:text-lg">
-              Connect your favorite channels in seconds
+              {t("integrations.subtitle")}
             </p>
           </div>
         </div>
@@ -440,7 +447,9 @@ export default function IntegrationsPage() {
                       <div className="relative flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-white to-sky-50 shadow-md ring-1 ring-slate-200/50 group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
                         <Image
                           src={channel.icon}
-                          alt={channel.name}
+                          alt={
+                            channel.nameKey ? t(channel.nameKey) : channel.name
+                          }
                           width={48}
                           height={48}
                           className="h-10 w-10 sm:h-12 sm:w-12 object-contain"
@@ -462,30 +471,40 @@ export default function IntegrationsPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
                         <h3 className="text-xl sm:text-2xl font-bold text-slate-900 group-hover:text-sky-700 transition-colors">
-                          {channel.name}
+                          {channel.nameKey ? t(channel.nameKey) : channel.name}
                         </h3>
-                        {channel.name === "Instagram" &&
+                        {channel.nameKey === "integrations.instagram" &&
                           instagramIntegration && (
                             <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200/50">
                               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                              Active
+                              {t("integrations.active")}
                             </span>
                           )}
-                        {channel.name === "Telegram" && telegramBotInfo && (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200/50">
-                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                            Active
-                          </span>
-                        )}
+                        {channel.nameKey === "integrations.telegram" &&
+                          telegramBotInfo && (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200/50">
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                              {t("integrations.active")}
+                            </span>
+                          )}
                         {channel.comingSoon && (
                           <span className="inline-flex items-center px-2.5 sm:px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 ring-1 ring-slate-200/50">
-                            Coming Soon
+                            {t("integrations.comingSoon")}
                           </span>
                         )}
                       </div>
                       <p className="text-sm text-slate-600 leading-relaxed">
-                        {channel.description ||
-                          "Connect to enable real-time support and engagement."}
+                        {channel.descriptionKey
+                          ? (() => {
+                              const platformName = channel.nameKey
+                                ? t(channel.nameKey)
+                                : channel.name;
+                              return t(channel.descriptionKey).replace(
+                                "{platform}",
+                                platformName
+                              );
+                            })()
+                          : t("integrations.connectToEnable")}
                       </p>
                     </div>
                   </div>
@@ -497,16 +516,17 @@ export default function IntegrationsPage() {
                       className={`w-full sm:w-auto rounded-xl px-5 sm:px-6 py-2.5 sm:py-3 text-sm font-bold transition-all duration-300 shadow-md ${
                         channel.comingSoon || isPageDisabled
                           ? "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
-                          : channel.name === "Instagram" && instagramIntegration
+                          : channel.nameKey === "integrations.instagram" &&
+                              instagramIntegration
                             ? "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105"
                             : "bg-gradient-to-r from-sky-500 to-sky-500 text-white shadow-sky-500/30 hover:shadow-sky-500/50 hover:scale-105"
                       }`}
                       disabled={
                         channel.comingSoon ||
                         isPageDisabled ||
-                        (channel.name === "Instagram" &&
+                        (channel.nameKey === "integrations.instagram" &&
                           (instagramChecking || instagramDisconnecting)) ||
-                        (channel.name === "Telegram" &&
+                        (channel.nameKey === "integrations.telegram" &&
                           (telegramConnecting || telegramChecking))
                       }
                       onClick={() => {
@@ -520,39 +540,39 @@ export default function IntegrationsPage() {
                       }}
                     >
                       {channel.comingSoon ? (
-                        "Coming Soon"
+                        t("integrations.comingSoon")
                       ) : channel.name === "Instagram" &&
                         instagramIntegration ? (
-                        "✓ Connected"
+                        `✓ ${t("integrations.connected")}`
                       ) : channel.name === "Telegram" && telegramBotInfo ? (
-                        "✓ Connected"
+                        `✓ ${t("integrations.connected")}`
                       ) : channel.name === "Telegram" && telegramConnecting ? (
                         <span className="flex items-center justify-center gap-2">
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          Connecting...
+                          {t("integrations.connecting")}
                         </span>
                       ) : channel.name === "Telegram" && telegramChecking ? (
                         <span className="flex items-center justify-center gap-2">
                           <Loader2 className="h-4 w-4 animate-spin" />
-                          Checking...
+                          {t("integrations.checking")}
                         </span>
                       ) : channel.name === "Instagram" &&
                         (instagramChecking || instagramDisconnecting) ? (
                         <span className="flex items-center justify-center gap-2">
                           <Loader2 className="h-4 w-4 animate-spin" />
                           {instagramDisconnecting
-                            ? "Disconnecting..."
-                            : "Checking..."}
+                            ? t("integrations.disconnecting")
+                            : t("integrations.checking")}
                         </span>
                       ) : (
-                        "Connect"
+                        t("integrations.connect")
                       )}
                     </button>
                   </div>
                 </div>
 
                 {/* Telegram Connection Details */}
-                {channel.name === "Telegram" && (
+                {channel.nameKey === "integrations.telegram" && (
                   <div className="space-y-3">
                     {telegramChecking && (
                       <div className="flex items-center gap-3 p-3 sm:p-4 rounded-xl bg-gradient-to-r from-sky-50 to-blue-50 border border-sky-200 animate-pulse">
@@ -561,7 +581,7 @@ export default function IntegrationsPage() {
                           <div className="absolute inset-0 h-5 w-5 rounded-full border-2 border-sky-500 border-t-transparent animate-spin"></div>
                         </div>
                         <p className="text-xs sm:text-sm text-slate-700 font-medium">
-                          Checking Telegram status…
+                          {t("integrations.telegram.checkingStatus")}
                         </p>
                       </div>
                     )}
@@ -587,7 +607,7 @@ export default function IntegrationsPage() {
                               {/* Bot Username and Status */}
                               <div>
                                 <p className="text-xs font-semibold text-sky-500 uppercase tracking-wider mb-0.5">
-                                  Connected Bot
+                                  {t("integrations.connectedBot")}
                                 </p>
                                 <p className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
                                   @{telegramBotInfo.username}
@@ -607,7 +627,7 @@ export default function IntegrationsPage() {
                     {!telegramChecking && !telegramBotInfo && (
                       <div className="p-3 sm:p-4 rounded-xl bg-slate-50 border border-slate-200">
                         <p className="text-xs sm:text-sm text-slate-500 font-medium">
-                          Click &quot;Connect&quot; to link your Telegram bot
+                          {t("integrations.telegram.connectBot")}
                         </p>
                       </div>
                     )}
@@ -615,7 +635,7 @@ export default function IntegrationsPage() {
                 )}
 
                 {/* Instagram Connection Details */}
-                {channel.name === "Instagram" && (
+                {channel.nameKey === "integrations.instagram" && (
                   <div className="space-y-3">
                     {instagramChecking && (
                       <div className="flex items-center gap-3 p-3 sm:p-4 rounded-xl bg-gradient-to-r from-pink-50 to-purple-50 border border-pink-200 animate-pulse">
@@ -624,7 +644,7 @@ export default function IntegrationsPage() {
                           <div className="absolute inset-0 h-5 w-5 rounded-full border-2 border-pink-500 border-t-transparent animate-spin"></div>
                         </div>
                         <p className="text-xs sm:text-sm text-slate-700 font-medium">
-                          Checking Instagram status…
+                          {t("integrations.checkingInstagramStatus")}
                         </p>
                       </div>
                     )}
@@ -682,7 +702,7 @@ export default function IntegrationsPage() {
                             {/* Username and Status */}
                             <div className="min-w-0 flex-1">
                               <p className="text-xs font-semibold text-sky-500 uppercase tracking-wider mb-0.5">
-                                Connected Account
+                                {t("integrations.connectedAccount")}
                               </p>
                               <p className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2 truncate">
                                 <span className="truncate">
@@ -703,10 +723,10 @@ export default function IntegrationsPage() {
                             {instagramDisconnecting ? (
                               <span className="flex items-center justify-center gap-2">
                                 <Loader2 className="h-4 w-4 animate-spin text-red-500" />
-                                Disconnecting...
+                                {t("integrations.disconnecting")}
                               </span>
                             ) : (
-                              "Disconnect"
+                              t("integrations.disconnect")
                             )}
                           </button>
                         </div>
@@ -716,8 +736,7 @@ export default function IntegrationsPage() {
                     {!instagramChecking && !instagramIntegration && (
                       <div className="p-3 sm:p-4 rounded-xl bg-slate-50 border border-slate-200">
                         <p className="text-xs sm:text-sm text-slate-500 font-medium">
-                          Click &quot;Connect&quot; to link your Instagram
-                          account
+                          {t("integrations.clickConnectToLinkInstagram")}
                         </p>
                       </div>
                     )}
@@ -751,10 +770,10 @@ export default function IntegrationsPage() {
             <div className="rounded-t-xl bg-gradient-to-br from-[#0b1220] to-[#1a1f35] text-white px-4 py-3 mb-2 flex items-start sm:items-center justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <h3 className="text-base sm:text-lg font-bold">
-                  Connect Telegram Bot
+                  {t("integrations.connectTelegram")}
                 </h3>
                 <p className="text-xs text-white/70 mt-1">
-                  Enter your Telegram bot access token to connect.
+                  {t("integrations.enterBotToken")}
                 </p>
               </div>
               <button
@@ -781,14 +800,14 @@ export default function IntegrationsPage() {
                 <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 animate-in slide-in-from-top-2 duration-200">
                   <div className="flex items-start gap-2">
                     <div className="flex-shrink-0 mt-0.5">✓</div>
-                    <div>Telegram bot connected successfully!</div>
+                    <div>{t("integrations.telegram.connectSuccess")}</div>
                   </div>
                 </div>
               )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Telegram Bot Token
+                  {t("integrations.telegramBotTokenLabel")}
                 </label>
                 <input
                   type="text"
@@ -797,7 +816,7 @@ export default function IntegrationsPage() {
                     setTelegramBotToken(e.target.value);
                     setTelegramError(null);
                   }}
-                  placeholder="Enter your Telegram bot access token"
+                  placeholder={t("integrations.telegramBotTokenPlaceholder")}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all disabled:bg-gray-50 disabled:cursor-not-allowed"
                   disabled={telegramConnecting || isPageDisabled}
                   onKeyDown={(e) => {
@@ -812,16 +831,16 @@ export default function IntegrationsPage() {
                   }}
                 />
                 <p className="mt-2 text-xs text-gray-500">
-                  You can get your bot token from{" "}
+                  {t("integrations.telegram.getToken")}{" "}
                   <a
                     href="https://t.me/BotFather"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sky-500 hover:underline font-medium"
                   >
-                    @BotFather
+                    {t("integrations.telegram.botFather")}
                   </a>{" "}
-                  on Telegram.
+                  {t("integrations.telegram.onTelegram")}.
                 </p>
               </div>
 
@@ -838,10 +857,10 @@ export default function IntegrationsPage() {
                   {telegramConnecting ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Connecting...
+                      {t("integrations.connecting")}
                     </>
                   ) : (
-                    "Connect"
+                    t("integrations.connect")
                   )}
                 </button>
                 <button
@@ -849,7 +868,7 @@ export default function IntegrationsPage() {
                   disabled={telegramConnecting || isPageDisabled}
                   className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Cancel
+                  {t("integrations.cancel")}
                 </button>
               </div>
             </div>

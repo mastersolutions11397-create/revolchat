@@ -11,53 +11,49 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
-
-const solutions = [
-  {
-    icon: Bot,
-    title: "Never Miss a Sale",
-    problem: "Losing customers because you can't respond instantly?",
-    solution:
-      "Your Yetti responds 24/7, converting interested customers into sales even while you sleep.",
-  },
-  {
-    icon: Upload,
-    title: "Stop Repeating Yourself",
-    problem: "Tired of answering the same questions over and over?",
-    solution:
-      "Train your Yetti once with PDFs, Google Sheets, or text—it handles repetitive conversations forever.",
-  },
-  {
-    icon: ShoppingBag,
-    title: "Automate Your Sales",
-    problem: "Can't afford a full-time sales team?",
-    solution:
-      "Your Yetti sells products, processes inquiries, and closes deals automatically on social media.",
-  },
-  {
-    icon: Calendar,
-    title: "End Scheduling Chaos",
-    problem: "Wasting hours coordinating meetings?",
-    solution:
-      "Yetti syncs with Google Calendar and books meetings instantly—no more back-and-forth emails.",
-  },
-  {
-    icon: MessageCircle,
-    title: "Instant Customer Support",
-    problem: "Customers leaving because of slow response times?",
-    solution:
-      "Your Yetti provides instant, accurate answers to FAQs, keeping customers engaged and happy.",
-  },
-  {
-    icon: FileText,
-    title: "Expert Product Knowledge",
-    problem: "Struggling to communicate product value?",
-    solution:
-      "Yetti explains features, benefits, and details perfectly, trained on your exact specifications.",
-  },
-];
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 
 const Solutions = () => {
+  const { t } = useLanguage();
+
+  const solutions = [
+    {
+      icon: Bot,
+      title: t("solutions.solution1.title"),
+      problem: t("solutions.solution1.problem"),
+      solution: t("solutions.solution1.solution"),
+    },
+    {
+      icon: Upload,
+      title: t("solutions.solution2.title"),
+      problem: t("solutions.solution2.problem"),
+      solution: t("solutions.solution2.solution"),
+    },
+    {
+      icon: ShoppingBag,
+      title: t("solutions.solution3.title"),
+      problem: t("solutions.solution3.problem"),
+      solution: t("solutions.solution3.solution"),
+    },
+    {
+      icon: Calendar,
+      title: t("solutions.solution4.title"),
+      problem: t("solutions.solution4.problem"),
+      solution: t("solutions.solution4.solution"),
+    },
+    {
+      icon: MessageCircle,
+      title: t("solutions.solution5.title"),
+      problem: t("solutions.solution5.problem"),
+      solution: t("solutions.solution5.solution"),
+    },
+    {
+      icon: FileText,
+      title: t("solutions.solution6.title"),
+      problem: t("solutions.solution6.problem"),
+      solution: t("solutions.solution6.solution"),
+    },
+  ];
   return (
     <section id="features" className="py-10 md:py-20 lg:py-32 bg-secondary/30 relative">
        {/* Background Pattern */}
@@ -73,10 +69,10 @@ const Solutions = () => {
             transition={{ duration: 0.5 }}
           >
             <h2 className="text-4xl md:text-5xl font-black font-lato text-foreground mb-6">
-              Solutions to Your <span className="text-sky-500">Biggest Challenges</span>
+              {t("solutions.title").split("Biggest Challenges")[0]} <span className="text-sky-500">{t("solutions.titleHighlight")}</span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Stop losing customers to slow responses. Your Yetti solves the problems keeping you up at night.
+              {t("solutions.subtitle")}
             </p>
           </motion.div>
         </div>
@@ -123,7 +119,7 @@ const Solutions = () => {
                     
                     {/* Learn More Link */}
                     <div className="pt-2 flex items-center text-sky-500 font-medium text-sm opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                      Learn more <ArrowRight className="w-4 h-4 ml-1" />
+                      {t("solutions.learnMore")} <ArrowRight className="w-4 h-4 ml-1" />
                     </div>
                   </div>
                 </Card>

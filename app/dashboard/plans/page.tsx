@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { getStripe, PLAN_CONFIGS } from "@/lib/stripe";
 import { supabase } from "@/lib/supabase";
 
@@ -51,6 +52,7 @@ type UserPlan = {
 
 export default function PlansPage() {
   console.log("PlansPage: Component initialized");
+  const { t } = useLanguage();
 
   const searchParams = useSearchParams();
   const urlWorkspaceId = searchParams.get("ws");
@@ -74,7 +76,7 @@ export default function PlansPage() {
       name: "Starter",
       price: "$29",
       period: "/month",
-      description: "Best for: up to 5 conversations/day",
+      description: t("plans.conversationsPerDay", { count: 5 }),
       tokens: `${PLAN_CONFIGS.starter.credits.toLocaleString()} Yetti Tokens`,
       features: [
         {
@@ -98,7 +100,7 @@ export default function PlansPage() {
       name: "Growth",
       price: "$59",
       period: "/month",
-      description: "Best for: 5 to 20 conversations/day",
+      description: t("plans.conversationsPerDayRange", { min: 5, max: 20 }),
       tokens: `${PLAN_CONFIGS.growth.credits.toLocaleString()} Yetti Tokens`,
       features: [
         {
@@ -123,7 +125,7 @@ export default function PlansPage() {
       name: "Pro",
       price: "$99",
       period: "/month",
-      description: "Best for: 20 to 50 conversations/day",
+      description: t("plans.conversationsPerDayRange", { min: 20, max: 50 }),
       tokens: `${PLAN_CONFIGS.pro.credits.toLocaleString()} Yetti Tokens`,
       features: [
         {
@@ -147,7 +149,7 @@ export default function PlansPage() {
       name: "Enterprise",
       price: "$179",
       period: "/month",
-      description: "Best for: 50+ conversations/day",
+      description: t("plans.conversationsPerDayPlus", { count: 50 }),
       tokens: `${PLAN_CONFIGS.enterprise.credits.toLocaleString()} Yetti Tokens`,
       features: [
         {
@@ -210,7 +212,7 @@ export default function PlansPage() {
         setCurrentPlan(userPlan);
       } catch (error) {
         console.error("PlansPage: Failed to fetch current plan:", error);
-        toast.error("Failed to load current plan");
+        toast.error(t("plans.failedToLoad"));
       } finally {
         console.log("PlansPage: Setting loading to false");
         setLoading(false);
@@ -241,7 +243,7 @@ export default function PlansPage() {
 
     if (!planConfig) {
       console.log("PlansPage: Invalid plan selected:", planKey);
-      toast.error("Invalid plan selected");
+      toast.error(t("plans.invalidPlan"));
       return;
     }
 
@@ -310,7 +312,7 @@ export default function PlansPage() {
         userId: user?.id,
         workspaceId: effectiveWorkspaceId,
       });
-      toast.error("Failed to start checkout process");
+      toast.error(t("plans.failedToStartCheckout"));
     } finally {
       console.log("PlansPage: Setting checkout loading to null");
       setCheckoutLoading(null);
@@ -343,7 +345,7 @@ export default function PlansPage() {
 
   const getButtonLabel = (planKey: string) => {
     if (isCurrentPlan(planKey)) {
-      return "Current Plan";
+      return t("plans.currentPlan");
     }
 
     const hierarchy = getPlanHierarchy();
@@ -353,16 +355,16 @@ export default function PlansPage() {
 
     if (currentPlanIndex === -1) {
       // No current plan, show Subscribe Now
-      return "Subscribe Now";
+      return t("plans.subscribeNow");
     }
 
     if (targetPlanIndex > currentPlanIndex) {
-      return "Upgrade";
+      return t("plans.upgrade");
     } else if (targetPlanIndex < currentPlanIndex) {
-      return "Downgrade";
+      return t("plans.downgrade");
     }
 
-    return "Subscribe Now";
+    return t("plans.subscribeNow");
   };
 
   console.log(
@@ -403,11 +405,10 @@ export default function PlansPage() {
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-white">
-              Subscription Plans
+              {t("plans.title")}
             </h1>
             <p className="mt-2 text-lg text-sky-100/80 max-w-2xl">
-              Choose the perfect plan for your needs. Upgrade or downgrade
-              anytime.
+              {t("plans.subtitle")}
             </p>
           </div>
         </div>
@@ -426,7 +427,7 @@ export default function PlansPage() {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h2 className="text-2xl font-bold text-slate-900">
-                  Current Plan
+                  {t("plans.currentPlan")}
                 </h2>
                 <span
                   className={`px-3 py-1 rounded-full text-sm font-semibold border ${
@@ -436,8 +437,8 @@ export default function PlansPage() {
                   }`}
                 >
                   {currentPlan.status === "active"
-                    ? "Active"
-                    : currentPlan.status || "Active"}
+                    ? t("dashboard.active")
+                    : currentPlan.status || t("dashboard.active")}
                 </span>
               </div>
               <h3 className="text-xl font-semibold text-slate-800 mb-1">
@@ -445,7 +446,7 @@ export default function PlansPage() {
               </h3>
               {currentPlan.current_period_end && (
                 <p className="text-sm text-slate-600 mt-2">
-                  Renews on{" "}
+                  {t("plans.renewsOn")}{" "}
                   {new Date(currentPlan.current_period_end).toLocaleDateString(
                     "en-US",
                     {
@@ -488,13 +489,13 @@ export default function PlansPage() {
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-sky-500 text-white text-xs font-bold rounded-full shadow-sm">
-                    Most Popular
+                    {t("pricing.landing.mostPopular")}
                   </div>
                 )}
 
                 {isCurrent && !plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-sky-500 text-white text-xs font-bold rounded-full shadow-sm">
-                    Current Plan
+                    {t("plans.currentPlan")}
                   </div>
                 )}
 
@@ -552,7 +553,7 @@ export default function PlansPage() {
                     disabled
                     className="w-full text-center py-3 px-6 rounded-xl font-semibold bg-sky-500 text-white cursor-not-allowed opacity-75"
                   >
-                    Current Plan
+                    {t("plans.currentPlan")}
                   </button>
                 ) : (
                   <button
@@ -577,7 +578,7 @@ export default function PlansPage() {
                     {checkoutLoading === plan.planKey ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        Processing...
+                        {t("plans.processing")}
                       </>
                     ) : (
                       getButtonLabel(plan.planKey)

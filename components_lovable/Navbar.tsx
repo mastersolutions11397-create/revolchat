@@ -5,8 +5,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 
 const Navbar = () => {
+  const { t } = useLanguage();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -38,32 +40,41 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            {["Features", "How It Works", "Pricing"].map((item) => (
-              <Link
-                key={item}
-                href={`/#${item.toLowerCase().replace(/\s+/g, "-")}`}
-                className="text-sm font-medium text-muted-foreground hover:text-sky-500 transition-colors"
-              >
-                {item}
-              </Link>
-            ))}
+            <Link
+              href="#features"
+              className="text-sm font-medium text-muted-foreground hover:text-sky-500 transition-colors"
+            >
+              {t("nav.features")}
+            </Link>
+            <Link
+              href="#how-it-works"
+              className="text-sm font-medium text-muted-foreground hover:text-sky-500 transition-colors"
+            >
+              {t("nav.howItWorks")}
+            </Link>
+            <Link
+              href="#pricing"
+              className="text-sm font-medium text-muted-foreground hover:text-sky-500 transition-colors"
+            >
+              {t("nav.pricing")}
+            </Link>
             <Link
               href="https://discord.gg/reY96aqzTe"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm font-medium text-muted-foreground hover:text-sky-500 transition-colors"
             >
-              Contact
+              {t("nav.contact")}
             </Link>
           </div>
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-4">
             <Link href="/auth/login" className="text-sm font-medium text-muted-foreground hover:text-sky-500 transition-colors">
-              Login
+              {t("nav.login")}
             </Link>
             <Link href="/auth/signup" className="text-sm font-medium bg-sky-500 text-white hover:bg-primary/90 px-4 py-2 rounded-md transition-colors">
-              Get Started
+              {t("nav.getStarted")}
             </Link>
           </div>
 
@@ -87,16 +98,27 @@ const Navbar = () => {
             className="md:hidden bg-background border-b border-gray-100"
           >
             <div className="container px-4 py-8 flex flex-col gap-8">
-              {["Features", "How It Works", "Pricing"].map((item) => (
-                <Link
-                  key={item}
-                  href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
-                  className="text-sm font-medium text-foreground hover:text-sky-500 transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {item}
-                </Link>
-              ))}
+              <Link
+                href="#features"
+                className="text-sm font-medium text-foreground hover:text-sky-500 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {t("nav.features")}
+              </Link>
+              <Link
+                href="#how-it-works"
+                className="text-sm font-medium text-foreground hover:text-sky-500 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {t("nav.howItWorks")}
+              </Link>
+              <Link
+                href="#pricing"
+                className="text-sm font-medium text-foreground hover:text-sky-500 transition-colors"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {t("nav.pricing")}
+              </Link>
               <Link
                 href="https://discord.gg/reY96aqzTe"
                 target="_blank"
@@ -104,14 +126,14 @@ const Navbar = () => {
                 className="text-sm font-medium text-foreground hover:text-sky-500 transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
-                Contact
+                {t("nav.contact")}
               </Link>
               <div className="flex flex-col gap-2 pt-4 border-t border-gray-100">
                 <Link href="/auth/login" className="text-sm bg-sky-500 text-center px-3 py-2 rounded-lg text-white font-medium  hover:text-sky-500 transition-colors w-full" onClick={() => setIsMobileMenuOpen(false)}>
-                  Login
+                  {t("nav.login")}
                 </Link>
                 <Link href="/auth/signup" className="text-sm bg-sky-500 px-3 py-2 rounded-lg text-white font-medium bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md transition-colors w-full text-center" onClick={() => setIsMobileMenuOpen(false)}>
-                  Get Started
+                  {t("nav.getStarted")}
                 </Link>
               </div>
             </div>

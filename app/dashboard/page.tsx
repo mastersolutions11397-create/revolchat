@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useLanguage } from "@/lib/contexts/LanguageContext";
 import {
   dashboardAPI,
   type DashboardResponse,
@@ -40,6 +41,7 @@ const EMPTY_STEPS_COMPLETED: number[] = [];
 export default function DashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const urlWorkspaceId = searchParams.get("ws");
   const {
@@ -701,7 +703,7 @@ export default function DashboardPage() {
     } catch (err) {
       console.error("Failed to create workspace:", err);
       toast.error(
-        err instanceof Error ? err.message : "Failed to create workspace"
+        err instanceof Error ? err.message : t("dashboard.failedToCreateWorkspace")
       );
     } finally {
       setCreatingWorkspace(false);
@@ -711,7 +713,7 @@ export default function DashboardPage() {
   const handleOnboardingCompleted = () => {
     setShowOnboardingModal(false);
     setPendingWorkspace(null);
-    toast.success("Workspace setup complete!");
+      toast.success(t("dashboard.workspaceSetupComplete"));
 
     // Trigger tour callback for onboarding modal completion
     onOnboardingModalCompleted();
@@ -735,7 +737,7 @@ export default function DashboardPage() {
       <div className="flex h-96 items-center justify-center">
         <div className="text-center">
           <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-sky-500" />
-          <p className="text-slate-600 font-medium">Loading dashboard...</p>
+          <p className="text-slate-600 font-medium">{t("dashboard.loadingDashboard")}</p>
         </div>
       </div>
     );
@@ -755,10 +757,10 @@ export default function DashboardPage() {
             </div>
             <div className="min-w-0 flex-1">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white break-words">
-                Welcome back, {getUserName()}
+                {t("dashboard.welcomeBack")}, {getUserName()}
               </h1>
               <p className="mt-1 text-slate-300 text-sm sm:text-base md:text-lg">
-                Here&apos;s what&apos;s happening in your workspace today.
+                {t("dashboard.welcomeMessage")}
               </p>
             </div>
           </div>
@@ -767,7 +769,7 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2 rounded-full bg-white/5 px-3 sm:px-4 py-1.5 backdrop-blur-sm ring-1 ring-white/10 w-full sm:w-auto justify-center sm:justify-start">
               <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse shrink-0" />
               <span className="text-xs sm:text-sm font-medium text-slate-200 whitespace-nowrap">
-                System Operational
+                {t("dashboard.systemOperational")}
               </span>
             </div>
 
@@ -799,7 +801,7 @@ export default function DashboardPage() {
                   />
                 )}
                 <span className="whitespace-nowrap">
-                  {workspaceOnline ? "Yetti On" : "Yetti Off"}
+                  {workspaceOnline ? t("dashboard.yettiOn") : t("dashboard.yettiOff")}
                 </span>
               </button>
             </div>
@@ -826,7 +828,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                Total Messages
+                {t("dashboard.totalMessages")}
               </p>
               {messageCountLoading ? (
                 <div className="mt-2">
@@ -847,7 +849,7 @@ export default function DashboardPage() {
               <ArrowUpRight className="h-3 w-3" />
               {dashboardData?.quick_stats?.this_week_interactions ?? 0}
             </span>
-            <span className="text-slate-500">new this week</span>
+            <span className="text-slate-500">{t("dashboard.newThisWeek")}</span>
           </div>
         </div>
 
@@ -856,7 +858,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                Integrations
+                {t("dashboard.integrations")}
               </p>
               {integrationsLoading ? (
                 <div className="mt-2">
@@ -875,9 +877,9 @@ export default function DashboardPage() {
           <div className="mt-3 sm:mt-4 flex items-center gap-2 text-xs sm:text-sm flex-wrap">
             <span className="flex items-center gap-1 font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full whitespace-nowrap">
               <Activity className="h-3 w-3" />
-              Active
+              {t("dashboard.active")}
             </span>
-            <span className="text-slate-500">All systems operational</span>
+            <span className="text-slate-500">{t("dashboard.allSystemsOperational")}</span>
           </div>
         </div>
 
@@ -889,7 +891,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                Current Plan
+                {t("dashboard.currentPlan")}
               </p>
               {planLoading ? (
                 <div className="mt-2">
@@ -914,9 +916,9 @@ export default function DashboardPage() {
               }`}
             >
               <CheckCircle2 className="h-3 w-3" />
-              {userPlan?.status === "active" ? "Active" : "Inactive"}
+              {userPlan?.status === "active" ? t("dashboard.active") : t("dashboard.inactive")}
             </span>
-            <span className="text-slate-500">Click to manage</span>
+            <span className="text-slate-500">{t("dashboard.clickToManage")}</span>
           </div>
         </Link>
       </div>
@@ -926,17 +928,17 @@ export default function DashboardPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="min-w-0 flex-1">
             <h3 className="text-lg sm:text-xl font-bold text-slate-900">
-              Platform Status
+              {t("dashboard.platformStatus")}
             </h3>
             <p className="text-slate-500 text-xs sm:text-sm mt-1">
-              Real-time status of your connected integrations.
+              {t("dashboard.platformStatusDesc")}
             </p>
           </div>
           <Link
             href="/dashboard/integrations"
             className="text-xs sm:text-sm font-semibold text-sky-500 hover:text-sky-700 hover:underline whitespace-nowrap shrink-0"
           >
-            Manage Integrations &rarr;
+            {t("dashboard.manageIntegrations")} &rarr;
           </Link>
         </div>
 
@@ -950,13 +952,13 @@ export default function DashboardPage() {
               <Link2 className="h-6 w-6 text-slate-400" />
             </div>
             <p className="mb-4 text-slate-600 font-medium">
-              No integrations connected yet
+              {t("dashboard.noIntegrations")}
             </p>
             <Link
               href="/dashboard/integrations"
               className="inline-flex items-center justify-center rounded-xl bg-sky-500 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-sky-700 hover:shadow-lg hover:shadow-sky-200 active:scale-95"
             >
-              Add Integration
+              {t("dashboard.addIntegration")}
             </Link>
           </div>
         ) : (
@@ -995,7 +997,7 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-2 shrink-0 ml-2">
                   <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="text-xs font-medium text-emerald-600 hidden sm:inline">
-                    Online
+                    {t("dashboard.online")}
                   </span>
                 </div>
               </div>
@@ -1024,7 +1026,7 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-2 shrink-0 ml-2">
                   <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="text-xs font-medium text-emerald-600 hidden sm:inline">
-                    Online
+                    {t("dashboard.online")}
                   </span>
                 </div>
               </div>
@@ -1045,16 +1047,15 @@ export default function DashboardPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900">
-                    Welcome to Yetti! 👋
+                    {t("dashboard.welcomeToYetti")}
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                    Let&apos;s create your first workspace
+                    {t("dashboard.createFirstWorkspace")}
                   </p>
                 </div>
               </div>
               <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-                A workspace is where you&apos;ll manage your AI agents, knowledge
-                base, and integrations. Give it a memorable name to get started.
+                {t("dashboard.workspaceDescription")}
               </p>
             </div>
 
@@ -1075,7 +1076,7 @@ export default function DashboardPage() {
                   type="text"
                   value={newWorkspaceName}
                   onChange={(e) => setNewWorkspaceName(e.target.value)}
-                  placeholder="e.g., My Business, Personal Projects, Team Workspace"
+                  placeholder={t("dashboard.workspaceNamePlaceholder")}
                   className="w-full px-3 sm:px-4 py-3 sm:py-4 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 transition-all hover:border-sky-300 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-500/10 text-sm sm:text-base"
                   minLength={3}
                   required
@@ -1098,8 +1099,8 @@ export default function DashboardPage() {
                     }`}
                   >
                     {newWorkspaceName.trim().length >= 3
-                      ? "✓ Perfect! You're ready to continue"
-                      : "Minimum 3 characters required"}
+                      ? t("dashboard.workspaceNamePerfect")
+                      : t("dashboard.workspaceNameHelper")}
                   </p>
                 </div>
               </div>
@@ -1115,12 +1116,12 @@ export default function DashboardPage() {
                 {creatingWorkspace ? (
                   <>
                     <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                    <span>Creating Your Workspace...</span>
+                    <span>{t("dashboard.creating")}</span>
                   </>
                 ) : (
                   <>
                     <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-                    <span>Create Workspace & Continue</span>
+                    <span>{t("dashboard.createWorkspaceContinue")}</span>
                   </>
                 )}
               </button>
