@@ -8,9 +8,7 @@ const languages = [
   { code: "en" as Language, name: "English", flag: "🇬🇧" },
   { code: "es" as Language, name: "Español", flag: "🇪🇸" },
   { code: "it" as Language, name: "Italiano", flag: "🇮🇹" },
-  { code: "zh" as Language, name: "中文", flag: "🇨🇳" },
-  { code: "ru" as Language, name: "Русский", flag: "🇷🇺" },
-  { code: "sv" as Language, name: "Svenska", flag: "🇸🇪" },
+  { code: "pt" as Language, name: "Português", flag: "🇵🇹" },
 ];
 
 export default function LanguageSelector() {
