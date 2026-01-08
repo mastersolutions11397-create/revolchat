@@ -69,11 +69,11 @@ export async function middleware(request: NextRequest) {
     const userId = session.user.id;
 
     // Query workspaces from Supabase directly
-    // Try owner_id first (most common), fallback to user_id if it exists
+    // Use owner_id (the correct column name)
     const { data: workspaces, error: workspaceError } = await supabase
       .from("workspaces")
-      .select("id, owner_id, user_id, created_at")
-      .or(`owner_id.eq.${userId},user_id.eq.${userId}`)
+      .select("id, owner_id, created_at")
+      .eq("owner_id", userId)
       .order("created_at", { ascending: false })
       .limit(1);
 

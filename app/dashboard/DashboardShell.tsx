@@ -29,6 +29,7 @@ import {
   Pencil,
   Check,
   ChevronDown,
+  Gift,
 } from "lucide-react";
 import { yettiOnboardingAPI } from "@/lib/api";
 import WorkspaceOnboardingModal from "@/components/workspace/WorkspaceOnboardingModal";
@@ -571,6 +572,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 href: "/dashboard/billing",
                 icon: CreditCard,
                 label: t("dashboard.sidebar.billing"),
+                tourId: null,
+              },
+              {
+                href: "/dashboard/referrals",
+                icon: Gift,
+                label: "Referrals",
                 tourId: null,
               },
               {

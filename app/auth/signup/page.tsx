@@ -20,16 +20,30 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
   const router = useRouter();
 
-  // Extract redirect parameter from URL
+  // Extract redirect and referral parameters from URL
   useEffect(() => {
     if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
       const redirect = urlParams.get("redirect");
+      const ref = urlParams.get("ref");
 
       if (redirect) {
         setRedirectUrl(decodeURIComponent(redirect));
+      }
+
+      if (ref) {
+        setReferralCode(ref.toUpperCase());
+        // Store in localStorage as backup
+        localStorage.setItem("referral_code", ref.toUpperCase());
+      } else {
+        // Check localStorage for referral code
+        const storedRef = localStorage.getItem("referral_code");
+        if (storedRef) {
+          setReferralCode(storedRef);
+        }
       }
     }
   }, []);
@@ -59,6 +73,46 @@ export default function SignupPage() {
       if (error) {
         setError(error.message);
       } else if (data.user) {
+        // Link referral if code exists
+        if (referralCode) {
+          try {
+            const { supabase } = await import("@/lib/supabase");
+            
+            // Find the referrer by referral code
+            const { data: referrerProfile } = await supabase
+              .from("user_profiles")
+              .select("user_id")
+              .eq("referral_code", referralCode.toUpperCase())
+              .maybeSingle();
+
+            if (referrerProfile && referrerProfile.user_id !== data.user.id) {
+              // Check if user already has a referral
+              const { data: existingReferral } = await supabase
+                .from("referrals")
+                .select("id")
+                .eq("referee_id", data.user.id)
+                .maybeSingle();
+
+              if (!existingReferral) {
+                // Create referral relationship
+                await supabase
+                  .from("referrals")
+                  .insert({
+                    referrer_id: referrerProfile.user_id,
+                    referee_id: data.user.id,
+                    referral_code: referralCode.toUpperCase(),
+                    status: "pending",
+                  });
+              }
+            }
+            // Clear stored referral code
+            localStorage.removeItem("referral_code");
+          } catch (err) {
+            console.error("Failed to link referral:", err);
+            // Don't block signup if referral linking fails
+          }
+        }
+
         setSuccess(true);
         // Redirect to specified URL or dashboard after successful signup
         setTimeout(() => {

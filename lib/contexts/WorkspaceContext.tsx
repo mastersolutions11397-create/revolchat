@@ -102,19 +102,23 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const persistWorkspaceId = (workspaceId: string) => {
+  const persistWorkspaceId = (workspaceId: string | undefined | null) => {
     try {
       if (typeof window === "undefined") return;
       // Don't persist invalid workspace IDs
       if (
         !workspaceId ||
         workspaceId === "undefined" ||
-        workspaceId === "null"
+        workspaceId === "null" ||
+        typeof workspaceId !== "string"
       ) {
-        console.error(
-          "Attempted to persist invalid workspace ID:",
-          workspaceId
-        );
+        // Only log error in development, silently return in production
+        if (process.env.NODE_ENV === "development") {
+          console.warn(
+            "Attempted to persist invalid workspace ID:",
+            workspaceId
+          );
+        }
         return;
       }
       localStorage.setItem("selectedWorkspaceId", workspaceId);
@@ -154,13 +158,18 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         try {
           const target = await workspaceAPI.getWorkspace(targetId);
           setCurrentWorkspace(target);
-          persistWorkspaceId(target.id);
+          if (target?.id) {
+            persistWorkspaceId(target.id);
+          }
           hasLoadedWorkspace.current = true;
         } catch (workspaceErr: any) {
           console.error("Failed to load workspace details:", workspaceErr);
           // If failed to get workspace details, at least set the first one from the list
-          setCurrentWorkspace(data.workspaces[0] as any);
-          persistWorkspaceId(data.workspaces[0].id);
+          const firstWorkspace = data.workspaces[0];
+          if (firstWorkspace?.id) {
+            setCurrentWorkspace(firstWorkspace as any);
+            persistWorkspaceId(firstWorkspace.id);
+          }
           hasLoadedWorkspace.current = true;
         }
       }
