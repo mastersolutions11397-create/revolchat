@@ -5,9 +5,9 @@
 
 import { createClient } from "@supabase/supabase-js";
 import { generateReferralCode } from "../lib/utils/referral-code";
-import * as dotenv from "dotenv";
+import { config } from "dotenv";
 
-dotenv.config();
+config();
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -28,7 +28,8 @@ async function generateReferralCodesForExistingUsers() {
   console.log("Starting referral code generation for existing users...");
 
   // Get all users
-  const { data: users, error: usersError } = await supabase.auth.admin.listUsers();
+  const { data: users, error: usersError } =
+    await supabase.auth.admin.listUsers();
 
   if (usersError) {
     console.error("Error fetching users:", usersError);
@@ -51,7 +52,9 @@ async function generateReferralCodesForExistingUsers() {
         .maybeSingle();
 
       if (existingProfile) {
-        console.log(`Skipping user ${user.email} - already has code: ${existingProfile.referral_code}`);
+        console.log(
+          `Skipping user ${user.email} - already has code: ${existingProfile.referral_code}`
+        );
         skipped++;
         continue;
       }
@@ -108,4 +111,3 @@ async function generateReferralCodesForExistingUsers() {
 }
 
 generateReferralCodesForExistingUsers().catch(console.error);
-
