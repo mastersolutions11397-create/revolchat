@@ -14,13 +14,14 @@ export default function SignupPage() {
     lastName: "",
     email: "",
     password: "",
+    referralCode: "",
   });
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
-  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [referralCodeFromUrl, setReferralCodeFromUrl] = useState<string | null>(null);
   const router = useRouter();
 
   // Extract redirect and referral parameters from URL
@@ -35,14 +36,16 @@ export default function SignupPage() {
       }
 
       if (ref) {
-        setReferralCode(ref.toUpperCase());
+        setReferralCodeFromUrl(ref.toUpperCase());
+        setFormData((prev) => ({ ...prev, referralCode: ref.toUpperCase() }));
         // Store in localStorage as backup
         localStorage.setItem("referral_code", ref.toUpperCase());
       } else {
         // Check localStorage for referral code
         const storedRef = localStorage.getItem("referral_code");
         if (storedRef) {
-          setReferralCode(storedRef);
+          setReferralCodeFromUrl(storedRef);
+          setFormData((prev) => ({ ...prev, referralCode: storedRef }));
         }
       }
     }
@@ -73,16 +76,16 @@ export default function SignupPage() {
       if (error) {
         setError(error.message);
       } else if (data.user) {
-        // Link referral if code exists
-        if (referralCode) {
+        // Link referral if code exists (from URL or manual input)
+        const codeToUse = formData.referralCode?.trim().toUpperCase() || referralCodeFromUrl;
+        if (codeToUse) {
           try {
             const { supabase } = await import("@/lib/supabase");
-            
             // Find the referrer by referral code
             const { data: referrerProfile } = await supabase
               .from("user_profiles")
               .select("user_id")
-              .eq("referral_code", referralCode.toUpperCase())
+              .eq("referral_code", codeToUse)
               .maybeSingle();
 
             if (referrerProfile && referrerProfile.user_id !== data.user.id) {
@@ -95,14 +98,12 @@ export default function SignupPage() {
 
               if (!existingReferral) {
                 // Create referral relationship
-                await supabase
-                  .from("referrals")
-                  .insert({
-                    referrer_id: referrerProfile.user_id,
-                    referee_id: data.user.id,
-                    referral_code: referralCode.toUpperCase(),
-                    status: "pending",
-                  });
+                await supabase.from("referrals").insert({
+                  referrer_id: referrerProfile.user_id,
+                  referee_id: data.user.id,
+                  referral_code: codeToUse,
+                  status: "pending",
+                });
               }
             }
             // Clear stored referral code
@@ -261,6 +262,28 @@ export default function SignupPage() {
                   className="w-full px-3 py-2.5 rounded-lg bg-slate-50 text-slate-900 placeholder:text-slate-400 border border-slate-200 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all outline-none text-sm"
                   placeholder="Create a strong password"
                 />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="referralCode"
+                  className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide"
+                >
+                  Referral Code <span className="text-slate-400 font-normal">(Optional)</span>
+                </label>
+                <input
+                  id="referralCode"
+                  name="referralCode"
+                  type="text"
+                  value={formData.referralCode}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2.5 rounded-lg bg-slate-50 text-slate-900 placeholder:text-slate-400 border border-slate-200 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all outline-none text-sm uppercase"
+                  placeholder="Enter referral code (optional)"
+                  style={{ textTransform: "uppercase" }}
+                />
+                <p className="text-xs text-slate-400 mt-1">
+                  Have a referral code? Enter it here to support the person who referred you.
+                </p>
               </div>
 
               <div className="flex items-start pt-1">

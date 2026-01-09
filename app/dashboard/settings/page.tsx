@@ -25,6 +25,7 @@ import {
   Building2,
   Phone,
   Calendar,
+  Gift,
 } from "lucide-react";
 import {
   workspaceHoursAPI,

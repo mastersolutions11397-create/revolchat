@@ -115,9 +115,9 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         // Only log error in development, silently return in production
         if (process.env.NODE_ENV === "development") {
           console.warn(
-            "Attempted to persist invalid workspace ID:",
-            workspaceId
-          );
+          "Attempted to persist invalid workspace ID:",
+          workspaceId
+        );
         }
         return;
       }
@@ -159,7 +159,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           const target = await workspaceAPI.getWorkspace(targetId);
           setCurrentWorkspace(target);
           if (target?.id) {
-            persistWorkspaceId(target.id);
+          persistWorkspaceId(target.id);
           }
           hasLoadedWorkspace.current = true;
         } catch (workspaceErr: any) {
