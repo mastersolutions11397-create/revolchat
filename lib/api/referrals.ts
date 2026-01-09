@@ -124,6 +124,25 @@ class ReferralsAPI {
       "/api/referrals/cashout-requests"
     ).then((res) => res.requests);
   }
+
+  /**
+   * Get the referral code that was used to refer the current user
+   */
+  async getReferrer(): Promise<{ referral_code: string; created_at: string } | null> {
+    return apiRequest<{ referral: { referral_code: string; created_at: string } | null }>(
+      "/api/referrals/referrer"
+    ).then((res) => res.referral);
+  }
+
+  /**
+   * Link a referral code to the current user
+   */
+  async linkReferral(referralCode: string, userId: string): Promise<{ success: boolean; referral: any }> {
+    return apiRequest<{ success: boolean; referral: any }>("/api/referrals/link", {
+      method: "POST",
+      body: JSON.stringify({ referralCode, userId }),
+    });
+  }
 }
 
 export const referralsAPI = new ReferralsAPI();

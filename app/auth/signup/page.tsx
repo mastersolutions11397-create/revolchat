@@ -21,7 +21,9 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
-  const [referralCodeFromUrl, setReferralCodeFromUrl] = useState<string | null>(null);
+  const [referralCodeFromUrl, setReferralCodeFromUrl] = useState<string | null>(
+    null
+  );
   const router = useRouter();
 
   // Extract redirect and referral parameters from URL
@@ -77,7 +79,8 @@ export default function SignupPage() {
         setError(error.message);
       } else if (data.user) {
         // Link referral if code exists (from URL or manual input)
-        const codeToUse = formData.referralCode?.trim().toUpperCase() || referralCodeFromUrl;
+        const codeToUse =
+          formData.referralCode?.trim().toUpperCase() || referralCodeFromUrl;
         if (codeToUse) {
           try {
             const { supabase } = await import("@/lib/supabase");
@@ -269,7 +272,8 @@ export default function SignupPage() {
                   htmlFor="referralCode"
                   className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide"
                 >
-                  Referral Code <span className="text-slate-400 font-normal">(Optional)</span>
+                  Referral Code{" "}
+                  <span className="text-slate-400 font-normal">(Optional)</span>
                 </label>
                 <input
                   id="referralCode"
@@ -282,7 +286,8 @@ export default function SignupPage() {
                   style={{ textTransform: "uppercase" }}
                 />
                 <p className="text-xs text-slate-400 mt-1">
-                  Have a referral code? Enter it here to support the person who referred you.
+                  Have a referral code? Enter it here to support the person who
+                  referred you.
                 </p>
               </div>
 

@@ -36,7 +36,9 @@ import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { toast } from "sonner";
 import { profileAPI, UserProfileUpdate } from "@/lib/api/profile";
+import { supabase } from "@/lib/supabase";
 import Link from "next/link";
+import { Ticket } from "lucide-react";
 
 // Days will be translated in the component using useLanguage
 const DAYS: Array<{ key: DayKey; labelKey: string; shortKey: string }> = [
@@ -237,6 +239,12 @@ export default function SettingsPage() {
     email: "",
   });
 
+  // Referral State
+  const [referralCodeUsed, setReferralCodeUsed] = useState<string | null>(null);
+  const [newReferralCode, setNewReferralCode] = useState("");
+  const [referralLoading, setReferralLoading] = useState(true);
+  const [referralLinking, setReferralLinking] = useState(false);
+
   // General Settings State
   const [formData, setFormData] = useState({
     email_notifications: true,
@@ -381,6 +389,79 @@ export default function SettingsPage() {
 
     fetchProfile();
   }, [user]);
+
+  // Load Referral Data
+  useEffect(() => {
+    const fetchReferral = async () => {
+      if (!user) return;
+      try {
+        setReferralLoading(true);
+        const { data: referral, error } = await supabase
+          .from("referrals")
+          .select("referral_code")
+          .eq("referee_id", user.id)
+          .maybeSingle();
+
+        if (error) throw error;
+        
+        if (referral) {
+          setReferralCodeUsed(referral.referral_code);
+        }
+      } catch (err) {
+        console.error("Error fetching referral:", err);
+      } finally {
+        setReferralLoading(false);
+      }
+    };
+
+    fetchReferral();
+  }, [user]);
+
+  const handleLinkReferral = async () => {
+    if (!user || !newReferralCode.trim()) return;
+
+    try {
+      setReferralLinking(true);
+      const codeToUse = newReferralCode.trim().toUpperCase();
+
+      // Find the referrer
+      const { data: referrerProfile, error: profileError } = await supabase
+        .from("user_profiles")
+        .select("user_id")
+        .eq("referral_code", codeToUse)
+        .maybeSingle();
+
+      if (profileError) throw profileError;
+      if (!referrerProfile) {
+        toast.error("Invalid referral code");
+        return;
+      }
+
+      if (referrerProfile.user_id === user.id) {
+        toast.error("Cannot use your own referral code");
+        return;
+      }
+
+      // Link referral
+      const { error: linkError } = await supabase
+        .from("referrals")
+        .insert({
+          referrer_id: referrerProfile.user_id,
+          referee_id: user.id,
+          referral_code: codeToUse,
+          status: "pending",
+        });
+
+      if (linkError) throw linkError;
+      
+      setReferralCodeUsed(codeToUse);
+      toast.success("Referral code linked successfully!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to link referral code");
+    } finally {
+      setReferralLinking(false);
+    }
+  };
 
   useEffect(() => {
     if (hoursSuccess) {
@@ -743,6 +824,42 @@ export default function SettingsPage() {
                         />
                         <p className="text-xs text-slate-500 mt-2">
                           {t("settings.profile.emailCannotChange")}
+                        </p>
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                          <Ticket className="h-4 w-4 text-slate-500" />
+                          {t("settings.profile.referralCode")}
+                        </label>
+                        <div className="flex gap-3">
+                          <input
+                            type="text"
+                            value={referralCodeUsed || newReferralCode}
+                            onChange={(e) => setNewReferralCode(e.target.value.toUpperCase())}
+                            disabled={!!referralCodeUsed || referralLoading}
+                            placeholder={t("settings.profile.enterReferralCode")}
+                            className={`flex-1 rounded-xl border border-slate-200 px-4 py-3 text-slate-900 transition-all ${
+                              referralCodeUsed 
+                                ? "bg-slate-100 text-slate-600 cursor-not-allowed" 
+                                : "bg-slate-50 hover:border-sky-300 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
+                            }`}
+                          />
+                          {!referralCodeUsed && (
+                            <button
+                              onClick={handleLinkReferral}
+                              disabled={referralLinking || !newReferralCode.trim()}
+                              className="px-6 py-3 bg-sky-500 text-white rounded-xl font-bold text-sm hover:bg-sky-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                              {referralLinking && <Loader2 className="h-4 w-4 animate-spin" />}
+                              {t("settings.profile.apply")}
+                            </button>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-500 mt-2">
+                          {referralCodeUsed 
+                            ? t("settings.profile.referralApplied")
+                            : t("settings.profile.referralInstructions")}
                         </p>
                       </div>
                     </div>
