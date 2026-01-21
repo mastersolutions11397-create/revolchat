@@ -20,7 +20,10 @@ export default async function AdminDashboardPage() {
     supabaseAdmin.from("user_profiles").select("*").order("total_referrals", { ascending: false }).limit(20),
     supabaseAdmin.from("referrals").select("*").order("created_at", { ascending: true }),
     supabaseAdmin.from("referral_commissions").select("*"),
-    supabaseAdmin.from("referral_cashout_requests").select("*").order("created_at", { ascending: false })
+    supabaseAdmin
+      .from("referral_cashout_requests")
+      .select("*")
+      .order("created_at", { ascending: false })
   ]);
 
   // --- Calculate Statistics ---
@@ -227,7 +230,7 @@ export default async function AdminDashboardPage() {
             <table className="w-full text-left">
               <thead className="bg-slate-50 text-xs uppercase font-bold text-slate-500">
                 <tr>
-                   <th className="px-6 py-3">User</th>
+                   <th className="px-6 py-3">User Email</th>
                    <th className="px-6 py-3">Amount</th>
                    <th className="px-6 py-3">Method</th>
                    <th className="px-6 py-3">Date</th>

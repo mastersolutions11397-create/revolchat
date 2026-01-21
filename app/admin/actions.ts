@@ -83,9 +83,9 @@ export async function approveCashout(requestId: string) {
       const { Resend } = await import("resend");
       const resend = new Resend(process.env.RESEND_API_KEY);
       
-      // Get user email
+      // Get user email from payment_details or auth
       const { data: user } = await supabaseAdmin.auth.admin.getUserById(request.user_id);
-      const userEmail = user?.user?.email || request.user_email; // fallback to stored email if available
+      const userEmail = request.payment_details?.email || user?.user?.email;
 
       if (userEmail) {
         await resend.emails.send({

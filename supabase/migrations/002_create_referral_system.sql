@@ -171,3 +171,97 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Function to create user profile with referral code
+CREATE OR REPLACE FUNCTION create_user_profile()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    first_name TEXT;
+    last_name TEXT;
+    email_prefix TEXT;
+    referral_code TEXT;
+    attempt_count INTEGER := 0;
+    max_attempts INTEGER := 10;
+BEGIN
+    -- Extract name information from user metadata
+    first_name := COALESCE(NEW.raw_user_meta_data->>'first_name', '');
+    last_name := COALESCE(NEW.raw_user_meta_data->>'last_name', '');
+    email_prefix := COALESCE(SPLIT_PART(NEW.email, '@', 1), 'USER');
+
+    -- Generate referral code using first and last name or email
+    IF first_name != '' AND last_name != '' THEN
+        referral_code := UPPER(REPLACE(first_name || last_name, ' ', '') || '-' ||
+                              SUBSTRING(MD5(RANDOM()::TEXT) FROM 1 FOR 6));
+    ELSE
+        -- Fallback using email prefix
+        referral_code := UPPER(email_prefix || '-' || SUBSTRING(MD5(NEW.id::TEXT) FROM 1 FOR 6));
+    END IF;
+
+    -- Ensure uniqueness of referral code
+    WHILE attempt_count < max_attempts LOOP
+        BEGIN
+            -- Try to insert the profile
+            INSERT INTO public.user_profiles (
+                user_id,
+                referral_code,
+                total_earnings,
+                total_referrals
+            ) VALUES (
+                NEW.id,
+                referral_code,
+                0,
+                0
+            );
+
+            -- If we get here, insertion was successful
+            RETURN NEW;
+        EXCEPTION WHEN unique_violation THEN
+            -- Code already exists, try a new one
+            attempt_count := attempt_count + 1;
+            IF first_name != '' AND last_name != '' THEN
+                referral_code := UPPER(REPLACE(first_name || last_name, ' ', '') || '-' ||
+                                      SUBSTRING(MD5(RANDOM()::TEXT || attempt_count::TEXT) FROM 1 FOR 6));
+            ELSE
+                referral_code := UPPER(email_prefix || '-' || SUBSTRING(MD5(NEW.id::TEXT || attempt_count::TEXT) FROM 1 FOR 6));
+            END IF;
+        END;
+    END LOOP;
+
+    -- If we couldn't generate a unique code after max attempts, use UUID-based code
+    referral_code := UPPER('USER-' || SUBSTRING(MD5(NEW.id::TEXT) FROM 1 FOR 6));
+
+    -- Final attempt with UUID-based code
+    BEGIN
+        INSERT INTO public.user_profiles (
+            user_id,
+            referral_code,
+            total_earnings,
+            total_referrals
+        ) VALUES (
+            NEW.id,
+            referral_code,
+            0,
+            0
+        );
+    EXCEPTION WHEN OTHERS THEN
+        -- Log error but don't fail user creation
+        RAISE WARNING 'Failed to create user profile for user % after all attempts: %', NEW.id, SQLERRM;
+    END;
+
+    RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+    -- Log error but don't fail user creation
+    RAISE WARNING 'Failed to create user profile for user %: %', NEW.id, SQLERRM;
+    RETURN NEW;
+END;
+$$;
+
+-- Create trigger to automatically create user profiles
+DROP TRIGGER IF EXISTS create_user_profile_trigger ON auth.users;
+CREATE TRIGGER create_user_profile_trigger
+    AFTER INSERT ON auth.users
+    FOR EACH ROW
+    EXECUTE FUNCTION create_user_profile();

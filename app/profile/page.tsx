@@ -144,7 +144,7 @@ export default function ProfilePage() {
                 Dashboard
               </Link>
               <Link
-                href="/workspace"
+                href="/dashboard"
                 className="text-gray-700 hover:text-sky-500 px-3 py-2 rounded-md text-sm font-medium transition-colors"
               >
                 Workspaces

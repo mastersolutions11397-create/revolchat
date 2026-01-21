@@ -22,15 +22,18 @@ export function CashoutRow({ request }: { request: any }) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // Extract email from payment_details for email-based payouts
+  const userEmail = request.payment_details?.email || "No email provided";
+
   async function handleAction(action: "approve" | "reject") {
     if (!confirm(`Are you sure you want to ${action} this request?`)) return;
-    
+
     setLoading(true);
     try {
-      const result = action === "approve" 
+      const result = action === "approve"
         ? await approveCashout(request.id)
         : await rejectCashout(request.id);
-        
+
       if (result.success) {
         toast.success(`Request ${action}ed successfully`);
         router.refresh(); // Refresh server data
@@ -47,7 +50,7 @@ export function CashoutRow({ request }: { request: any }) {
   return (
     <tr className="hover:bg-slate-50 border-b border-slate-100 last:border-0 text-sm">
       <td className="px-6 py-4 text-slate-900 font-medium truncate max-w-[200px]" title={request.user_id}>
-        {request.user_email || "Unknown User"} 
+        {userEmail}
         <span className="block text-xs text-slate-400 font-normal">{request.user_id.slice(0, 8)}...</span>
       </td>
       <td className="px-6 py-4 text-slate-900 font-bold">${request.total_amount}</td>
