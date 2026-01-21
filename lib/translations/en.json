@@ -8,7 +8,6 @@
   "nav.getStarted": "Get Started",
   "nav.features": "Features",
   "nav.howItWorks": "How It Works",
-
   "hero.title": "Your AI Agent That Never Sleeps",
   "hero.titleLine1": "Never Miss Another",
   "hero.titleLine2": "Customer Again",
@@ -22,7 +21,6 @@
   "hero.salesGrowth": "Sales Growth",
   "hero.salesGrowthValue": "+124% this week",
   "hero.activeChats": "Active Chats",
-
   "centerpiece.title": "Meet Yetti — Your AI That Understands Your Business",
   "centerpiece.subtitle": "No coding required. Train with your content, build workflows in Sheets, and let Yetti handle conversations like your best team member.",
   "centerpiece.trainContent": "Train with Content",
@@ -37,7 +35,6 @@
   "centerpiece.mobile.workflowsSheets": "Workflows in Sheets — No coding",
   "centerpiece.mobile.deployEverywhere": "Deploy Everywhere — Multiple platforms",
   "centerpiece.mobile.realTimeAnalytics": "Real-Time Analytics — Track performance",
-
   "features.title": "Turn Conversations Into Revenue",
   "features.subtitle": "Instant replies, cart recovery, custom workflows—all without coding.",
   "features.smartTraining.title": "Smart Training",
@@ -52,7 +49,6 @@
   "features.instantResponses.desc": "Millisecond replies boost satisfaction and sales.",
   "features.alwaysOnBrand.title": "Always On-Brand",
   "features.alwaysOnBrand.desc": "Built-in guardrails keep responses accurate and trustworthy.",
-
   "integrations.title": "Deploy Where Your Customers Are",
   "integrations.subtitle": "Instagram, Messenger, and Telegram—Yetti engages 24/7 with quality you can trust.",
   "integrations.instagram.title": "Instagram",
@@ -61,7 +57,6 @@
   "integrations.messenger.desc": "Recover abandoned carts, answer FAQs instantly, and route complex issues to your team.",
   "integrations.telegram.title": "Telegram",
   "integrations.telegram.desc": "Handle thousands of conversations simultaneously. Enterprise capacity at startup prices.",
-
   "cta.badge": "Get started",
   "cta.boostSales": "Boost Your Sales Instantly",
   "cta.title": "Ready to Transform Your Social Media Into Sales?",
@@ -71,7 +66,6 @@
   "cta.scheduleDemo": "Schedule a Demo",
   "cta.startTrial": "Start Free Trial",
   "cta.viewPricing": "View Pricing",
-
   "testimonials.title": "Loved by Businesses Worldwide",
   "testimonials.subtitle": "Thousands of businesses trust Yetti to handle their customer conversations 24/7. See what they're saying.",
   "testimonials.testimonial1.text": "Yetti has completely transformed how we handle customer service. We went from missing 40% of DMs to responding to every customer in seconds. Sales have increased 35% since we deployed Yetti on Instagram and Messenger. The best part? It took us less than 30 minutes to set up.",
@@ -86,7 +80,6 @@
   "testimonials.testimonial4.text": "Yetti understands our brand voice perfectly. Customers can't tell they're talking to an AI. Response quality is consistently excellent.",
   "testimonials.testimonial4.name": "David Kim",
   "testimonials.testimonial4.role": "Marketing Director, FreshMarket",
-
   "pricing.title": "Pricing that scales with your business",
   "pricing.subtitle": "Choose the perfect plan for your needs and start optimizing your workflow today",
   "pricing.plan.name": "Suite Enterprise",
@@ -102,7 +95,6 @@
   "pricing.annual": "Annual",
   "pricing.save20": "Save 20%",
   "pricing.mostPopular": "Most Popular",
-
   "pricing.starter.name": "Starter",
   "pricing.starter.price": "Free",
   "pricing.starter.period": "forever",
@@ -114,7 +106,6 @@
   "pricing.starter.features.3": "Basic analytics",
   "pricing.starter.features.4": "Email support",
   "pricing.starter.features.5": "Community forum access",
-
   "pricing.professional.name": "Professional",
   "pricing.professional.price": "$29",
   "pricing.professional.period": "per month",
@@ -128,7 +119,6 @@
   "pricing.professional.features.5": "Custom knowledge base",
   "pricing.professional.features.6": "API access",
   "pricing.professional.features.7": "Webhook integrations",
-
   "pricing.enterprise.name": "Enterprise",
   "pricing.enterprise.price": "$99",
   "pricing.enterprise.period": "per month",
@@ -145,7 +135,6 @@
   "pricing.enterprise.features.8": "Custom integrations",
   "pricing.enterprise.features.9": "Dedicated account manager",
   "pricing.enterprise.features.10": "SLA guarantee",
-
   "contact.title": "Get in Touch",
   "contact.subtitle": "Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.",
   "contact.sendMessage": "Send us a message",
@@ -163,7 +152,6 @@
   "contact.support": "Technical Support",
   "contact.partnership": "Partnership",
   "contact.media": "Media Inquiry",
-
   "login.welcomeBack": "Welcome home",
   "login.enterDetails": "Please enter your details.",
   "login.email": "Email address",
@@ -175,7 +163,6 @@
   "login.noAccount": "Don't have an account?",
   "login.signUp": "Sign up",
   "login.orContinueWith": "Or continue with",
-
   "signup.createAccount": "Create your account",
   "signup.startTrial": "Start your free trial today",
   "signup.firstName": "First name",
@@ -188,7 +175,6 @@
   "signup.signIn": "Sign in",
   "signup.orContinueWith": "Or continue with",
   "signup.signingUp": "Signing up...",
-
   "faq.badge": "FAQ",
   "faq.title": "Frequently Asked Questions",
   "faq.subtitle": "Everything you need to know about Yetti. Can't find your answer? Reach out to our team.",
@@ -209,7 +195,6 @@
   "faq.q7.answer": "Yes, Yetti integrates with popular ecommerce platforms, CRMs, inventory systems, and custom APIs. It becomes the central hub for all your customer interactions.",
   "faq.q8.question": "How does Yetti handle conversations outside business hours?",
   "faq.q8.answer": "Yetti is designed to gracefully handle unknowns. It can either route the conversation to your human team, collect customer information for follow-up, or provide helpful context based on what it does know. You control the fallback behavior and can set custom business hours in your workspace settings.",
-
   "footer.description": "Your AI agent that never sleeps. Automate customer conversations across Instagram, Messenger, and Telegram with intelligent AI-powered responses.",
   "footer.brand.tagline": "Connecting AI agents to the world's most popular platforms.",
   "footer.product": "Product",
@@ -230,7 +215,6 @@
   "footer.businessHours": "Business Hours",
   "footer.followUs": "Follow Us",
   "footer.rights": "All rights reserved",
-
   "dashboard.title": "Dashboard",
   "dashboard.subtitle": "Overview of your AI agents and conversations",
   "dashboard.welcome": "Welcome back",
@@ -261,7 +245,6 @@
   "dashboard.createAgent": "Create Agent",
   "dashboard.viewAnalytics": "View Analytics",
   "dashboard.settings": "Settings",
-
   "workspace.title": "Workspaces",
   "workspace.subtitle": "Select or create a workspace to get started",
   "workspace.createNew": "Create New Workspace",
@@ -287,7 +270,6 @@
   "workspace.next": "Next",
   "workspace.previous": "Previous",
   "workspace.finish": "Finish",
-
   "knowledge.title": "Knowledge Base",
   "knowledge.subtitle": "Train your AI agent with documents and data",
   "knowledge.add": "Add Knowledge",
@@ -351,7 +333,6 @@
   "knowledge.importance.normal": "Normal",
   "knowledge.importance.high": "High",
   "knowledge.importance.critical": "Critical",
-
   "integrations.page.title": "Integrations",
   "integrations.page.subtitle": "Connect your favorite channels in seconds",
   "integrations.whatsapp": "WhatsApp",
@@ -381,7 +362,6 @@
   "integrations.instagram.alreadyConnected": "Instagram account is already connected.",
   "integrations.selectWorkspace": "Please select a workspace before connecting.",
   "integrations.loginRequired": "Please log in to connect.",
-
   "settings.title": "Settings",
   "settings.subtitle": "Manage your workspace and account preferences",
   "settings.profile": "Profile",
@@ -436,7 +416,6 @@
   "settings.active": "Active",
   "settings.since": "Since",
   "settings.loadingSchedule": "Loading schedule...",
-
   "inbox.title": "Inbox",
   "inbox.subtitle": "Manage your conversations",
   "inbox.chat": "Chat",
@@ -451,7 +430,6 @@
   "inbox.chatConversation": "Chat conversation",
   "inbox.yesterday": "Yesterday",
   "inbox.backToConversations": "Back to conversations",
-
   "plans.title": "Plans",
   "plans.subtitle": "Choose the plan that's right for you",
   "plans.starter": "Starter",
@@ -491,7 +469,6 @@
   "plans.tokenUsage": "Token Usage & analytics",
   "plans.advancedTokenUsage": "Advanced token usage & analytics",
   "plans.customIntegrations": "Connect all socials + custom integrations",
-
   "help.title": "Help Center",
   "help.subtitle": "Find answers to common questions and learn how to make the most of yetti AI",
   "help.support": "Support",
@@ -507,7 +484,6 @@
   "help.readTime": "min read",
   "help.popular": "Popular",
   "help.viewArticle": "View Article",
-
   "onboarding.tour.title": "Welcome to Yetti!",
   "onboarding.tour.subtitle": "Let's get you started with a quick tour",
   "onboarding.tour.skip": "Skip Tour",
@@ -526,7 +502,6 @@
   "onboarding.tour.step5.desc": "Connect Instagram, Telegram, or other platforms to start automating conversations.",
   "onboarding.tour.step6.title": "Configure Settings",
   "onboarding.tour.step6.desc": "Set up your workspace hours and notification preferences.",
-
   "common.loading": "Loading...",
   "common.error": "Error",
   "common.success": "Success",
@@ -574,7 +549,6 @@
   "common.lastMonth": "Last Month",
   "common.thisYear": "This Year",
   "common.lastYear": "Last Year",
-
   "solutions.title": "Solutions to Your Biggest Challenges",
   "solutions.titleHighlight": "Biggest Challenges",
   "solutions.subtitle": "Stop losing customers to slow responses. Your Yetti solves the problems keeping you up at night.",
@@ -597,11 +571,9 @@
   "solutions.solution6.title": "Expert Product Knowledge",
   "solutions.solution6.problem": "Struggling to communicate product value?",
   "solutions.solution6.solution": "Yetti explains features, benefits, and details perfectly, trained on your exact specifications.",
-
   "platforms.title": "Deploy Where Your Customers Are",
   "platforms.titleHighlight": "Customers Are",
   "platforms.subtitle": "Connect with your customers on their favorite platforms. Yetti integrates seamlessly across all major social channels.",
-
   "trainDeploy.trainTitle": "Train Your Yetti in Minutes",
   "trainDeploy.trainTitleHighlight": "Minutes",
   "trainDeploy.trainSubtitle": "No coding required. No complex setup. Just share your knowledge and watch your AI agent come to life.",
@@ -623,7 +595,6 @@
   "trainDeploy.step3.title": "Go Live",
   "trainDeploy.step3.desc": "Connect your social accounts and start selling.",
   "trainDeploy.step3.subtext": "Immediate deployment",
-
   "pricing.landing.title": "Simple, Transparent Pricing",
   "pricing.landing.titleHighlight": "Pricing",
   "pricing.landing.subtitle": "Start free with 100 tokens, then choose the plan that fits your business.",
@@ -677,11 +648,9 @@
   "pricing.landing.features.enterprise.5": "Unlimited Team seats",
   "pricing.landing.features.enterprise.6": "Advanced token usage & analytics",
   "pricing.landing.features.enterprise.7": "Priority chat support",
-
   "videoDemo.title": "See Yetti in Action",
   "videoDemo.titleHighlight": "Action",
   "videoDemo.subtitle": "Watch how Yetti.ai seamlessly handles customer conversations, boosts engagement, and drives sales on autopilot.",
-
   "privacy.title": "Privacy Policy",
   "privacy.lastUpdated": "Last updated: December 15, 2024",
   "privacy.section1.title": "Introduction",
@@ -755,7 +724,6 @@
   "privacy.section11.addressValue": "123 AI Street, San Francisco, CA 94105",
   "privacy.section11.phone": "Phone",
   "privacy.section11.phoneValue": "+1 (555) 123-4567",
-
   "terms.title": "Terms of Service",
   "terms.lastUpdated": "Last updated: December 15, 2024",
   "terms.section1.title": "1. Acceptance of Terms",
@@ -816,7 +784,6 @@
   "terms.section14.addressValue": "123 AI Street, San Francisco, CA 94105",
   "terms.section14.phone": "Phone",
   "terms.section14.phoneValue": "+1 (555) 123-4567",
-
   "dashboard.welcomeBack": "Welcome back",
   "dashboard.welcomeMessage": "Here's what's happening in your workspace today.",
   "dashboard.systemOperational": "System Operational",
@@ -867,7 +834,6 @@
   "dashboard.workspaceNameHelper": "Minimum 3 characters required",
   "dashboard.workspaceNamePerfect": "✓ Perfect! You're ready to continue",
   "dashboard.workspaceDescription": "A workspace is where you'll manage your AI agents, knowledge base, and integrations. Give it a memorable name to get started.",
-
   "knowledgeBase.title": "Knowledge Base",
   "knowledgeBase.addKnowledge": "Add Knowledge",
   "knowledgeBase.textDocument": "Text Document",
@@ -933,7 +899,6 @@
   "knowledgeBase.never": "Never",
   "knowledgeBase.failedToFetch": "Failed to fetch knowledge for this workspace",
   "knowledgeBase.failedToFetchSheets": "Failed to fetch Google Sheets for this workspace",
-
   "inbox.yettiAgent": "Yetti Agent",
   "inbox.chatId": "Chat {id}",
   "inbox.selectWorkspace": "Please select a workspace",
@@ -941,7 +906,6 @@
   "inbox.telegram": "Telegram",
   "inbox.ig": "IG",
   "inbox.tg": "TG",
-
   "messages.title": "Leads",
   "messages.subtitle": "Manage your leads and conversations",
   "messages.search": "Search leads...",
@@ -957,7 +921,6 @@
   "messages.selectWorkspace": "Please select a workspace",
   "messages.instagram": "Instagram",
   "messages.telegram": "Telegram",
-
   "workspaceHours.title": "Working Hours",
   "workspaceHours.subtitle": "Set your AI agent's availability, timezone, and weekly schedule.",
   "workspaceHours.availability": "Workspace Availability",
@@ -989,7 +952,6 @@
   "workspaceHours.friday": "Friday",
   "workspaceHours.saturday": "Saturday",
   "workspaceHours.sunday": "Sunday",
-
   "usage.title": "Usage",
   "usage.subtitle": "Track your credit usage and transaction history for {workspace}",
   "usage.period7d": "7 Days",
@@ -1013,7 +975,6 @@
   "usage.balanceAfterHeader": "Balance After",
   "usage.loadError": "Failed to load usage data",
   "usage.loadMore": "Load More Transactions",
-
   "billing.title": "Billing",
   "billing.subtitle": "Manage your global credits, view transactions, and access invoices.",
   "billing.globalCredits": "Global Credits",
@@ -1070,7 +1031,6 @@
   "billing.upgradeTitle": "Upgrade Your Plan",
   "billing.upgradeDesc": "Unlock advanced features, higher limits, and priority support with our premium plans.",
   "billing.viewPlans": "View Plans",
-
   "integrations.loadingWorkspace": "Loading workspace...",
   "integrations.disconnectConfirm": "Are you sure you want to disconnect",
   "integrations.connectInstagram": "Connect Instagram",
@@ -1097,13 +1057,11 @@
   "integrations.clickConnectToLinkInstagram": "Click \"Connect\" to link your Instagram account",
   "integrations.connecting": "Connecting...",
   "integrations.checkingInstagramStatus": "Checking Instagram status…",
-
   "plans.renewsOn": "Renews on",
   "plans.processing": "Processing...",
   "plans.failedToLoad": "Failed to load plans",
   "plans.invalidPlan": "Invalid plan selected",
   "plans.failedToStartCheckout": "Failed to start checkout process",
-
   "settings.days.monday": "Monday",
   "settings.days.tuesday": "Tuesday",
   "settings.days.wednesday": "Wednesday",
@@ -1118,7 +1076,6 @@
   "settings.days.fri": "Fri",
   "settings.days.sat": "Sat",
   "settings.days.sun": "Sun",
-
   "settings.profile.title": "Personal Information",
   "settings.profile.subtitle": "Update your profile details",
   "settings.profile.firstName": "First Name",
@@ -1137,7 +1094,11 @@
   "settings.profile.enterLastName": "Enter your last name",
   "settings.profile.enterCompanyName": "Enter your company name",
   "settings.profile.enterPhoneNumber": "Enter your phone number",
-
+  "settings.profile.referralCode": "Referral Code",
+  "settings.profile.referralApplied": "This referral code was applied to your account and cannot be changed.",
+  "settings.profile.referralInstructions": "Enter a referral code to support the person who referred you. This can only be set once.",
+  "settings.profile.apply": "Apply",
+  "settings.profile.enterReferralCode": "Enter referral code (optional)",
   "settings.workspaceHours.title": "Working Hours",
   "settings.workspaceHours.subtitle": "Set your AI agent's availability, timezone, and weekly schedule.",
   "settings.workspaceHours.availability": "Workspace Availability",
@@ -1160,7 +1121,6 @@
   "settings.workspaceHours.failedToLoad": "Failed to load schedule",
   "settings.workspaceHours.couldNotLoad": "Could not load schedule",
   "settings.workspaceHours.usingDefault": "Using default schedule",
-
   "settings.notifications.title": "Notifications",
   "settings.notifications.email": "Email Notifications",
   "settings.notifications.emailDesc": "Receive weekly summaries and critical alerts via email.",
@@ -1172,7 +1132,6 @@
   "settings.notifications.saving": "Saving...",
   "settings.notifications.saved": "Notification settings saved!",
   "settings.notifications.failed": "Failed to save settings",
-
   "settings.account.title": "Account",
   "settings.account.signOut": "Sign Out"
 }

@@ -6,6 +6,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/lib/auth";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
+import { supabase } from "@/lib/supabase";
+import { generateReferralCode } from "@/lib/utils/referral-code";
 
 export default function SignupPage() {
   const { t } = useLanguage();
@@ -14,22 +16,41 @@ export default function SignupPage() {
     lastName: "",
     email: "",
     password: "",
+    referralCode: "",
   });
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+  const [referralCodeFromUrl, setReferralCodeFromUrl] = useState<string | null>(
+    null
+  );
   const router = useRouter();
 
-  // Extract redirect parameter from URL
+  // Extract redirect and referral parameters from URL
   useEffect(() => {
     if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
       const redirect = urlParams.get("redirect");
+      const ref = urlParams.get("ref");
 
       if (redirect) {
         setRedirectUrl(decodeURIComponent(redirect));
+      }
+
+      if (ref) {
+        setReferralCodeFromUrl(ref.toUpperCase());
+        setFormData((prev) => ({ ...prev, referralCode: ref.toUpperCase() }));
+        // Store in localStorage as backup
+        localStorage.setItem("referral_code", ref.toUpperCase());
+      } else {
+        // Check localStorage for referral code
+        const storedRef = localStorage.getItem("referral_code");
+        if (storedRef) {
+          setReferralCodeFromUrl(storedRef);
+          setFormData((prev) => ({ ...prev, referralCode: storedRef }));
+        }
       }
     }
   }, []);
@@ -59,6 +80,111 @@ export default function SignupPage() {
       if (error) {
         setError(error.message);
       } else if (data.user) {
+        // Ensure user profile exists and link referral if code exists
+        try {
+          console.log(
+            "Setting up profile and referral for user:",
+            data.user.id
+          );
+
+          // First, ensure the new user has a profile with referral code
+          let { data: userProfile, error: profileError } = await supabase
+            .from("user_profiles")
+            .select("*")
+            .eq("user_id", data.user.id)
+            .maybeSingle();
+
+          console.log("Existing profile check:", { userProfile, profileError });
+
+          // If profile doesn't exist, create it (fallback if trigger didn't work)
+          if (!userProfile && !profileError) {
+            console.log("Creating new profile for user");
+
+            const username =
+              formData.firstName && formData.lastName
+                ? `${formData.firstName}${formData.lastName}`
+                    .replace(/[^a-zA-Z0-9]/g, "")
+                    .toUpperCase()
+                : data.user.email?.split("@")[0]?.toUpperCase() || "USER";
+
+            let referralCode = generateReferralCode(username);
+
+            // Ensure uniqueness
+            let attempts = 0;
+            while (attempts < 10) {
+              const { data: existing } = await supabase
+                .from("user_profiles")
+                .select("referral_code")
+                .eq("referral_code", referralCode)
+                .maybeSingle();
+
+              if (!existing) break;
+              referralCode = generateReferralCode(username);
+              attempts++;
+            }
+
+            console.log("Generated referral code:", referralCode);
+
+            const { data: newProfile, error: createError } = await supabase
+              .from("user_profiles")
+              .insert({
+                user_id: data.user.id,
+                referral_code: referralCode,
+                total_earnings: 0,
+                total_referrals: 0,
+              })
+              .select()
+              .single();
+
+            console.log("Profile creation result:", {
+              newProfile,
+              createError,
+            });
+
+            if (!createError) {
+              userProfile = newProfile;
+            } else {
+              console.error("Failed to create profile:", createError);
+            }
+          }
+
+          // Now link referral if code exists
+          const codeToUse =
+            formData.referralCode?.trim().toUpperCase() || referralCodeFromUrl;
+          if (codeToUse && userProfile) {
+            // Find the referrer by referral code
+            const { data: referrerProfile } = await supabase
+              .from("user_profiles")
+              .select("user_id")
+              .eq("referral_code", codeToUse)
+              .maybeSingle();
+
+            if (referrerProfile && referrerProfile.user_id !== data.user.id) {
+              // Check if user already has a referral
+              const { data: existingReferral } = await supabase
+                .from("referrals")
+                .select("id")
+                .eq("referee_id", data.user.id)
+                .maybeSingle();
+
+              if (!existingReferral) {
+                // Create referral relationship
+                await supabase.from("referrals").insert({
+                  referrer_id: referrerProfile.user_id,
+                  referee_id: data.user.id,
+                  referral_code: codeToUse,
+                  status: "pending",
+                });
+              }
+            }
+            // Clear stored referral code
+            localStorage.removeItem("referral_code");
+          }
+        } catch (err) {
+          console.error("Failed to set up user profile and referral:", err);
+          // Don't block signup if profile/referral setup fails
+        }
+
         setSuccess(true);
         // Redirect to specified URL or dashboard after successful signup
         setTimeout(() => {
@@ -207,6 +333,30 @@ export default function SignupPage() {
                   className="w-full px-3 py-2.5 rounded-lg bg-slate-50 text-slate-900 placeholder:text-slate-400 border border-slate-200 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all outline-none text-sm"
                   placeholder="Create a strong password"
                 />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="referralCode"
+                  className="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide"
+                >
+                  Referral Code{" "}
+                  <span className="text-slate-400 font-normal">(Optional)</span>
+                </label>
+                <input
+                  id="referralCode"
+                  name="referralCode"
+                  type="text"
+                  value={formData.referralCode}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2.5 rounded-lg bg-slate-50 text-slate-900 placeholder:text-slate-400 border border-slate-200 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all outline-none text-sm uppercase"
+                  placeholder="Enter referral code (optional)"
+                  style={{ textTransform: "uppercase" }}
+                />
+                <p className="text-xs text-slate-400 mt-1">
+                  Have a referral code? Enter it here to support the person who
+                  referred you.
+                </p>
               </div>
 
               <div className="flex items-start pt-1">

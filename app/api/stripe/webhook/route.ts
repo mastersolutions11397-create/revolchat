@@ -306,6 +306,8 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
       ).toISOString(),
     };
 
+    let userPlanId: string | null = null;
+
     if (existingPlanData) {
       // Update existing plan via Supabase
       const { error: updateError } = await supabaseAdmin
@@ -327,15 +329,19 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
       if (updateError) {
         throw new Error(`Failed to update plan: ${updateError.message}`);
       }
+      userPlanId = existingPlanData.id;
     } else {
       // Create new plan via Supabase
-      const { error: createError } = await supabaseAdmin
+      const { data: newPlan, error: createError } = await supabaseAdmin
         .from("user_plans")
-        .insert(planData);
+        .insert(planData)
+        .select()
+        .single();
 
       if (createError) {
         throw new Error(`Failed to create plan: ${createError.message}`);
       }
+      userPlanId = newPlan.id;
     }
 
     // Get current balance and calculate new balance
@@ -365,6 +371,16 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
     console.log(
       `Processed subscription payment for user ${userId}, plan ${planConfig.name}`
     );
+
+    // Process referral commission
+    await processReferralCommission({
+      userId,
+      planName: planConfig.name,
+      planPrice: planConfig.price,
+      invoiceId: invoice.id,
+      userPlanId: userPlanId,
+      subscription,
+    });
   } catch (error: unknown) {
     console.error("Error in handleInvoicePaymentSucceeded:", {
       message: error instanceof Error ? error.message : "Unknown error",
@@ -373,6 +389,225 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
       subscriptionId: invoice?.subscription,
     });
     throw error;
+  }
+}
+
+/**
+ * Process referral commission
+ */
+async function processReferralCommission({
+  userId,
+  planName,
+  planPrice,
+  invoiceId,
+  userPlanId,
+  subscription,
+}: {
+  userId: string;
+  planName: string;
+  planPrice: number;
+  invoiceId: string;
+  userPlanId: string | null;
+  subscription: Stripe.Subscription;
+}) {
+  try {
+    // Check if user has a referrer
+    const { data: referral } = await supabaseAdmin
+      .from("referrals")
+      .select("*")
+      .eq("referee_id", userId)
+      .in("status", ["pending", "completed"])
+      .maybeSingle();
+
+    if (!referral) {
+      return; // No referral, nothing to process
+    }
+
+    // Determine payment month (1 = first payment, 2-3 = recurring)
+    // Check subscription creation date vs current period
+    const subscriptionCreated = new Date(subscription.created * 1000);
+    const currentPeriodStart = new Date(
+      subscription.current_period_start * 1000
+    );
+    const monthsDiff =
+      (currentPeriodStart.getTime() - subscriptionCreated.getTime()) /
+      (1000 * 60 * 60 * 24 * 30);
+
+    let paymentMonth = 1;
+    if (monthsDiff >= 2) {
+      paymentMonth = 3;
+    } else if (monthsDiff >= 1) {
+      paymentMonth = 2;
+    }
+
+    // Only process commissions for first 3 months
+    if (paymentMonth > 3) {
+      return;
+    }
+
+    // Check if commission already exists
+    const { data: existingCommission } = await supabaseAdmin
+      .from("referral_commissions")
+      .select("*")
+      .eq("referral_id", referral.id)
+      .eq("user_plan_id", userPlanId)
+      .eq("payment_month", paymentMonth)
+      .maybeSingle();
+
+    if (existingCommission) {
+      return; // Already processed
+    }
+
+    // Calculate 30% commission
+    const commissionAmount = parseFloat((planPrice * 0.3).toFixed(2));
+
+    // Create commission record
+    const { data: commission, error: commissionError } = await supabaseAdmin
+      .from("referral_commissions")
+      .insert({
+        referral_id: referral.id,
+        referrer_id: referral.referrer_id,
+        referee_id: userId,
+        plan_name: planName,
+        plan_price: planPrice,
+        commission_amount: commissionAmount,
+        commission_type: "cash",
+        status: "pending",
+        stripe_invoice_id: invoiceId,
+        user_plan_id: userPlanId,
+        payment_month: paymentMonth,
+      })
+      .select()
+      .single();
+
+    if (commissionError) {
+      console.error("Error creating commission:", commissionError);
+      return;
+    }
+
+    // Update referral status to completed if first payment
+    if (paymentMonth === 1) {
+      await supabaseAdmin
+        .from("referrals")
+        .update({
+          status: "completed",
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", referral.id);
+
+      // Update user profile stats
+      const { data: profile } = await supabaseAdmin
+        .from("user_profiles")
+        .select("total_referrals")
+        .eq("user_id", referral.referrer_id)
+        .single();
+
+      if (profile) {
+        await supabaseAdmin
+          .from("user_profiles")
+          .update({
+            total_referrals: (profile.total_referrals || 0) + 1,
+          })
+          .eq("user_id", referral.referrer_id);
+      }
+    }
+
+    // Update total earnings
+    const { data: profile } = await supabaseAdmin
+      .from("user_profiles")
+      .select("total_earnings")
+      .eq("user_id", referral.referrer_id)
+      .single();
+
+    if (profile) {
+      await supabaseAdmin
+        .from("user_profiles")
+        .update({
+          total_earnings: parseFloat(
+            ((profile.total_earnings || 0) + commissionAmount).toFixed(2)
+          ),
+        })
+        .eq("user_id", referral.referrer_id);
+    }
+
+    // Send email notification to referrer
+    await sendReferralCommissionEmail({
+      referrerId: referral.referrer_id,
+      commissionAmount,
+      planName,
+      paymentMonth,
+    });
+
+    console.log(
+      `Created referral commission: $${commissionAmount} for referrer ${referral.referrer_id}`
+    );
+  } catch (error) {
+    console.error("Error processing referral commission:", error);
+    // Don't throw - we don't want to fail the webhook if commission processing fails
+  }
+}
+
+/**
+ * Send email notification when commission is earned
+ */
+async function sendReferralCommissionEmail({
+  referrerId,
+  commissionAmount,
+  planName,
+  paymentMonth,
+}: {
+  referrerId: string;
+  commissionAmount: number;
+  planName: string;
+  paymentMonth: number;
+}) {
+  try {
+    if (!process.env.RESEND_API_KEY) {
+      console.log("RESEND_API_KEY not configured, skipping email");
+      return;
+    }
+
+    // Get referrer email from auth.users using admin client
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.admin.getUserById(
+      referrerId
+    );
+
+    if (userError || !user?.email) {
+      console.error("Error fetching referrer email:", userError);
+      return;
+    }
+
+    const { Resend } = await import("resend");
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    const monthText =
+      paymentMonth === 1
+        ? "first payment"
+        : paymentMonth === 2
+          ? "second month"
+          : "third month";
+
+    await resend.emails.send({
+      from: "yetti AI <onboarding@resend.dev>",
+      to: user.email,
+      subject: `🎉 You earned $${commissionAmount.toFixed(2)} in referral commission!`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #5170ff;">Congratulations! 🎉</h2>
+          <p>You've earned a referral commission!</p>
+          <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p><strong>Commission Amount:</strong> $${commissionAmount.toFixed(2)}</p>
+            <p><strong>Plan:</strong> ${planName}</p>
+            <p><strong>Payment:</strong> ${monthText}</p>
+          </div>
+          <p>Your commission will be available for cashout once processed. You can view your earnings in your <a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://yetti.ai"}/dashboard/referrals">Referrals Dashboard</a>.</p>
+          <p>Keep sharing your referral link to earn more!</p>
+          <p>Best regards,<br>The yetti AI Team</p>
+        </div>
+      `,
+    });
+  } catch (error) {
+    console.error("Error sending commission email:", error);
   }
 }
 

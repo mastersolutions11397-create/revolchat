@@ -18,7 +18,7 @@ function BillingSuccessContent() {
   useEffect(() => {
     async function verifyPayment() {
       if (!sessionId) {
-        router.push('/workspace');
+        router.push('/dashbard');
         return;
       }
 
@@ -36,7 +36,7 @@ function BillingSuccessContent() {
 
       } catch (error) {
         console.error('Error verifying payment:', error);
-        router.push('/workspace');
+        router.push('/dashboard');
       } finally {
         setLoading(false);
       }
@@ -117,7 +117,7 @@ function BillingSuccessContent() {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4">
           <Link
-            href="/workspace"
+            href="/dashboard"
             className="flex-1 bg-white hover:bg-slate-50 text-slate-700 font-semibold py-4 px-6 rounded-xl border border-slate-200 transition-all shadow-sm flex items-center justify-center gap-2"
           >
             <Home className="w-5 h-5" />
