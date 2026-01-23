@@ -575,9 +575,9 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 tourId: null,
               },
               {
-                href: "/dashboard/referrals",
+                href: "/dashboard/affiliate",
                 icon: Gift,
-                label: "Referrals",
+                label: "Affiliates",
                 tourId: null,
               },
               {

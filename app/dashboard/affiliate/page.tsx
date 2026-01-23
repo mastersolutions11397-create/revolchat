@@ -275,6 +275,7 @@ export default function ReferralsPage() {
       toast.success("Affiliate code copied!", {
         description: "Your friends can enter this code during signup or in Settings. Note: Once entered, the code cannot be changed.",
         duration: 6000,
+        closeButton: true,
       });
     }
   }
@@ -285,6 +286,7 @@ export default function ReferralsPage() {
       toast.success("Affiliate link copied!", {
         description: "Share this link with your friends. They can enter your code during signup or in Settings (note: code cannot be changed once entered).",
         duration: 6000,
+        closeButton: true,
       });
     }
   }
