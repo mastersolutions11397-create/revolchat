@@ -776,7 +776,7 @@ export default function KnowledgePage() {
           type="button"
           onMouseEnter={() => setShow(true)}
           onMouseLeave={() => setShow(false)}
-          className="ml-1.5 text-slate-400 hover:text-sky-500 transition-colors"
+          className="ml-1.5 text-slate-400 hover:text-teal-primary transition-colors"
         >
           <Info className="h-3.5 w-3.5" />
         </button>
@@ -793,20 +793,20 @@ export default function KnowledgePage() {
   return (
     <div className="flex flex-col gap-6 max-w-7xl mx-auto lg:min-h-[calc(100vh-8rem)]">
       {/* Header - Navy Banner */}
-      <div className="relative rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-xl overflow-visible">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
+      <div className="relative rounded-3xl bg-gradient-to-br from-teal-primary via-[#0d6159] to-slate-800 p-8 text-white shadow-xl overflow-visible">
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-teal-accent/20 blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-teal-accent/20 blur-3xl"></div>
 
         <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-6">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20">
-              <FileText className="h-8 w-8 text-sky-500" />
+              <FileText className="h-8 w-8 text-teal-accent" />
             </div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-white">
                 Knowledge Base
               </h1>
-              <p className="mt-2 text-lg text-sky-100/80 max-w-xl">
+              <p className="mt-2 text-lg text-white/80 max-w-xl">
                 Manage knowledge and chat with your data in one place.
               </p>
             </div>
@@ -817,13 +817,13 @@ export default function KnowledgePage() {
               type="button"
               data-tour="add-knowledge-button"
               onClick={() => setIsAddMenuOpen((prev) => !prev)}
-              className="inline-flex items-center gap-2 rounded-xl bg-white text-slate-900 px-6 py-3 text-sm font-bold transition-all hover:bg-sky-50 hover:text-sky-700 shadow-lg shadow-black/10 active:scale-[0.98]"
+              className="inline-flex items-center gap-2 rounded-xl bg-white text-slate-900 px-6 py-3 text-sm font-bold transition-all hover:bg-teal-primary/10 hover:text-teal-primary shadow-lg shadow-black/10 active:scale-[0.98]"
             >
               <Plus className="h-5 w-5" />
               Add Knowledge
             </button>
             {isAddMenuOpen && (
-              <div className="absolute right-0 top-full mt-2 w-72 origin-top-right rounded-2xl border border-slate-200 bg-white p-2 shadow-xl ring-1 ring-black/5 focus:outline-none animate-in fade-in zoom-in-95 duration-200 z-[1000]">
+              <div className="absolute right-0 top-full mt-2 w-72 origin-top-right rounded-2xl border border-dashboard-border bg-dashboard-card p-2 shadow-xl ring-1 ring-black/5 focus:outline-none animate-in fade-in zoom-in-95 duration-200 z-[1000]">
                 <div className="space-y-1">
                   <button
                     type="button"
@@ -841,7 +841,7 @@ export default function KnowledgePage() {
                     }
                   >
                     <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-lg bg-sky-50 text-sky-500 ${canAddTextOrPdf ? "group-hover:scale-110" : ""} transition-transform`}
+                      className={`flex h-10 w-10 items-center justify-center rounded-lg bg-teal-primary/10 text-teal-primary ${canAddTextOrPdf ? "group-hover:scale-110" : ""} transition-transform`}
                     >
                       <FileText className="h-5 w-5" />
                     </div>
@@ -931,11 +931,11 @@ export default function KnowledgePage() {
 
       {/* Knowledge & Chat Layout */}
       <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
-        <div className="flex h-[522px] flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
-          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 bg-gradient-to-br from-slate-50 via-sky-50/20 to-slate-50 px-6 py-4">
+        <div className="flex h-[522px] flex-1 flex-col overflow-hidden rounded-2xl border border-dashboard-border bg-dashboard-card shadow-lg">
+          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-dashboard-border bg-gradient-to-br from-dashboard-bg via-teal-primary/5 to-dashboard-bg px-6 py-4">
             <div>
               <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                <FileText className="h-5 w-5 text-sky-500" />
+                <FileText className="h-5 w-5 text-teal-primary" />
                 {t("knowledgeBase.knowledgeLibrary")}
               </h3>
               <p className="text-sm text-slate-600 mt-1">
@@ -956,35 +956,35 @@ export default function KnowledgePage() {
             </div>
             <div className="flex items-center gap-4">
               <div className="hidden xl:flex items-center gap-4">
-                <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 ">
-                  <FileText className="h-4 w-4 text-sky-500" />
+                <div className="flex items-center gap-2 rounded-lg bg-dashboard-card px-3 py-2 ">
+                  <FileText className="h-4 w-4 text-teal-primary" />
                   <span className="text-xs font-medium text-slate-700">
                     {t("knowledgeBase.text")}
                   </span>
-                  <div className="flex items-center justify-center size-6 rounded-full bg-sky-100">
-                    <span className="text-xs font-bold text-sky-700">
+                  <div className="flex items-center justify-center size-6 rounded-full bg-teal-primary/20">
+                    <span className="text-xs font-bold text-teal-primary">
                       {textDocumentsCount}
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 ">
-                  <FileDown className="h-4 w-4 text-sky-500" />
+                <div className="flex items-center gap-2 rounded-lg bg-dashboard-card px-3 py-2 ">
+                  <FileDown className="h-4 w-4 text-teal-primary" />
                   <span className="text-xs font-medium text-slate-700">
                     {t("knowledgeBase.pdf")}
                   </span>
-                  <div className="flex items-center justify-center size-6 rounded-full shrink-0 bg-sky-100">
-                    <span className="text-xs font-bold text-sky-700">
+                  <div className="flex items-center justify-center size-6 rounded-full shrink-0 bg-teal-primary/20">
+                    <span className="text-xs font-bold text-teal-primary">
                       {pdfFilesCount}
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 ">
-                  <FileSpreadsheet className="h-4 w-4 text-sky-500" />
+                <div className="flex items-center gap-2 rounded-lg bg-dashboard-card px-3 py-2 ">
+                  <FileSpreadsheet className="h-4 w-4 text-teal-primary" />
                   <span className="text-xs font-medium text-slate-700">
                     {t("knowledgeBase.sheets")}
                   </span>
-                  <div className="flex items-center justify-center size-6 rounded-full shrink-0 bg-sky-100">
-                    <span className="text-xs font-bold text-sky-700">
+                  <div className="flex items-center justify-center size-6 rounded-full shrink-0 bg-teal-primary/20">
+                    <span className="text-xs font-bold text-teal-primary">
                       {connectedSheetsCount}
                     </span>
                   </div>
@@ -994,42 +994,42 @@ export default function KnowledgePage() {
                 <button
                   onClick={handleRefreshKnowledge}
                   disabled={knowledgeLoading}
-                  className="inline-flex items-center gap-2 rounded-lg  bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition-all hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700 disabled:cursor-not-allowed disabled:opacity-50 "
+                  className="inline-flex items-center gap-2 rounded-lg bg-dashboard-card px-3 py-2 text-xs font-semibold text-slate-700 transition-all hover:border-teal-accent hover:bg-teal-primary/10 hover:text-teal-primary disabled:cursor-not-allowed disabled:opacity-50 "
                 >
-                  <RefreshCcwIcon className="h-4 w-4 text-sky-500" />
+                  <RefreshCcwIcon className="h-4 w-4 text-teal-primary" />
                   {t("knowledgeBase.refresh")}
                 </button>
               )}
             </div>
           </div>
           {/* On small screens, keep summary below as a grid */}
-          <div className="border-b border-slate-200 bg-slate-50/30 px-6 py-3 xl:hidden">
+          <div className="border-b border-dashboard-border bg-dashboard-bg/50 px-6 py-3 xl:hidden">
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 shadow-sm border border-slate-200">
-                <FileText className="h-4 w-4 text-sky-500" />
+              <div className="flex items-center gap-2 rounded-lg bg-dashboard-card px-3 py-2 shadow-sm border border-dashboard-border">
+                <FileText className="h-4 w-4 text-teal-primary" />
                 <span className="text-xs font-medium text-slate-700">Text</span>
-                <div className="flex items-center justify-center size-6 rounded-full bg-sky-100">
-                  <span className="text-xs font-bold p-1 text-sky-700">
+                <div className="flex items-center justify-center size-6 rounded-full bg-teal-primary/20">
+                  <span className="text-xs font-bold p-1 text-teal-primary">
                     {textDocumentsCount}
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 shadow-sm border border-slate-200">
-                <FileDown className="h-4 w-4 text-sky-500" />
+              <div className="flex items-center gap-2 rounded-lg bg-dashboard-card px-3 py-2 shadow-sm border border-dashboard-border">
+                <FileDown className="h-4 w-4 text-teal-primary" />
                 <span className="text-xs font-medium text-slate-700">PDF</span>
-                <div className="flex items-center justify-center size-6 rounded-full shrink-0 bg-sky-100">
-                  <span className="text-xs font-bold p-1 text-sky-700">
+                <div className="flex items-center justify-center size-6 rounded-full shrink-0 bg-teal-primary/20">
+                  <span className="text-xs font-bold p-1 text-teal-primary">
                     {pdfFilesCount}
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 shadow-sm border border-slate-200">
-                <FileSpreadsheet className="h-4 w-4 text-sky-500" />
+              <div className="flex items-center gap-2 rounded-lg bg-dashboard-card px-3 py-2 shadow-sm border border-dashboard-border">
+                <FileSpreadsheet className="h-4 w-4 text-teal-primary" />
                 <span className="text-xs font-medium text-slate-700">
                   Sheets
                 </span>
                 <div className="flex items-center justify-center size-6 rounded-full bg-emerald-100">
-                  <span className="text-xs font-bold p-1 text-sky-700">
+                  <span className="text-xs font-bold p-1 text-teal-primary">
                     {connectedSheetsCount}
                   </span>
                 </div>
@@ -1042,7 +1042,7 @@ export default function KnowledgePage() {
                 {!workspaceId ? (
                   <div className="flex h-full items-center justify-center">
                     <div className="text-center">
-                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-500">
+                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-teal-primary/10 text-teal-primary">
                         <FileText className="h-6 w-6" />
                       </div>
                       <p className="text-sm font-semibold text-gray-900">
@@ -1094,7 +1094,7 @@ export default function KnowledgePage() {
                 ) : tableRows.length === 0 ? (
                   <div className="flex h-full items-center justify-center">
                     <div className="text-center">
-                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-500">
+                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-teal-primary/10 text-teal-primary">
                         <FileText className="h-6 w-6" />
                       </div>
                       <p className="text-sm font-semibold text-gray-900">
@@ -1130,13 +1130,13 @@ export default function KnowledgePage() {
                               key={`${row.kind}-${row.id}`}
                               className={`grid grid-cols-[minmax(0,1fr),auto] h-[60px] items-center gap-3 px-3  text-xs transition ${
                                 isSelected
-                                  ? "border-l-2 border-sky-500 bg-sky-50/70"
+                                  ? "border-l-2 border-sky-500 bg-teal-primary/10/70"
                                   : "hover:bg-gray-50"
                               }`}
                             >
                               <div className="flex items-center justify-between">
                                 <div className="flex py-2 items-center gap-3">
-                                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-500 shadow-inner">
+                                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-teal-primary/10 text-teal-primary shadow-inner">
                                     <Icon className="h-4 w-4" />
                                   </div>
                                   <div className="min-w-0">
@@ -1159,7 +1159,7 @@ export default function KnowledgePage() {
                                         : { kind: "sheet", item: row.sheet }
                                     )
                                   }
-                                  className="group inline-flex h-8 w-8 items-center justify-center rounded-lg border-2 border-slate-200 bg-white text-slate-500 transition-all hover:border-sky-300 hover:bg-sky-50 hover:text-sky-500 hover:scale-105 active:scale-95 shadow-sm"
+                                  className="group inline-flex h-8 w-8 items-center justify-center rounded-lg border-2 border-dashboard-border bg-white text-slate-500 transition-all hover:border-sky-300 hover:bg-teal-primary/10 hover:text-teal-primary hover:scale-105 active:scale-95 shadow-sm"
                                   title={t("knowledgeBase.preview")}
                                 >
                                   <Eye className="h-4 w-4 transition-transform group-hover:scale-110" />
@@ -1169,7 +1169,7 @@ export default function KnowledgePage() {
                                     href={row.link}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="group inline-flex h-8 w-8 items-center justify-center rounded-lg border-2 border-slate-200 bg-white text-slate-500 transition-all hover:border-blue-300 hover:bg-blue-50 hover:text-sky-500 hover:scale-105 active:scale-95 shadow-sm"
+                                    className="group inline-flex h-8 w-8 items-center justify-center rounded-lg border-2 border-dashboard-border bg-white text-slate-500 transition-all hover:border-blue-300 hover:bg-blue-50 hover:text-teal-primary hover:scale-105 active:scale-95 shadow-sm"
                                     title={t("knowledgeBase.openInNewTab")}
                                   >
                                     <ExternalLink className="h-4 w-4 transition-transform group-hover:scale-110" />
@@ -1185,7 +1185,7 @@ export default function KnowledgePage() {
                                         )
                                       : handleDeleteSheet(row.deleteId)
                                   }
-                                  className="group inline-flex h-8 w-8 items-center justify-center rounded-lg border-2 border-slate-200 bg-white text-slate-500 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600 hover:scale-105 active:scale-95 shadow-sm"
+                                  className="group inline-flex h-8 w-8 items-center justify-center rounded-lg border-2 border-dashboard-border bg-white text-slate-500 transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600 hover:scale-105 active:scale-95 shadow-sm"
                                   title={t("knowledgeBase.delete")}
                                 >
                                   <Trash2 className="h-4 w-4 transition-transform group-hover:scale-110" />
@@ -1298,7 +1298,7 @@ export default function KnowledgePage() {
                                   {previewItem.item.tags.map((tag, index) => (
                                     <span
                                       key={`${tag}-${index}`}
-                                      className="rounded-full bg-white px-3 py-1 text-xs font-medium text-sky-500 shadow-sm"
+                                      className="rounded-full bg-white px-3 py-1 text-xs font-medium text-teal-primary shadow-sm"
                                     >
                                       #{tag}
                                     </span>
@@ -1312,7 +1312,7 @@ export default function KnowledgePage() {
                                 href={previewItem.item.file_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm font-semibold text-sky-500 transition hover:border-sky-300 hover:text-sky-700"
+                                className="inline-flex items-center gap-2 rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm font-semibold text-teal-primary transition hover:border-sky-300 hover:text-teal-primary"
                               >
                                 <ExternalLink className="h-4 w-4" />
                                 Open Source Document
@@ -1371,7 +1371,7 @@ export default function KnowledgePage() {
                               href={`https://docs.google.com/spreadsheets/d/${previewItem.item.sheet_id}/edit`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm font-semibold text-sky-500 transition hover:border-sky-300 hover:text-sky-700"
+                              className="inline-flex items-center gap-2 rounded-lg border border-sky-200 bg-white px-3 py-2 text-sm font-semibold text-teal-primary transition hover:border-sky-300 hover:text-teal-primary"
                             >
                               <ExternalLink className="h-4 w-4" />
                               Open Google Sheet
@@ -1407,7 +1407,7 @@ export default function KnowledgePage() {
               <div className="p-6 space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-500 shadow-sm">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-primary/10 text-teal-primary shadow-sm">
                       <FileText className="h-5 w-5" />
                     </div>
                     <div>
@@ -1447,7 +1447,7 @@ export default function KnowledgePage() {
                       value={textTitle}
                       onChange={(e) => setTextTitle(e.target.value)}
                       placeholder={t("knowledgeBase.titlePlaceholder")}
-                      className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all placeholder:text-slate-400"
+                      className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-dashboard-border rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all placeholder:text-slate-400"
                     />
                   </div>
 
@@ -1460,7 +1460,7 @@ export default function KnowledgePage() {
                       onChange={(e) => setTextContent(e.target.value)}
                       placeholder={t("knowledgeBase.contentPlaceholder")}
                       rows={5}
-                      className="w-full px-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all resize-none placeholder:text-slate-400"
+                      className="w-full px-4 py-3 text-sm bg-slate-50 border border-dashboard-border rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all resize-none placeholder:text-slate-400"
                     />
                     <div className="flex justify-end mt-1">
                       <span
@@ -1484,7 +1484,7 @@ export default function KnowledgePage() {
                         <select
                           value={textCategory}
                           onChange={(e) => setTextCategory(e.target.value)}
-                          className="w-full appearance-none px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                          className="w-full appearance-none px-4 py-2.5 text-sm bg-slate-50 border border-dashboard-border rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
                         >
                           <option value="branding">Branding</option>
                           <option value="products">Products</option>
@@ -1522,7 +1522,7 @@ export default function KnowledgePage() {
                           onChange={(e) =>
                             setImportanceLevel(parseInt(e.target.value, 10))
                           }
-                          className="w-full appearance-none px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                          className="w-full appearance-none px-4 py-2.5 text-sm bg-slate-50 border border-dashboard-border rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
                         >
                           <option value={1}>{t("knowledgeBase.importance.low")} Priority</option>
                           <option value={2}>{t("knowledgeBase.importance.normal")} Priority</option>
@@ -1556,7 +1556,7 @@ export default function KnowledgePage() {
                       {tags.map((t, i) => (
                         <span
                           key={`${t}-${i}`}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-sky-50 text-sky-700 border border-sky-100"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-teal-primary/10 text-teal-primary border border-sky-100"
                         >
                           #{t}
                           <button
@@ -1655,7 +1655,7 @@ export default function KnowledgePage() {
                     disabled={
                       submittingText || !textTitle.trim() || !textContent.trim()
                     }
-                    className="flex-1 bg-sky-500 text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:bg-sky-700 transition-all shadow-lg shadow-sky-500/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                    className="flex-1 bg-teal-primary/100 text-white px-4 py-2.5 rounded-xl font-semibold text-sm hover:bg-sky-700 transition-all shadow-lg shadow-sky-500/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                   >
                     {submittingText ? (
                       <span className="flex items-center justify-center gap-2">
@@ -1669,7 +1669,7 @@ export default function KnowledgePage() {
                     onClick={() => {
                       resetTextForm();
                     }}
-                    className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-all active:scale-[0.98]"
+                    className="px-4 py-2.5 border border-dashboard-border text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-all active:scale-[0.98]"
                   >
                     {t("knowledgeBase.clear")}
                   </button>
@@ -1704,7 +1704,7 @@ export default function KnowledgePage() {
                   </button>
                 </div>
 
-                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center hover:border-rose-300 hover:bg-rose-50/30 transition-all group">
+                <div className="border-2 border-dashed border-dashboard-border rounded-2xl p-8 text-center hover:border-rose-300 hover:bg-rose-50/30 transition-all group">
                   <div className="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                     <FileDown className="h-8 w-8 text-rose-500" />
                   </div>
@@ -1729,7 +1729,7 @@ export default function KnowledgePage() {
                     className={`inline-flex items-center justify-center px-6 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                       isProcessingPdfs
                         ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                        : "bg-white border border-slate-200 text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300 cursor-pointer"
+                        : "bg-white border border-dashboard-border text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300 cursor-pointer"
                     }`}
                   >
                     {isProcessingPdfs ? "Processing..." : "Select Files"}
@@ -1761,7 +1761,7 @@ export default function KnowledgePage() {
                           className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl"
                         >
                           <div className="flex items-center gap-3 overflow-hidden">
-                            <div className="flex-shrink-0 h-8 w-8 rounded-lg bg-white flex items-center justify-center text-rose-500 border border-slate-100">
+                            <div className="flex-shrink-0 h-8 w-8 rounded-lg bg-dashboard-card flex items-center justify-center text-rose-500 border border-slate-100">
                               <FileDown className="h-4 w-4" />
                             </div>
                             <div className="min-w-0">
@@ -1807,7 +1807,7 @@ export default function KnowledgePage() {
                           value={pdfTitle}
                           onChange={(e) => setPdfTitle(e.target.value)}
                           placeholder={t("knowledgeBase.collectionTitlePlaceholder")}
-                          className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all placeholder:text-slate-400"
+                          className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-dashboard-border rounded-xl focus:bg-white focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all placeholder:text-slate-400"
                         />
                       </div>
 
@@ -1820,7 +1820,7 @@ export default function KnowledgePage() {
                             <select
                               value={pdfCategory}
                               onChange={(e) => setPdfCategory(e.target.value)}
-                              className="w-full appearance-none px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+                              className="w-full appearance-none px-4 py-2.5 text-sm bg-slate-50 border border-dashboard-border rounded-xl focus:bg-white focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
                             >
                               <option value="branding">Branding</option>
                               <option value="products">Products</option>
@@ -1849,7 +1849,7 @@ export default function KnowledgePage() {
                           <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
                             Importance
                           </label>
-                          <div className="px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl">
+                          <div className="px-4 py-2 bg-slate-50 border border-dashboard-border rounded-xl">
                             <input
                               type="range"
                               min={1}
@@ -1975,7 +1975,7 @@ export default function KnowledgePage() {
                   </button>
                   <button
                     onClick={resetPdfForm}
-                    className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-50 hover:text-red-600 hover:border-red-200 transition-all active:scale-[0.98]"
+                    className="px-4 py-2.5 border border-dashboard-border text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-50 hover:text-red-600 hover:border-red-200 transition-all active:scale-[0.98]"
                     title="Clear all files"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -2069,7 +2069,7 @@ export default function KnowledgePage() {
                           return (
                             <div
                               key={sheet.id}
-                              className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-emerald-200 transition-all"
+                              className="flex items-center justify-between p-4 bg-white border border-dashboard-border rounded-xl shadow-sm hover:border-emerald-200 transition-all"
                             >
                               <div className="flex items-center space-x-3 flex-1">
                                 <div className="h-10 w-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
@@ -2121,8 +2121,8 @@ export default function KnowledgePage() {
                     )}
 
                     {hasGoogleSheet && (
-                      <div className="p-4 bg-sky-50 border border-sky-100 rounded-xl text-sm text-sky-800 flex items-start gap-3">
-                        <Info className="h-5 w-5 text-sky-500 flex-shrink-0" />
+                      <div className="p-4 bg-teal-primary/10 border border-sky-100 rounded-xl text-sm text-sky-800 flex items-start gap-3">
+                        <Info className="h-5 w-5 text-teal-primary flex-shrink-0" />
                         <p>
                           To connect a different sheet, please disconnect the
                           existing one first.
@@ -2150,11 +2150,11 @@ export default function KnowledgePage() {
                               </li>
                               <li>
                                 Click{" "}
-                                <span className="font-mono bg-white px-1 border border-slate-200 rounded">
+                                <span className="font-mono bg-white px-1 border border-dashboard-border rounded">
                                   File
                                 </span>{" "}
                                 →{" "}
-                                <span className="font-mono bg-white px-1 border border-slate-200 rounded">
+                                <span className="font-mono bg-white px-1 border border-dashboard-border rounded">
                                   Make a copy
                                 </span>
                               </li>
@@ -2186,7 +2186,7 @@ export default function KnowledgePage() {
                           <button
                             key={index}
                             onClick={() => handleTemplateClick(index)}
-                            className="group relative flex items-center p-4 bg-white border border-slate-200 rounded-xl hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-500/10 transition-all text-left"
+                            className="group relative flex items-center p-4 bg-white border border-dashboard-border rounded-xl hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-500/10 transition-all text-left"
                           >
                             <div className="h-10 w-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
                               <FileSpreadsheet className="h-5 w-5" />
@@ -2292,7 +2292,7 @@ export default function KnowledgePage() {
                     className={`w-full px-4 py-3 pr-10 text-sm bg-slate-50 border rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all placeholder:text-slate-400 ${
                       linkInputError
                         ? "border-red-200 focus:border-red-500 focus:ring-red-500/20"
-                        : "border-slate-200"
+                        : "border-dashboard-border"
                     }`}
                   />
                   {googleSheetLink.trim() &&
@@ -2341,7 +2341,7 @@ export default function KnowledgePage() {
                     setClickedTemplateIndex(null);
                   }}
                   disabled={submittingSheet}
-                  className="px-4 py-2.5 border border-slate-200 text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-all active:scale-[0.98]"
+                  className="px-4 py-2.5 border border-dashboard-border text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-all active:scale-[0.98]"
                 >
                   Cancel
                 </button>
@@ -2583,7 +2583,7 @@ function ChatPanel({
                     ? "rounded-br-md bg-gradient-to-br from-sky-500 via-sky-500 to-sky-500 text-white shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/30"
                     : message.isError
                       ? "rounded-bl-md border-2 border-red-200 bg-red-50 text-red-900 shadow-sm"
-                      : "rounded-bl-md border border-slate-200 bg-white text-slate-800 shadow-md hover:shadow-lg"
+                      : "rounded-bl-md border border-dashboard-border bg-white text-slate-800 shadow-md hover:shadow-lg"
                 }`}
               >
                 {message.role === "assistant" ? (
@@ -2626,7 +2626,7 @@ function ChatPanel({
                           <em className="italic">{children}</em>
                         ),
                         code: ({ children }) => (
-                          <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-mono text-sky-700 border border-slate-200">
+                          <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-mono text-teal-primary border border-dashboard-border">
                             {children}
                           </code>
                         ),
@@ -2670,7 +2670,7 @@ function ChatPanel({
             ) : !hasKnowledge && workspaceId ? (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-slate-100 flex flex-col items-center gap-2 text-center max-w-xs">
-                  <div className="h-10 w-10 rounded-full bg-sky-50 flex items-center justify-center text-sky-500 mb-1">
+                  <div className="h-10 w-10 rounded-full bg-teal-primary/10 flex items-center justify-center text-teal-primary mb-1">
                     <FileText className="h-5 w-5" />
                   </div>
                   <p className="text-sm font-semibold text-slate-800">
@@ -2689,20 +2689,20 @@ function ChatPanel({
                     <div className="h-10 w-3/4 rounded-2xl rounded-tl-none bg-slate-100 animate-pulse" />
                   </div>
                   <div className="flex justify-end">
-                    <div className="h-16 w-2/3 rounded-2xl rounded-tr-none bg-sky-50 animate-pulse" />
+                    <div className="h-16 w-2/3 rounded-2xl rounded-tr-none bg-teal-primary/10 animate-pulse" />
                   </div>
                   <div className="flex justify-start">
                     <div className="h-12 w-1/2 rounded-2xl rounded-tl-none bg-slate-100 animate-pulse" />
                   </div>
                   <div className="flex justify-end">
-                    <div className="h-8 w-1/3 rounded-2xl rounded-tr-none bg-sky-50 animate-pulse" />
+                    <div className="h-8 w-1/3 rounded-2xl rounded-tr-none bg-teal-primary/10 animate-pulse" />
                   </div>
                 </div>
 
                 {/* Loading Indicator */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="bg-white/90 backdrop-blur-md px-6 py-3 rounded-full shadow-xl border border-slate-100 flex items-center gap-3">
-                    <Loader2 className="h-5 w-5 text-sky-500 animate-spin" />
+                    <Loader2 className="h-5 w-5 text-teal-primary animate-spin" />
                     <span className="text-sm font-medium text-slate-600">
                       {!workspaceId
                         ? t("knowledgeBase.selectWorkspace")
@@ -2717,7 +2717,7 @@ function ChatPanel({
       </div>
 
       {/* Enhanced Input Area */}
-      <div className="flex-none border-t border-slate-200 bg-gradient-to-br from-slate-50 via-sky-50/20 to-slate-50 px-6 py-4">
+      <div className="flex-none border-t border-dashboard-border bg-gradient-to-br from-slate-50 via-sky-50/20 to-slate-50 px-6 py-4">
         <div className="flex gap-3">
           <div className="relative flex-1">
             <textarea
@@ -2727,7 +2727,7 @@ function ChatPanel({
               placeholder={t("knowledgeBase.typeMessage")}
               rows={1}
               disabled={!!disabledReason}
-              className="w-full resize-none rounded-xl border-2 border-slate-200 bg-white px-4 py-3 pr-12 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 transition-all shadow-sm hover:border-slate-300"
+              className="w-full resize-none rounded-xl border-2 border-dashboard-border bg-white px-4 py-3 pr-12 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 transition-all shadow-sm hover:border-slate-300"
               style={{ minHeight: "50px", maxHeight: "120px" }}
             />
           </div>

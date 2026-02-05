@@ -363,7 +363,7 @@ export default function ReferralsPage() {
   if (loading) {
     return (
       <div className="flex h-[calc(100vh-8rem)] items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-sky-500" />
+        <Loader2 className="h-10 w-10 animate-spin text-teal-primary" />
       </div>
     );
   }
@@ -371,14 +371,14 @@ export default function ReferralsPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-fade-in-up pb-10">
       {/* Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
-        <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-sky-500/20 blur-3xl opacity-50" />
-        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-sky-500/20 blur-3xl opacity-50" />
+      <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-teal-primary via-[#0d6159] to-slate-800 p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
+        <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-teal-accent/20 blur-3xl opacity-50" />
+        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-teal-accent/20 blur-3xl opacity-50" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner ring-1 ring-white/20">
-              <Gift className="h-8 w-8 text-sky-300" />
+              <Gift className="h-8 w-8 text-teal-accent" />
             </div>
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-white">
@@ -392,7 +392,7 @@ export default function ReferralsPage() {
 
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="bg-white/10 backdrop-blur-md rounded-2xl px-5 py-3 ring-1 ring-white/20">
-              <span className="text-xs font-bold uppercase tracking-wider text-sky-300">
+              <span className="text-xs font-bold uppercase tracking-wider text-teal-accent">
                 Your Code
               </span>
               <div className="flex items-center gap-3 mt-1">
@@ -412,7 +412,7 @@ export default function ReferralsPage() {
             <div className="bg-white/10 backdrop-blur-md rounded-2xl px-6 py-4 ring-1 ring-white/20">
               <div className="flex items-center gap-4">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-sky-300">
+                  <p className="text-xs font-bold uppercase tracking-wider text-teal-accent">
                     Pending Payout
                   </p>
                   <p className="text-lg font-bold text-white">
@@ -440,7 +440,7 @@ export default function ReferralsPage() {
       {/* Share Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="rounded-2xl border border-dashboard-border bg-dashboard-card p-8 shadow-sm">
             <h3 className="text-xl font-bold text-slate-900 mb-2">
               Share your link
             </h3>
@@ -449,8 +449,8 @@ export default function ReferralsPage() {
               a paid plan.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 p-2 bg-slate-50 rounded-2xl border border-slate-200">
-              <div className="flex-1 flex items-center px-4 py-2 text-sm font-mono text-slate-600 truncate bg-white rounded-xl border border-slate-100 shadow-xs">
+            <div className="flex flex-col sm:flex-row gap-3 p-2 bg-dashboard-bg rounded-2xl border border-dashboard-border">
+              <div className="flex-1 flex items-center px-4 py-2 text-sm font-mono text-slate-600 truncate bg-dashboard-card rounded-xl border border-dashboard-border shadow-xs">
                 {affiliateLink}
               </div>
               <div className="flex gap-2">
@@ -473,7 +473,7 @@ export default function ReferralsPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
               <div className="space-y-3">
-                <div className="h-10 w-10 bg-sky-50 rounded-lg flex items-center justify-center text-sky-500">
+                <div className="h-10 w-10 bg-teal-primary/10 rounded-lg flex items-center justify-center text-teal-primary">
                   <Mail className="h-5 w-5" />
                 </div>
                 <h4 className="font-bold text-slate-900">1. Invite friends</h4>
@@ -505,9 +505,9 @@ export default function ReferralsPage() {
 
           {/* Recent Affiliates */}
           <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-            <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+            <div className="px-8 py-5 border-b border-dashboard-border flex items-center justify-between bg-dashboard-bg">
               <h3 className="font-bold text-slate-900">Recent Affiliates</h3>
-              <div className="text-xs font-bold text-sky-600 bg-sky-50 px-3 py-1 rounded-full uppercase tracking-wider border border-sky-100">
+              <div className="text-xs font-bold text-teal-primary bg-teal-primary/10 px-3 py-1 rounded-full uppercase tracking-wider border border-teal-primary/20">
                 {analytics?.stats.total_referrals || 0} Total
               </div>
             </div>
@@ -559,7 +559,7 @@ export default function ReferralsPage() {
             </div>
             {referrals.length > 5 && (
               <div className="p-4 bg-slate-50 border-t border-slate-100 text-center">
-                <button className="text-sm font-bold text-sky-600 hover:text-sky-700">
+                <button className="text-sm font-bold text-teal-primary hover:text-teal-accent">
                   View all affiliates
                 </button>
               </div>
@@ -572,7 +572,7 @@ export default function ReferralsPage() {
           <div className="rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/50 overflow-hidden">
             <div className="bg-slate-900 p-8 text-white relative overflow-hidden">
               <div className="absolute top-0 right-0 h-32 w-32 bg-sky-500/10 blur-2xl rounded-full -mt-16 -mr-16" />
-              <p className="text-sky-300 text-xs font-bold uppercase tracking-widest mb-1">
+              <p className="text-teal-accent text-xs font-bold uppercase tracking-widest mb-1">
                 Your Balance
               </p>
               <h3 className="text-4xl font-bold">

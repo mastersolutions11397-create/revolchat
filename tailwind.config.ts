@@ -11,6 +11,17 @@ const config: Config = {
       fontFamily: {
         lato: ["var(--font-lato)"],
       },
+      colors: {
+        teal: {
+          primary: "#0F766E",
+          accent: "#14B8A6",
+        },
+        dashboard: {
+          bg: "#F9FAFB",
+          card: "#FFFFFF",
+          border: "#E5E7EB",
+        },
+      },
     },
   },
   plugins: [],

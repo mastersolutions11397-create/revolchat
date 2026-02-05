@@ -66,7 +66,7 @@ const CHANNELS = [
 // Skeleton Loader Component
 function IntegrationSkeleton() {
   return (
-    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-white border border-slate-200 shadow-lg animate-pulse">
+    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-dashboard-card border border-dashboard-border shadow-lg animate-pulse">
       <div className="p-4 sm:p-6 md:p-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-4 sm:gap-6 mb-6">
           <div className="flex items-start sm:items-center gap-4 sm:gap-5 flex-1 w-full sm:w-auto">
@@ -91,10 +91,10 @@ function ParentLoader({ isLoading }: { isLoading: boolean }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-4 min-w-[200px]">
+      <div className="bg-dashboard-card rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-4 min-w-[200px]">
         <div className="relative">
-          <div className="h-16 w-16 rounded-full border-4 border-sky-200"></div>
-          <div className="absolute inset-0 h-16 w-16 rounded-full border-4 border-sky-500 border-t-transparent animate-spin"></div>
+          <div className="h-16 w-16 rounded-full border-4 border-teal-primary/20"></div>
+          <div className="absolute inset-0 h-16 w-16 rounded-full border-4 border-teal-primary border-t-transparent animate-spin"></div>
         </div>
         <p className="text-sm font-semibold text-slate-700">
           {t("integrations.loadingWorkspace")}
@@ -390,14 +390,14 @@ export default function IntegrationsPage() {
 
       {/* Header */}
       <div
-        className={`relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-6 sm:p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5 transition-opacity ${isPageDisabled ? "opacity-60" : ""}`}
+        className={`relative overflow-hidden rounded-3xl bg-gradient-to-br from-teal-primary via-[#0d6159] to-slate-800 p-6 sm:p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5 transition-opacity ${isPageDisabled ? "opacity-60" : ""}`}
       >
-        <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-sky-500/20 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-sky-500/20 blur-3xl" />
+        <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-teal-accent/20 blur-3xl" />
+        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-teal-accent/20 blur-3xl" />
 
         <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5">
           <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner ring-1 ring-white/20 flex-shrink-0">
-            <Link2 className="h-7 w-7 sm:h-8 sm:w-8 text-sky-300" />
+            <Link2 className="h-7 w-7 sm:h-8 sm:w-8 text-teal-accent" />
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
@@ -425,16 +425,16 @@ export default function IntegrationsPage() {
           {CHANNELS.map((channel, index) => (
             <div
               key={channel.name}
-              className="group relative overflow-hidden rounded-2xl sm:rounded-3xl bg-white border border-slate-200 hover:border-sky-300 transition-all duration-300 shadow-lg hover:shadow-2xl"
+              className="group relative overflow-hidden rounded-2xl sm:rounded-3xl bg-dashboard-card border border-dashboard-border hover:border-teal-accent transition-all duration-300 shadow-lg hover:shadow-2xl"
               style={{
                 animation: `fadeInUp 0.5s ease-out ${index * 0.1}s both`,
               }}
             >
               {/* Gradient background */}
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-sky-50/30 opacity-60"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-dashboard-bg via-dashboard-card to-teal-primary/5 opacity-60"></div>
 
               {/* Animated gradient overlay on hover */}
-              <div className="absolute inset-0 bg-gradient-to-r from-sky-100/0 via-sky-100/60 to-sky-100/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-teal-primary/0 via-teal-primary/10 to-teal-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
               <div className="relative p-4 sm:p-6 md:p-8">
                 {/* Header Section */}
@@ -443,8 +443,8 @@ export default function IntegrationsPage() {
                   <div className="flex items-start sm:items-center gap-4 sm:gap-5 flex-1 w-full sm:w-auto">
                     {/* Icon with glow effect */}
                     <div className="relative flex-shrink-0">
-                      <div className="absolute inset-0 bg-gradient-to-br from-sky-500 to-blue-500 rounded-2xl blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500"></div>
-                      <div className="relative flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-white to-sky-50 shadow-md ring-1 ring-slate-200/50 group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
+                      <div className="absolute inset-0 bg-gradient-to-br from-teal-primary to-teal-accent rounded-2xl blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500"></div>
+                      <div className="relative flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-dashboard-card to-teal-primary/10 shadow-md ring-1 ring-dashboard-border group-hover:scale-110 group-hover:shadow-xl transition-all duration-300">
                         <Image
                           src={channel.icon}
                           alt={
@@ -470,7 +470,7 @@ export default function IntegrationsPage() {
                     {/* Channel Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
-                        <h3 className="text-xl sm:text-2xl font-bold text-slate-900 group-hover:text-sky-700 transition-colors">
+                        <h3 className="text-xl sm:text-2xl font-bold text-slate-900 group-hover:text-teal-primary transition-colors">
                           {channel.nameKey ? t(channel.nameKey) : channel.name}
                         </h3>
                         {channel.nameKey === "integrations.instagram" &&
@@ -519,7 +519,7 @@ export default function IntegrationsPage() {
                           : channel.nameKey === "integrations.instagram" &&
                               instagramIntegration
                             ? "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-105"
-                            : "bg-gradient-to-r from-sky-500 to-sky-500 text-white shadow-sky-500/30 hover:shadow-sky-500/50 hover:scale-105"
+                            : "bg-teal-primary text-white shadow-teal-primary/30 hover:bg-teal-accent hover:shadow-teal-primary/50 hover:scale-105"
                       }`}
                       disabled={
                         channel.comingSoon ||
@@ -575,10 +575,10 @@ export default function IntegrationsPage() {
                 {channel.nameKey === "integrations.telegram" && (
                   <div className="space-y-3">
                     {telegramChecking && (
-                      <div className="flex items-center gap-3 p-3 sm:p-4 rounded-xl bg-gradient-to-r from-sky-50 to-blue-50 border border-sky-200 animate-pulse">
+                      <div className="flex items-center gap-3 p-3 sm:p-4 rounded-xl bg-teal-primary/5 border border-teal-primary/20 animate-pulse">
                         <div className="relative flex-shrink-0">
-                          <div className="h-5 w-5 rounded-full border-2 border-sky-200"></div>
-                          <div className="absolute inset-0 h-5 w-5 rounded-full border-2 border-sky-500 border-t-transparent animate-spin"></div>
+                          <div className="h-5 w-5 rounded-full border-2 border-teal-primary/20"></div>
+                          <div className="absolute inset-0 h-5 w-5 rounded-full border-2 border-teal-primary border-t-transparent animate-spin"></div>
                         </div>
                         <p className="text-xs sm:text-sm text-slate-700 font-medium">
                           {t("integrations.telegram.checkingStatus")}
@@ -589,29 +589,29 @@ export default function IntegrationsPage() {
                     {!telegramChecking &&
                       telegramBotInfo &&
                       telegramBotInfo.username && (
-                        <div className="relative overflow-hidden rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-white p-4 sm:p-5 shadow-inner">
+                        <div className="relative overflow-hidden rounded-2xl border border-teal-primary/20 bg-gradient-to-br from-teal-primary/5 to-dashboard-card p-4 sm:p-5 shadow-inner">
                           {/* Decorative gradient */}
-                          <div className="absolute top-0 right-0 h-32 w-32 bg-gradient-to-br from-sky-200/40 to-transparent rounded-full blur-2xl"></div>
+                          <div className="absolute top-0 right-0 h-32 w-32 bg-gradient-to-br from-teal-primary/20 to-transparent rounded-full blur-2xl"></div>
 
                           <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                             {/* Bot Info Section */}
                             <div className="flex items-center gap-3 sm:gap-4">
                               {/* Bot Icon with Ring */}
                               <div className="relative">
-                                <div className="absolute inset-0 bg-gradient-to-br from-sky-400 via-blue-400 to-cyan-400 rounded-full blur-sm opacity-75"></div>
-                                <div className="relative h-12 w-12 sm:h-14 sm:w-14 overflow-hidden rounded-full bg-white ring-4 ring-white shadow-lg flex items-center justify-center">
+                                <div className="absolute inset-0 bg-gradient-to-br from-teal-primary to-teal-accent rounded-full blur-sm opacity-75"></div>
+                                <div className="relative h-12 w-12 sm:h-14 sm:w-14 overflow-hidden rounded-full bg-dashboard-card ring-4 ring-white shadow-lg flex items-center justify-center">
                                   <div className="text-xl sm:text-2xl">🤖</div>
                                 </div>
                               </div>
 
                               {/* Bot Username and Status */}
                               <div>
-                                <p className="text-xs font-semibold text-sky-500 uppercase tracking-wider mb-0.5">
+                                <p className="text-xs font-semibold text-teal-primary uppercase tracking-wider mb-0.5">
                                   {t("integrations.connectedBot")}
                                 </p>
                                 <p className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
                                   @{telegramBotInfo.username}
-                                  <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-sky-500" />
+                                  <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-teal-primary" />
                                 </p>
                                 {telegramBotInfo.first_name && (
                                   <p className="text-xs sm:text-sm text-slate-600">
@@ -625,7 +625,7 @@ export default function IntegrationsPage() {
                       )}
 
                     {!telegramChecking && !telegramBotInfo && (
-                      <div className="p-3 sm:p-4 rounded-xl bg-slate-50 border border-slate-200">
+                      <div className="p-3 sm:p-4 rounded-xl bg-dashboard-bg border border-dashboard-border">
                         <p className="text-xs sm:text-sm text-slate-500 font-medium">
                           {t("integrations.telegram.connectBot")}
                         </p>
@@ -669,9 +669,9 @@ export default function IntegrationsPage() {
                     )}
 
                     {!instagramChecking && instagramIntegration && (
-                      <div className="relative overflow-hidden rounded-2xl border border-sky-200 bg-gradient-to-br from-sky-50 to-white p-4 sm:p-5 shadow-inner">
+                      <div className="relative overflow-hidden rounded-2xl border border-teal-primary/20 bg-gradient-to-br from-teal-primary/5 to-dashboard-card p-4 sm:p-5 shadow-inner">
                         {/* Decorative gradient */}
-                        <div className="absolute top-0 right-0 h-32 w-32 bg-gradient-to-br from-sky-200/40 to-transparent rounded-full blur-2xl"></div>
+                        <div className="absolute top-0 right-0 h-32 w-32 bg-gradient-to-br from-teal-primary/20 to-transparent rounded-full blur-2xl"></div>
 
                         <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                           {/* Profile Section */}
@@ -679,7 +679,7 @@ export default function IntegrationsPage() {
                             {/* Profile Picture with Ring */}
                             <div className="relative flex-shrink-0">
                               <div className="absolute inset-0 bg-gradient-to-br from-pink-400 via-purple-400 to-yellow-400 rounded-full blur-sm opacity-75"></div>
-                              <div className="relative h-12 w-12 sm:h-14 sm:w-14 overflow-hidden rounded-full bg-white ring-4 ring-white shadow-lg">
+                              <div className="relative h-12 w-12 sm:h-14 sm:w-14 overflow-hidden rounded-full bg-dashboard-card ring-4 ring-white shadow-lg">
                                 {instagramIntegration.profile_picture ? (
                                   <Image
                                     src={instagramIntegration.profile_picture}
@@ -690,7 +690,7 @@ export default function IntegrationsPage() {
                                     unoptimized
                                   />
                                 ) : (
-                                  <div className="flex h-full w-full items-center justify-center text-lg sm:text-xl font-bold bg-gradient-to-br from-sky-500 to-blue-500 text-white">
+                                  <div className="flex h-full w-full items-center justify-center text-lg sm:text-xl font-bold bg-teal-primary text-white">
                                     {instagramIntegration.username
                                       .charAt(0)
                                       .toUpperCase()}
@@ -701,14 +701,14 @@ export default function IntegrationsPage() {
 
                             {/* Username and Status */}
                             <div className="min-w-0 flex-1">
-                              <p className="text-xs font-semibold text-sky-500 uppercase tracking-wider mb-0.5">
+                              <p className="text-xs font-semibold text-teal-primary uppercase tracking-wider mb-0.5">
                                 {t("integrations.connectedAccount")}
                               </p>
                               <p className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2 truncate">
                                 <span className="truncate">
                                   @{instagramIntegration.username}
                                 </span>
-                                <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-sky-500 flex-shrink-0" />
+                                <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-teal-primary flex-shrink-0" />
                               </p>
                             </div>
                           </div>
@@ -716,7 +716,7 @@ export default function IntegrationsPage() {
                           {/* Disconnect Button */}
                           <button
                             type="button"
-                            className="w-full sm:w-auto rounded-xl border-2 border-red-200 bg-white px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-bold text-red-600 transition-all hover:bg-red-50 hover:border-red-300 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="w-full sm:w-auto rounded-xl border-2 border-red-200 bg-dashboard-card px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-bold text-red-600 transition-all hover:bg-red-50 hover:border-red-300 hover:shadow-md active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                             onClick={handleInstagramDisconnect}
                             disabled={instagramDisconnecting || isPageDisabled}
                           >
@@ -734,7 +734,7 @@ export default function IntegrationsPage() {
                     )}
 
                     {!instagramChecking && !instagramIntegration && (
-                      <div className="p-3 sm:p-4 rounded-xl bg-slate-50 border border-slate-200">
+                      <div className="p-3 sm:p-4 rounded-xl bg-dashboard-bg border border-dashboard-border">
                         <p className="text-xs sm:text-sm text-slate-500 font-medium">
                           {t("integrations.clickConnectToLinkInstagram")}
                         </p>
@@ -745,10 +745,10 @@ export default function IntegrationsPage() {
               </div>
 
               {/* Bottom accent line with animation */}
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-sky-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-teal-primary to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
               {/* Corner decoration */}
-              <div className="absolute top-0 right-0 h-24 w-24 bg-gradient-to-br from-sky-100/50 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              <div className="absolute top-0 right-0 h-24 w-24 bg-gradient-to-br from-teal-primary/20 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                 {" "}
               </div>
             </div>
@@ -766,7 +766,7 @@ export default function IntegrationsPage() {
             }
           }}
         >
-          <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-md rounded-2xl border border-dashboard-border bg-dashboard-card shadow-2xl animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
             <div className="rounded-t-xl bg-gradient-to-br from-[#0b1220] to-[#1a1f35] text-white px-4 py-3 mb-2 flex items-start sm:items-center justify-between gap-3">
               <div className="flex-1 min-w-0">
                 <h3 className="text-base sm:text-lg font-bold">
@@ -817,7 +817,7 @@ export default function IntegrationsPage() {
                     setTelegramError(null);
                   }}
                   placeholder={t("integrations.telegramBotTokenPlaceholder")}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all disabled:bg-gray-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 border border-dashboard-border rounded-lg focus:ring-2 focus:ring-teal-primary focus:border-teal-primary transition-all disabled:bg-dashboard-bg disabled:cursor-not-allowed"
                   disabled={telegramConnecting || isPageDisabled}
                   onKeyDown={(e) => {
                     if (
@@ -836,7 +836,7 @@ export default function IntegrationsPage() {
                     href="https://t.me/BotFather"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sky-500 hover:underline font-medium"
+                    className="text-teal-primary hover:underline font-medium"
                   >
                     {t("integrations.telegram.botFather")}
                   </a>{" "}
@@ -852,7 +852,7 @@ export default function IntegrationsPage() {
                     telegramConnecting ||
                     isPageDisabled
                   }
-                  className="flex-1 bg-gradient-to-r from-sky-500 to-sky-700 text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold hover:from-sky-700 hover:to-sky-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="flex-1 bg-teal-primary text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-teal-accent transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {telegramConnecting ? (
                     <>

@@ -239,7 +239,7 @@ export default function BillingPage() {
   if (loading) {
     return (
       <div className="flex h-96 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-teal-primary" />
       </div>
     );
   }
@@ -247,17 +247,17 @@ export default function BillingPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto animate-fade-in-up">
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-6 sm:p-8 text-white shadow-xl">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-teal-primary via-[#0d6159] to-slate-800 p-6 sm:p-8 text-white shadow-xl">
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-teal-accent/20 blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-teal-accent/20 blur-3xl"></div>
         
         <div className="relative z-10 flex items-start sm:items-center gap-4 sm:gap-6">
           <div className="flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20 flex-shrink-0">
-            <CreditCard className="h-7 w-7 sm:h-8 sm:w-8 text-sky-500" />
+            <CreditCard className="h-7 w-7 sm:h-8 sm:w-8 text-teal-accent" />
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">{t("billing.title")}</h1>
-            <p className="mt-2 text-base sm:text-lg text-sky-100/80 max-w-2xl">
+            <p className="mt-2 text-base sm:text-lg text-white/80 max-w-2xl">
               {t("billing.subtitle")}
             </p>
           </div>
@@ -267,11 +267,11 @@ export default function BillingPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Global Credits */}
-        <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-sky-100">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-sky-500/5 rounded-full blur-2xl group-hover:bg-sky-500/10 transition-colors" />
+        <div className="group relative overflow-hidden rounded-2xl border border-dashboard-border bg-dashboard-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-teal-primary/30">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-teal-primary/5 rounded-full blur-2xl group-hover:bg-teal-primary/10 transition-colors" />
           <div className="relative">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-500 group-hover:scale-110 transition-transform">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-primary/10 text-teal-primary group-hover:scale-110 transition-transform">
                 <Wallet className="h-6 w-6" />
               </div>
               <div className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg text-xs font-medium">
@@ -288,7 +288,7 @@ export default function BillingPage() {
         </div>
 
         {/* Total Used (All Workspaces) */}
-        <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-orange-100">
+        <div className="group relative overflow-hidden rounded-2xl border border-dashboard-border bg-dashboard-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-orange-100">
           <div className="absolute top-0 right-0 w-24 h-24 bg-orange-500/5 rounded-full blur-2xl group-hover:bg-orange-500/10 transition-colors" />
           <div className="relative">
             <div className="flex items-center justify-between mb-4">
@@ -305,11 +305,11 @@ export default function BillingPage() {
         </div>
 
         {/* Next Billing */}
-        <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-blue-100">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-colors" />
+        <div className="group relative overflow-hidden rounded-2xl border border-dashboard-border bg-dashboard-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-teal-primary/30">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-teal-primary/5 rounded-full blur-2xl group-hover:bg-teal-primary/10 transition-colors" />
           <div className="relative">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-sky-500 group-hover:scale-110 transition-transform">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-teal-primary/10 text-teal-primary group-hover:scale-110 transition-transform">
                 <Calendar className="h-6 w-6" />
               </div>
               <FileText className="h-5 w-5 text-blue-400 opacity-50" />
@@ -333,7 +333,7 @@ export default function BillingPage() {
         </div>
 
         {/* Current Plan */}
-        <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-purple-100">
+        <div className="group relative overflow-hidden rounded-2xl border border-dashboard-border bg-dashboard-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-purple-100">
           <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/5 rounded-full blur-2xl group-hover:bg-purple-500/10 transition-colors" />
           <div className="relative">
             <div className="flex items-center justify-between mb-4">
@@ -354,8 +354,8 @@ export default function BillingPage() {
       </div>
 
       {/* Credit Transactions Table */}
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="border-b border-slate-100 bg-slate-50/50 px-8 py-6">
+      <div className="rounded-2xl border border-dashboard-border bg-dashboard-card shadow-sm overflow-hidden">
+        <div className="border-b border-dashboard-border bg-dashboard-bg px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold text-slate-900">{t("billing.creditHistory")}</h2>
@@ -363,7 +363,7 @@ export default function BillingPage() {
                 {t("billing.creditHistoryDesc")}
               </p>
             </div>
-            <button className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm">
+            <button className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-slate-700 bg-dashboard-card border border-dashboard-border rounded-xl hover:bg-dashboard-bg hover:border-dashboard-border transition-all shadow-sm">
               <Download className="h-4 w-4" />
               {t("billing.exportCsv")}
             </button>
@@ -372,7 +372,7 @@ export default function BillingPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-100">
+            <thead className="bg-dashboard-bg border-b border-dashboard-border">
               <tr>
                 <th className="px-8 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   {t("billing.date")}
@@ -434,8 +434,8 @@ export default function BillingPage() {
         </div>
 
         {creditTransactions.length > 0 && (
-        <div className="border-t border-slate-100 px-8 py-5 text-center bg-slate-50/30">
-          <button className="text-sm font-semibold text-sky-500 hover:text-sky-700 transition-colors hover:underline">
+        <div className="border-t border-dashboard-border px-8 py-5 text-center bg-dashboard-bg/50">
+          <button className="text-sm font-semibold text-teal-primary hover:text-teal-accent transition-colors hover:underline">
             {t("billing.loadMore")}
           </button>
         </div>
@@ -443,8 +443,8 @@ export default function BillingPage() {
       </div>
 
       {/* Invoices Section
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="border-b border-slate-100 bg-slate-50/50 px-8 py-6">
+      <div className="rounded-2xl border border-dashboard-border bg-dashboard-card shadow-sm overflow-hidden">
+        <div className="border-b border-dashboard-border bg-dashboard-bg px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold text-slate-900">Invoices</h2>
@@ -470,7 +470,7 @@ export default function BillingPage() {
               className="px-8 py-5 flex items-center justify-between hover:bg-slate-50/80 transition-colors group"
             >
               <div className="flex items-center gap-5">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-500 group-hover:bg-white group-hover:shadow-sm group-hover:text-sky-500 transition-all">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-dashboard-bg text-slate-500 group-hover:bg-dashboard-card group-hover:shadow-sm group-hover:text-teal-primary transition-all">
                   <FileText className="h-6 w-6" />
                 </div>
                 <div>
@@ -523,9 +523,9 @@ export default function BillingPage() {
 
       {/* Quick Actions
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="rounded-2xl border border-sky-100 bg-gradient-to-br from-sky-50/50 to-blue-50/50 p-8 transition-all hover:shadow-lg hover:border-sky-200">
+        <div className="rounded-2xl border border-teal-primary/20 bg-gradient-to-br from-teal-primary/5 to-dashboard-bg p-8 transition-all hover:shadow-lg hover:border-teal-primary/30">
           <div className="flex items-start justify-between mb-6">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white shadow-sm text-sky-500">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-dashboard-card shadow-sm text-teal-primary">
               <Plus className="h-7 w-7" />
             </div>
           </div>
@@ -538,7 +538,7 @@ export default function BillingPage() {
           <button
             onClick={handlePurchaseCredits}
             disabled={checkoutLoading}
-            className="w-full px-6 py-3.5 bg-sky-500 text-white rounded-xl font-bold hover:bg-sky-700 transition-all shadow-lg shadow-sky-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full px-6 py-3.5 bg-teal-primary text-white rounded-xl font-bold hover:bg-teal-accent transition-all shadow-lg shadow-teal-primary/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {checkoutLoading ? (
               <>

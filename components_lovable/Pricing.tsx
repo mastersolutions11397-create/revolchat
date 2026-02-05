@@ -99,7 +99,7 @@ function PricingContent() {
 
   return (
     <section
-      className="py-10 md:py-20 lg:py-32 bg-slate-50 relative"
+      className="py-10 md:py-20 lg:py-32 bg-dashboard-bg relative"
       id="pricing"
     >
       {/* Background Decoration */}
@@ -115,7 +115,7 @@ function PricingContent() {
             transition={{ duration: 0.5 }}
           >
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black font-lato text-foreground mb-3 sm:mb-4">
-              {t("pricing.landing.title").split("Pricing")[0]} <span className="text-sky-500">{t("pricing.landing.titleHighlight")}</span>
+              {t("pricing.landing.title").split("Pricing")[0]} <span className="text-teal-primary">{t("pricing.landing.titleHighlight")}</span>
             </h2>
             <p className="text-base sm:text-lg md:text-xl text-muted-foreground">
               {t("pricing.landing.subtitle")}
@@ -138,12 +138,12 @@ function PricingContent() {
                 <Card
                   className={`relative p-4 sm:p-6 md:p-8 h-full flex flex-col ${
                     tier.popular
-                      ? "border-2 border-sky-500 shadow-2xl sm:scale-105 z-10 bg-background"
-                      : "border border-gray-200/50 bg-card/50 hover:border-sky-500/30 hover:shadow-lg"
+                      ? "border-2 border-teal-primary shadow-2xl sm:scale-105 z-10 bg-background"
+                      : "border border-gray-200/50 bg-card/50 hover:border-teal-primary/30 hover:shadow-lg"
                   } transition-all duration-300 rounded-xl sm:rounded-2xl`}
                 >
                   {tier.popular && (
-                    <div className="absolute -top-3 sm:-top-4 left-1/2 -translate-x-1/2 px-3 sm:px-4 py-0.5 sm:py-1 bg-sky-500 text-white rounded-full text-xs sm:text-sm font-bold shadow-lg flex items-center gap-1 whitespace-nowrap">
+                    <div className="absolute -top-3 sm:-top-4 left-1/2 -translate-x-1/2 px-3 sm:px-4 py-0.5 sm:py-1 bg-teal-primary text-white rounded-full text-xs sm:text-sm font-bold shadow-lg flex items-center gap-1 whitespace-nowrap">
                       <Sparkles className="w-3 h-3" />
                       {t("pricing.landing.mostPopular")}
                     </div>
@@ -181,7 +181,7 @@ function PricingContent() {
                       }}
                       className={`w-full h-10 sm:h-12 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base ${
                         tier.popular
-                          ? "bg-sky-500 hover:bg-sky-500 text-white shadow-lg shadow-sky-500/25"
+                          ? "bg-teal-primary hover:bg-teal-accent text-white shadow-lg shadow-teal-primary/25"
                           : "bg-secondary hover:bg-secondary/80 text-foreground"
                       }`}
                     >
@@ -199,8 +199,8 @@ function PricingContent() {
                             key={featureIndex}
                             className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm"
                           >
-                            <div className="mt-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-sky-500/10 flex items-center justify-center flex-shrink-0">
-                              <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-sky-500" />
+                            <div className="mt-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-teal-primary/10 flex items-center justify-center flex-shrink-0">
+                              <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-teal-primary" />
                             </div>
                             <span className="text-muted-foreground">
                               {feature}
@@ -230,7 +230,7 @@ function LoadingFallback() {
     <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
       <div className="container mx-auto px-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-primary mx-auto mb-4"></div>
           <p className="text-slate-600">Loading pricing...</p>
         </div>
       </div>

@@ -7,7 +7,7 @@ import { useLanguage } from "@/lib/contexts/LanguageContext";
 const Footer = () => {
   const { t } = useLanguage();
   return (
-    <footer className="bg-linear-to-br from-slate-50 to-white border-t border-slate-100">
+    <footer className="bg-linear-to-br from-dashboard-bg to-dashboard-card border-t border-dashboard-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-8">
@@ -26,17 +26,17 @@ const Footer = () => {
 
             {/* Support Links */}
             <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12">
-              <Link href="/privacy" className="text-gray-600 hover:text-sky-500 transition-colors text-sm font-medium">
+              <Link href="/privacy" className="text-gray-600 hover:text-teal-primary transition-colors text-sm font-medium">
                 {t("footer.legal.privacy")}
               </Link>
-              <Link href="/terms" className="text-gray-600 hover:text-sky-500 transition-colors text-sm font-medium">
+              <Link href="/terms" className="text-gray-600 hover:text-teal-primary transition-colors text-sm font-medium">
                 {t("footer.legal.terms")}
               </Link>
               <Link
                 href="https://discord.gg/reY96aqzTe"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-gray-600 hover:text-sky-500 transition-colors text-sm font-medium"
+                className="text-gray-600 hover:text-teal-primary transition-colors text-sm font-medium"
               >
                 {t("footer.company.contact")}
               </Link>

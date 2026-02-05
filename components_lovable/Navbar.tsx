@@ -42,19 +42,19 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-8">
             <Link
               href="#features"
-              className="text-sm font-medium text-muted-foreground hover:text-sky-500 transition-colors"
+              className="text-sm font-medium text-muted-foreground hover:text-teal-primary transition-colors"
             >
               {t("nav.features")}
             </Link>
             <Link
               href="#how-it-works"
-              className="text-sm font-medium text-muted-foreground hover:text-sky-500 transition-colors"
+              className="text-sm font-medium text-muted-foreground hover:text-teal-primary transition-colors"
             >
               {t("nav.howItWorks")}
             </Link>
             <Link
               href="#pricing"
-              className="text-sm font-medium text-muted-foreground hover:text-sky-500 transition-colors"
+              className="text-sm font-medium text-muted-foreground hover:text-teal-primary transition-colors"
             >
               {t("nav.pricing")}
             </Link>
@@ -62,7 +62,7 @@ const Navbar = () => {
               href="https://discord.gg/reY96aqzTe"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-medium text-muted-foreground hover:text-sky-500 transition-colors"
+              className="text-sm font-medium text-muted-foreground hover:text-teal-primary transition-colors"
             >
               {t("nav.contact")}
             </Link>
@@ -70,10 +70,10 @@ const Navbar = () => {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-4">
-            <Link href="/auth/login" className="text-sm font-medium text-muted-foreground hover:text-sky-500 transition-colors">
+            <Link href="/auth/login" className="text-sm font-medium text-muted-foreground hover:text-teal-primary transition-colors">
               {t("nav.login")}
             </Link>
-            <Link href="/auth/signup" className="text-sm font-medium bg-sky-500 text-white hover:bg-primary/90 px-4 py-2 rounded-md transition-colors">
+            <Link href="/auth/signup" className="text-sm font-medium bg-teal-primary text-white hover:bg-teal-accent px-4 py-2 rounded-md transition-colors">
               {t("nav.getStarted")}
             </Link>
           </div>
@@ -100,21 +100,21 @@ const Navbar = () => {
             <div className="container px-4 py-8 flex flex-col gap-8">
               <Link
                 href="#features"
-                className="text-sm font-medium text-foreground hover:text-sky-500 transition-colors"
+                className="text-sm font-medium text-foreground hover:text-teal-primary transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {t("nav.features")}
               </Link>
               <Link
                 href="#how-it-works"
-                className="text-sm font-medium text-foreground hover:text-sky-500 transition-colors"
+                className="text-sm font-medium text-foreground hover:text-teal-primary transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {t("nav.howItWorks")}
               </Link>
               <Link
                 href="#pricing"
-                className="text-sm font-medium text-foreground hover:text-sky-500 transition-colors"
+                className="text-sm font-medium text-foreground hover:text-teal-primary transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {t("nav.pricing")}
@@ -123,16 +123,16 @@ const Navbar = () => {
                 href="https://discord.gg/reY96aqzTe"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm font-medium text-foreground hover:text-sky-500 transition-colors"
+                className="text-sm font-medium text-foreground hover:text-teal-primary transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {t("nav.contact")}
               </Link>
               <div className="flex flex-col gap-2 pt-4 border-t border-gray-100">
-                <Link href="/auth/login" className="text-sm bg-sky-500 text-center px-3 py-2 rounded-lg text-white font-medium  hover:text-sky-500 transition-colors w-full" onClick={() => setIsMobileMenuOpen(false)}>
+                <Link href="/auth/login" className="text-sm bg-teal-primary/10 text-teal-primary text-center px-3 py-2 rounded-lg font-medium hover:bg-teal-primary hover:text-white transition-colors w-full" onClick={() => setIsMobileMenuOpen(false)}>
                   {t("nav.login")}
                 </Link>
-                <Link href="/auth/signup" className="text-sm bg-sky-500 px-3 py-2 rounded-lg text-white font-medium bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md transition-colors w-full text-center" onClick={() => setIsMobileMenuOpen(false)}>
+                <Link href="/auth/signup" className="text-sm bg-teal-primary px-3 py-2 rounded-lg text-white font-medium hover:bg-teal-accent transition-colors w-full text-center" onClick={() => setIsMobileMenuOpen(false)}>
                   {t("nav.getStarted")}
                 </Link>
               </div>

@@ -19,18 +19,18 @@ const Platforms = () => {
   {
     image: "/yetti/messenger_logo.png",
     name: "Messenger",
-    color: "text-sky-500",
-    bg: "bg-blue-50",
-    border: "group-hover:border-blue-500/50",
-    shadow: "group-hover:shadow-blue-500/20",
+    color: "text-teal-primary",
+    bg: "bg-teal-primary/10",
+    border: "group-hover:border-teal-primary/50",
+    shadow: "group-hover:shadow-teal-primary/20",
   },
   {
     image: "/yetti/telegram_logo.png",
     name: "Telegram",
-    color: "text-sky-500",
-    bg: "bg-sky-50",
-    border: "group-hover:border-sky-500/50",
-    shadow: "group-hover:shadow-sky-500/20",
+    color: "text-teal-primary",
+    bg: "bg-teal-primary/10",
+    border: "group-hover:border-teal-primary/50",
+    shadow: "group-hover:shadow-teal-primary/20",
   },
   {
     image: "/yetti/whatsapp_logo.png",
@@ -59,18 +59,18 @@ const Platforms = () => {
   {
     image: "/yetti/linkedin_logo.png",
     name: "LinkedIn",
-    color: "text-sky-500",
-    bg: "bg-blue-50",
-    border: "group-hover:border-sky-500/50",
-    shadow: "group-hover:shadow-sky-500/20",
+    color: "text-teal-primary",
+    bg: "bg-teal-primary/10",
+    border: "group-hover:border-teal-primary/50",
+    shadow: "group-hover:shadow-teal-primary/20",
   },
   {
     image: "/yetti/discord_logo.png",
     name: "Discord",
-    color: "text-indigo-500",
-    bg: "bg-indigo-50",
-    border: "group-hover:border-indigo-500/50",
-    shadow: "group-hover:shadow-indigo-500/20",
+    color: "text-teal-accent",
+    bg: "bg-teal-accent/10",
+    border: "group-hover:border-teal-accent/50",
+    shadow: "group-hover:shadow-teal-accent/20",
   },
 ];
 
@@ -80,7 +80,7 @@ const Platforms = () => {
       <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:20px_20px] opacity-50 pointer-events-none"></div>
       
       {/* Ambient Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-sky-500/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-teal-primary/5 rounded-full blur-3xl pointer-events-none"></div>
 
       <div className="container px-4 mx-auto relative z-10">
         {/* Section Header */}
@@ -92,7 +92,7 @@ const Platforms = () => {
             transition={{ duration: 0.5 }}
           >
             <h2 className="text-4xl md:text-5xl font-black font-lato text-foreground mb-6">
-              {t("platforms.title").split("Customers Are")[0]} <span className="text-sky-500">{t("platforms.titleHighlight")}</span>
+              {t("platforms.title").split("Customers Are")[0]} <span className="text-teal-primary">{t("platforms.titleHighlight")}</span>
             </h2>
             <p className="text-xl text-muted-foreground">
               {t("platforms.subtitle")}
@@ -132,7 +132,7 @@ const Platforms = () => {
                     className="object-contain"
                   />
                 </div>
-                <h3 className="relative text-lg font-bold text-foreground group-hover:text-sky-500 transition-colors">
+                <h3 className="relative text-lg font-bold text-foreground group-hover:text-teal-primary transition-colors">
                   {platform.name}
                 </h3>
               </motion.div>

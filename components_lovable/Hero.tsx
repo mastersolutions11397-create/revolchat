@@ -14,8 +14,8 @@ const Hero = () => {
       {/* Background Gradients & Grid */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-        <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-sky-500/20 opacity-20 blur-[100px]"></div>
-        <div className="absolute right-0 top-0 -z-10 h-full w-full bg-[radial-gradient(circle_800px_at_100%_200px,rgba(45,102,149,0.1),transparent)]"></div>
+        <div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-teal-primary/20 opacity-20 blur-[100px]"></div>
+        <div className="absolute right-0 top-0 -z-10 h-full w-full bg-[radial-gradient(circle_800px_at_100%_200px,rgba(15,118,110,0.1),transparent)]"></div>
       </div>
 
       {/* Animated Floating Elements */}
@@ -30,7 +30,7 @@ const Hero = () => {
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="absolute top-1/4 left-[10%] w-64 h-64 bg-sky-500/10 rounded-full blur-3xl"
+          className="absolute top-1/4 left-[10%] w-64 h-64 bg-teal-primary/10 rounded-full blur-3xl"
         />
         <motion.div
           animate={{
@@ -79,7 +79,7 @@ const Hero = () => {
               transition={{ delay: 1, duration: 0.8 }}
               className="absolute left-1/2 translate-x-[180px] top-10 hidden lg:flex items-center gap-3 p-3 rounded-2xl bg-white/80 backdrop-blur-md border border-white/40 shadow-xl z-20"
             >
-              <div className="p-2 bg-blue-100 rounded-full text-sky-500">
+              <div className="p-2 bg-teal-primary/10 rounded-full text-teal-primary">
                 <MessageCircle size={20} />
               </div>
               <div className="text-left">
@@ -98,8 +98,8 @@ const Hero = () => {
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="relative z-10"
             >
-              <div className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-full bg-gradient-to-b from-white to-sky-50 shadow-[0_0_60px_-15px_rgba(45,102,149,0.3)] flex items-center justify-center p-1 ring-1 ring-white/50">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-sky-500/20 to-transparent opacity-50 blur-xl"></div>
+              <div className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-full bg-gradient-to-b from-white to-teal-primary/10 shadow-[0_0_60px_-15px_rgba(15,118,110,0.3)] flex items-center justify-center p-1 ring-1 ring-white/50">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-teal-primary/20 to-transparent opacity-50 blur-xl"></div>
                 <img
                   src="/yetti/logo.png"
                   alt="Yetti.ai"
@@ -119,7 +119,7 @@ const Hero = () => {
             <span className="text-foreground drop-shadow-sm">
               {t("hero.titleLine1")}{" "}
             </span>
-            <span className="bg-gradient-to-r from-sky-500 via-sky-500 to-sky-500 bg-clip-text text-transparent pb-2">
+            <span className="bg-gradient-to-r from-teal-primary to-teal-accent bg-clip-text text-transparent pb-2">
               {t("hero.titleLine2")}
             </span>
           </motion.h1>
@@ -144,7 +144,7 @@ const Hero = () => {
             <Button
               size="lg"
               onClick={() => router.push("/auth/login")}
-              className="w-full sm:w-auto h-12 sm:h-14 px-6 sm:px-8 text-base sm:text-lg rounded-full bg-sky-500 hover:bg-sky-500/90 text-white shadow-[0_10px_40px_-10px_rgba(45,102,149,0.4)] hover:shadow-[0_20px_40px_-10px_rgba(45,102,149,0.5)] hover:-translate-y-1 transition-all duration-300"
+              className="w-full sm:w-auto h-12 sm:h-14 px-6 sm:px-8 text-base sm:text-lg rounded-full bg-teal-primary hover:bg-teal-accent text-white shadow-[0_10px_40px_-10px_rgba(15,118,110,0.4)] hover:shadow-[0_20px_40px_-10px_rgba(20,184,166,0.5)] hover:-translate-y-1 transition-all duration-300"
             >
               {t("hero.launchNow")}
               <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />

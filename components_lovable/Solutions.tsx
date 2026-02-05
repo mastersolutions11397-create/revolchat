@@ -69,7 +69,7 @@ const Solutions = () => {
             transition={{ duration: 0.5 }}
           >
             <h2 className="text-4xl md:text-5xl font-black font-lato text-foreground mb-6">
-              {t("solutions.title").split("Biggest Challenges")[0]} <span className="text-sky-500">{t("solutions.titleHighlight")}</span>
+              {t("solutions.title").split("Biggest Challenges")[0]} <span className="text-teal-primary">{t("solutions.titleHighlight")}</span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               {t("solutions.subtitle")}
@@ -89,17 +89,17 @@ const Solutions = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
-                <Card className="group relative p-8 h-full bg-background border border-gray-200/50 hover:border-sky-500/30 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                <Card className="group relative p-8 h-full bg-background border border-gray-200/50 hover:border-teal-primary/30 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
                   {/* Hover Gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-teal-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   
                   <div className="relative z-10 space-y-6">
                     {/* Icon and Title in same row */}
                     <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 rounded-2xl bg-sky-500/10 flex items-center justify-center group-hover:bg-sky-500 group-hover:text-white transition-colors duration-300">
-                        <Icon className="w-7 h-7 text-sky-500 group-hover:text-white transition-colors duration-300" />
+                      <div className="w-14 h-14 rounded-2xl bg-teal-primary/10 flex items-center justify-center group-hover:bg-teal-primary group-hover:text-white transition-colors duration-300">
+                        <Icon className="w-7 h-7 text-teal-primary group-hover:text-white transition-colors duration-300" />
                       </div>
-                      <h3 className="text-xl font-bold text-foreground group-hover:text-sky-500 transition-colors">
+                      <h3 className="text-xl font-bold text-foreground group-hover:text-teal-primary transition-colors">
                         {solution.title}
                       </h3>
                     </div>
@@ -108,7 +108,7 @@ const Solutions = () => {
                     <div>
                       
                       <div className="space-y-3">
-                        <p className="text-sm text-muted-foreground/80 italic border-l-2 border-sky-500/20 pl-3">
+                        <p className="text-sm text-muted-foreground/80 italic border-l-2 border-teal-primary/20 pl-3">
                           &quot;{solution.problem}&quot;
                         </p>
                         <p className="text-foreground leading-relaxed">
@@ -118,7 +118,7 @@ const Solutions = () => {
                     </div>
                     
                     {/* Learn More Link */}
-                    <div className="pt-2 flex items-center text-sky-500 font-medium text-sm opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                    <div className="pt-2 flex items-center text-teal-primary font-medium text-sm opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
                       {t("solutions.learnMore")} <ArrowRight className="w-4 h-4 ml-1" />
                     </div>
                   </div>

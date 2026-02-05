@@ -10,6 +10,12 @@
   --accent: #68b4e4; /* Slate 900 */
   --text-muted: #64748b; /* Slate 500 */
   --border: #e2e8f0;
+  /* Dashboard: Teal + Soft Gray (business / non-tech) */
+  --teal-primary: #0F766E;
+  --teal-accent: #14B8A6;
+  --dashboard-bg: #F9FAFB;
+  --dashboard-card: #FFFFFF;
+  --dashboard-border: #E5E7EB;
   /* Custom Navy & Sky Palette */
   --sky-900: #0f172a;
   --sky-800: #1e293b;
@@ -53,6 +59,11 @@
   --color-destructive-foreground: var(--destructive-foreground);
   --color-ring: var(--ring);
   --color-input: var(--input);
+  --color-teal-primary: var(--teal-primary);
+  --color-teal-accent: var(--teal-accent);
+  --color-dashboard-bg: var(--dashboard-bg);
+  --color-dashboard-card: var(--dashboard-card);
+  --color-dashboard-border: var(--dashboard-border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

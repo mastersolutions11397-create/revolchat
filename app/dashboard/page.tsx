@@ -736,7 +736,7 @@ export default function DashboardPage() {
     return (
       <div className="flex h-96 items-center justify-center">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-sky-500" />
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-teal-primary" />
           <p className="text-slate-600 font-medium">{t("dashboard.loadingDashboard")}</p>
         </div>
       </div>
@@ -746,9 +746,9 @@ export default function DashboardPage() {
   return (
     <div className="space-y-4 sm:space-y-6 md:space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-linear-to-br from-slate-900 via-slate-800 to-sky-900 p-4 sm:p-6 md:p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
-        <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-sky-500/20 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-sky-500/20 blur-3xl" />
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-linear-to-br from-teal-primary via-[#0d6159] to-slate-800 p-4 sm:p-6 md:p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
+        <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-teal-accent/20 blur-3xl" />
+        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-teal-accent/20 blur-3xl" />
 
         <div className="relative z-10 flex flex-col gap-4 sm:gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3 sm:gap-5">
@@ -822,9 +822,9 @@ export default function DashboardPage() {
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {/* Monthly Messages */}
-        <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-slate-100 bg-white p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-sky-100">
+        <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-teal-primary/30">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">
@@ -840,7 +840,7 @@ export default function DashboardPage() {
                 </p>
               )}
             </div>
-            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-sky-50 text-sky-500 transition-colors group-hover:bg-sky-500 group-hover:text-white shrink-0 ml-3">
+            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-teal-primary/10 text-teal-primary transition-colors group-hover:bg-teal-primary group-hover:text-white shrink-0 ml-3">
               <MessageSquare className="h-5 w-5 sm:h-7 sm:w-7" />
             </div>
           </div>
@@ -854,7 +854,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Active Integrations */}
-        <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-slate-100 bg-white p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-blue-100">
+        <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-teal-primary/30">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">
@@ -870,7 +870,7 @@ export default function DashboardPage() {
                 </p>
               )}
             </div>
-            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-blue-50 text-sky-500 transition-colors group-hover:bg-sky-500 group-hover:text-white shrink-0 ml-3">
+            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-teal-primary/10 text-teal-primary transition-colors group-hover:bg-teal-primary group-hover:text-white shrink-0 ml-3">
               <Link2 className="h-5 w-5 sm:h-7 sm:w-7" />
             </div>
           </div>
@@ -886,7 +886,7 @@ export default function DashboardPage() {
         {/* Current Plan */}
         <Link
           href="/dashboard/plans"
-          className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-slate-100 bg-white p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-violet-100 block"
+          className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-teal-primary/30 block"
         >
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
@@ -924,7 +924,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Platform Status Section */}
-      <div className="rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 md:p-8 shadow-sm">
+      <div className="rounded-2xl sm:rounded-3xl border border-dashboard-border bg-dashboard-card p-4 sm:p-6 md:p-8 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="min-w-0 flex-1">
             <h3 className="text-lg sm:text-xl font-bold text-slate-900">
@@ -936,7 +936,7 @@ export default function DashboardPage() {
           </div>
           <Link
             href="/dashboard/integrations"
-            className="text-xs sm:text-sm font-semibold text-sky-500 hover:text-sky-700 hover:underline whitespace-nowrap shrink-0"
+            className="text-xs sm:text-sm font-semibold text-teal-primary hover:text-teal-accent hover:underline whitespace-nowrap shrink-0"
           >
             {t("dashboard.manageIntegrations")} &rarr;
           </Link>
@@ -947,7 +947,7 @@ export default function DashboardPage() {
             <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
           </div>
         ) : !instagramIntegration && !telegramBotInfo ? (
-          <div className="flex flex-col items-center justify-center py-12 rounded-2xl bg-slate-50 border border-dashed border-slate-200">
+          <div className="flex flex-col items-center justify-center py-12 rounded-2xl bg-dashboard-bg border border-dashed border-dashboard-border">
             <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
               <Link2 className="h-6 w-6 text-slate-400" />
             </div>
@@ -956,7 +956,7 @@ export default function DashboardPage() {
             </p>
             <Link
               href="/dashboard/integrations"
-              className="inline-flex items-center justify-center rounded-xl bg-sky-500 px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-sky-700 hover:shadow-lg hover:shadow-sky-200 active:scale-95"
+              className="inline-flex items-center justify-center rounded-xl bg-teal-primary px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-teal-accent hover:shadow-lg hover:shadow-teal-primary/20 active:scale-95"
             >
               {t("dashboard.addIntegration")}
             </Link>
@@ -964,7 +964,7 @@ export default function DashboardPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {instagramIntegration && (
-              <div className="flex items-center justify-between rounded-lg sm:rounded-xl border border-slate-100 bg-slate-50/50 p-3 sm:p-4 transition-all hover:bg-white hover:shadow-md hover:border-slate-200">
+              <div className="flex items-center justify-between rounded-lg sm:rounded-xl border border-dashboard-border bg-dashboard-bg p-3 sm:p-4 transition-all hover:bg-dashboard-card hover:shadow-md hover:border-dashboard-border">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                   <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-emerald-50 shrink-0">
                     {instagramIntegration.profile_picture ? (
@@ -1003,7 +1003,7 @@ export default function DashboardPage() {
               </div>
             )}
             {telegramBotInfo && (
-              <div className="flex items-center justify-between rounded-lg sm:rounded-xl border border-slate-100 bg-slate-50/50 p-3 sm:p-4 transition-all hover:bg-white hover:shadow-md hover:border-slate-200">
+              <div className="flex items-center justify-between rounded-lg sm:rounded-xl border border-dashboard-border bg-dashboard-bg p-3 sm:p-4 transition-all hover:bg-dashboard-card hover:shadow-md hover:border-dashboard-border">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                   <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-emerald-50 shrink-0">
                     <Image
@@ -1038,11 +1038,11 @@ export default function DashboardPage() {
       {/* New User Workspace Creation Modal */}
       {showNewUserModal && (
         <div className="fixed inset-0 z-[50] flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4 animate-fade-in">
-          <div className="bg-white   rounded-2xl  shadow-2xl w-full max-w-lg max-h-[80vh] overflow-y-hidden animate-fade-in-up">
+          <div className="bg-dashboard-card rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-y-hidden animate-fade-in-up">
             {/* Header */}
-            <div className="relative p-4 rounded-2xl   sm:p-6 md:p-8 pb-4 sm:pb-6 bg-gradient-to-br from-sky-50 to-white border-b border-slate-100">
+            <div className="relative p-4 rounded-2xl sm:p-6 md:p-8 pb-4 sm:pb-6 bg-gradient-to-br from-teal-primary/5 to-dashboard-card border-b border-dashboard-border">
               <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-                <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl bg-linear-to-br from-sky-500 to-sky-600 flex items-center justify-center shadow-lg shadow-sky-500/30 shrink-0">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl bg-teal-primary flex items-center justify-center shadow-lg shadow-teal-primary/30 shrink-0">
                   <Plus className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-white" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -1077,7 +1077,7 @@ export default function DashboardPage() {
                   value={newWorkspaceName}
                   onChange={(e) => setNewWorkspaceName(e.target.value)}
                   placeholder={t("dashboard.workspaceNamePlaceholder")}
-                  className="w-full px-3 sm:px-4 py-3 sm:py-4 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 transition-all hover:border-sky-300 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-500/10 text-sm sm:text-base"
+                  className="w-full px-3 sm:px-4 py-3 sm:py-4 rounded-xl border-2 border-dashboard-border bg-dashboard-card text-slate-900 placeholder:text-slate-400 transition-all hover:border-teal-accent focus:border-teal-primary focus:outline-none focus:ring-4 focus:ring-teal-primary/10 text-sm sm:text-base"
                   minLength={3}
                   required
                   autoFocus
@@ -1111,7 +1111,7 @@ export default function DashboardPage() {
                 disabled={
                   creatingWorkspace || newWorkspaceName.trim().length < 3
                 }
-                className="w-full px-4 sm:px-6 py-3 sm:py-4 rounded-xl bg-linear-to-r from-sky-500 to-sky-600 text-white font-bold text-sm sm:text-base md:text-lg shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none flex items-center justify-center gap-2 sm:gap-3"
+                className="w-full px-4 sm:px-6 py-3 sm:py-4 rounded-xl bg-teal-primary text-white font-bold text-sm sm:text-base md:text-lg shadow-lg shadow-teal-primary/30 hover:bg-teal-accent hover:shadow-xl hover:shadow-teal-primary/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none flex items-center justify-center gap-2 sm:gap-3"
               >
                 {creatingWorkspace ? (
                   <>

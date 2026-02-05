@@ -453,7 +453,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
+    <div className="min-h-screen bg-dashboard-bg">
       {/* Mobile Overlay */}
       {mobileSidebarOpen && (
         <div
@@ -474,7 +474,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           // Always collapse on mouse leave
           setSidebarExpanded(false);
         }}
-        className={`fixed inset-y-0 left-0 z-50 bg-white border-r border-slate-200 transition-all duration-300 ease-in-out shadow-sm ${
+        className={`fixed inset-y-0 left-0 z-50 bg-dashboard-card border-r border-dashboard-border transition-all duration-300 ease-in-out shadow-sm ${
           // Mobile: always full width when open, hidden when closed
           mobileSidebarOpen ? "w-72 translate-x-0" : "-translate-x-full"
         } ${
@@ -486,7 +486,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       >
         <div className="flex h-full flex-col">
           {/* Logo */}
-          <div className="flex h-20 items-center border-b border-slate-100 px-3 md:px-6">
+          <div className="flex h-20 items-center border-b border-dashboard-border px-3 md:px-6">
             {/* Expanded sidebar logo */}
             {(sidebarExpanded || mobileSidebarOpen) && (
               <Link
@@ -502,7 +502,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 />
                 <div className="text-2xl font-extrabold tracking-tight">
                   <span className="text-slate-900">Yetti</span>
-                  <span className="text-sky-500">.ai</span>
+                  <span className="text-teal-primary">.ai</span>
                 </div>
               </Link>
             )}
@@ -527,7 +527,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             {mobileSidebarOpen && (
               <button
                 onClick={() => setMobileSidebarOpen(false)}
-                className="ml-auto p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                className="ml-auto p-2 rounded-lg text-slate-400 hover:bg-dashboard-bg hover:text-slate-900 transition-colors"
                   aria-label={t("dashboard.workspaceSelector.closeSidebar")}
               >
                 <X className="h-5 w-5" />
@@ -602,14 +602,14 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                   data-tour={item.tourId || undefined}
                   className={`group flex items-center rounded-xl px-3 py-3 transition-all duration-200 ${
                     active
-                      ? "bg-sky-50 text-sky-500 shadow-sm ring-1 ring-sky-100"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      ? "bg-teal-primary/10 text-teal-primary shadow-sm ring-1 ring-teal-primary/20"
+                      : "text-slate-600 hover:bg-dashboard-bg hover:text-slate-900"
                   }`}
                 >
                   <item.icon
                     className={`h-5 w-5 shrink-0 transition-colors ${
                       active
-                        ? "text-sky-500"
+                        ? "text-teal-primary"
                         : "text-slate-400 group-hover:text-slate-600"
                     } ${sidebarExpanded || mobileSidebarOpen ? "mr-3" : "mx-auto"}`}
                   />
@@ -623,7 +623,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                     {item.label}
                   </span>
                   {active && (sidebarExpanded || mobileSidebarOpen) && (
-                    <div className="ml-auto h-2 w-2 rounded-full bg-sky-500" />
+                    <div className="ml-auto h-2 w-2 rounded-full bg-teal-primary" />
                   )}
                 </Link>
               );
@@ -631,11 +631,11 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           </nav>
 
           {/* User Profile */}
-          <div className="border-t border-slate-100 p-4 bg-slate-50/50">
+          <div className="border-t border-dashboard-border p-4 bg-dashboard-bg">
             <div
               className={`flex items-center gap-3 ${!sidebarExpanded && !mobileSidebarOpen && "justify-center"}`}
             >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-sky-500 to-sky-500 text-sm font-bold text-white shadow-md shadow-sky-200">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-primary text-sm font-bold text-white shadow-md shadow-teal-primary/20">
                 {
                   (user?.user_metadata?.first_name?.[0] ||
                     user?.email?.[0]?.toUpperCase() ||
@@ -660,7 +660,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
               {(sidebarExpanded || mobileSidebarOpen) && (
                 <button
                   onClick={handleSignOut}
-                  className="ml-auto rounded-lg p-2 text-slate-400 hover:bg-white hover:text-red-500 hover:shadow-sm transition-all"
+                  className="ml-auto rounded-lg p-2 text-slate-400 hover:bg-dashboard-card hover:text-red-500 hover:shadow-sm transition-all"
                   title={t("dashboard.sidebar.signOut")}
                 >
                   <LogOut className="h-4 w-4" />
@@ -690,7 +690,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         } pl-0`}
       >
         {/* Top Navigation */}
-        <header className="sticky top-0 z-40 flex h-14 sm:h-16 md:h-20 items-center justify-between border-b border-slate-200 bg-white/80 px-3 sm:px-4 md:px-6 lg:px-8 backdrop-blur-xl transition-all gap-2 sm:gap-4">
+        <header className="sticky top-0 z-40 flex h-14 sm:h-16 md:h-20 items-center justify-between border-b border-dashboard-border bg-dashboard-card/80 px-3 sm:px-4 md:px-6 lg:px-8 backdrop-blur-xl transition-all gap-2 sm:gap-4">
           <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-1 min-w-0">
             {/* Mobile Burger Menu */}
             <button
@@ -714,7 +714,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                   workspaceLoading ||
                   workspaces.length === 0
                 }
-                className="w-full flex items-center justify-between rounded-lg sm:rounded-xl border-2 border-slate-100 bg-white py-1.5 sm:py-2 md:py-2.5 pl-2 sm:pl-3 md:pl-4 pr-2 sm:pr-3 md:pr-4 text-xs sm:text-sm md:text-base font-bold text-slate-900 transition-all hover:border-sky-300 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/10 disabled:cursor-not-allowed disabled:bg-slate-50 min-w-0"
+                className="w-full flex items-center justify-between rounded-lg sm:rounded-xl border-2 border-dashboard-border bg-dashboard-card py-1.5 sm:py-2 md:py-2.5 pl-2 sm:pl-3 md:pl-4 pr-2 sm:pr-3 md:pr-4 text-xs sm:text-sm md:text-base font-bold text-slate-900 transition-all hover:border-teal-accent focus:border-teal-primary focus:outline-none focus:ring-2 focus:ring-teal-primary/10 disabled:cursor-not-allowed disabled:bg-dashboard-bg min-w-0"
                 aria-label={t("dashboard.workspaceSelector.selectWorkspaceAria")}
                 aria-haspopup="listbox"
                 aria-expanded={workspaceDropdownOpen}
@@ -742,7 +742,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
               {/* Dropdown Menu */}
               {workspaceDropdownOpen && workspaces.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1.5 sm:mt-2 z-50 bg-white rounded-xl border-2 border-slate-200 shadow-xl shadow-slate-900/10 overflow-hidden">
+                <div className="absolute top-full left-0 right-0 mt-1.5 sm:mt-2 z-50 bg-dashboard-card rounded-xl border-2 border-dashboard-border shadow-xl shadow-slate-900/10 overflow-hidden">
                   <div className="max-h-64 sm:max-h-80 overflow-y-auto">
                     {workspaces.map((workspace) => {
                       const isSelected = workspace.id === localWorkspaceSelection;
@@ -753,8 +753,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                           key={workspace.id}
                           className={`group relative ${
                             isSelected
-                              ? "bg-sky-50 border-l-4 border-sky-500"
-                              : "hover:bg-slate-50"
+                              ? "bg-teal-primary/10 border-l-4 border-teal-primary"
+                              : "hover:bg-dashboard-bg"
                           } transition-colors`}
                         >
                           {isEditing ? (
@@ -774,7 +774,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                                   }
                                 }}
                                 autoFocus
-                                className="flex-1 min-w-0 max-w-[calc(100%-120px)] px-3 py-2 rounded-lg border-2 border-sky-300 bg-white text-sm font-medium text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/10"
+                                className="flex-1 min-w-0 max-w-[calc(100%-120px)] px-3 py-2 rounded-lg border-2 border-teal-accent bg-dashboard-card text-sm font-medium text-slate-900 focus:border-teal-primary focus:outline-none focus:ring-2 focus:ring-teal-primary/10"
                                 disabled={updatingWorkspace}
                               />
                               <button
@@ -797,7 +797,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                               <button
                                 onClick={handleCancelEdit}
                                 disabled={updatingWorkspace}
-                                className="p-2 rounded-lg bg-slate-200 text-slate-600 hover:bg-slate-300 transition-colors disabled:opacity-50"
+                                className="p-2 rounded-lg bg-dashboard-border text-slate-600 hover:bg-slate-300 transition-colors disabled:opacity-50"
                                 title={t("dashboard.workspaceSelector.cancel")}
                               >
                                 <X className="h-4 w-4" />
@@ -818,7 +818,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                                 }}
                                 className={`flex-1 text-left ${
                                   isSelected
-                                    ? "text-sky-600 font-bold"
+                                    ? "text-teal-primary font-bold"
                                     : "text-slate-700 font-medium"
                                 } text-xs sm:text-sm transition-colors`}
                               >
@@ -834,13 +834,13 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                                     workspace.name || "Untitled workspace"
                                   );
                                 }}
-                                className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-sky-500 hover:bg-sky-50 transition-all opacity-0 group-hover:opacity-100"
+                                className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-teal-primary hover:bg-teal-primary/10 transition-all opacity-0 group-hover:opacity-100"
                                 title={t("dashboard.workspaceSelector.editWorkspace")}
                               >
                                 <Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                               </button>
                               {isSelected && (
-                                <div className="h-2 w-2 rounded-full bg-sky-500 shrink-0" />
+                                <div className="h-2 w-2 rounded-full bg-teal-primary shrink-0" />
                               )}
                             </div>
                           )}
@@ -856,7 +856,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             <button
               onClick={() => setShowNewWorkspaceModal(true)}
               data-tour="create-workspace-button"
-              className="hidden sm:inline-flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl border-2 border-slate-100 bg-white px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 text-xs sm:text-sm font-bold text-slate-900 transition-all hover:bg-sky-50 hover:border-sky-300 hover:shadow-sm shrink-0"
+              className="hidden sm:inline-flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl border-2 border-dashboard-border bg-dashboard-card px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 text-xs sm:text-sm font-bold text-slate-900 transition-all hover:bg-teal-primary/5 hover:border-teal-accent hover:shadow-sm shrink-0"
               title={t("dashboard.createNewWorkspace")}
             >
               <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -875,7 +875,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             <Link
               href="/dashboard/billing"
               data-tour="credits-button"
-              className="hidden md:inline-flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl border-2 border-slate-100 bg-white px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 text-xs sm:text-sm font-bold text-slate-900 transition-all hover:bg-sky-100 hover:border-sky-300 hover:shadow-sm"
+              className="hidden md:inline-flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl border-2 border-dashboard-border bg-dashboard-card px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 text-xs sm:text-sm font-bold text-slate-900 transition-all hover:bg-teal-primary/10 hover:border-teal-accent hover:shadow-sm"
             >
               <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
               {creditsLoading ? (
@@ -890,13 +890,13 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             {/* Mobile Credits Icon */}
             <Link
               href="/dashboard/billing"
-              className="md:hidden p-1.5 sm:p-2 rounded-lg sm:rounded-xl border-2 border-slate-100 bg-white text-slate-600 transition-all hover:bg-sky-100 hover:border-sky-300 hover:text-sky-500 shrink-0"
+              className="md:hidden p-1.5 sm:p-2 rounded-lg sm:rounded-xl border-2 border-dashboard-border bg-dashboard-card text-slate-600 transition-all hover:bg-teal-primary/10 hover:border-teal-accent hover:text-teal-primary shrink-0"
               title="Credits"
             >
               <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
             </Link>
 
-            <div className="hidden sm:block h-6 sm:h-8 w-px bg-slate-200" />
+            <div className="hidden sm:block h-6 sm:h-8 w-px bg-dashboard-border" />
 
             {/* Discord Icon */}
             <Link
@@ -915,14 +915,14 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
               </svg>
             </Link>
 
-            <div className="hidden sm:block h-6 sm:h-8 w-px bg-slate-200" />
+            <div className="hidden sm:block h-6 sm:h-8 w-px bg-dashboard-border" />
 
             <button
-              className="relative rounded-lg sm:rounded-xl p-1.5 sm:p-2 md:p-2.5 text-slate-500 transition-all hover:bg-sky-50 hover:text-sky-500 shrink-0"
+              className="relative rounded-lg sm:rounded-xl p-1.5 sm:p-2 md:p-2.5 text-slate-500 transition-all hover:bg-teal-primary/10 hover:text-teal-primary shrink-0"
               aria-label="Notifications"
             >
               <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span className="absolute top-1 sm:top-1.5 md:top-2 right-1 sm:right-1.5 md:right-2 h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-sky-500 ring-1 sm:ring-2 ring-white" />
+              <span className="absolute top-1 sm:top-1.5 md:top-2 right-1 sm:right-1.5 md:right-2 h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-teal-primary ring-1 sm:ring-2 ring-white" />
             </button>
           </div>
         </header>
@@ -952,21 +952,21 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         {/* New Workspace Modal */}
         {showNewWorkspaceModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4 animate-fade-in">
-            <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fade-in-up">
+            <div className="bg-dashboard-card rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-fade-in-up">
               {/* Header */}
-              <div className="relative p-4 sm:p-6 pb-3 sm:pb-4 bg-linear-to-br from-sky-50 to-white border-b border-slate-100">
+              <div className="relative p-4 sm:p-6 pb-3 sm:pb-4 bg-linear-to-br from-teal-primary/5 to-dashboard-card border-b border-dashboard-border">
                 <button
                   onClick={() => {
                     setShowNewWorkspaceModal(false);
                     setNewWorkspaceName("");
                   }}
-                  className="absolute top-3 sm:top-4 right-3 sm:right-4 p-1.5 sm:p-2 rounded-lg text-slate-400 hover:bg-white hover:text-slate-900 transition-all hover:shadow-sm"
+                  className="absolute top-3 sm:top-4 right-3 sm:right-4 p-1.5 sm:p-2 rounded-lg text-slate-400 hover:bg-dashboard-card hover:text-slate-900 transition-all hover:shadow-sm"
                   aria-label="Close"
                 >
                   <X className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
                 <div className="flex items-center gap-2 sm:gap-3 pr-8 sm:pr-12">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-linear-to-br from-sky-500 to-sky-600 flex items-center justify-center shadow-lg shadow-sky-500/30 shrink-0">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-teal-primary flex items-center justify-center shadow-lg shadow-teal-primary/30 shrink-0">
                     <Plus className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -995,7 +995,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                     value={newWorkspaceName}
                     onChange={(e) => setNewWorkspaceName(e.target.value)}
                     placeholder="e.g., My Awesome Project"
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 transition-all hover:border-sky-300 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-500/10 text-sm sm:text-base"
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3.5 rounded-xl border-2 border-dashboard-border bg-dashboard-card text-slate-900 placeholder:text-slate-400 transition-all hover:border-teal-accent focus:border-teal-primary focus:outline-none focus:ring-4 focus:ring-teal-primary/10 text-sm sm:text-base"
                     minLength={3}
                     required
                     autoFocus
@@ -1030,7 +1030,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                       setShowNewWorkspaceModal(false);
                       setNewWorkspaceName("");
                     }}
-                    className="flex-1 px-4 sm:px-5 py-2.5 sm:py-3.5 rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-bold hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm transition-all text-sm sm:text-base"
+                    className="flex-1 px-4 sm:px-5 py-2.5 sm:py-3.5 rounded-xl border-2 border-dashboard-border bg-dashboard-card text-slate-700 font-bold hover:bg-dashboard-bg hover:border-dashboard-border hover:shadow-sm transition-all text-sm sm:text-base"
                   >
                     {t("dashboard.workspaceSelector.cancel")}
                   </button>
@@ -1039,7 +1039,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                     disabled={
                       creatingWorkspace || newWorkspaceName.trim().length < 3
                     }
-                    className="flex-1 px-4 sm:px-5 py-2.5 sm:py-3.5 rounded-xl bg-linear-to-r from-sky-500 to-sky-600 text-white font-bold shadow-lg shadow-sky-500/30 hover:shadow-xl hover:shadow-sky-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none flex items-center justify-center gap-2 text-sm sm:text-base"
+                    className="flex-1 px-4 sm:px-5 py-2.5 sm:py-3.5 rounded-xl bg-teal-primary text-white font-bold shadow-lg shadow-teal-primary/30 hover:bg-teal-accent hover:shadow-xl hover:shadow-teal-primary/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none flex items-center justify-center gap-2 text-sm sm:text-base"
                   >
                     {creatingWorkspace ? (
                       <>
@@ -1071,8 +1071,8 @@ export default function DashboardShell({
   return (
     <Suspense
       fallback={
-        <div className="flex h-screen w-full items-center justify-center bg-slate-50">
-          <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+        <div className="flex h-screen w-full items-center justify-center bg-dashboard-bg">
+          <Loader2 className="h-8 w-8 animate-spin text-teal-primary" />
         </div>
       }
     >

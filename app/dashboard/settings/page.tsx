@@ -205,8 +205,8 @@ function TimezoneDropdown({
         type="button"
         disabled={!!disabled}
         onClick={() => setOpen((v) => !v)}
-        className={`w-full rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-medium text-slate-700 transition-all hover:border-sky-300 focus:ring-4 focus:ring-sky-500/10 ${
-          disabled ? "bg-slate-100 cursor-not-allowed opacity-70" : "bg-white"
+        className={`w-full rounded-xl border border-dashboard-border px-4 py-3 text-left text-sm font-medium text-slate-700 transition-all hover:border-teal-accent focus:ring-4 focus:ring-teal-primary/10 ${
+          disabled ? "bg-dashboard-bg cursor-not-allowed opacity-70" : "bg-dashboard-card"
         }`}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -222,7 +222,7 @@ function TimezoneDropdown({
       </button>
       {open && (
         <div
-          className="absolute z-10 mt-2 max-h-64 w-full overflow-auto rounded-xl border border-slate-200 bg-white shadow-xl ring-1 ring-black/5"
+          className="absolute z-10 mt-2 max-h-64 w-full overflow-auto rounded-xl border border-dashboard-border bg-dashboard-card shadow-xl ring-1 ring-black/5"
           role="listbox"
         >
           {options.map((tz) => {
@@ -234,8 +234,8 @@ function TimezoneDropdown({
                 onClick={() => handleSelect(tz)}
                 className={`flex w-full items-center px-4 py-2.5 text-left text-sm transition-colors ${
                   selected
-                    ? "bg-sky-50 text-sky-700 font-medium"
-                    : "text-slate-700 hover:bg-slate-50"
+                    ? "bg-teal-primary/10 text-teal-primary font-medium"
+                    : "text-slate-700 hover:bg-dashboard-bg"
                 }`}
                 role="option"
                 aria-selected={selected}
@@ -853,13 +853,13 @@ export default function SettingsPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto animate-fade-in-up">
       {/* Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
-        <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-sky-500/20 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-sky-500/20 blur-3xl" />
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-teal-primary via-[#0d6159] to-slate-800 p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
+        <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-teal-accent/20 blur-3xl" />
+        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-teal-accent/20 blur-3xl" />
 
         <div className="relative z-10 flex items-center gap-5">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner ring-1 ring-white/20">
-            <SettingsIcon className="h-8 w-8 text-sky-300" />
+            <SettingsIcon className="h-8 w-8 text-teal-accent" />
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-white">
@@ -875,12 +875,12 @@ export default function SettingsPage() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-3 space-y-8">
           {/* Profile Section */}
-          <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-            <div className="bg-gradient-to-br from-slate-50 via-sky-50/20 to-slate-50 px-8 py-6 border-b border-slate-200">
+          <div className="rounded-2xl border border-dashboard-border bg-dashboard-card overflow-hidden shadow-sm">
+            <div className="bg-gradient-to-br from-dashboard-bg via-teal-primary/5 to-dashboard-bg px-8 py-6 border-b border-dashboard-border">
               <div className="flex items-center gap-5">
                 {/* Avatar */}
                 <div className="relative">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-sky-500 text-2xl font-bold text-white shadow-lg ring-4 ring-white">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-teal-primary text-2xl font-bold text-white shadow-lg ring-4 ring-white">
                     {getInitials()}
                   </div>
                 </div>
@@ -898,8 +898,8 @@ export default function SettingsPage() {
 
                 {/* Account Badge */}
                 <div className="hidden sm:flex flex-col items-end gap-2">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-sky-100 px-4 py-1.5 text-sm font-bold text-sky-700 border border-sky-200">
-                    <div className="h-2 w-2 rounded-full bg-sky-500 animate-pulse"></div>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-teal-primary/10 px-4 py-1.5 text-sm font-bold text-teal-primary border border-teal-primary/20">
+                    <div className="h-2 w-2 rounded-full bg-teal-primary animate-pulse"></div>
                     {t("settings.profile.active")}
                   </div>
                   {user?.created_at && (
@@ -921,13 +921,13 @@ export default function SettingsPage() {
             <div className="p-8">
               {profileLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+                  <Loader2 className="h-8 w-8 animate-spin text-teal-primary" />
                 </div>
               ) : (
                 <div className="space-y-6">
                   <div>
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="p-2 bg-sky-50 rounded-lg text-sky-500">
+                      <div className="p-2 bg-teal-primary/10 rounded-lg text-teal-primary">
                         <UserCircle2 className="h-5 w-5" />
                       </div>
                       <div>
@@ -954,7 +954,7 @@ export default function SettingsPage() {
                               first_name: e.target.value,
                             })
                           }
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 transition-all hover:border-sky-300 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
+                          className="w-full rounded-xl border border-dashboard-border bg-dashboard-bg px-4 py-3 text-slate-900 transition-all hover:border-teal-accent focus:border-teal-primary focus:bg-dashboard-card focus:outline-none focus:ring-4 focus:ring-teal-primary/10"
                           placeholder={t("settings.profile.enterFirstName")}
                         />
                       </div>
@@ -972,7 +972,7 @@ export default function SettingsPage() {
                               last_name: e.target.value,
                             })
                           }
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 transition-all hover:border-sky-300 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
+                          className="w-full rounded-xl border border-dashboard-border bg-dashboard-bg px-4 py-3 text-slate-900 transition-all hover:border-teal-accent focus:border-teal-primary focus:bg-dashboard-card focus:outline-none focus:ring-4 focus:ring-teal-primary/10"
                           placeholder={t("settings.profile.enterLastName")}
                         />
                       </div>
@@ -991,7 +991,7 @@ export default function SettingsPage() {
                               company: e.target.value,
                             })
                           }
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 transition-all hover:border-sky-300 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
+                          className="w-full rounded-xl border border-dashboard-border bg-dashboard-bg px-4 py-3 text-slate-900 transition-all hover:border-teal-accent focus:border-teal-primary focus:bg-dashboard-card focus:outline-none focus:ring-4 focus:ring-teal-primary/10"
                           placeholder={t("settings.profile.enterCompanyName")}
                         />
                       </div>
@@ -1010,7 +1010,7 @@ export default function SettingsPage() {
                               phone: e.target.value,
                             })
                           }
-                          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 transition-all hover:border-sky-300 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
+                          className="w-full rounded-xl border border-dashboard-border bg-dashboard-bg px-4 py-3 text-slate-900 transition-all hover:border-teal-accent focus:border-teal-primary focus:bg-dashboard-card focus:outline-none focus:ring-4 focus:ring-teal-primary/10"
                           placeholder={t("settings.profile.enterPhoneNumber")}
                         />
                       </div>
@@ -1024,7 +1024,7 @@ export default function SettingsPage() {
                           type="email"
                           value={profileData.email}
                           disabled
-                          className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-slate-600 cursor-not-allowed"
+                              className="w-full rounded-xl border border-dashboard-border bg-dashboard-bg px-4 py-3 text-slate-600 cursor-not-allowed"
                         />
                         <p className="text-xs text-slate-500 mt-2">
                           {t("settings.profile.emailCannotChange")}
@@ -1051,7 +1051,7 @@ export default function SettingsPage() {
                               className={`w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-900 transition-all ${
                                 referralCodeUsed
                                   ? "bg-slate-100 text-slate-600 cursor-not-allowed"
-                                  : "bg-slate-50 hover:border-sky-300 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-500/10"
+                                  : "bg-dashboard-bg hover:border-teal-accent focus:border-teal-primary focus:bg-dashboard-card focus:outline-none focus:ring-4 focus:ring-teal-primary/10"
                               }`}
                             />
                             {referralCodeUsed && (
@@ -1078,7 +1078,7 @@ export default function SettingsPage() {
                               disabled={
                                 referralLinking || !newReferralCode.trim()
                               }
-                              className="px-6 py-3 bg-sky-500 text-white rounded-xl font-bold text-sm hover:bg-sky-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                              className="px-6 py-3 bg-teal-primary text-white rounded-xl font-bold text-sm hover:bg-teal-accent transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                               {referralLinking && (
                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -1096,11 +1096,11 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  <div className="flex justify-end pt-6 border-t border-slate-100">
+                  <div className="flex justify-end pt-6 border-t border-dashboard-border">
                     <button
                       onClick={handleSaveProfile}
                       disabled={profileSaving}
-                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-sky-500 px-8 py-3.5 text-sm font-bold text-white transition-all hover:from-sky-700 hover:to-sky-500 hover:shadow-lg hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                      className="inline-flex items-center gap-2 rounded-xl bg-teal-primary px-8 py-3.5 text-sm font-bold text-white transition-all hover:bg-teal-accent hover:shadow-lg hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
                     >
                       {profileSaving && (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -1116,9 +1116,9 @@ export default function SettingsPage() {
           {/* Yetti Hours Section */}
           <div
             data-tour="workspace-hours-section"
-            className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm space-y-8"
+            className="rounded-2xl border border-dashboard-border bg-dashboard-card p-8 shadow-sm space-y-8"
           >
-            <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+            <div className="flex items-center gap-3 pb-4 border-b border-dashboard-border">
               <div className="p-2 bg-sky-50 rounded-lg text-sky-500">
                 <CalendarClock className="h-5 w-5" />
               </div>

@@ -382,7 +382,7 @@ export default function PlansPage() {
     console.log("PlansPage: Rendering loading spinner");
     return (
       <div className="flex h-96 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-teal-primary" />
       </div>
     );
   }
@@ -395,19 +395,19 @@ export default function PlansPage() {
       data-tour="plans-page"
     >
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-xl">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-teal-primary via-[#0d6159] to-slate-800 p-8 text-white shadow-xl">
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-teal-accent/20 blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-teal-accent/20 blur-3xl"></div>
 
         <div className="relative z-10 flex items-center gap-6">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20">
-            <CrownIcon className="h-8 w-8 text-sky-500" />
+            <CrownIcon className="h-8 w-8 text-teal-accent" />
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-white">
               {t("plans.title")}
             </h1>
-            <p className="mt-2 text-lg text-sky-100/80 max-w-2xl">
+            <p className="mt-2 text-lg text-white/80 max-w-2xl">
               {t("plans.subtitle")}
             </p>
           </div>
@@ -416,13 +416,13 @@ export default function PlansPage() {
 
       {/* Current Plan Banner - White Mode */}
       {currentPlan && (
-        <div className="relative overflow-hidden rounded-3xl bg-white border-2 border-sky-200 p-8 shadow-lg">
-          <div className="absolute top-0 right-0 -mt-10 -mr-10 h-32 w-32 rounded-full bg-sky-100/40 blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-32 w-32 rounded-full bg-sky-100/40 blur-3xl"></div>
+        <div className="relative overflow-hidden rounded-3xl bg-dashboard-card border-2 border-dashboard-border p-8 shadow-lg">
+          <div className="absolute top-0 right-0 -mt-10 -mr-10 h-32 w-32 rounded-full bg-teal-primary/10 blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-32 w-32 rounded-full bg-teal-primary/10 blur-3xl"></div>
 
           <div className="relative z-10 flex items-center gap-6">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-50 border-2 border-sky-200">
-              <CheckCircle className="h-7 w-7 text-sky-500" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-primary/10 border-2 border-teal-primary/20">
+              <CheckCircle className="h-7 w-7 text-teal-primary" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
@@ -433,7 +433,7 @@ export default function PlansPage() {
                   className={`px-3 py-1 rounded-full text-sm font-semibold border ${
                     currentPlan.status === "active"
                       ? "bg-green-100 text-green-700 border-green-300"
-                      : "bg-sky-100 text-sky-700 border-sky-300"
+                      : "bg-teal-primary/20 text-teal-primary border-teal-primary/30"
                   }`}
                 >
                   {currentPlan.status === "active"
@@ -478,12 +478,12 @@ export default function PlansPage() {
             return (
               <div
                 key={index}
-                className={`relative flex flex-col rounded-2xl bg-white p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border-2 ${
+                className={`relative flex flex-col rounded-2xl bg-dashboard-card p-6 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border-2 ${
                   plan.popular
-                    ? "ring-2 ring-sky-500 scale-105 z-10 border-sky-500"
+                    ? "ring-2 ring-teal-primary scale-105 z-10 border-teal-primary"
                     : isCurrent
-                      ? "border-sky-500 ring-2 ring-sky-500 bg-sky-50/50"
-                      : "border-slate-200 hover:border-sky-300"
+                      ? "border-teal-primary ring-2 ring-teal-primary bg-teal-primary/5"
+                      : "border-dashboard-border hover:border-teal-accent"
                 }`}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
@@ -551,7 +551,7 @@ export default function PlansPage() {
                 {isCurrent ? (
                   <button
                     disabled
-                    className="w-full text-center py-3 px-6 rounded-xl font-semibold bg-sky-500 text-white cursor-not-allowed opacity-75"
+                    className="w-full text-center py-3 px-6 rounded-xl font-semibold bg-teal-primary text-white cursor-not-allowed opacity-75"
                   >
                     {t("plans.currentPlan")}
                   </button>
@@ -571,7 +571,7 @@ export default function PlansPage() {
                     disabled={checkoutLoading === plan.planKey}
                     className={`w-full text-center py-3 px-6 rounded-xl font-semibold transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
                       plan.popular
-                        ? "bg-sky-500 hover:bg-sky-500 text-white shadow-sky-200"
+                        ? "bg-teal-primary hover:bg-teal-accent text-white shadow-teal-primary/20"
                         : "bg-slate-900 hover:bg-slate-800 text-white"
                     }`}
                   >

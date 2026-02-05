@@ -286,19 +286,19 @@ export default function InboxPage() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-[calc(100vh-5rem)] md:h-[calc(100vh-8rem)] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+    <div className="flex flex-col md:flex-row h-[calc(100vh-5rem)] md:h-[calc(100vh-8rem)] overflow-hidden rounded-2xl border border-dashboard-border bg-dashboard-card shadow-xl">
       {/* Sidebar - Channel Selection & Conversations */}
       <div
-        className={`${showChatView ? "hidden md:flex" : "flex"} w-full md:w-80 flex flex-col border-r border-slate-200 bg-slate-50/50`}
+        className={`${showChatView ? "hidden md:flex" : "flex"} w-full md:w-80 flex flex-col border-r border-dashboard-border bg-dashboard-bg`}
       >
         {/* Header */}
-        <div className="p-3 sm:p-4 border-b border-slate-200 bg-white">
+        <div className="p-3 sm:p-4 border-b border-dashboard-border bg-dashboard-card">
           <h2 className="text-lg sm:text-xl font-bold text-slate-900 mb-3 sm:mb-4">
             {t("inbox.chat")}
           </h2>
 
           {/* Channel Toggle */}
-          <div className="flex p-1 bg-slate-100 rounded-xl">
+          <div className="flex p-1 bg-dashboard-bg rounded-xl">
             <button
               onClick={() => {
                 setSelectedChannel("instagram");
@@ -307,7 +307,7 @@ export default function InboxPage() {
               }}
               className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
                 selectedChannel === "instagram"
-                  ? "bg-white text-slate-900 shadow-sm"
+                  ? "bg-dashboard-card text-slate-900 shadow-sm"
                   : "text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -330,7 +330,7 @@ export default function InboxPage() {
               }}
               className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
                 selectedChannel === "telegram"
-                  ? "bg-white text-slate-900 shadow-sm"
+                  ? "bg-dashboard-card text-slate-900 shadow-sm"
                   : "text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -349,13 +349,13 @@ export default function InboxPage() {
         </div>
 
         {/* Search */}
-        <div className="p-3 sm:p-4 border-b border-slate-200 bg-white/50">
+        <div className="p-3 sm:p-4 border-b border-dashboard-border bg-dashboard-card/50">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
               type="text"
               placeholder={t("inbox.search")}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+              className="w-full pl-9 pr-4 py-2 bg-dashboard-card border border-dashboard-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-primary/20 focus:border-teal-primary transition-all"
             />
           </div>
         </div>
@@ -364,7 +364,7 @@ export default function InboxPage() {
         <div className="flex-1 overflow-y-auto">
           {loading && conversations.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 gap-3">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-teal-primary border-t-transparent" />
               <p className="text-slate-500 text-xs sm:text-sm">
                 {t("inbox.loading")}
               </p>
@@ -380,15 +380,15 @@ export default function InboxPage() {
                 <button
                   key={conversation.id}
                   onClick={() => handleConversationSelect(conversation)}
-                  className={`w-full text-left p-3 sm:p-4 hover:bg-white transition-all duration-200 ${
+                  className={`w-full text-left p-3 sm:p-4 hover:bg-dashboard-card transition-all duration-200 ${
                     selectedConversation?.id === conversation.id
-                      ? "bg-white border-l-4 border-sky-500 shadow-sm"
+                      ? "bg-dashboard-card border-l-4 border-teal-primary shadow-sm"
                       : "border-l-4 border-transparent"
                   }`}
                 >
                   <div className="flex items-start gap-2 sm:gap-3">
-                    <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 rounded-xl overflow-hidden bg-gradient-to-br from-sky-100 to-blue-100 flex items-center justify-center shadow-sm">
-                      <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-sky-500" />
+                    <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 rounded-xl overflow-hidden bg-teal-primary/10 flex items-center justify-center shadow-sm">
+                      <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-teal-primary" />
                       {selectedChannel === "instagram" ? (
                         <div className="absolute bottom-0 right-0 h-3 w-3 sm:h-4 sm:w-4 bg-white rounded-full p-0.5">
                           <Image
@@ -416,7 +416,7 @@ export default function InboxPage() {
                         <h4
                           className={`text-xs sm:text-sm font-semibold truncate ${
                             selectedConversation?.id === conversation.id
-                              ? "text-sky-900"
+                              ? "text-teal-primary"
                               : "text-slate-900"
                           }`}
                         >
@@ -442,7 +442,7 @@ export default function InboxPage() {
                     {conversation.unread_count &&
                       conversation.unread_count > 0 && (
                         <div className="flex flex-col justify-center h-full ml-1 sm:ml-2">
-                          <span className="flex items-center justify-center h-4 sm:h-5 min-w-[1rem] sm:min-w-[1.25rem] px-1 sm:px-1.5 text-[10px] font-bold text-white bg-sky-500 rounded-full shadow-sm shadow-sky-200">
+                          <span className="flex items-center justify-center h-4 sm:h-5 min-w-[1rem] sm:min-w-[1.25rem] px-1 sm:px-1.5 text-[10px] font-bold text-white bg-teal-primary rounded-full shadow-sm shadow-teal-primary/20">
                             {conversation.unread_count}
                           </span>
                         </div>
@@ -457,7 +457,7 @@ export default function InboxPage() {
 
       {/* Main Content Area - Chat Interface */}
       <div
-        className={`${!showChatView ? "hidden md:flex" : "flex"} flex-1 flex flex-col bg-white relative`}
+        className={`${!showChatView ? "hidden md:flex" : "flex"} flex-1 flex flex-col bg-dashboard-card relative`}
       >
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none" />
@@ -465,7 +465,7 @@ export default function InboxPage() {
         {selectedConversation ? (
           <>
             {/* Chat Header */}
-            <div className="h-16 sm:h-20 px-4 sm:px-6 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+            <div className="h-16 sm:h-20 px-4 sm:px-6 border-b border-dashboard-border flex items-center justify-between bg-dashboard-card/80 backdrop-blur-sm sticky top-0 z-10">
               <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
                 {/* Mobile Back Button */}
                 <button
@@ -476,8 +476,8 @@ export default function InboxPage() {
                   <ArrowLeft className="h-5 w-5" />
                 </button>
 
-                <div className="relative h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 rounded-xl overflow-hidden bg-gradient-to-br from-sky-100 to-blue-100 flex items-center justify-center shadow-sm">
-                  <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-sky-500" />
+                <div className="relative h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 rounded-xl overflow-hidden bg-teal-primary/10 flex items-center justify-center shadow-sm">
+                  <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-teal-primary" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2 truncate">
@@ -488,7 +488,7 @@ export default function InboxPage() {
                       className={`hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider flex-shrink-0 ${
                         selectedChannel === "instagram"
                           ? "bg-pink-50 text-pink-600 border border-pink-100"
-                          : "bg-sky-50 text-sky-500 border border-sky-100"
+                          : "bg-teal-primary/10 text-teal-primary border border-teal-primary/20"
                       }`}
                     >
                       {selectedChannel === "instagram" ? t("inbox.instagram") : t("inbox.telegram")}
@@ -508,11 +508,11 @@ export default function InboxPage() {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6 bg-slate-50/30">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6 bg-dashboard-bg/50">
               {loading && messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="flex flex-col items-center gap-3">
-                    <div className="h-6 w-6 sm:h-8 sm:w-8 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+                    <div className="h-6 w-6 sm:h-8 sm:w-8 animate-spin rounded-full border-2 border-teal-primary border-t-transparent" />
                     <p className="text-slate-400 text-xs sm:text-sm">
                       {t("inbox.loadingMessages")}
                     </p>
@@ -550,8 +550,8 @@ export default function InboxPage() {
                           className={`flex-shrink-0 w-6 sm:w-8 ${!showAvatar && "invisible"}`}
                         >
                           {showAvatar && (
-                            <div className="relative h-6 w-6 sm:h-8 sm:w-8 rounded-lg overflow-hidden bg-gradient-to-br from-sky-100 to-blue-100 flex items-center justify-center shadow-sm">
-                              <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 text-sky-500" />
+                            <div className="relative h-6 w-6 sm:h-8 sm:w-8 rounded-lg overflow-hidden bg-teal-primary/10 flex items-center justify-center shadow-sm">
+                              <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 text-teal-primary" />
                             </div>
                           )}
                         </div>
@@ -576,8 +576,8 @@ export default function InboxPage() {
                         <div
                           className={`px-3 sm:px-5 py-2 sm:py-3 shadow-sm ${
                             message.is_from_me
-                              ? "bg-gradient-to-br from-sky-500 to-sky-500 text-white rounded-2xl rounded-tr-sm"
-                              : "bg-white border border-slate-100 text-slate-800 rounded-2xl rounded-tl-sm"
+                              ? "bg-teal-primary text-white rounded-2xl rounded-tr-sm"
+                              : "bg-dashboard-card border border-dashboard-border text-slate-800 rounded-2xl rounded-tl-sm"
                           }`}
                         >
                           <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
@@ -601,9 +601,9 @@ export default function InboxPage() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 text-center bg-slate-50/30">
-            <div className="h-16 w-16 sm:h-24 sm:w-24 bg-white rounded-full shadow-xl shadow-sky-100 flex items-center justify-center mb-4 sm:mb-6 animate-in zoom-in duration-500">
-              <MessageSquare className="h-8 w-8 sm:h-10 sm:w-10 text-sky-500" />
+          <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 text-center bg-dashboard-bg/50">
+            <div className="h-16 w-16 sm:h-24 sm:w-24 bg-dashboard-card rounded-full shadow-xl shadow-teal-primary/10 flex items-center justify-center mb-4 sm:mb-6 animate-in zoom-in duration-500">
+              <MessageSquare className="h-8 w-8 sm:h-10 sm:w-10 text-teal-primary" />
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
               {t("inbox.selectChat")}
@@ -612,7 +612,7 @@ export default function InboxPage() {
               {t("inbox.selectChatDesc")}
             </p>
             <div className="flex gap-2 sm:gap-4">
-              <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm text-xs sm:text-sm text-slate-600">
+              <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-dashboard-card rounded-full border border-dashboard-border shadow-sm text-xs sm:text-sm text-slate-600">
                 <div className="relative h-3 w-3 sm:h-4 sm:w-4">
                   <Image
                     src="/yetti/instagram_logo.png"
@@ -624,7 +624,7 @@ export default function InboxPage() {
                 <span className="hidden sm:inline">{t("inbox.instagram")}</span>
                 <span className="sm:hidden">{t("inbox.ig")}</span>
               </div>
-              <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm text-xs sm:text-sm text-slate-600">
+              <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-dashboard-card rounded-full border border-dashboard-border shadow-sm text-xs sm:text-sm text-slate-600">
                 <div className="relative h-3 w-3 sm:h-4 sm:w-4">
                   <Image
                     src="/yetti/telegram_logo.png"

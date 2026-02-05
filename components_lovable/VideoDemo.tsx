@@ -29,7 +29,7 @@ const VideoDemo = () => {
     <section className="py-16 md:py-20 lg:py-32 bg-background relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-sky-500/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-teal-primary/5 rounded-full blur-3xl"></div>
       </div>
 
       <div className="container px-4 mx-auto relative z-10">
@@ -41,7 +41,7 @@ const VideoDemo = () => {
             transition={{ duration: 0.5 }}
           >
             <h2 className="text-4xl md:text-5xl font-black font-lato text-foreground mb-6 tracking-tight">
-              {t("videoDemo.title").split("Action")[0]} <span className="text-sky-500/80">{t("videoDemo.titleHighlight")}</span>
+              {t("videoDemo.title").split("Action")[0]} <span className="text-teal-primary">{t("videoDemo.titleHighlight")}</span>
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               {t("videoDemo.subtitle")}
@@ -94,7 +94,7 @@ const VideoDemo = () => {
           </div>
           
           {/* Decorative Glow Behind */}
-          <div className="absolute -inset-4 bg-sky-500/20 blur-3xl -z-10 rounded-[3rem] opacity-40"></div>
+          <div className="absolute -inset-4 bg-teal-primary/20 blur-3xl -z-10 rounded-[3rem] opacity-40"></div>
         </motion.div>
       </div>
     </section>

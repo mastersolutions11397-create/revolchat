@@ -205,7 +205,7 @@ export default function UsagePage() {
   if (loading) {
     return (
       <div className="flex h-96 items-center justify-center px-4">
-        <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-teal-primary" />
       </div>
     );
   }
@@ -213,14 +213,14 @@ export default function UsagePage() {
   return (
     <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto animate-fade-in-up px-4 sm:px-6 lg:px-8">
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-sky-900 p-6 sm:p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
-        <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-sky-500/20 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-sky-500/20 blur-3xl" />
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-teal-primary via-[#0d6159] to-slate-800 p-6 sm:p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
+        <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-teal-accent/20 blur-3xl" />
+        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-teal-accent/20 blur-3xl" />
 
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div className="flex items-center gap-4 sm:gap-6">
             <div className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-md shadow-inner ring-1 ring-white/20 flex-shrink-0">
-              <Activity className="h-6 w-6 sm:h-8 sm:w-8 text-sky-300" />
+              <Activity className="h-6 w-6 sm:h-8 sm:w-8 text-teal-accent" />
             </div>
             <div className="min-w-0">
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
@@ -242,7 +242,7 @@ export default function UsagePage() {
                 onClick={() => setSelectedPeriod(period)}
                 className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
                   selectedPeriod === period
-                    ? "bg-white text-sky-900 shadow-sm"
+                    ? "bg-dashboard-card text-teal-primary shadow-sm"
                     : "text-white/80 hover:text-white hover:bg-white/10"
                 }`}
               >
@@ -260,11 +260,11 @@ export default function UsagePage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Total Usage */}
-        <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-slate-100 bg-white p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-sky-500/5 rounded-full blur-2xl group-hover:bg-sky-500/10 transition-colors" />
+        <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-teal-primary/5 rounded-full blur-2xl group-hover:bg-teal-primary/10 transition-colors" />
           <div className="relative">
             <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-sky-50 text-sky-600">
+              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-teal-primary/10 text-teal-primary">
                 <TrendingDown className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
             </div>
@@ -281,11 +281,11 @@ export default function UsagePage() {
         </div>
 
         {/* Daily Average */}
-        <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-slate-100 bg-white p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-sky-500/5 rounded-full blur-2xl group-hover:bg-sky-500/10 transition-colors" />
+        <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-teal-primary/5 rounded-full blur-2xl group-hover:bg-teal-primary/10 transition-colors" />
           <div className="relative">
             <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-sky-50 text-sky-600">
+              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-teal-primary/10 text-teal-primary">
                 <Calendar className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
             </div>
@@ -302,11 +302,11 @@ export default function UsagePage() {
         </div>
 
         {/* Total Transactions */}
-        <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-slate-100 bg-white p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg sm:col-span-2 lg:col-span-1">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-sky-500/5 rounded-full blur-2xl group-hover:bg-sky-500/10 transition-colors" />
+        <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg sm:col-span-2 lg:col-span-1">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-teal-primary/5 rounded-full blur-2xl group-hover:bg-teal-primary/10 transition-colors" />
           <div className="relative">
             <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-sky-50 text-sky-600">
+              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-teal-primary/10 text-teal-primary">
                 <Activity className="h-5 w-5 sm:h-6 sm:w-6" />
               </div>
             </div>
@@ -324,8 +324,8 @@ export default function UsagePage() {
       </div>
 
       {/* Transaction History */}
-      <div className="rounded-xl sm:rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="border-b border-slate-100 bg-slate-50/50 px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+      <div className="rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card shadow-sm overflow-hidden">
+        <div className="border-b border-dashboard-border bg-dashboard-bg px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h2 className="text-lg sm:text-xl font-bold text-slate-900">
@@ -335,7 +335,7 @@ export default function UsagePage() {
                 {t("usage.historyDesc")}
               </p>
             </div>
-            <button className="flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg sm:rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm w-full sm:w-auto">
+            <button className="flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-slate-700 bg-dashboard-card border border-dashboard-border rounded-lg sm:rounded-xl hover:bg-dashboard-bg hover:border-dashboard-border transition-all shadow-sm w-full sm:w-auto">
               <Download className="h-3 w-3 sm:h-4 sm:w-4" />
               {t("usage.exportCsv")}
             </button>
@@ -343,7 +343,7 @@ export default function UsagePage() {
         </div>
 
         {/* Mobile Card View */}
-        <div className="block md:hidden divide-y divide-slate-100">
+        <div className="block md:hidden divide-y divide-dashboard-border">
           {transactions.length === 0 ? (
             <div className="px-4 py-12 text-center">
               <div className="flex flex-col items-center gap-2">
@@ -355,7 +355,7 @@ export default function UsagePage() {
             transactions.map((transaction) => (
               <div
                 key={transaction.id}
-                className="p-4 hover:bg-slate-50/80 transition-colors"
+                className="p-4 hover:bg-dashboard-bg/80 transition-colors"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1 min-w-0">
@@ -403,7 +403,7 @@ export default function UsagePage() {
         {/* Desktop Table View */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-100">
+            <thead className="bg-dashboard-bg border-b border-dashboard-border">
               <tr>
                 <th className="px-6 lg:px-8 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">
                   {t("usage.date")}
@@ -419,7 +419,7 @@ export default function UsagePage() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-dashboard-border">
               {transactions.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-8 py-12 text-center">
@@ -435,7 +435,7 @@ export default function UsagePage() {
                 transactions.map((transaction) => (
                   <tr
                     key={transaction.id}
-                    className="hover:bg-slate-50/80 transition-colors"
+                    className="hover:bg-dashboard-bg/80 transition-colors"
                   >
                     <td className="px-6 lg:px-8 py-5 whitespace-nowrap text-sm font-medium text-slate-600">
                       {new Date(transaction.created_at).toLocaleDateString(
@@ -469,8 +469,8 @@ export default function UsagePage() {
         </div>
 
         {transactions.length > 0 && (
-          <div className="border-t border-slate-100 px-4 sm:px-6 lg:px-8 py-4 sm:py-5 text-center bg-slate-50/30">
-            <button className="text-xs sm:text-sm font-semibold text-sky-500 hover:text-sky-700 transition-colors hover:underline">
+          <div className="border-t border-dashboard-border px-4 sm:px-6 lg:px-8 py-4 sm:py-5 text-center bg-dashboard-bg/50">
+            <button className="text-xs sm:text-sm font-semibold text-teal-primary hover:text-teal-accent transition-colors hover:underline">
               Load More Transactions
             </button>
           </div>

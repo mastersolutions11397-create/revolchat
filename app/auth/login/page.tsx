@@ -117,15 +117,15 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 relative flex items-center justify-center p-4 overflow-hidden">
+    <div className="min-h-screen bg-[#0d6159] relative flex items-center justify-center p-4 overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-sky-500/20 to-sky-500/20 blur-[100px] animate-pulse-slow" />
-        <div className="absolute -bottom-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-sky-500/20 to-sky-500/20 blur-[100px] animate-pulse-slow delay-1000" />
+        <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-teal-primary/30 to-teal-accent/20 blur-[100px] animate-pulse-slow" />
+        <div className="absolute -bottom-[20%] -left-[10%] w-[60%] h-[60%] rounded-full bg-gradient-to-tr from-teal-accent/20 to-teal-primary/30 blur-[100px] animate-pulse-slow delay-1000" />
         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
       </div>
 
-      <div className="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-2 relative z-10 animate-fade-in-up">
+      <div className="w-full max-w-5xl bg-dashboard-card rounded-2xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-2 relative z-10 animate-fade-in-up">
         {/* Left: Header + Form */}
         <div className="p-6 md:p-10">
           <div className="mb-6 text-left">
@@ -134,7 +134,7 @@ export default function LoginPage() {
               className="inline-block hover:opacity-80 transition-opacity"
             >
               <span className="text-2xl font-extrabold tracking-tight text-slate-900">
-                Yetti<span className="text-sky-500">.ai</span>
+                Yetti<span className="text-teal-primary">.ai</span>
               </span>
             </Link>
           </div>
@@ -171,7 +171,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg bg-slate-50 text-slate-900 placeholder:text-slate-400 border border-slate-200 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all outline-none text-sm"
+                  className="w-full px-3 py-2.5 rounded-lg bg-dashboard-bg text-slate-900 placeholder:text-slate-400 border border-dashboard-border focus:ring-2 focus:ring-teal-primary/20 focus:border-teal-primary transition-all outline-none text-sm"
                   placeholder="Enter your email"
                 />
               </div>
@@ -186,7 +186,7 @@ export default function LoginPage() {
                   </label>
                   <Link
                     href="/auth/forgot-password"
-                    className="text-xs text-sky-500 hover:text-sky-700 font-medium transition-colors"
+                    className="text-xs text-teal-primary hover:text-teal-accent font-medium transition-colors"
                   >
                     {t("login.forgotPassword")}
                   </Link>
@@ -199,7 +199,7 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg bg-slate-50 text-slate-900 placeholder:text-slate-400 border border-slate-200 focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all outline-none text-sm"
+                  className="w-full px-3 py-2.5 rounded-lg bg-dashboard-bg text-slate-900 placeholder:text-slate-400 border border-dashboard-border focus:ring-2 focus:ring-teal-primary/20 focus:border-teal-primary transition-all outline-none text-sm"
                   placeholder="Enter your password"
                 />
               </div>
@@ -213,7 +213,7 @@ export default function LoginPage() {
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="peer h-4 w-4 rounded border-slate-300 text-sky-500 focus:ring-sky-500 cursor-pointer transition-all"
+                      className="peer h-4 w-4 rounded border-dashboard-border text-teal-primary focus:ring-teal-primary cursor-pointer transition-all"
                     />
                   </div>
                   <span className="group-hover:text-slate-900 transition-colors text-xs">
@@ -225,7 +225,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-sky-500 to-sky-500 hover:from-sky-500 hover:to-sky-500 text-white py-3 px-4 rounded-xl font-bold text-sm shadow-lg shadow-sky-500/25 hover:shadow-sky-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
+                className="w-full bg-teal-primary hover:bg-teal-accent text-white py-3 px-4 rounded-xl font-bold text-sm shadow-lg shadow-teal-primary/25 hover:shadow-teal-accent/40 hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -265,7 +265,7 @@ export default function LoginPage() {
                         ? `/auth/signup?redirect=${encodeURIComponent(redirectUrl)}`
                         : "/auth/signup"
                     }
-                    className="text-sky-500 hover:text-sky-700 font-bold hover:underline transition-all"
+                    className="text-teal-primary hover:text-teal-accent font-bold hover:underline transition-all"
                   >
                     {t("login.signUp")}
                   </Link>
@@ -277,10 +277,10 @@ export default function LoginPage() {
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-200" />
+                  <div className="w-full border-t border-dashboard-border" />
                 </div>
                 <div className="relative flex justify-center text-xs">
-                  <span className="px-3 bg-white text-slate-400 font-medium">
+                  <span className="px-3 bg-dashboard-card text-slate-400 font-medium">
                     {t("login.orContinueWith")}
                   </span>
                 </div>
@@ -291,7 +291,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={handleGoogleSignIn}
                   disabled={googleLoading || loading}
-                  className="w-full inline-flex justify-center items-center gap-2 py-2.5 px-4 rounded-lg border border-slate-200 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-60 disabled:cursor-not-allowed group"
+                  className="w-full inline-flex justify-center items-center gap-2 py-2.5 px-4 rounded-lg border border-dashboard-border bg-dashboard-card text-slate-700 text-sm font-semibold hover:bg-dashboard-bg hover:border-teal-primary/30 transition-all disabled:opacity-60 disabled:cursor-not-allowed group"
                 >
                   <svg
                     className="w-4 h-4 group-hover:scale-110 transition-transform"
@@ -324,16 +324,16 @@ export default function LoginPage() {
         </div>
 
         {/* Right: Visual */}
-        <div className="relative hidden lg:block bg-slate-900 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900 to-slate-800">
+        <div className="relative hidden lg:block bg-teal-primary overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-teal-primary to-[#0d6159]">
             <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-20" />
-            <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 rounded-full bg-sky-500/20 blur-3xl animate-pulse-slow" />
-            <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-96 h-96 rounded-full bg-sky-500/20 blur-3xl animate-pulse-slow delay-1000" />
+            <div className="absolute top-0 right-0 -mt-20 -mr-20 w-96 h-96 rounded-full bg-teal-accent/20 blur-3xl animate-pulse-slow" />
+            <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-96 h-96 rounded-full bg-teal-accent/20 blur-3xl animate-pulse-slow delay-1000" />
           </div>
 
           <div className="relative h-full flex items-center justify-center p-8">
             <div className="relative w-full max-w-[320px] aspect-square">
-              <div className="absolute inset-0 bg-gradient-to-tr from-sky-500/20 to-blue-500/20 rounded-full blur-2xl animate-pulse-slow" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-teal-accent/20 to-teal-primary/30 rounded-full blur-2xl animate-pulse-slow" />
               <Image
                 src="/yetti/yetti_face.png"
                 alt="Yetti"

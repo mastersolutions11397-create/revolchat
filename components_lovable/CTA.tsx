@@ -20,9 +20,9 @@ const CTA = () => {
   return (
     <section className="py-6 relative overflow-hidden">
       {/* Background with Gradient and Mesh */}
-      <div className="absolute inset-0 bg-sky-500">
+      <div className="absolute inset-0 bg-teal-primary">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff12_1px,transparent_1px),linear-gradient(to_bottom,#ffffff12_1px,transparent_1px)] bg-[size:32px_32px]"></div>
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent via-sky-500/50 to-sky-500/90"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent via-teal-primary/50 to-teal-accent/90"></div>
       </div>
 
       {/* Animated Floating Elements */}
@@ -52,7 +52,7 @@ const CTA = () => {
             ease: "easeInOut",
             delay: 1,
           }}
-          className="absolute bottom-10 right-10 w-[500px] h-[500px] bg-sky-300 rounded-full blur-[120px] opacity-30"
+          className="absolute bottom-10 right-10 w-[500px] h-[500px] bg-teal-accent rounded-full blur-[120px] opacity-30"
         />
       </div>
 
@@ -78,7 +78,7 @@ const CTA = () => {
                 </span>
               </h2>
 
-              <p className="text-xl md:text-2xl text-sky-50 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto leading-relaxed">
                 {t("cta.subtitle")}
               </p>
 
