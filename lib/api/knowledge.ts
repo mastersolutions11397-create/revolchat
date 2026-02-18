@@ -1,4 +1,4 @@
-import { apiRequest, API_BASE_URL, getAuthToken } from "./client";
+import { apiRequest, getAuthToken } from "./client";
 
 export type KnowledgeImportance = "low" | "normal" | "high" | "critical";
 
@@ -65,33 +65,27 @@ export interface KnowledgeListResponse {
   message?: string;
 }
 
+const YETTI_BASE = "";
+
 class KnowledgeAPI {
-  async getKnowledgeList(workspaceId: string): Promise<KnowledgeListResponse> {
-    return apiRequest<KnowledgeListResponse>(
-      `/api/yetti/workspaces/${workspaceId}/knowledge`
-    );
+  async getKnowledgeList(): Promise<KnowledgeListResponse> {
+    return apiRequest<KnowledgeListResponse>("/api/yetti/knowledge");
   }
 
   async addTextKnowledge(
-    workspaceId: string,
     payload: TextKnowledgePayload
   ): Promise<TextKnowledgeResponse> {
-    return apiRequest<TextKnowledgeResponse>(
-      `/api/yetti/workspaces/${workspaceId}/knowledge/text`,
-      {
-        method: "POST",
-        body: JSON.stringify(payload),
-      }
-    );
+    return apiRequest<TextKnowledgeResponse>("/api/yetti/knowledge/text", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
   }
 
   async uploadPdfKnowledge(
-    workspaceId: string,
     file: File,
     metadata: PdfKnowledgeMetadata
   ): Promise<PdfKnowledgeResponse | null> {
     const token = await getAuthToken();
-
     if (!token) {
       throw new Error("No authentication token available");
     }
@@ -103,53 +97,36 @@ class KnowledgeAPI {
     formData.append("importance", metadata.importance);
     formData.append("tags", JSON.stringify(metadata.tags ?? []));
 
-    const response = await fetch(
-      `${API_BASE_URL}/api/yetti/workspaces/${workspaceId}/knowledge/pdf`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      }
-    );
+    const response = await fetch(`${YETTI_BASE}/api/yetti/knowledge/pdf`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
 
     const responseText = await response.text();
-
     if (!response.ok) {
       let errorMessage = `Request failed with status ${response.status}`;
-
       if (responseText) {
         try {
           const errorData = JSON.parse(responseText);
           const detail =
             errorData?.detail ?? errorData?.message ?? errorData?.error;
-
-          if (typeof detail === "string") {
-            errorMessage = detail;
-          } else if (Array.isArray(detail)) {
+          if (typeof detail === "string") errorMessage = detail;
+          else if (Array.isArray(detail)) {
             errorMessage = detail
               .map((d: unknown) =>
                 typeof d === "string" ? d : JSON.stringify(d)
               )
               .join(", ");
-          } else if (typeof errorData === "string") {
-            errorMessage = errorData;
-          } else if (errorData) {
-            errorMessage = JSON.stringify(errorData);
           }
         } catch {
           errorMessage = responseText;
         }
       }
-
       throw new Error(errorMessage);
     }
 
-    if (!responseText) {
-      return null;
-    }
-
+    if (!responseText) return null;
     try {
       return JSON.parse(responseText) as PdfKnowledgeResponse;
     } catch {
@@ -157,16 +134,10 @@ class KnowledgeAPI {
     }
   }
 
-  async deleteKnowledge(
-    workspaceId: string,
-    knowledgeId: string
-  ): Promise<void> {
-    return apiRequest<void>(
-      `/api/yetti/workspaces/${workspaceId}/knowledge/${knowledgeId}`,
-      {
-        method: "DELETE",
-      }
-    );
+  async deleteKnowledge(knowledgeId: string): Promise<void> {
+    return apiRequest<void>(`/api/yetti/knowledge/${knowledgeId}`, {
+      method: "DELETE",
+    });
   }
 }
 

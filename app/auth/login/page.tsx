@@ -97,7 +97,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0d6159] relative flex items-center justify-center p-4 overflow-hidden">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-[100vw] bg-[#0d6159] relative flex items-center justify-center p-3 sm:p-4 overflow-x-hidden overflow-y-auto">
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-[20%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-teal-primary/30 to-teal-accent/20 blur-[100px] animate-pulse-slow" />
@@ -105,9 +105,9 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
       </div>
 
-      <div className="w-full max-w-5xl bg-dashboard-card rounded-2xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-2 relative z-10 animate-fade-in-up">
+      <div className="w-full max-w-[100vw] sm:max-w-5xl bg-dashboard-card rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-2 relative z-10 animate-fade-in-up my-auto">
         {/* Left: Header + Form */}
-        <div className="p-6 md:p-10">
+        <div className="p-4 sm:p-6 md:p-10">
           <div className="mb-6 text-left">
             <Link
               href="/"

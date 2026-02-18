@@ -17,7 +17,6 @@ import {
   type DayKey,
   type TimeRange,
 } from "@/lib/api/workspace-hours";
-import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { toast } from "sonner";
 
 // Days will be translated in the component using useLanguage
@@ -203,7 +202,6 @@ function TimezoneDropdown({
 
 export default function WorkspaceHoursPage() {
   const { t } = useLanguage();
-  const { workspaceId } = useWorkspace();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [statusSaving, setStatusSaving] = useState(false);
@@ -235,14 +233,13 @@ export default function WorkspaceHoursPage() {
   }, []);
 
   useEffect(() => {
-    if (!workspaceId) return;
 
     let isMounted = true;
     const fetchHours = async () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await workspaceHoursAPI.getWorkingHours(workspaceId);
+        const data = await workspaceHoursAPI.getWorkingHours();
         if (!isMounted) return;
         setSchedule(normalizeSchedule(data.schedule));
         setTimezone(sanitizeTimeZone(data.timezone, timezones));
@@ -274,7 +271,7 @@ export default function WorkspaceHoursPage() {
     return () => {
       isMounted = false;
     };
-  }, [workspaceId, timezones]);
+  }, [timezones]);
 
   useEffect(() => {
     if (success) {
@@ -327,14 +324,13 @@ export default function WorkspaceHoursPage() {
   };
 
   const handleSave = async () => {
-    if (!workspaceId) return;
 
     setSaving(true);
     setError(null);
     setSuccess(null);
     try {
       const safeTimezone = sanitizeTimeZone(timezone, timezones);
-      const response = await workspaceHoursAPI.upsertWorkingHours(workspaceId, {
+      const response = await workspaceHoursAPI.upsertWorkingHours({
         timezone: safeTimezone,
         schedule,
         respect_schedule: respectSchedule,
@@ -358,14 +354,12 @@ export default function WorkspaceHoursPage() {
   };
 
   const handleWorkspaceOnlineToggle = async (checked: boolean) => {
-    if (!workspaceId) return;
     const previousValue = workspaceOnline;
     setWorkspaceOnline(checked);
     setStatusSaving(true);
     setError(null);
     try {
       const response = await workspaceHoursAPI.updateWorkspaceOnlineStatus(
-        workspaceId,
         checked
       );
       setWorkspaceOnline(response.workspace_online);
@@ -388,26 +382,26 @@ export default function WorkspaceHoursPage() {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in-up">
+    <div className="space-y-6 sm:space-y-8 w-full max-w-7xl mx-auto animate-fade-in-up">
       {/* Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-slate-900 via-slate-800 to-sky-900 p-8 text-white shadow-xl">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-linear-to-br from-slate-900 via-slate-800 to-sky-900 p-4 sm:p-6 md:p-8 text-white shadow-xl">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
         <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-sky-500/20 blur-3xl"></div>
         
-        <div className="relative z-10 flex items-center gap-6">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20">
-            <CalendarClock className="h-8 w-8 text-sky-500" />
+        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+          <div className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20 shrink-0">
+            <CalendarClock className="h-6 w-6 sm:h-8 sm:w-8 text-sky-500" />
           </div>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">{t("workspaceHours.title")}</h1>
-            <p className="mt-2 text-lg text-sky-100/80 max-w-2xl">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white">{t("workspaceHours.title")}</h1>
+            <p className="mt-1 sm:mt-2 text-sm sm:text-base md:text-lg text-sky-100/80 max-w-2xl">
               {t("workspaceHours.subtitle")}
             </p>
           </div>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm space-y-8">
+      <div className="rounded-xl sm:rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 md:p-8 shadow-sm space-y-6 sm:space-y-8">
         {error && (
           <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-red-500" />
@@ -613,7 +607,7 @@ export default function WorkspaceHoursPage() {
           <button
             type="button"
             onClick={handleSave}
-            disabled={saving || loading || statusSaving || !workspaceId}
+            disabled={saving || loading || statusSaving}
             className="inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-sky-500 to-sky-500 px-8 py-3.5 text-sm font-bold text-white transition-all hover:from-sky-700 hover:to-sky-500 hover:shadow-lg hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
           >
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}

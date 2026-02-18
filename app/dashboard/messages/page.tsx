@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
-import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
+import { useAuth } from "@/lib/auth-context";
 import {
   integrationsAPI,
   type Conversation,
@@ -17,6 +17,7 @@ import {
   Phone,
   Video,
   Info,
+  ArrowLeft,
 } from "lucide-react";
 
 type ChannelType = "instagram" | "telegram";
@@ -271,20 +272,28 @@ const dummyTelegramMessages: Record<string, Message[]> = {
 
 export default function LeadsPage() {
   const { t } = useLanguage();
-  const { workspaceId } = useWorkspace();
+  const { user } = useAuth();
 
   const [selectedChannel, setSelectedChannel] =
     useState<ChannelType>("instagram");
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
+  const [showChatView, setShowChatView] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const handleSelectConversation = (conversation: Conversation) => {
+    setSelectedConversation(conversation);
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      setShowChatView(true);
+    }
+  };
+
   // Fetch conversations when channel or workspace changes
   useEffect(() => {
-    if (!workspaceId) return;
+    if (!user) return;
 
     const fetchConversations = async () => {
       setLoading(true);
@@ -294,7 +303,7 @@ export default function LeadsPage() {
         if (selectedChannel === "instagram") {
           // Try API first, fallback to dummy data
           try {
-            data = await integrationsAPI.getInstagramConversations(workspaceId);
+            data = await integrationsAPI.getInstagramConversations();
             if (data.length === 0) {
               data = dummyInstagramConversations;
             }
@@ -304,7 +313,7 @@ export default function LeadsPage() {
         } else {
           // Try API first, fallback to dummy data
           try {
-            data = await integrationsAPI.getTelegramConversations(workspaceId);
+            data = await integrationsAPI.getTelegramConversations();
             if (data.length === 0) {
               data = dummyTelegramConversations;
             }
@@ -334,11 +343,11 @@ export default function LeadsPage() {
     };
 
     fetchConversations();
-  }, [workspaceId, selectedChannel]);
+  }, [user, selectedChannel]);
 
   // Fetch messages when conversation is selected
   useEffect(() => {
-    if (!workspaceId || !selectedConversation) {
+    if (!selectedConversation) {
       setMessages([]);
       return;
     }
@@ -352,7 +361,6 @@ export default function LeadsPage() {
           // Try API first, fallback to dummy data
           try {
             data = await integrationsAPI.getInstagramMessages(
-              workspaceId,
               selectedConversation.id
             );
             if (
@@ -368,7 +376,6 @@ export default function LeadsPage() {
           // Try API first, fallback to dummy data
           try {
             data = await integrationsAPI.getTelegramMessages(
-              workspaceId,
               selectedConversation.id
             );
             if (
@@ -397,7 +404,7 @@ export default function LeadsPage() {
     };
 
     fetchMessages();
-  }, [workspaceId, selectedConversation, selectedChannel]);
+  }, [selectedConversation, selectedChannel]);
 
   const formatTime = (timestamp?: string) => {
     if (!timestamp) return "";
@@ -424,12 +431,14 @@ export default function LeadsPage() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+    <div className="flex flex-col md:flex-row h-[calc(100vh-5rem)] md:h-[calc(100vh-8rem)] overflow-hidden rounded-xl sm:rounded-2xl border border-slate-200 bg-white shadow-xl">
       {/* Sidebar - Channel Selection & Conversations */}
-      <div className="w-80 flex flex-col border-r border-slate-200 bg-slate-50/50">
+      <div
+        className={`${showChatView ? "hidden md:flex" : "flex"} w-full md:w-80 flex-shrink-0 flex flex-col border-r border-slate-200 bg-slate-50/50`}
+      >
         {/* Header */}
-        <div className="p-4 border-b border-slate-200 bg-white">
-          <h2 className="text-xl font-bold text-slate-900 mb-4">
+        <div className="p-3 sm:p-4 border-b border-slate-200 bg-white">
+          <h2 className="text-lg sm:text-xl font-bold text-slate-900 mb-3 sm:mb-4">
             {t("messages.title")}
           </h2>
 
@@ -509,8 +518,8 @@ export default function LeadsPage() {
               {conversations.map((conversation) => (
                 <button
                   key={conversation.id}
-                  onClick={() => setSelectedConversation(conversation)}
-                  className={`w-full text-left p-4 hover:bg-white transition-all duration-200 ${
+                  onClick={() => handleSelectConversation(conversation)}
+                  className={`w-full text-left p-3 sm:p-4 hover:bg-white transition-all duration-200 ${
                     selectedConversation?.id === conversation.id
                       ? "bg-white border-l-4 border-sky-500 shadow-sm"
                       : "border-l-4 border-transparent"
@@ -584,20 +593,29 @@ export default function LeadsPage() {
       </div>
 
       {/* Main Content Area - Chat Interface */}
-      <div className="flex-1 flex flex-col bg-white relative">
+      <div
+        className={`${!showChatView ? "hidden md:flex" : "flex"} flex-1 flex flex-col min-w-0 bg-white relative`}
+      >
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none" />
 
         {selectedConversation ? (
           <>
             {/* Chat Header */}
-            <div className="h-20 px-6 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-sm sticky top-0 z-10">
-              <div className="flex items-center gap-4">
-                <div className="relative h-10 w-10 flex-shrink-0 rounded-xl overflow-hidden bg-gradient-to-br from-sky-100 to-blue-100 flex items-center justify-center shadow-sm">
-                  <MessageSquare className="h-5 w-5 text-sky-500" />
+            <div className="h-16 sm:h-20 px-4 sm:px-6 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-sm sticky top-0 z-10">
+              <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+                <button
+                  onClick={() => setShowChatView(false)}
+                  className="md:hidden p-2 -ml-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors shrink-0"
+                  aria-label="Back to conversations"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
+                <div className="relative h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 rounded-xl overflow-hidden bg-gradient-to-br from-sky-100 to-blue-100 flex items-center justify-center shadow-sm">
+                  <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-sky-500" />
                 </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2 truncate">
                     {selectedConversation.participant_name}
                     <span
                       className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${
@@ -625,7 +643,7 @@ export default function LeadsPage() {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/30">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6 bg-slate-50/30">
               {loading && messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="flex flex-col items-center gap-3">
@@ -676,7 +694,7 @@ export default function LeadsPage() {
                       )}
 
                       <div
-                        className={`flex flex-col ${message.is_from_me ? "items-end" : "items-start"} max-w-[70%]`}
+                        className={`flex flex-col ${message.is_from_me ? "items-end" : "items-start"} max-w-[85%] sm:max-w-[70%]`}
                       >
                         <div
                           className={`px-5 py-3 shadow-sm ${
@@ -706,17 +724,17 @@ export default function LeadsPage() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-50/30">
-            <div className="h-24 w-24 bg-white rounded-full shadow-xl shadow-sky-100 flex items-center justify-center mb-6 animate-in zoom-in duration-500">
-              <MessageSquare className="h-10 w-10 text-sky-500" />
+          <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 text-center bg-slate-50/30">
+            <div className="h-16 w-16 sm:h-24 sm:w-24 bg-white rounded-full shadow-xl shadow-sky-100 flex items-center justify-center mb-4 sm:mb-6 animate-in zoom-in duration-500">
+              <MessageSquare className="h-8 w-8 sm:h-10 sm:w-10 text-sky-500" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">
+            <h2 className="text-lg sm:text-2xl font-bold text-slate-900 mb-2">
               {t("messages.selectLead")}
             </h2>
-            <p className="text-slate-500 max-w-md mx-auto mb-8">
+            <p className="text-slate-500 text-sm sm:text-base max-w-md mx-auto mb-6 sm:mb-8">
               {t("messages.selectLeadDesc")}
             </p>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap justify-center gap-2 sm:gap-4">
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm text-sm text-slate-600">
                 <div className="relative h-4 w-4">
                   <Image

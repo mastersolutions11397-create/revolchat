@@ -54,14 +54,14 @@ class YettiOnboardingAPI {
     process.env.NEXT_PUBLIC_YETTI_WORKSPACE_ONBOARDING_IDENTIFIER ||
     "general-questions";
 
-  private unwrapResponse<T>(payload: any): T {
+  private unwrapResponse<T>(payload: unknown): T {
     if (
       payload &&
       typeof payload === "object" &&
       "data" in payload &&
-      payload.data !== undefined
+      (payload as { data: unknown }).data !== undefined
     ) {
-      return payload.data as T;
+      return (payload as { data: T }).data;
     }
     return payload as T;
   }
@@ -77,24 +77,19 @@ class YettiOnboardingAPI {
     return this.unwrapResponse<YettiQuestionnaireResponse>(response);
   }
 
-  async getOnboardingStatus(
-    workspaceId: string
-  ): Promise<YettiOnboardingStatusResponse> {
+  async getOnboardingStatus(): Promise<YettiOnboardingStatusResponse> {
     const response = await apiRequest<
       YettiOnboardingStatusResponse | { data: YettiOnboardingStatusResponse }
-    >(`/api/yetti/workspaces/${workspaceId}/onboarding/status`, {
-      method: "GET",
-    });
+    >("/api/yetti/onboarding/status", { method: "GET" });
     return this.unwrapResponse<YettiOnboardingStatusResponse>(response);
   }
 
   async submitOnboarding(
-    workspaceId: string,
     payload: YettiOnboardingSubmitPayload
   ): Promise<YettiOnboardingStatusResponse> {
     const response = await apiRequest<
       YettiOnboardingStatusResponse | { data: YettiOnboardingStatusResponse }
-    >(`/api/yetti/workspaces/${workspaceId}/onboarding/submit`, {
+    >("/api/yetti/onboarding/submit", {
       method: "POST",
       body: JSON.stringify(payload),
     });
@@ -102,12 +97,11 @@ class YettiOnboardingAPI {
   }
 
   async updateOnboarding(
-    workspaceId: string,
     payload: YettiOnboardingSubmitPayload
   ): Promise<YettiOnboardingStatusResponse> {
     const response = await apiRequest<
       YettiOnboardingStatusResponse | { data: YettiOnboardingStatusResponse }
-    >(`/api/yetti/workspaces/${workspaceId}/onboarding/update`, {
+    >("/api/yetti/onboarding/update", {
       method: "PUT",
       body: JSON.stringify(payload),
     });

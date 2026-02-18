@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { useAuth } from "@/lib/auth-context";
-import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { useOnboardingTour } from "@/lib/contexts/OnboardingTourContext";
 import { chatAPI } from "@/lib/api/chat";
@@ -49,7 +48,6 @@ function maskApiKey(key: string): string {
 export default function AgentsPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const { workspaceId, workspaceName: contextWorkspaceName } = useWorkspace();
   const { onNavigateToKnowledgeBase, onTestAgentMessageCompleted } =
     useOnboardingTour();
   const [agents, setAgents] = useState<AgentRecord[]>([]);
@@ -113,27 +111,27 @@ export default function AgentsPage() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto lg:min-h-[calc(100vh-8rem)]">
+    <div className="flex flex-col gap-4 sm:gap-6 w-full max-w-7xl mx-auto lg:min-h-[calc(100vh-8rem)]">
       {/* Header */}
-      <div className="relative rounded-3xl bg-gradient-to-br from-teal-primary via-[#0d6159] to-slate-800 p-8 text-white shadow-xl overflow-visible">
+      <div className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-br from-teal-primary via-[#0d6159] to-slate-800 p-4 sm:p-6 md:p-8 text-white shadow-xl overflow-visible">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-teal-accent/20 blur-3xl" />
         <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-teal-accent/20 blur-3xl" />
-        <div className="relative z-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-6">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20">
-              <Bot className="h-8 w-8 text-teal-accent" />
+        <div className="relative z-10 flex flex-col gap-4 sm:gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 min-w-0">
+            <div className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20 shrink-0">
+              <Bot className="h-6 w-6 sm:h-8 sm:w-8 text-teal-accent" />
             </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-white">
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white">
                 AI Agents
               </h1>
-              <p className="mt-2 text-lg text-white/80 max-w-xl">
+              <p className="mt-1 sm:mt-2 text-sm sm:text-base md:text-lg text-white/80 max-w-xl">
                 Create and manage your agents. Configure system prompts, models,
                 and API keys—then test them in the chat.
               </p>
             </div>
           </div>
-          <div className="relative z-50">
+          <div className="relative z-50 shrink-0">
             <button
               type="button"
               data-tour="add-agent-button"
@@ -151,9 +149,9 @@ export default function AgentsPage() {
       </div>
 
       {/* Agents list + Test Chat */}
-      <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
-        <div className="flex h-[522px] flex-1 flex-col overflow-hidden rounded-2xl border border-dashboard-border bg-dashboard-card shadow-lg">
-          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-dashboard-border bg-gradient-to-br from-dashboard-bg via-teal-primary/5 to-dashboard-bg px-6 py-4">
+      <div className="flex flex-col gap-4 sm:gap-6 xl:flex-row xl:items-start">
+        <div className="flex min-h-[320px] h-[40vh] sm:h-[420px] xl:h-[522px] flex-1 flex-col overflow-hidden rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card shadow-lg min-w-0">
+          <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4 border-b border-dashboard-border bg-gradient-to-br from-dashboard-bg via-teal-primary/5 to-dashboard-bg px-4 sm:px-6 py-3 sm:py-4">
             <div>
               <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                 <Bot className="h-5 w-5 text-teal-primary" />
@@ -220,10 +218,8 @@ export default function AgentsPage() {
           </div>
         </div>
 
-        <div className="h-[520px] xl:w-[360px] xl:flex-shrink-0">
+        <div className="min-h-[320px] h-[40vh] sm:h-[420px] xl:h-[520px] xl:w-[360px] xl:flex-shrink-0 min-w-0">
           <ChatPanel
-            workspaceId={workspaceId}
-            workspaceName={contextWorkspaceName ?? null}
             hasKnowledge={hasAgents}
             hasGoogleSheet={false}
             user={user}
@@ -378,8 +374,6 @@ type ChatMessage = {
 };
 
 interface ChatPanelProps {
-  workspaceId: string | null;
-  workspaceName: string | null;
   hasKnowledge: boolean;
   hasGoogleSheet: boolean;
   user?: User | null;
@@ -390,8 +384,6 @@ interface ChatPanelProps {
 }
 
 function ChatPanel({
-  workspaceId,
-  workspaceName,
   hasKnowledge,
   hasGoogleSheet,
   user,
@@ -433,7 +425,7 @@ function ChatPanel({
       },
     ]);
     setInput("");
-  }, [workspaceId, hasKnowledge, hasGoogleSheet, emptyStateMessage]);
+  }, [hasKnowledge, hasGoogleSheet, emptyStateMessage]);
 
   useEffect(() => {
     setMessages((prev) => {
@@ -453,26 +445,22 @@ function ChatPanel({
     });
   }, [hasKnowledge, hasGoogleSheet, emptyStateMessage, t]);
 
-  const disabledReason = !workspaceId
-    ? "Select a workspace to start chatting."
-    : hasGoogleSheet
-      ? "Chat is disabled when a Google Sheet is connected."
-      : !hasKnowledge
-        ? (emptyStateMessage ?? "Add knowledge to enable chat.")
-        : null;
+  const disabledReason = hasGoogleSheet
+    ? "Chat is disabled when a Google Sheet is connected."
+    : !hasKnowledge
+      ? (emptyStateMessage ?? "Add knowledge to enable chat.")
+      : null;
 
   const handleSend = async () => {
     const text = input.trim();
-    if (!text || sending || !workspaceId || !hasKnowledge || hasGoogleSheet) {
-      return;
-    }
+    if (!text || sending || !hasKnowledge || hasGoogleSheet) return;
 
     setSending(true);
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setInput("");
 
     try {
-      const response = await chatAPI.sendMessage(workspaceId, {
+      const response = await chatAPI.sendMessage({
         message: text,
         user_id: user?.id,
       });
@@ -568,7 +556,7 @@ function ChatPanel({
         data-tour="test-chat-section"
       >
         <h3 className="text-xl font-semibold text-gray-900">Test Chat</h3>
-        <p className="text-xs text-gray-500">{workspaceName}</p>
+        <p className="text-xs text-gray-500">Chat</p>
       </div>
 
       <div className="flex-1 min-h-0 relative bg-gradient-to-b from-transparent to-slate-50/20">
@@ -671,7 +659,7 @@ function ChatPanel({
 
         {disabledReason && (
           <div className="absolute inset-0 -z-10 bg-white/50 backdrop-blur-sm p-6 space-y-4 overflow-hidden">
-            {hasGoogleSheet && workspaceId ? (
+            {hasGoogleSheet ? (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-slate-100 flex flex-col items-center gap-2 text-center max-w-xs">
                   <div className="h-10 w-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 mb-1">
@@ -685,7 +673,7 @@ function ChatPanel({
                   </p>
                 </div>
               </div>
-            ) : !hasKnowledge && workspaceId ? (
+            ) : !hasKnowledge ? (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-slate-100 flex flex-col items-center gap-2 text-center max-w-xs">
                   <div className="h-10 w-10 rounded-full bg-teal-primary/10 flex items-center justify-center text-teal-primary mb-1">
@@ -720,9 +708,7 @@ function ChatPanel({
                   <div className="bg-white/90 backdrop-blur-md px-6 py-3 rounded-full shadow-xl border border-slate-100 flex items-center gap-3">
                     <Loader2 className="h-5 w-5 text-teal-primary animate-spin" />
                     <span className="text-sm font-medium text-slate-600">
-                      {!workspaceId
-                        ? t("knowledgeBase.selectWorkspace")
-                        : t("knowledgeBase.loadingChat")}
+                      {t("knowledgeBase.loadingChat")}
                     </span>
                   </div>
                 </div>

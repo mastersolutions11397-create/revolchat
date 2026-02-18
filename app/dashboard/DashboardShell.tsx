@@ -94,7 +94,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const buildLink = (path: string) => path;
 
   return (
-    <div className="min-h-screen bg-dashboard-bg">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-[100vw] overflow-x-hidden bg-dashboard-bg">
       {/* Mobile Overlay */}
       {mobileSidebarOpen && (
         <div
@@ -329,7 +329,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
       {/* Main Content */}
       <div
-        className={`transition-all duration-300 ease-in-out ${
+        className={`min-w-0 transition-all duration-300 ease-in-out ${
           sidebarExpanded ? "md:pl-72" : "md:pl-20"
         } pl-0`}
       >
@@ -359,7 +359,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page Content */}
-        <main className="p-4 sm:p-6 md:p-8 animate-fade-in-up">{children}</main>
+        <main className="min-w-0 w-full p-3 sm:p-4 md:p-6 lg:p-8 animate-fade-in-up">{children}</main>
 
       </div>
     </div>

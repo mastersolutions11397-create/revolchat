@@ -56,6 +56,16 @@ class ApiRequestError extends Error {
 }
 
 /**
+ * Use same-origin for /api/yetti/ routes (no workspace in URL); external base for rest.
+ */
+function getBaseUrl(endpoint: string): string {
+  if (endpoint.startsWith("/api/yetti/") && !endpoint.includes("workspaces/")) {
+    return "";
+  }
+  return API_BASE_URL;
+}
+
+/**
  * Make an authenticated API request
  */
 async function apiRequest<T>(
@@ -63,8 +73,9 @@ async function apiRequest<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const headers = await getAuthHeaders();
+  const base = getBaseUrl(endpoint);
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await fetch(`${base}${endpoint}`, {
     ...options,
     headers: {
       ...headers,

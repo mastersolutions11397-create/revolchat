@@ -32,7 +32,6 @@ import {
   type DayKey,
   type TimeRange,
 } from "@/lib/api/workspace-hours";
-import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -281,7 +280,6 @@ export default function SettingsPage() {
   });
 
   // Yetti Hours State
-  const { workspaceId } = useWorkspace();
   const { tourActive, currentStepIndex, completeTour } = useOnboardingTour();
   const [hoursLoading, setHoursLoading] = useState(false);
   const [hoursSaving, setHoursSaving] = useState(false);
@@ -333,14 +331,12 @@ export default function SettingsPage() {
   }, [tourActive, currentStepIndex, completeTour]);
 
   useEffect(() => {
-    if (!workspaceId) return;
-
     let isMounted = true;
     const fetchHours = async () => {
       setHoursLoading(true);
       setHoursError(null);
       try {
-        const data = await workspaceHoursAPI.getWorkingHours(workspaceId);
+        const data = await workspaceHoursAPI.getWorkingHours();
         if (!isMounted) return;
         setSchedule(normalizeSchedule(data.schedule));
         setWorkspaceTimezone(sanitizeTimeZone(data.timezone, timezones));
@@ -376,7 +372,7 @@ export default function SettingsPage() {
     return () => {
       isMounted = false;
     };
-  }, [workspaceId, timezones]);
+  }, [timezones]);
 
   // Load Profile Data
   useEffect(() => {
@@ -783,14 +779,12 @@ export default function SettingsPage() {
   };
 
   const handleSaveWorkspaceHours = async () => {
-    if (!workspaceId) return;
-
     setHoursSaving(true);
     setHoursError(null);
     setHoursSuccess(null);
     try {
       const safeTimezone = sanitizeTimeZone(workspaceTimezone, timezones);
-      const response = await workspaceHoursAPI.upsertWorkingHours(workspaceId, {
+      const response = await workspaceHoursAPI.upsertWorkingHours({
         timezone: safeTimezone,
         schedule,
         respect_schedule: respectSchedule,
@@ -818,14 +812,12 @@ export default function SettingsPage() {
   };
 
   const handleWorkspaceOnlineToggle = async (checked: boolean) => {
-    if (!workspaceId) return;
     const previousValue = workspaceOnline;
     setWorkspaceOnline(checked);
     setStatusSaving(true);
     setHoursError(null);
     try {
       const response = await workspaceHoursAPI.updateWorkspaceOnlineStatus(
-        workspaceId,
         checked
       );
       setWorkspaceOnline(response.workspace_online);
@@ -850,21 +842,21 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto animate-fade-in-up">
+    <div className="space-y-6 sm:space-y-8 w-full max-w-7xl mx-auto animate-fade-in-up px-0">
       {/* Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-teal-primary via-[#0d6159] to-slate-800 p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-teal-primary via-[#0d6159] to-slate-800 p-4 sm:p-6 md:p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
         <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-teal-accent/20 blur-3xl" />
         <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-teal-accent/20 blur-3xl" />
 
-        <div className="relative z-10 flex items-center gap-5">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md shadow-inner ring-1 ring-white/20">
-            <SettingsIcon className="h-8 w-8 text-teal-accent" />
+        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5">
+          <div className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-md shadow-inner ring-1 ring-white/20 shrink-0">
+            <SettingsIcon className="h-6 w-6 sm:h-8 sm:w-8 text-teal-accent" />
           </div>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white">
               {t("settings.title")}
             </h1>
-            <p className="mt-1 text-slate-300 text-lg">
+            <p className="mt-1 text-slate-300 text-sm sm:text-base md:text-lg">
               {t("settings.subtitle")}
             </p>
           </div>
@@ -1340,7 +1332,7 @@ export default function SettingsPage() {
                 data-tour="save-workspace-hours-button"
                 onClick={handleSaveWorkspaceHours}
                 disabled={
-                  hoursSaving || hoursLoading || statusSaving || !workspaceId
+                  hoursSaving || hoursLoading || statusSaving
                 }
                 className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-sky-500 px-8 py-3.5 text-sm font-bold text-white transition-all hover:from-sky-700 hover:to-sky-500 hover:shadow-lg hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >

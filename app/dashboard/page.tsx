@@ -9,6 +9,7 @@ import {
   workspaceHoursAPI,
   integrationsAPI,
   yettiOnboardingAPI,
+  chatAPI,
 } from "@/lib/api";
 import Link from "next/link";
 import Image from "next/image";
@@ -26,7 +27,6 @@ import {
   AlertCircle,
   Bot,
 } from "lucide-react";
-import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { useOnboardingTour } from "@/lib/contexts/OnboardingTourContext";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -40,11 +40,6 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
   const { t } = useLanguage();
-  const {
-    workspaceId,
-    workspaceName: contextWorkspaceName,
-    loading: workspaceLoading,
-  } = useWorkspace();
   const {
     startTour,
     onWorkspaceCreated,
@@ -65,7 +60,6 @@ export default function DashboardPage() {
   const [availabilityError, setAvailabilityError] = useState<string | null>(
     null
   );
-  const [workspaceName, setWorkspaceName] = useState<string>("Workspace");
 
   // Integration states
   const [instagramIntegration, setInstagramIntegration] = useState<{
@@ -89,7 +83,7 @@ export default function DashboardPage() {
 
   // Auto-start tour for new users who haven't completed it
   useEffect(() => {
-    if (!user || tourLoading || workspaceLoading) return;
+    if (!user || tourLoading) return;
     if (tourStatus === "not_started") {
       const timer = setTimeout(() => {
         startTour().catch((err) => console.error("Failed to start tour:", err));
@@ -142,7 +136,6 @@ export default function DashboardPage() {
   }, [
     user,
     tourLoading,
-    workspaceLoading,
     tourStatus,
     currentStepIndex,
     stepsCompleted,
@@ -150,12 +143,12 @@ export default function DashboardPage() {
     startTour,
   ]);
 
-  // Show onboarding modal when workspace is ready and user has not completed onboarding
+  // Show onboarding modal when user has not completed onboarding
   useEffect(() => {
-    if (!workspaceId || workspaceLoading) return;
+    if (!user) return;
     let cancelled = false;
     yettiOnboardingAPI
-      .getOnboardingStatus(workspaceId)
+      .getOnboardingStatus()
       .then((status) => {
         if (!cancelled && status && !status.is_onboarded) {
           setShowOnboardingModal(true);
@@ -165,7 +158,7 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [workspaceId, workspaceLoading]);
+  }, [user]);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -213,14 +206,14 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchAvailability = async () => {
-      if (!workspaceId) {
+      if (!user) {
         setWorkspaceOnline(null);
         return;
       }
       setAvailabilityLoading(true);
       setAvailabilityError(null);
       try {
-        const result = await workspaceHoursAPI.getWorkingHours(workspaceId);
+        const result = await workspaceHoursAPI.getWorkingHours();
         setWorkspaceOnline(result.workspace_online);
       } catch (err: unknown) {
         if (
@@ -248,7 +241,7 @@ export default function DashboardPage() {
       }
     };
     fetchAvailability();
-  }, [workspaceId]);
+  }, [user]);
 
   // Fetch user plan
   useEffect(() => {
@@ -287,113 +280,65 @@ export default function DashboardPage() {
     fetchUserPlan();
   }, [user?.id]);
 
-  useEffect(() => {
-    setWorkspaceName(contextWorkspaceName || "Workspace");
-  }, [contextWorkspaceName]);
-
   // Fetch integration status
   useEffect(() => {
     let cancelled = false;
 
     async function checkIntegrations() {
-      if (!workspaceId) {
+      if (!user) {
         setInstagramIntegration(null);
         setTelegramBotInfo(null);
         return;
       }
-
       setIntegrationsLoading(true);
-
       try {
-        // Check Instagram
         const instagramData =
-          await integrationsAPI.getInstagramIntegration(workspaceId);
-        if (!cancelled) {
-          setInstagramIntegration(instagramData);
-        }
-
-        // Check Telegram
-        const telegramData =
-          await integrationsAPI.getTelegramBotInfo(workspaceId);
-        if (!cancelled) {
-          setTelegramBotInfo(telegramData);
-        }
+          await integrationsAPI.getInstagramIntegration();
+        if (!cancelled) setInstagramIntegration(instagramData);
+        const telegramData = await integrationsAPI.getTelegramBotInfo();
+        if (!cancelled) setTelegramBotInfo(telegramData);
       } catch (error) {
-        if (!cancelled) {
-          console.error("Error checking integrations:", error);
-        }
+        if (!cancelled) console.error("Error checking integrations:", error);
       } finally {
-        if (!cancelled) {
-          setIntegrationsLoading(false);
-        }
+        if (!cancelled) setIntegrationsLoading(false);
       }
     }
-
     checkIntegrations();
-
     return () => {
       cancelled = true;
     };
-  }, [workspaceId]);
+  }, [user?.id]);
 
-  // Fetch message count from yetti_chat_history directly from Supabase
+  // Fetch message count
   useEffect(() => {
     let cancelled = false;
-
-    async function fetchMessageCount() {
-      if (!workspaceId) {
-        console.log("No workspace ID available");
-        setMessageCount(0);
-        return;
-      }
-
-      console.log("Fetching message count for workspace:", workspaceId);
-      setMessageCountLoading(true);
-
-      try {
-        const { count, error } = await supabase
-          .from("yetti_chat_history")
-          .select("*", { count: "exact", head: true })
-          .eq("workspace_id", workspaceId);
-
-        if (error) {
-          console.error("Error fetching message count:", error);
-          console.error("Error details:", JSON.stringify(error, null, 2));
-          if (!cancelled) {
-            setMessageCount(0);
-          }
-        } else {
-          console.log("Message count fetched successfully:", count);
-          if (!cancelled) {
-            setMessageCount(count || 0);
-          }
-        }
-      } catch (error) {
-        if (!cancelled) {
-          console.error("Exception fetching message count:", error);
-          setMessageCount(0);
-        }
-      } finally {
-        if (!cancelled) {
-          setMessageCountLoading(false);
-        }
-      }
+    if (!user) {
+      setMessageCount(0);
+      return;
     }
-
-    fetchMessageCount();
-
+    setMessageCountLoading(true);
+    chatAPI
+      .getMessageCount()
+      .then((count) => {
+        if (!cancelled) setMessageCount(count);
+      })
+      .catch(() => {
+        if (!cancelled) setMessageCount(0);
+      })
+      .finally(() => {
+        if (!cancelled) setMessageCountLoading(false);
+      });
     return () => {
       cancelled = true;
     };
-  }, [workspaceId]);
+  }, [user?.id]);
 
   const handleToggleWorkspace = async () => {
-    if (!workspaceId || workspaceOnline === null) return;
+    if (workspaceOnline === null) return;
     setAvailabilityLoading(true);
     setAvailabilityError(null);
     try {
       const response = await workspaceHoursAPI.updateWorkspaceOnlineStatus(
-        workspaceId,
         !workspaceOnline
       );
       setWorkspaceOnline(response.workspace_online);
@@ -433,7 +378,7 @@ export default function DashboardPage() {
     }
   };
 
-  if (loading || workspaceLoading) {
+  if (loading) {
     return (
       <div className="flex h-96 items-center justify-center">
         <div className="text-center">
@@ -692,8 +637,6 @@ export default function DashboardPage() {
       {/* Onboarding Modal */}
       <WorkspaceOnboardingModal
         isOpen={showOnboardingModal}
-        workspaceId={workspaceId}
-        workspaceName={contextWorkspaceName || undefined}
         onClose={() => setShowOnboardingModal(false)}
         onCompleted={handleOnboardingCompleted}
       />

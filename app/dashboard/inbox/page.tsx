@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { type Conversation, type Message } from "@/lib/api/integrations";
 import { MessageSquare, Search, Info, ArrowLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { apiRequest } from "@/lib/api/client";
 
 type ChannelType = "telegram" | "instagram";
 
@@ -159,7 +159,13 @@ const transformChatHistoryToMessages = (
 
 export default function InboxPage() {
   const { t } = useLanguage();
-  const { workspaceId } = useWorkspace();
+  const [resolvedId, setResolvedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    apiRequest<{ workspace_id: string }>("/api/yetti/me")
+      .then((r) => setResolvedId(r.workspace_id))
+      .catch(() => setResolvedId(null));
+  }, []);
 
   const [selectedChannel, setSelectedChannel] =
     useState<ChannelType>("telegram");
@@ -172,12 +178,12 @@ export default function InboxPage() {
 
   // Load conversations when channel changes
   useEffect(() => {
-    if (!workspaceId) return;
+    if (!resolvedId) return;
 
     const loadConversations = async () => {
       setLoading(true);
       try {
-        const chatHistoryData = await fetchChatHistory(workspaceId);
+        const chatHistoryData = await fetchChatHistory(resolvedId);
         const data = transformChatHistoryToConversations(
           chatHistoryData,
           selectedChannel
@@ -196,11 +202,11 @@ export default function InboxPage() {
     };
 
     loadConversations();
-  }, [workspaceId, selectedChannel, selectedConversation]);
+  }, [resolvedId, selectedChannel, selectedConversation]);
 
   // Load messages when conversation is selected
   useEffect(() => {
-    if (!workspaceId || !selectedConversation) {
+    if (!resolvedId || !selectedConversation) {
       setMessages([]);
       return;
     }
@@ -208,12 +214,11 @@ export default function InboxPage() {
     const loadMessages = async () => {
       setLoading(true);
       try {
-        // Extract chat_id from conversation id (remove channel prefix)
         const chatId = selectedConversation.id.replace(
           `${selectedChannel}_`,
           ""
         );
-        const chatHistoryData = await fetchChatHistory(workspaceId);
+        const chatHistoryData = await fetchChatHistory(resolvedId);
         const data = transformChatHistoryToMessages(
           chatHistoryData,
           selectedChannel,
@@ -229,7 +234,7 @@ export default function InboxPage() {
     };
 
     loadMessages();
-  }, [workspaceId, selectedConversation, selectedChannel]);
+  }, [resolvedId, selectedConversation, selectedChannel]);
 
   const formatTime = (timestamp?: string) => {
     if (!timestamp) return "";

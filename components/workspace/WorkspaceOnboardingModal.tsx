@@ -24,8 +24,6 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface WorkspaceOnboardingModalProps {
   isOpen: boolean;
-  workspaceId: string | null;
-  workspaceName?: string;
   onClose: () => void;
   onCompleted: () => void;
   questionnaireIdentifier?: string;
@@ -166,8 +164,6 @@ const isAnswerProvided = (value: YettiOnboardingAnswerValue) => {
 
 export function WorkspaceOnboardingModal({
   isOpen,
-  workspaceId,
-  workspaceName,
   onClose,
   onCompleted,
   questionnaireIdentifier,
@@ -186,9 +182,7 @@ export function WorkspaceOnboardingModal({
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   useEffect(() => {
-    if (!isOpen || !workspaceId) {
-      return;
-    }
+    if (!isOpen) return;
 
     let cancelled = false;
 
@@ -206,7 +200,7 @@ export function WorkspaceOnboardingModal({
         const [questionnaire, statusResponse] = await Promise.all([
           questionnairePromise,
           yettiOnboardingAPI
-            .getOnboardingStatus(workspaceId)
+            .getOnboardingStatus()
             .catch((err: unknown) => {
               if (
                 err instanceof Error &&
@@ -281,7 +275,7 @@ export function WorkspaceOnboardingModal({
     return () => {
       cancelled = true;
     };
-  }, [isOpen, workspaceId, questionnaireIdentifier, onCompleted]);
+  }, [isOpen, questionnaireIdentifier, onCompleted]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -373,9 +367,6 @@ export function WorkspaceOnboardingModal({
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    console.log("ANSWERS", answers);
-    if (!workspaceId) return;
-
     const missingRequired = normalizedQuestions.filter(
       ({ question, key }) =>
         isQuestionRequired(question) && !isAnswerProvided(answers[key])
@@ -389,7 +380,7 @@ export function WorkspaceOnboardingModal({
     setSubmitting(true);
 
     try {
-      await yettiOnboardingAPI.submitOnboarding(workspaceId, {
+      await yettiOnboardingAPI.submitOnboarding({
         solved_answers: answers,
       });
 
@@ -419,11 +410,7 @@ export function WorkspaceOnboardingModal({
       allowEasyClose={canDismiss}
       showCloseButton={canDismiss}
       title={DEFAULT_TITLE}
-      subtitle={
-        workspaceName
-          ? `${DEFAULT_SUBTITLE} (${workspaceName})`
-          : DEFAULT_SUBTITLE
-      }
+      subtitle={DEFAULT_SUBTITLE}
       disablePadding
       data-tour="onboarding-modal"
       className="max-w-2xl p-0 text-white overflow-hidden bg-slate-900 border border-white/10 shadow-2xl shadow-black/50"

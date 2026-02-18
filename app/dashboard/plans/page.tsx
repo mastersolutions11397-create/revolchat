@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
+ * (workspace context removed)
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { getStripe, PLAN_CONFIGS } from "@/lib/stripe";
 import { supabase } from "@/lib/supabase";

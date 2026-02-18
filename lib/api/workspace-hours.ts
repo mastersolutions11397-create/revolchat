@@ -28,43 +28,29 @@ export interface WorkspaceHoursResponse extends WorkspaceHoursPayload {
 }
 
 class WorkspaceHoursAPI {
-  async getWorkingHours(
-    workspaceId: string
-  ): Promise<WorkspaceHoursResponse> {
-    return apiRequest<WorkspaceHoursResponse>(
-      `/api/yetti/workspaces/${workspaceId}/hours`,
-      {
-        method: "GET",
-      }
-    );
+  async getWorkingHours(): Promise<WorkspaceHoursResponse> {
+    return apiRequest<WorkspaceHoursResponse>("/api/yetti/hours", {
+      method: "GET",
+    });
   }
 
   async upsertWorkingHours(
-    workspaceId: string,
     payload: WorkspaceHoursPayload
   ): Promise<WorkspaceHoursResponse> {
-    return apiRequest<WorkspaceHoursResponse>(
-      `/api/yetti/workspaces/${workspaceId}/hours`,
-      {
-        method: "PUT",
-        body: JSON.stringify(payload),
-      }
-    );
+    return apiRequest<WorkspaceHoursResponse>("/api/yetti/hours", {
+      method: "PUT",
+      body: JSON.stringify(payload),
+    });
   }
 
   async updateWorkspaceOnlineStatus(
-    workspaceId: string,
     workspace_online: boolean
   ): Promise<WorkspaceHoursResponse> {
-    return apiRequest<WorkspaceHoursResponse>(
-      `/api/yetti/workspaces/${workspaceId}/hours/status`,
-      {
-        method: "PATCH",
-        body: JSON.stringify({ workspace_online }),
-      }
-    );
+    return apiRequest<WorkspaceHoursResponse>("/api/yetti/hours/status", {
+      method: "PATCH",
+      body: JSON.stringify({ workspace_online }),
+    });
   }
 }
 
 export const workspaceHoursAPI = new WorkspaceHoursAPI();
-

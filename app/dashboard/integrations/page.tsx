@@ -6,7 +6,6 @@ import { Link2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 
 import { integrationsAPI } from "@/lib/api";
-import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { useAuth } from "@/lib/auth-context";
 import { useOnboardingTour } from "@/lib/contexts/OnboardingTourContext";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
@@ -69,22 +68,15 @@ function ParentLoader({ isLoading }: { isLoading: boolean }) {
 
 export default function IntegrationsPage() {
   const { t } = useLanguage();
-  const { workspaceId, loading: workspaceLoading } = useWorkspace();
   const { user } = useAuth();
   const { onNavigateToIntegrations } = useOnboardingTour();
 
-  // Trigger tour callback when landing on integrations page
   useEffect(() => {
-    // Small delay to ensure page is fully loaded
-    const timer = setTimeout(() => {
-      onNavigateToIntegrations();
-    }, 500);
+    const timer = setTimeout(() => onNavigateToIntegrations(), 500);
     return () => clearTimeout(timer);
   }, [onNavigateToIntegrations]);
 
   const [initialLoading, setInitialLoading] = useState(true);
-
-  // Telegram connection state (supports multiple bots)
   const [showTelegramModal, setShowTelegramModal] = useState(false);
   const [telegramBotToken, setTelegramBotToken] = useState("");
   const [telegramConnecting, setTelegramConnecting] = useState(false);
@@ -94,135 +86,81 @@ export default function IntegrationsPage() {
     { username: string; first_name: string }[]
   >([]);
   const [telegramChecking, setTelegramChecking] = useState(false);
+  const hasFetched = useRef(false);
 
-  // Track fetched workspace to avoid unnecessary refetches
-  const fetchedWorkspaceId = useRef<string | null>(null);
-  const isInitialMount = useRef(true);
-
-  // Fetch integrations data - only once per workspace
-  const fetchIntegrations = useCallback(
-    async (workspaceId: string, force = false) => {
-      // Don't refetch if we already have data for this workspace unless forced
-      if (
-        !force &&
-        fetchedWorkspaceId.current === workspaceId &&
-        !isInitialMount.current
-      ) {
-        return;
-      }
-
-      fetchedWorkspaceId.current = workspaceId;
-      isInitialMount.current = false;
-
-      setInitialLoading(true);
-      setTelegramChecking(true);
-
-      try {
-        const telegramData = await integrationsAPI.getTelegramBotInfo(workspaceId);
-        if (telegramData?.username) {
-          setTelegramBots([
-            {
-              username: telegramData.username,
-              first_name: telegramData.first_name || "",
-            },
-          ]);
-        } else {
-          setTelegramBots([]);
-        }
-      } catch (error) {
-        console.error("Error fetching integrations:", error);
+  const fetchIntegrations = useCallback(async (force = false) => {
+    if (!force && hasFetched.current) return;
+    hasFetched.current = true;
+    setInitialLoading(true);
+    setTelegramChecking(true);
+    try {
+      const telegramData = await integrationsAPI.getTelegramBotInfo();
+      if (telegramData?.username) {
+        setTelegramBots([{
+          username: telegramData.username,
+          first_name: telegramData.first_name || "",
+        }]);
+      } else {
         setTelegramBots([]);
-      } finally {
-        setTelegramChecking(false);
-        setInitialLoading(false);
       }
-    },
-    []
-  );
+    } catch (error) {
+      console.error("Error fetching integrations:", error);
+      setTelegramBots([]);
+    } finally {
+      setTelegramChecking(false);
+      setInitialLoading(false);
+    }
+  }, []);
 
-  // Initial fetch when workspace changes
   useEffect(() => {
-    if (!workspaceId || workspaceLoading) {
-      // Reset state when no workspace or workspace is loading
-      if (!workspaceId) {
-        setTelegramBots([]);
-        fetchedWorkspaceId.current = null;
-      }
+    if (!user) {
+      setTelegramBots([]);
+      hasFetched.current = false;
+      setInitialLoading(false);
       return;
     }
+    fetchIntegrations();
+  }, [user?.id, fetchIntegrations]);
 
-    // Only fetch if workspace changed or on initial mount
-    if (fetchedWorkspaceId.current !== workspaceId) {
-      fetchIntegrations(workspaceId);
-    }
-  }, [workspaceId, workspaceLoading, fetchIntegrations]);
-
-  // Refetch when window regains focus (e.g., after OAuth redirect)
   useEffect(() => {
     const handleFocus = () => {
-      if (
-        workspaceId &&
-        !workspaceLoading &&
-        fetchedWorkspaceId.current === workspaceId
-      ) {
-        // Refetch to get latest data after potential OAuth completion
-        fetchIntegrations(workspaceId, true);
-      }
+      if (user) fetchIntegrations(true);
     };
-
     window.addEventListener("focus", handleFocus);
     return () => window.removeEventListener("focus", handleFocus);
-  }, [workspaceId, workspaceLoading, fetchIntegrations]);
+  }, [user?.id, fetchIntegrations]);
 
   const handleTelegramConnect = useCallback(() => {
-    if (!workspaceId) {
-      window.alert(
-        t("integrations.selectWorkspaceFirst").replace("Instagram", "Telegram")
-      );
-      return;
-    }
-
     if (!user?.id) {
       window.alert(t("integrations.loginRequired"));
       return;
     }
-
     setShowTelegramModal(true);
     setTelegramBotToken("");
     setTelegramError(null);
     setTelegramSuccess(false);
-  }, [workspaceId, user?.id]);
+  }, [user?.id, t]);
 
   const handleTelegramSubmit = useCallback(async () => {
-    if (!workspaceId || !user?.id) {
+    if (!user?.id) {
       setTelegramError(t("integrations.workspaceOrUserMissing"));
       return;
     }
-
     if (!telegramBotToken.trim()) {
       setTelegramError(t("integrations.telegram.tokenRequired"));
       return;
     }
-
     setTelegramConnecting(true);
     setTelegramError(null);
     setTelegramSuccess(false);
-
     try {
       await integrationsAPI.createTelegramIntegration({
         user_id: user.id,
         telegram_bot_token: telegramBotToken.trim(),
-        workspace_id: workspaceId,
       });
-
       setTelegramSuccess(true);
       setTelegramBotToken("");
-
-      // Refetch and keep modal open so user can add another, or close after delay
-      if (workspaceId) {
-        await fetchIntegrations(workspaceId, true);
-      }
-      setTelegramBotToken("");
+      await fetchIntegrations(true);
       setTimeout(() => {
         setShowTelegramModal(false);
         setTelegramSuccess(false);
@@ -236,7 +174,7 @@ export default function IntegrationsPage() {
     } finally {
       setTelegramConnecting(false);
     }
-  }, [workspaceId, user?.id, telegramBotToken, fetchIntegrations]);
+  }, [user?.id, telegramBotToken, fetchIntegrations, t]);
 
   const handleCloseTelegramModal = useCallback(() => {
     setShowTelegramModal(false);
@@ -245,17 +183,13 @@ export default function IntegrationsPage() {
     setTelegramSuccess(false);
   }, []);
 
-  const isPageLoading = workspaceLoading || initialLoading;
-  const isPageDisabled = workspaceLoading;
+  const isPageLoading = initialLoading;
 
   return (
     <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto relative px-4 sm:px-6 lg:px-8">
-      <ParentLoader isLoading={workspaceLoading} />
 
       {/* Header */}
-      <div
-        className={`relative overflow-hidden rounded-3xl bg-gradient-to-br from-teal-primary via-[#0d6159] to-slate-800 p-6 sm:p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5 transition-opacity ${isPageDisabled ? "opacity-60" : ""}`}
-      >
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-teal-primary via-[#0d6159] to-slate-800 p-6 sm:p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
         <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-teal-accent/20 blur-3xl" />
         <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-teal-accent/20 blur-3xl" />
 
@@ -284,7 +218,7 @@ export default function IntegrationsPage() {
       ) : (
         <div
           data-tour="integrations-page"
-          className={`grid gap-4 sm:gap-6 transition-all duration-300 ${isPageDisabled ? "opacity-60 pointer-events-none" : "animate-in fade-in duration-300"}`}
+          className={`grid gap-4 sm:gap-6 transition-all duration-300 ${false ? "opacity-60 pointer-events-none" : "animate-in fade-in duration-300"}`}
         >
           {CHANNELS.map((channel, index) => (
             <div
@@ -372,18 +306,18 @@ export default function IntegrationsPage() {
                       <button
                         type="button"
                         className={`rounded-xl px-5 sm:px-6 py-2.5 sm:py-3 text-sm font-bold transition-all duration-300 shadow-md inline-flex items-center justify-center gap-2 ${
-                          channel.comingSoon || isPageDisabled
+                          channel.comingSoon || false
                             ? "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
                             : "bg-teal-primary text-white shadow-teal-primary/30 hover:bg-teal-accent hover:shadow-teal-primary/50 hover:scale-105"
                         }`}
                         disabled={
                           channel.comingSoon ||
-                          isPageDisabled ||
+                          false ||
                           telegramConnecting ||
                           telegramChecking
                         }
                         onClick={() => {
-                          if (channel.comingSoon || isPageDisabled) return;
+                          if (channel.comingSoon || false) return;
                           if (channel.name === "Telegram") {
                             handleTelegramConnect();
                           }
@@ -548,13 +482,13 @@ export default function IntegrationsPage() {
                   }}
                   placeholder={t("integrations.telegramBotTokenPlaceholder")}
                   className="w-full px-4 py-3 border border-dashboard-border rounded-lg focus:ring-2 focus:ring-teal-primary focus:border-teal-primary transition-all disabled:bg-dashboard-bg disabled:cursor-not-allowed"
-                  disabled={telegramConnecting || isPageDisabled}
+                  disabled={telegramConnecting || false}
                   onKeyDown={(e) => {
                     if (
                       e.key === "Enter" &&
                       telegramBotToken.trim() &&
                       !telegramConnecting &&
-                      !isPageDisabled
+                      !false
                     ) {
                       handleTelegramSubmit();
                     }
@@ -580,7 +514,7 @@ export default function IntegrationsPage() {
                   disabled={
                     !telegramBotToken.trim() ||
                     telegramConnecting ||
-                    isPageDisabled
+                    false
                   }
                   className="flex-1 bg-teal-primary text-white px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-teal-accent transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
@@ -595,7 +529,7 @@ export default function IntegrationsPage() {
                 </button>
                 <button
                   onClick={handleCloseTelegramModal}
-                  disabled={telegramConnecting || isPageDisabled}
+                  disabled={telegramConnecting || false}
                   className="w-full sm:w-auto px-5 sm:px-6 py-2.5 sm:py-3 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {t("integrations.cancel")}

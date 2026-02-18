@@ -27,25 +27,17 @@ export interface ChatHistoryCountResponse {
 }
 
 class ChatAPI {
-  async sendMessage(
-    workspaceId: string,
-    payload: ChatRequest
-  ): Promise<ChatResponse> {
-    return apiRequest<ChatResponse>(
-      `/api/yetti/workspaces/${workspaceId}/yetti-agent/chat`,
-      {
-        method: "POST",
-        body: JSON.stringify(payload),
-      }
-    );
+  async sendMessage(payload: ChatRequest): Promise<ChatResponse> {
+    return apiRequest<ChatResponse>("/api/yetti/yetti-agent/chat", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
   }
 
-  async getMessageCount(workspaceId: string): Promise<number> {
+  async getMessageCount(): Promise<number> {
     const response = await apiRequest<ChatHistoryCountResponse>(
-      `/api/yetti/workspaces/${workspaceId}/chat-history/count`,
-      {
-        method: "GET",
-      }
+      "/api/yetti/chat-history/count",
+      { method: "GET" }
     );
     return response.count;
   }
