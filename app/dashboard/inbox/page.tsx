@@ -159,11 +159,7 @@ const transformChatHistoryToMessages = (
 
 export default function InboxPage() {
   const { t } = useLanguage();
-  const { selectedWorkspaceId, currentWorkspace } = useWorkspace();
-  const workspaceId = useMemo(
-    () => selectedWorkspaceId || currentWorkspace?.id || null,
-    [selectedWorkspaceId, currentWorkspace?.id]
-  );
+  const { workspaceId } = useWorkspace();
 
   const [selectedChannel, setSelectedChannel] =
     useState<ChannelType>("telegram");
@@ -265,16 +261,6 @@ export default function InboxPage() {
       setShowChatView(false);
     }
   }, [selectedConversation]);
-
-  if (!workspaceId) {
-    return (
-      <div className="flex h-[calc(100vh-5rem)] md:h-[calc(100vh-8rem)] items-center justify-center">
-        <p className="text-sm sm:text-base text-gray-500 px-4 text-center">
-          {t("inbox.selectWorkspace")}
-        </p>
-      </div>
-    );
-  }
 
   // Handle conversation selection (mobile: show chat view, desktop: keep sidebar visible)
   const handleConversationSelect = (conversation: Conversation) => {

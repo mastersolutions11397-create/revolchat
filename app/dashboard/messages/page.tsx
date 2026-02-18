@@ -271,11 +271,7 @@ const dummyTelegramMessages: Record<string, Message[]> = {
 
 export default function LeadsPage() {
   const { t } = useLanguage();
-  const { selectedWorkspaceId, currentWorkspace } = useWorkspace();
-  const workspaceId = useMemo(
-    () => selectedWorkspaceId || currentWorkspace?.id || null,
-    [selectedWorkspaceId, currentWorkspace?.id]
-  );
+  const { workspaceId } = useWorkspace();
 
   const [selectedChannel, setSelectedChannel] =
     useState<ChannelType>("instagram");
@@ -426,14 +422,6 @@ export default function LeadsPage() {
       });
     }
   };
-
-  if (!workspaceId) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <p className="text-gray-500">{t("messages.selectWorkspace")}</p>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-[calc(100vh-8rem)] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">

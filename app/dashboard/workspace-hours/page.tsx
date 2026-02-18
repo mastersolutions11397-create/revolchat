@@ -203,8 +203,7 @@ function TimezoneDropdown({
 
 export default function WorkspaceHoursPage() {
   const { t } = useLanguage();
-  const { selectedWorkspaceId, currentWorkspace } = useWorkspace();
-  const workspaceId = selectedWorkspaceId || currentWorkspace?.id || null;
+  const { workspaceId } = useWorkspace();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [statusSaving, setStatusSaving] = useState(false);

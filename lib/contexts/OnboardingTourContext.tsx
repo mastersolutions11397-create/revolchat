@@ -57,7 +57,8 @@ export function OnboardingTourProvider({
   children: React.ReactNode;
 }) {
   const { user } = useAuth();
-  const { currentWorkspace, hasWorkspaces } = useWorkspace();
+  const { workspaceId } = useWorkspace();
+  const hasWorkspace = !!workspaceId;
   const [tourActive, setTourActive] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [currentSubStepIndex, setCurrentSubStepIndex] = useState(0);
@@ -145,14 +146,14 @@ export function OnboardingTourProvider({
   // Reset the update flag when workspace changes
   useEffect(() => {
     hasUpdatedTourForWorkspace.current = false;
-  }, [currentWorkspace?.id]);
+  }, [workspaceId]);
 
   // Reset the flag when workspace status changes
   useEffect(() => {
-    if (hasWorkspaces || currentWorkspace) {
+    if (hasWorkspace) {
       hasStartedTourForNoWorkspace.current = false;
     }
-  }, [hasWorkspaces, currentWorkspace]);
+  }, [hasWorkspace]);
 
   // Reset test agent message received flag when leaving step 1.5 and 1.7
   useEffect(() => {
@@ -177,7 +178,7 @@ export function OnboardingTourProvider({
   // Auto-start tour if no workspace found and tour status is in_progress/not_started with step 0
   useEffect(() => {
     if (!user?.id || loading || !isInitialized.current) return;
-    if (hasWorkspaces || currentWorkspace) return; // Skip if workspace exists
+    if (hasWorkspace) return; // Skip if workspace exists
     if (!tourData) return;
     if (hasStartedTourForNoWorkspace.current) return; // Prevent multiple triggers
 
@@ -225,8 +226,7 @@ export function OnboardingTourProvider({
     }
   }, [
     user?.id,
-    hasWorkspaces,
-    currentWorkspace,
+    hasWorkspace,
     tourStatus,
     currentStepIndex,
     loading,
@@ -235,7 +235,7 @@ export function OnboardingTourProvider({
 
   // Check if workspace exists and update tour accordingly
   useEffect(() => {
-    if (!user?.id || !hasWorkspaces || !currentWorkspace) return;
+    if (!user?.id || !hasWorkspace || !workspaceId) return;
     if (!tourData) return;
     
     // If workspace exists and tour is not_started, check if workspace is onboarded before updating
@@ -245,7 +245,7 @@ export function OnboardingTourProvider({
         try {
           // Check if workspace is onboarded
           const onboardingStatus = await yettiOnboardingAPI
-            .getOnboardingStatus(currentWorkspace.id)
+            .getOnboardingStatus(workspaceId)
             .catch((err: unknown) => {
               if (
                 err instanceof Error &&
@@ -310,7 +310,7 @@ export function OnboardingTourProvider({
           try {
             // Check if workspace is onboarded
             const onboardingStatus = await yettiOnboardingAPI
-              .getOnboardingStatus(currentWorkspace.id)
+              .getOnboardingStatus(workspaceId)
               .catch((err: unknown) => {
                 if (
                   err instanceof Error &&
@@ -345,7 +345,7 @@ export function OnboardingTourProvider({
         updateTourForExistingWorkspace();
       }
     }
-  }, [user?.id, hasWorkspaces, currentWorkspace, currentWorkspace?.id, tourStatus, tourData]);
+  }, [user?.id, hasWorkspace, workspaceId, tourStatus, tourData]);
 
   // Start the tour
   const startTour = useCallback(async () => {

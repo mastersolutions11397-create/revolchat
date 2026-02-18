@@ -281,9 +281,8 @@ export default function SettingsPage() {
   });
 
   // Yetti Hours State
-  const { selectedWorkspaceId, currentWorkspace } = useWorkspace();
+  const { workspaceId } = useWorkspace();
   const { tourActive, currentStepIndex, completeTour } = useOnboardingTour();
-  const workspaceId = selectedWorkspaceId || currentWorkspace?.id || null;
   const [hoursLoading, setHoursLoading] = useState(false);
   const [hoursSaving, setHoursSaving] = useState(false);
   const [statusSaving, setStatusSaving] = useState(false);

@@ -7,7 +7,6 @@ import {
   dashboardAPI,
   type DashboardResponse,
   workspaceHoursAPI,
-  workspaceAPI,
   integrationsAPI,
   yettiOnboardingAPI,
 } from "@/lib/api";
@@ -26,13 +25,12 @@ import {
   Clock,
   AlertCircle,
   Bot,
-  Plus,
 } from "lucide-react";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
 import { useOnboardingTour } from "@/lib/contexts/OnboardingTourContext";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import WorkspaceOnboardingModal from "@/components/workspace/WorkspaceOnboardingModal";
 
 // Stable empty array constant to avoid creating new references
@@ -42,15 +40,9 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
   const { t } = useLanguage();
-  const searchParams = useSearchParams();
-  const urlWorkspaceId = searchParams.get("ws");
   const {
-    currentWorkspace,
-    selectedWorkspaceId,
-    workspaces,
-    hasWorkspaces,
-    createWorkspace,
-    selectWorkspace,
+    workspaceId,
+    workspaceName: contextWorkspaceName,
     loading: workspaceLoading,
   } = useWorkspace();
   const {
@@ -74,10 +66,6 @@ export default function DashboardPage() {
     null
   );
   const [workspaceName, setWorkspaceName] = useState<string>("Workspace");
-  const workspaceId = useMemo(
-    () => selectedWorkspaceId || currentWorkspace?.id || null,
-    [selectedWorkspaceId, currentWorkspace?.id]
-  );
 
   // Integration states
   const [instagramIntegration, setInstagramIntegration] = useState<{
@@ -97,154 +85,14 @@ export default function DashboardPage() {
   const [planLoading, setPlanLoading] = useState(true);
   const [messageCount, setMessageCount] = useState<number>(0);
   const [messageCountLoading, setMessageCountLoading] = useState(false);
-  const [showNewUserModal, setShowNewUserModal] = useState(false);
-  const [newWorkspaceName, setNewWorkspaceName] = useState("");
-  const [creatingWorkspace, setCreatingWorkspace] = useState(false);
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
-  const [pendingWorkspace, setPendingWorkspace] = useState<{
-    id: string;
-    name?: string;
-  } | null>(null);
-
-  // Check if new user needs to create a workspace
-  // NEVER open modal if there's already a workspace created
-  // BUT keep it open if tour is active on step 0
-  useEffect(() => {
-    // ALWAYS close modal if any workspace exists (multiple checks for safety)
-    // UNLESS tour is active on step 0 (tour needs the modal to be open)
-    const shouldKeepModalOpenForTour =
-      tourActive && currentStepIndex === 0 && (!stepsCompleted || stepsCompleted.length === 0);
-
-    if (
-      (workspaces.length > 0 ||
-        selectedWorkspaceId ||
-        currentWorkspace ||
-        urlWorkspaceId ||
-        workspaceId) &&
-      !shouldKeepModalOpenForTour
-    ) {
-      setShowNewUserModal(false);
-      return;
-    }
-
-    // Only show modal if:
-    // 1. User is logged in
-    // 2. Workspaces have finished loading
-    // 3. No workspaces exist (double-check)
-    // 4. No workspace ID in URL
-    // OR if tour is active on step 0
-    if (
-      (user &&
-        !workspaceLoading &&
-        !hasWorkspaces &&
-        workspaces.length === 0 &&
-        !urlWorkspaceId &&
-        !selectedWorkspaceId &&
-        !currentWorkspace) ||
-      shouldKeepModalOpenForTour
-    ) {
-      setShowNewUserModal(true);
-    } else if (!shouldKeepModalOpenForTour) {
-      // Ensure modal is closed if any condition fails (unless tour needs it)
-      setShowNewUserModal(false);
-    }
-  }, [
-    user,
-    workspaceLoading,
-    hasWorkspaces,
-    workspaces.length,
-    selectedWorkspaceId,
-    currentWorkspace,
-    urlWorkspaceId,
-    workspaceId,
-    tourActive,
-    currentStepIndex,
-    stepsCompleted,
-  ]);
-
-  // Ensure modal is open when tour is active on step 0 (workspace creation step)
-  useEffect(() => {
-    // Only open modal if:
-    // 1. User is logged in
-    // 2. Tour is active
-    // 3. Current step is 0 (workspace creation)
-    // 4. No workspaces exist
-    // 5. Modal is not already open
-    // 6. Not loading
-    // 7. No workspace ID in URL
-    if (
-      user &&
-      tourActive &&
-      currentStepIndex === 0 &&
-      !hasWorkspaces &&
-      workspaces.length === 0 &&
-      !showNewUserModal &&
-      !workspaceLoading &&
-      !tourLoading &&
-      !urlWorkspaceId &&
-      !selectedWorkspaceId &&
-      !currentWorkspace
-    ) {
-      console.log("Tour is active on step 0, opening workspace creation modal");
-      // Small delay to ensure other effects have run
-      const timer = setTimeout(() => {
-        setShowNewUserModal(true);
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [
-    user,
-    tourActive,
-    currentStepIndex,
-    hasWorkspaces,
-    workspaces.length,
-    showNewUserModal,
-    workspaceLoading,
-    tourLoading,
-    urlWorkspaceId,
-    selectedWorkspaceId,
-    currentWorkspace,
-  ]);
 
   // Auto-start tour for new users who haven't completed it
-  // Skip if workspace ID is in URL (ws parameter)
   useEffect(() => {
-    console.log("Tour auto-start check:", {
-      user: !!user,
-      tourLoading,
-      workspaceLoading,
-      hasWorkspaces,
-      tourStatus,
-      currentStepIndex,
-      stepsCompleted,
-      tourActive,
-      urlWorkspaceId,
-    });
-
-    // Don't auto-start tour if workspace ID is in URL
-    if (urlWorkspaceId) {
-      console.log("Workspace ID in URL, skipping tour auto-start");
-      return;
-    }
-
-    // Wait for all loading to complete
-    if (!user || tourLoading || workspaceLoading) {
-      return;
-    }
-
-    // Auto-start tour if it's not started
+    if (!user || tourLoading || workspaceLoading) return;
     if (tourStatus === "not_started") {
-      console.log("Starting tour automatically for new user");
-      // Small delay to ensure UI is ready
       const timer = setTimeout(() => {
-        console.log("Calling startTour()");
-        startTour()
-          .then(() => {
-            console.log("Tour started successfully");
-          })
-          .catch((err) => {
-            console.error("Failed to start tour:", err);
-          });
+        startTour().catch((err) => console.error("Failed to start tour:", err));
       }, 500);
       return () => clearTimeout(timer);
     }
@@ -300,8 +148,24 @@ export default function DashboardPage() {
     stepsCompleted,
     tourActive,
     startTour,
-    urlWorkspaceId,
   ]);
+
+  // Show onboarding modal when workspace is ready and user has not completed onboarding
+  useEffect(() => {
+    if (!workspaceId || workspaceLoading) return;
+    let cancelled = false;
+    yettiOnboardingAPI
+      .getOnboardingStatus(workspaceId)
+      .then((status) => {
+        if (!cancelled && status && !status.is_onboarded) {
+          setShowOnboardingModal(true);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [workspaceId, workspaceLoading]);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -424,60 +288,8 @@ export default function DashboardPage() {
   }, [user?.id]);
 
   useEffect(() => {
-    let cancelled = false;
-
-    const derivedName =
-      currentWorkspace?.name ||
-      workspaces.find((w) => w.id === workspaceId)?.name;
-
-    if (derivedName) {
-      setWorkspaceName(derivedName);
-    } else if (workspaceId) {
-      const loadWorkspaceName = async () => {
-        try {
-          const workspace = await workspaceAPI.getWorkspace(workspaceId);
-          if (!cancelled && workspace?.name) {
-            setWorkspaceName(workspace.name);
-          }
-        } catch (err) {
-          if (!cancelled) {
-            console.error("Failed to load workspace details", err);
-
-            // If access denied, clear the invalid workspace ID from localStorage
-            if (
-              err instanceof Error &&
-              err.message.toLowerCase().includes("access denied")
-            ) {
-              console.log("Clearing invalid workspace ID from localStorage");
-              try {
-                localStorage.removeItem("selectedWorkspaceId");
-                // Also clear cookie
-                document.cookie =
-                  "selectedWorkspaceId=; path=/; max-age=0; SameSite=Lax";
-              } catch {
-                // ignore localStorage errors
-              }
-
-              // Try to select the first available workspace
-              if (workspaces.length > 0) {
-                console.log("Selecting first available workspace");
-                selectWorkspace(workspaces[0].id).catch(console.error);
-              }
-            }
-
-            setWorkspaceName("Workspace");
-          }
-        }
-      };
-      loadWorkspaceName();
-    } else {
-      setWorkspaceName("Workspace");
-    }
-
-    return () => {
-      cancelled = true;
-    };
-  }, [workspaceId, currentWorkspace?.name, workspaces]);
+    setWorkspaceName(contextWorkspaceName || "Workspace");
+  }, [contextWorkspaceName]);
 
   // Fetch integration status
   useEffect(() => {
@@ -610,125 +422,14 @@ export default function DashboardPage() {
     return user?.email?.split("@")[0] || "User";
   };
 
-  const handleCreateFirstWorkspace = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmedName = newWorkspaceName.trim();
-    if (!trimmedName || trimmedName.length < 3) {
-      toast.error("Workspace name must be at least 3 characters");
-      return;
-    }
-
-    setCreatingWorkspace(true);
-    try {
-      const workspace = await createWorkspace({
-        name: trimmedName,
-        workspace_type: "personal",
-      });
-
-      // Select the newly created workspace
-      await selectWorkspace(workspace.id);
-
-      setShowNewUserModal(false);
-      setNewWorkspaceName("");
-
-      // Check onboarding status
-      // Skip onboarding modal and tour if workspace ID is in URL (ws parameter)
-      let status = null;
-      if (!urlWorkspaceId) {
-        status = await yettiOnboardingAPI
-          .getOnboardingStatus(workspace.id)
-          .catch((err: unknown) => {
-            if (
-              err instanceof Error &&
-              (err.message.includes("404") ||
-                err.message.toLowerCase().includes("not found"))
-            ) {
-              return null;
-            }
-            throw err;
-          });
-
-        if (!status || !status.is_onboarded) {
-          setPendingWorkspace({
-            id: workspace.id,
-            name: workspace.name,
-          });
-          setShowOnboardingModal(true);
-        }
-      } else {
-        console.log("Workspace ID in URL, skipping onboarding modal and tour");
-      }
-
-      // Start the tour for new users creating their first workspace
-      // Skip if workspace ID is in URL
-      if (!urlWorkspaceId && tourStatus === "not_started" && !tourLoading) {
-        console.log(
-          "Starting tour for new user after first workspace creation"
-        );
-        startTour()
-          .then(() => {
-            console.log("Tour started, triggering workspace created callback");
-            // Give the tour a moment to activate before triggering callback
-            // Only advance if onboarding modal won't show (already onboarded)
-            if (status && status.is_onboarded) {
-              setTimeout(() => {
-                onWorkspaceCreated();
-              }, 500);
-            } else {
-              // Wait for onboarding modal to open, then advance sub-step
-              setTimeout(() => {
-                onWorkspaceCreated();
-              }, 1000);
-            }
-          })
-          .catch((err) => {
-            console.error("Failed to start tour:", err);
-          });
-      } else if (!urlWorkspaceId) {
-        // Trigger tour callback for workspace creation (if tour already active)
-        // Only advance if onboarding modal won't show
-        if (status && status.is_onboarded) {
-          // Skip onboarding, go directly to knowledge base
-          onWorkspaceCreated();
-          setTimeout(() => {
-            onOnboardingModalCompleted();
-          }, 100);
-        } else {
-          // Wait for onboarding modal to open
-          setTimeout(() => {
-            onWorkspaceCreated();
-          }, 1000);
-        }
-      }
-    } catch (err) {
-      console.error("Failed to create workspace:", err);
-      toast.error(
-        err instanceof Error ? err.message : t("dashboard.failedToCreateWorkspace")
-      );
-    } finally {
-      setCreatingWorkspace(false);
-    }
-  };
-
   const handleOnboardingCompleted = () => {
     setShowOnboardingModal(false);
-    setPendingWorkspace(null);
-      toast.success(t("dashboard.workspaceSetupComplete"));
-
-    // Trigger tour callback for onboarding modal completion
+    toast.success(t("dashboard.workspaceSetupComplete"));
     onOnboardingModalCompleted();
-
-    // Also start the tour if it's not started yet
-    // Skip if workspace ID is in URL (ws parameter)
-    if (!urlWorkspaceId && tourStatus === "not_started" && !tourLoading) {
-      console.log("Starting tour after workspace onboarding completion");
+    if (tourStatus === "not_started" && !tourLoading) {
       setTimeout(() => {
-        startTour().catch((err) => {
-          console.error("Failed to start tour after onboarding:", err);
-        });
+        startTour().catch((err) => console.error("Failed to start tour after onboarding:", err));
       }, 500);
-    } else if (urlWorkspaceId) {
-      console.log("Workspace ID in URL, skipping tour start after onboarding");
     }
   };
 
@@ -988,110 +689,12 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* New User Workspace Creation Modal */}
-      {showNewUserModal && (
-        <div className="fixed inset-0 z-[50] flex items-center justify-center bg-black/50 backdrop-blur-sm p-3 sm:p-4 animate-fade-in">
-          <div className="bg-dashboard-card rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-y-hidden animate-fade-in-up">
-            {/* Header */}
-            <div className="relative p-4 rounded-2xl sm:p-6 md:p-8 pb-4 sm:pb-6 bg-gradient-to-br from-teal-primary/5 to-dashboard-card border-b border-dashboard-border">
-              <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
-                <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl bg-teal-primary flex items-center justify-center shadow-lg shadow-teal-primary/30 shrink-0">
-                  <Plus className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-white" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900">
-                    {t("dashboard.welcomeToYetti")}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                    {t("dashboard.createFirstWorkspace")}
-                  </p>
-                </div>
-              </div>
-              <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-                {t("dashboard.workspaceDescription")}
-              </p>
-            </div>
-
-            {/* Form */}
-            <form
-              onSubmit={handleCreateFirstWorkspace}
-              className="p-4 sm:p-6 md:p-8"
-            >
-              <div className="mb-4 sm:mb-6">
-                <label
-                  htmlFor="first-workspace-name"
-                  className="block text-xs sm:text-sm font-bold text-slate-700 mb-2 sm:mb-3"
-                >
-                  Workspace Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="first-workspace-name"
-                  type="text"
-                  value={newWorkspaceName}
-                  onChange={(e) => setNewWorkspaceName(e.target.value)}
-                  placeholder={t("dashboard.workspaceNamePlaceholder")}
-                  className="w-full px-3 sm:px-4 py-3 sm:py-4 rounded-xl border-2 border-dashboard-border bg-dashboard-card text-slate-900 placeholder:text-slate-400 transition-all hover:border-teal-accent focus:border-teal-primary focus:outline-none focus:ring-4 focus:ring-teal-primary/10 text-sm sm:text-base"
-                  minLength={3}
-                  required
-                  autoFocus
-                  data-tour="workspace-name-input"
-                />
-                <div className="flex items-center gap-2 mt-2 sm:mt-3">
-                  <div
-                    className={`h-2 w-2 rounded-full transition-colors shrink-0 ${
-                      newWorkspaceName.trim().length >= 3
-                        ? "bg-green-500"
-                        : "bg-slate-300"
-                    }`}
-                  />
-                  <p
-                    className={`text-xs transition-colors ${
-                      newWorkspaceName.trim().length >= 3
-                        ? "text-green-600 font-medium"
-                        : "text-slate-500"
-                    }`}
-                  >
-                    {newWorkspaceName.trim().length >= 3
-                      ? t("dashboard.workspaceNamePerfect")
-                      : t("dashboard.workspaceNameHelper")}
-                  </p>
-                </div>
-              </div>
-
-              {/* Action Button */}
-              <button
-                type="submit"
-                disabled={
-                  creatingWorkspace || newWorkspaceName.trim().length < 3
-                }
-                className="w-full px-4 sm:px-6 py-3 sm:py-4 rounded-xl bg-teal-primary text-white font-bold text-sm sm:text-base md:text-lg shadow-lg shadow-teal-primary/30 hover:bg-teal-accent hover:shadow-xl hover:shadow-teal-primary/40 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none flex items-center justify-center gap-2 sm:gap-3"
-              >
-                {creatingWorkspace ? (
-                  <>
-                    <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-                    <span>{t("dashboard.creating")}</span>
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-                    <span>{t("dashboard.createWorkspaceContinue")}</span>
-                  </>
-                )}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
       {/* Onboarding Modal */}
       <WorkspaceOnboardingModal
         isOpen={showOnboardingModal}
-        workspaceId={pendingWorkspace?.id ?? null}
-        workspaceName={pendingWorkspace?.name}
-        onClose={() => {
-          setShowOnboardingModal(false);
-          setPendingWorkspace(null);
-        }}
+        workspaceId={workspaceId}
+        workspaceName={contextWorkspaceName || undefined}
+        onClose={() => setShowOnboardingModal(false)}
         onCompleted={handleOnboardingCompleted}
       />
     </div>

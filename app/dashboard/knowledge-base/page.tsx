@@ -49,10 +49,9 @@ function maskApiKey(key: string): string {
 export default function AgentsPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const { currentWorkspace, selectedWorkspaceId } = useWorkspace();
+  const { workspaceId, workspaceName: contextWorkspaceName } = useWorkspace();
   const { onNavigateToKnowledgeBase, onTestAgentMessageCompleted } =
     useOnboardingTour();
-  const [localSelectedId, setLocalSelectedId] = useState<string | null>(null);
   const [agents, setAgents] = useState<AgentRecord[]>([]);
   const [addAgentModalOpen, setAddAgentModalOpen] = useState(false);
   const [agentSystemPrompt, setAgentSystemPrompt] = useState("");
@@ -61,18 +60,6 @@ export default function AgentsPage() {
   const [agentName, setAgentName] = useState("");
   const [addAgentError, setAddAgentError] = useState<string | null>(null);
   const [addAgentSaving, setAddAgentSaving] = useState(false);
-
-  const workspaceId =
-    currentWorkspace?.id || selectedWorkspaceId || localSelectedId || null;
-
-  useEffect(() => {
-    try {
-      const val = localStorage.getItem("selectedWorkspaceId");
-      if (val && val !== "undefined" && val !== "null") {
-        setLocalSelectedId(val);
-      }
-    } catch {}
-  }, []);
 
   useEffect(() => {
     onNavigateToKnowledgeBase();
@@ -173,32 +160,16 @@ export default function AgentsPage() {
                 Your Agents
               </h3>
               <p className="text-sm text-slate-600 mt-1">
-                {!workspaceId
-                  ? "Select a workspace to manage agents."
-                  : agents.length === 0
-                    ? "No agents yet"
-                    : agents.length === 1
-                      ? "1 agent"
-                      : `${agents.length} agents`}
+                {agents.length === 0
+                  ? "No agents yet"
+                  : agents.length === 1
+                    ? "1 agent"
+                    : `${agents.length} agents`}
               </p>
             </div>
           </div>
           <div className="flex-1 overflow-y-auto p-4">
-            {!workspaceId ? (
-              <div className="flex h-full items-center justify-center">
-                <div className="text-center">
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-teal-primary/10 text-teal-primary">
-                    <Bot className="h-6 w-6" />
-                  </div>
-                  <p className="text-sm font-semibold text-gray-900">
-                    Select a workspace
-                  </p>
-                  <p className="mt-1 text-xs text-gray-500">
-                    Choose a workspace to manage your agents.
-                  </p>
-                </div>
-              </div>
-            ) : agents.length === 0 ? (
+            {agents.length === 0 ? (
               <div className="flex h-full items-center justify-center">
                 <div className="text-center">
                   <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-teal-primary/10 text-teal-primary">
@@ -252,7 +223,7 @@ export default function AgentsPage() {
         <div className="h-[520px] xl:w-[360px] xl:flex-shrink-0">
           <ChatPanel
             workspaceId={workspaceId}
-            workspaceName={currentWorkspace?.name ?? null}
+            workspaceName={contextWorkspaceName ?? null}
             hasKnowledge={hasAgents}
             hasGoogleSheet={false}
             user={user}

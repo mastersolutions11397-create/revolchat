@@ -69,17 +69,9 @@ function ParentLoader({ isLoading }: { isLoading: boolean }) {
 
 export default function IntegrationsPage() {
   const { t } = useLanguage();
-  const {
-    selectedWorkspaceId,
-    currentWorkspace,
-    loading: workspaceLoading,
-  } = useWorkspace();
+  const { workspaceId, loading: workspaceLoading } = useWorkspace();
   const { user } = useAuth();
   const { onNavigateToIntegrations } = useOnboardingTour();
-  const workspaceId = useMemo(
-    () => selectedWorkspaceId || currentWorkspace?.id || null,
-    [selectedWorkspaceId, currentWorkspace?.id]
-  );
 
   // Trigger tour callback when landing on integrations page
   useEffect(() => {
