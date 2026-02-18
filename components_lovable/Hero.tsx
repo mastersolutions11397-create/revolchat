@@ -101,8 +101,8 @@ const Hero = () => {
               <div className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-full bg-gradient-to-b from-white to-teal-primary/10 shadow-[0_0_60px_-15px_rgba(15,118,110,0.3)] flex items-center justify-center p-1 ring-1 ring-white/50">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-teal-primary/20 to-transparent opacity-50 blur-xl"></div>
                 <img
-                  src="/yetti/logo.png"
-                  alt="Yetti.ai"
+                  src="/yetti/logo2.jpg"
+                  alt="Admin"
                   className="w-24 h-24 sm:w-28 sm:h-28 object-contain relative z-10 drop-shadow-lg"
                 />
               </div>

@@ -22,21 +22,21 @@ const lato = Lato({
 });
 
 export const metadata: Metadata = {
-  title: "yetti AI - AI Agent Integration Platform",
+  title: "Admin - AI Agent Integration Platform",
   description:
-    "Connect your AI chatbot to Instagram, Telegram, and more platforms with yetti AI's powerful integration platform. Transform your social media presence with AI-powered customer engagement that works around the clock.",
-  keywords: ["AI chatbot", "Instagram integration", "Telegram bot", "social media automation", "customer engagement", "AI agent", "business automation"],
-  authors: [{ name: "yetti.ai" }],
-  creator: "yetti.ai",
-  publisher: "yetti.ai",
+    "Connect your AI chatbot to Telegram and more with Admin's integration platform. Transform your presence with AI-powered customer engagement.",
+  keywords: ["AI chatbot", "Telegram bot", "social media automation", "customer engagement", "AI agent", "business automation"],
+  authors: [{ name: "Admin" }],
+  creator: "Admin",
+  publisher: "Admin",
   robots: "index, follow",
   openGraph: {
     type: "website",
     locale: "en_US",
     url: "https://yetti.ai",
-    title: "yetti AI - AI Agent Integration Platform",
-    description: "Connect your AI chatbot to Instagram, Telegram, and more platforms with yetti AI's powerful integration platform.",
-    siteName: "yetti.ai",
+    title: "Admin - AI Agent Integration Platform",
+    description: "Connect your AI chatbot to Telegram and more with Admin's integration platform.",
+    siteName: "Admin",
     images: [
       {
         url: "/yetti/yetti_face.png",
@@ -54,9 +54,9 @@ export const metadata: Metadata = {
     creator: "@yetti_ai",
   },
   icons: {
-    icon: "/yetti/logo.png",
-    shortcut: "/yetti/logo.png",
-    apple: "/yetti/logo.png",
+    icon: "/yetti/logo2.jpg",
+    shortcut: "/yetti/logo2.jpg",
+    apple: "/yetti/logo2.jpg",
   },
   manifest: "/manifest.json",
 };

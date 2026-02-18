@@ -25,7 +25,7 @@ import {
   Activity,
   Clock,
   AlertCircle,
-  Crown,
+  Bot,
   Plus,
 } from "lucide-react";
 import { useWorkspace } from "@/lib/contexts/WorkspaceContext";
@@ -773,43 +773,6 @@ export default function DashboardPage() {
               </span>
             </div>
 
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <button
-                onClick={handleToggleWorkspace}
-                disabled={
-                  availabilityLoading ||
-                  workspaceOnline === null ||
-                  !workspaceId
-                }
-                className={`group relative inline-flex items-center gap-2 rounded-xl px-4 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-white transition-all duration-300 w-full sm:w-auto justify-center ${
-                  availabilityLoading || !workspaceId
-                    ? "cursor-not-allowed opacity-50 bg-white/5"
-                    : workspaceOnline
-                      ? "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-100 ring-1 ring-emerald-500/50"
-                      : "bg-slate-700/50 hover:bg-slate-700/70 text-slate-300 ring-1 ring-white/10"
-                }`}
-              >
-                {availabilityLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Power
-                    className={`h-4 w-4 transition-colors shrink-0 ${
-                      workspaceOnline
-                        ? "text-emerald-400"
-                        : "text-slate-400 group-hover:text-white"
-                    }`}
-                  />
-                )}
-                <span className="whitespace-nowrap">
-                  {workspaceOnline ? t("dashboard.yettiOn") : t("dashboard.yettiOff")}
-                </span>
-              </button>
-            </div>
-            {availabilityError && (
-              <p className="text-xs text-red-300 bg-red-500/10 px-2 py-1 rounded w-full sm:w-auto text-center sm:text-left">
-                {availabilityError}
-              </p>
-            )}
           </div>
         </div>
       </div>
@@ -883,42 +846,32 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Current Plan */}
+        {/* Total Agents */}
         <Link
-          href="/dashboard/plans"
+          href="/dashboard/knowledge-base"
           className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-teal-primary/30 block"
         >
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                {t("dashboard.currentPlan")}
+                Total Agents
               </p>
-              {planLoading ? (
+              {loading ? (
                 <div className="mt-2">
                   <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-slate-400" />
                 </div>
               ) : (
                 <p className="mt-2 text-2xl sm:text-3xl font-bold text-slate-900">
-                  {userPlan?.plan_name || "Free"}
+                  {dashboardData?.workspace_summary?.total_agents ?? 0}
                 </p>
               )}
             </div>
-            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-violet-50 text-violet-600 transition-colors group-hover:bg-violet-500 group-hover:text-white shrink-0 ml-3">
-              <Crown className="h-5 w-5 sm:h-7 sm:w-7" />
+            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-teal-primary/10 text-teal-primary transition-colors group-hover:bg-teal-primary group-hover:text-white shrink-0 ml-3">
+              <Bot className="h-5 w-5 sm:h-7 sm:w-7" />
             </div>
           </div>
           <div className="mt-3 sm:mt-4 flex items-center gap-2 text-xs sm:text-sm flex-wrap">
-            <span
-              className={`flex items-center gap-1 font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${
-                userPlan?.status === "active"
-                  ? "text-emerald-600 bg-emerald-50"
-                  : "text-slate-600 bg-slate-100"
-              }`}
-            >
-              <CheckCircle2 className="h-3 w-3" />
-              {userPlan?.status === "active" ? t("dashboard.active") : t("dashboard.inactive")}
-            </span>
-            <span className="text-slate-500">{t("dashboard.clickToManage")}</span>
+            <span className="text-slate-500">View and manage agents</span>
           </div>
         </Link>
       </div>

@@ -34,8 +34,8 @@ const Navbar = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <img src="/yetti/logo.png" alt="Yetti.ai Logo" className="w-10 h-10 object-contain" />
-            <span className="text-2xl font-bold text-foreground">Yetti.ai</span>
+            <img src="/yetti/logo2.jpg" alt="Admin Logo" className="w-10 h-10 object-contain" />
+            <span className="text-2xl font-bold text-foreground">Admin</span>
           </Link>
 
           {/* Desktop Navigation */}

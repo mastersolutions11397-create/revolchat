@@ -1,7 +1,7 @@
 {
-  "name": "yetti AI - AI Agent Integration Platform",
-  "short_name": "yetti.ai",
-  "description": "Connect your AI chatbot to Instagram, Telegram, and more platforms with yetti AI's powerful integration platform.",
+  "name": "Admin - AI Agent Integration Platform",
+  "short_name": "Admin",
+  "description": "Connect your AI chatbot to Telegram and more with Admin's integration platform.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

@@ -8,7 +8,7 @@ import { type Conversation, type Message } from "@/lib/api/integrations";
 import { MessageSquare, Search, Info, ArrowLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
-type ChannelType = "instagram" | "telegram";
+type ChannelType = "telegram" | "instagram";
 
 // Chat history data structure
 interface ChatHistoryResponse {
@@ -166,7 +166,7 @@ export default function InboxPage() {
   );
 
   const [selectedChannel, setSelectedChannel] =
-    useState<ChannelType>("instagram");
+    useState<ChannelType>("telegram");
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
@@ -297,43 +297,9 @@ export default function InboxPage() {
             {t("inbox.chat")}
           </h2>
 
-          {/* Channel Toggle */}
+          {/* Channel - Telegram only */}
           <div className="flex p-1 bg-dashboard-bg rounded-xl">
-            <button
-              onClick={() => {
-                setSelectedChannel("instagram");
-                setSelectedConversation(null);
-                setShowChatView(false);
-              }}
-              className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                selectedChannel === "instagram"
-                  ? "bg-dashboard-card text-slate-900 shadow-sm"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              <div className="relative h-4 w-4 sm:h-5 sm:w-5">
-                <Image
-                  src="/yetti/instagram_logo.png"
-                  alt={t("inbox.instagram")}
-                  fill
-                  className="object-contain"
-                />
-              </div>
-              <span className="hidden sm:inline">{t("inbox.instagram")}</span>
-              <span className="sm:hidden">{t("inbox.ig")}</span>
-            </button>
-            <button
-              onClick={() => {
-                setSelectedChannel("telegram");
-                setSelectedConversation(null);
-                setShowChatView(false);
-              }}
-              className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all ${
-                selectedChannel === "telegram"
-                  ? "bg-dashboard-card text-slate-900 shadow-sm"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
+            <div className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2 rounded-lg text-xs sm:text-sm font-medium bg-dashboard-card text-slate-900 shadow-sm">
               <div className="relative h-4 w-4 sm:h-5 sm:w-5">
                 <Image
                   src="/yetti/telegram_logo.png"
@@ -344,7 +310,7 @@ export default function InboxPage() {
               </div>
               <span className="hidden sm:inline">{t("inbox.telegram")}</span>
               <span className="sm:hidden">{t("inbox.tg")}</span>
-            </button>
+            </div>
           </div>
         </div>
 
@@ -389,27 +355,15 @@ export default function InboxPage() {
                   <div className="flex items-start gap-2 sm:gap-3">
                     <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 rounded-xl overflow-hidden bg-teal-primary/10 flex items-center justify-center shadow-sm">
                       <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-teal-primary" />
-                      {selectedChannel === "instagram" ? (
-                        <div className="absolute bottom-0 right-0 h-3 w-3 sm:h-4 sm:w-4 bg-white rounded-full p-0.5">
-                          <Image
-                            src="/yetti/instagram_logo.png"
-                            alt="IG"
-                            width={12}
-                            height={12}
-                            className="w-full h-full"
-                          />
-                        </div>
-                      ) : (
-                        <div className="absolute bottom-0 right-0 h-3 w-3 sm:h-4 sm:w-4 bg-white rounded-full p-0.5">
-                          <Image
-                            src="/yetti/telegram_logo.png"
-                            alt="TG"
-                            width={12}
-                            height={12}
-                            className="w-full h-full"
-                          />
-                        </div>
-                      )}
+                      <div className="absolute bottom-0 right-0 h-3 w-3 sm:h-4 sm:w-4 bg-white rounded-full p-0.5">
+                        <Image
+                          src="/yetti/telegram_logo.png"
+                          alt="TG"
+                          width={12}
+                          height={12}
+                          className="w-full h-full"
+                        />
+                      </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-0.5 sm:mb-1">
@@ -484,14 +438,8 @@ export default function InboxPage() {
                     <span className="truncate">
                       {selectedConversation.participant_name}
                     </span>
-                    <span
-                      className={`hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider flex-shrink-0 ${
-                        selectedChannel === "instagram"
-                          ? "bg-pink-50 text-pink-600 border border-pink-100"
-                          : "bg-teal-primary/10 text-teal-primary border border-teal-primary/20"
-                      }`}
-                    >
-                      {selectedChannel === "instagram" ? t("inbox.instagram") : t("inbox.telegram")}
+                    <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider flex-shrink-0 bg-teal-primary/10 text-teal-primary border border-teal-primary/20">
+                      {t("inbox.telegram")}
                     </span>
                   </h3>
                   <p className="text-xs text-slate-500 truncate">
@@ -612,18 +560,6 @@ export default function InboxPage() {
               {t("inbox.selectChatDesc")}
             </p>
             <div className="flex gap-2 sm:gap-4">
-              <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-dashboard-card rounded-full border border-dashboard-border shadow-sm text-xs sm:text-sm text-slate-600">
-                <div className="relative h-3 w-3 sm:h-4 sm:w-4">
-                  <Image
-                    src="/yetti/instagram_logo.png"
-                    alt="IG"
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-                <span className="hidden sm:inline">{t("inbox.instagram")}</span>
-                <span className="sm:hidden">{t("inbox.ig")}</span>
-              </div>
               <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-dashboard-card rounded-full border border-dashboard-border shadow-sm text-xs sm:text-sm text-slate-600">
                 <div className="relative h-3 w-3 sm:h-4 sm:w-4">
                   <Image
