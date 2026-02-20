@@ -43,6 +43,34 @@ async function proxyRequest(
     const user = await authenticate(request);
     const workspaceId = await getWorkspaceIdForUser(user.id);
 
+    if (!workspaceId) {
+      const pathStr = path.join("/");
+      if (pathStr === "dashboard") {
+        return NextResponse.json({
+          user_profile: {},
+          workspace_summary: {
+            total_workspaces: 0,
+            active_workspaces: 0,
+            total_agents: 0,
+            active_agents: 0,
+            total_integrations: 0,
+            active_integrations: 0,
+          },
+          recent_activity: [],
+          quick_stats: {
+            today_interactions: 0,
+            this_week_interactions: 0,
+            this_month_interactions: 0,
+            avg_response_time: 0,
+          },
+        });
+      }
+      return NextResponse.json(
+        { message: "No workspace" },
+        { status: 404 }
+      );
+    }
+
     const pathStr = path.join("/");
     const url = `${API_BASE_URL}/api/yetti/workspaces/${workspaceId}/${pathStr}`;
     const authHeader = request.headers.get("authorization");

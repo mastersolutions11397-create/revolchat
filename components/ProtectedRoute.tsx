@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,11 +11,26 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
+  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/auth/login");
+    if (loading || user) {
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+        redirectTimeoutRef.current = null;
+      }
+      return;
     }
+    // Delay so auth context can settle after admin login (avoids redirect loop)
+    redirectTimeoutRef.current = setTimeout(() => {
+      redirectTimeoutRef.current = null;
+      router.push("/auth/login");
+    }, 400);
+    return () => {
+      if (redirectTimeoutRef.current) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+    };
   }, [user, loading, router]);
 
   if (loading) {

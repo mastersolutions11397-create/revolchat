@@ -18,19 +18,19 @@ async function getAuthToken(): Promise<string | null> {
 }
 
 /**
- * Get headers with Authorization bearer token
+ * Get headers with optional Authorization bearer token.
+ * When user is logged in via admins table (cookie only), there is no Supabase token;
+ * requests are still sent so same-origin APIs that use cookies can authenticate.
  */
-async function getAuthHeaders() {
+async function getAuthHeaders(): Promise<Record<string, string>> {
   const token = await getAuthToken();
-
-  if (!token) {
-    throw new Error("No authentication token available");
-  }
-
-  return {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
   };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  return headers;
 }
 
 class ApiRequestError extends Error {
@@ -75,8 +75,11 @@ async function apiRequest<T>(
   const headers = await getAuthHeaders();
   const base = getBaseUrl(endpoint);
 
-  const response = await fetch(`${base}${endpoint}`, {
+  const url = `${base}${endpoint}`;
+  const isSameOrigin = typeof window !== "undefined" && !base;
+  const response = await fetch(url, {
     ...options,
+    credentials: isSameOrigin ? "include" : options.credentials,
     headers: {
       ...headers,
       ...options.headers,
@@ -106,6 +109,16 @@ async function apiRequest<T>(
       // If response is not JSON, use status text
       errorMessage = response.statusText || errorMessage;
     }
+
+    // 401 Unauthorized: clear admin session and redirect to login
+    if (response.status === 401 && typeof window !== "undefined") {
+      const pathname = window.location.pathname ?? "";
+      if (!pathname.startsWith("/auth/")) {
+        await fetch("/api/auth/admin-logout", { method: "POST" });
+        window.location.href = "/auth/login";
+      }
+    }
+
     throw new ApiRequestError(errorMessage, {
       status: response.status,
       statusText: response.statusText,

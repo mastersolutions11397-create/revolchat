@@ -12,6 +12,13 @@ export async function PATCH(request: NextRequest) {
     const user = await authenticate(request);
     const workspaceId = await getWorkspaceIdForUser(user.id);
 
+    if (!workspaceId) {
+      return NextResponse.json(
+        { message: "No workspace" },
+        { status: 404 }
+      );
+    }
+
     const body = await request.json().catch(() => null);
     if (!body || typeof body !== "object") {
       throw new ApiError("Request body must be a JSON object", 400);

@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import type { User } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { ADMIN_COOKIE_NAME, verifySignedCookie } from "@/lib/admin-auth";
 
 export const DAY_KEYS = [
   "monday",
@@ -41,23 +42,34 @@ export const serializeRow = (row: any) => ({
   updated_at: row.updated_at,
 });
 
+function adminToUser(admin: { id: string; email: string }): User {
+  return {
+    id: admin.id,
+    email: admin.email,
+    user_metadata: {},
+    app_metadata: {},
+    aud: "authenticated",
+    created_at: new Date().toISOString(),
+  } as User;
+}
+
 export async function authenticate(request: NextRequest): Promise<User> {
   const authHeader = request.headers.get("authorization");
-  if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
-    throw new ApiError("Missing or invalid Authorization header", 401);
+  if (authHeader?.toLowerCase().startsWith("bearer ")) {
+    const token = authHeader.slice(7).trim();
+    if (token) {
+      const { data, error } = await supabaseAdmin.auth.getUser(token);
+      if (!error && data.user) return data.user;
+    }
   }
 
-  const token = authHeader.slice(7).trim();
-  if (!token) {
-    throw new ApiError("Missing access token", 401);
+  const adminCookie = request.cookies.get(ADMIN_COOKIE_NAME);
+  if (adminCookie?.value) {
+    const admin = verifySignedCookie(adminCookie.value);
+    if (admin) return adminToUser(admin);
   }
 
-  const { data, error } = await supabaseAdmin.auth.getUser(token);
-  if (error || !data.user) {
-    throw new ApiError("Invalid or expired access token", 401);
-  }
-
-  return data.user;
+  throw new ApiError("Missing or invalid Authorization header", 401);
 }
 
 export async function ensureWorkspaceMembership(

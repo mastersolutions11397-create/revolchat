@@ -5,10 +5,12 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 
 export default function LoginPage() {
   const { t } = useLanguage();
+  const { setUserFromAdminLogin } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -86,7 +88,8 @@ export default function LoginPage() {
       if (error) {
         setError(error.message);
       } else if (data.user) {
-        // Redirect to the specified URL or default to dashboard
+        // Set user in context immediately so ProtectedRoute sees auth (cookie is already set by API)
+        setUserFromAdminLogin({ id: data.user.id, email: data.user.email });
         router.push(redirectUrl || "/dashboard");
       }
     } catch {

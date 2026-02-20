@@ -6,9 +6,7 @@ import { useLanguage } from "@/lib/contexts/LanguageContext";
 import {
   dashboardAPI,
   type DashboardResponse,
-  workspaceHoursAPI,
   integrationsAPI,
-  yettiOnboardingAPI,
   chatAPI,
 } from "@/lib/api";
 import Link from "next/link";
@@ -20,46 +18,22 @@ import {
   Zap,
   CheckCircle2,
   Loader2,
-  Power,
   ArrowUpRight,
   Activity,
-  Clock,
   AlertCircle,
   Bot,
 } from "lucide-react";
-import { useOnboardingTour } from "@/lib/contexts/OnboardingTourContext";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
-import WorkspaceOnboardingModal from "@/components/workspace/WorkspaceOnboardingModal";
-
-// Stable empty array constant to avoid creating new references
-const EMPTY_STEPS_COMPLETED: number[] = [];
-
 export default function DashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
   const { t } = useLanguage();
-  const {
-    startTour,
-    onWorkspaceCreated,
-    onOnboardingModalCompleted,
-    tourStatus,
-    loading: tourLoading,
-    currentStepIndex = 0,
-    stepsCompleted = EMPTY_STEPS_COMPLETED,
-    tourActive = false,
-  } = useOnboardingTour();
   const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(
     null
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [workspaceOnline, setWorkspaceOnline] = useState<boolean | null>(null);
-  const [availabilityLoading, setAvailabilityLoading] = useState(false);
-  const [availabilityError, setAvailabilityError] = useState<string | null>(
-    null
-  );
 
   // Integration states
   const [instagramIntegration, setInstagramIntegration] = useState<{
@@ -71,94 +45,8 @@ export default function DashboardPage() {
     first_name: string;
   } | null>(null);
   const [integrationsLoading, setIntegrationsLoading] = useState(false);
-  const [userPlan, setUserPlan] = useState<{
-    plan_name: string;
-    status: string;
-    current_period_end?: string | null;
-  } | null>(null);
-  const [planLoading, setPlanLoading] = useState(true);
   const [messageCount, setMessageCount] = useState<number>(0);
   const [messageCountLoading, setMessageCountLoading] = useState(false);
-  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
-
-  // Auto-start tour for new users who haven't completed it
-  useEffect(() => {
-    if (!user || tourLoading) return;
-    if (tourStatus === "not_started") {
-      const timer = setTimeout(() => {
-        startTour().catch((err) => console.error("Failed to start tour:", err));
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-
-    // If tour is in_progress with step 0 and empty steps_completed, auto-start it
-    // This handles the case where onboarding status is in_progress but tour hasn't started yet
-    if (
-      tourStatus === "in_progress" &&
-      currentStepIndex === 0 &&
-      (!stepsCompleted || stepsCompleted.length === 0) &&
-      !tourActive
-    ) {
-      console.log(
-        "Tour is in_progress with step 0 and empty steps_completed, auto-starting"
-      );
-      // Small delay to ensure UI is ready
-      const timer = setTimeout(() => {
-        console.log("Calling startTour() to activate in_progress tour");
-        startTour()
-          .then(() => {
-            console.log("Tour activated successfully");
-          })
-          .catch((err) => {
-            console.error("Failed to activate tour:", err);
-          });
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-
-    // If tour is in_progress but not active, ensure it's activated
-    // This handles the case where the page was refreshed
-    if (tourStatus === "in_progress" && !tourActive) {
-      console.log("Tour is in_progress but not active, ensuring it's activated");
-      // The context should handle activation, but we can trigger a re-check
-      // by calling startTour again (it will just update the state if already started)
-      const timer = setTimeout(() => {
-        startTour()
-          .then(() => {
-            console.log("Tour reactivated after page load");
-          })
-          .catch((err) => {
-            console.error("Failed to reactivate tour:", err);
-          });
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [
-    user,
-    tourLoading,
-    tourStatus,
-    currentStepIndex,
-    stepsCompleted,
-    tourActive,
-    startTour,
-  ]);
-
-  // Show onboarding modal when user has not completed onboarding
-  useEffect(() => {
-    if (!user) return;
-    let cancelled = false;
-    yettiOnboardingAPI
-      .getOnboardingStatus()
-      .then((status) => {
-        if (!cancelled && status && !status.is_onboarded) {
-          setShowOnboardingModal(true);
-        }
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, [user]);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -203,82 +91,6 @@ export default function DashboardPage() {
       fetchDashboard();
     }
   }, [user]);
-
-  useEffect(() => {
-    const fetchAvailability = async () => {
-      if (!user) {
-        setWorkspaceOnline(null);
-        return;
-      }
-      setAvailabilityLoading(true);
-      setAvailabilityError(null);
-      try {
-        const result = await workspaceHoursAPI.getWorkingHours();
-        setWorkspaceOnline(result.workspace_online);
-      } catch (err: unknown) {
-        if (
-          err instanceof Error &&
-          (err.message.includes("404") ||
-            err.message.toLowerCase().includes("not found") ||
-            err.message.toLowerCase().includes("schedule"))
-        ) {
-          // Workspace schedule not found - this is normal for new workspaces
-          console.log("Workspace hours not configured yet, using defaults");
-          setWorkspaceOnline(true);
-        } else {
-          const errorMessage =
-            err instanceof Error
-              ? err.message
-              : "Failed to load workspace availability";
-          console.error("Failed to load workspace availability", err);
-          setAvailabilityError(errorMessage);
-          // Don't show toast for new workspaces - just log and use defaults
-          console.warn("Using default workspace settings for new workspace");
-          setWorkspaceOnline(true);
-        }
-      } finally {
-        setAvailabilityLoading(false);
-      }
-    };
-    fetchAvailability();
-  }, [user]);
-
-  // Fetch user plan
-  useEffect(() => {
-    const fetchUserPlan = async () => {
-      if (!user?.id) {
-        setPlanLoading(false);
-        return;
-      }
-
-      try {
-        const { data: plans, error: planError } = await supabase
-          .from("user_plans")
-          .select("plan_name, status, current_period_end")
-          .eq("user_id", user.id)
-          .order("updated_at", { ascending: false })
-          .limit(1);
-
-        if (planError) {
-          console.error("Failed to fetch plan data:", planError);
-          setUserPlan({ plan_name: "Free", status: "active" });
-        } else {
-          setUserPlan(
-            plans && plans.length > 0
-              ? plans[0]
-              : { plan_name: "Free", status: "active" }
-          );
-        }
-      } catch (error) {
-        console.error("Error fetching user plan:", error);
-        setUserPlan({ plan_name: "Free", status: "active" });
-      } finally {
-        setPlanLoading(false);
-      }
-    };
-
-    fetchUserPlan();
-  }, [user?.id]);
 
   // Fetch integration status
   useEffect(() => {
@@ -333,30 +145,6 @@ export default function DashboardPage() {
     };
   }, [user?.id]);
 
-  const handleToggleWorkspace = async () => {
-    if (workspaceOnline === null) return;
-    setAvailabilityLoading(true);
-    setAvailabilityError(null);
-    try {
-      const response = await workspaceHoursAPI.updateWorkspaceOnlineStatus(
-        !workspaceOnline
-      );
-      setWorkspaceOnline(response.workspace_online);
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "Failed to update workspace availability";
-      console.error("Failed to update workspace status", err);
-      setAvailabilityError(errorMessage);
-      toast.error("Failed to update workspace status", {
-        description: errorMessage,
-      });
-    } finally {
-      setAvailabilityLoading(false);
-    }
-  };
-
   const getUserName = () => {
     if (dashboardData?.user_profile?.first_name) {
       return dashboardData.user_profile.first_name;
@@ -365,17 +153,6 @@ export default function DashboardPage() {
       return user.user_metadata.first_name;
     }
     return user?.email?.split("@")[0] || "User";
-  };
-
-  const handleOnboardingCompleted = () => {
-    setShowOnboardingModal(false);
-    toast.success(t("dashboard.workspaceSetupComplete"));
-    onOnboardingModalCompleted();
-    if (tourStatus === "not_started" && !tourLoading) {
-      setTimeout(() => {
-        startTour().catch((err) => console.error("Failed to start tour after onboarding:", err));
-      }, 500);
-    }
   };
 
   if (loading) {
@@ -633,13 +410,6 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
-
-      {/* Onboarding Modal */}
-      <WorkspaceOnboardingModal
-        isOpen={showOnboardingModal}
-        onClose={() => setShowOnboardingModal(false)}
-        onCompleted={handleOnboardingCompleted}
-      />
     </div>
   );
 }

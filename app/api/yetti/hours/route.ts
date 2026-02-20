@@ -14,6 +14,20 @@ export async function GET(request: NextRequest) {
     const user = await authenticate(request);
     const workspaceId = await getWorkspaceIdForUser(user.id);
 
+    if (!workspaceId) {
+      return NextResponse.json(
+        serializeRow({
+          workspace_id: "",
+          timezone: "UTC",
+          schedule: {},
+          respect_schedule: true,
+          workspace_online: true,
+          created_at: null,
+          updated_at: null,
+        })
+      );
+    }
+
     const row = await fetchWorkspaceHours(workspaceId);
     if (!row) {
       throw new ApiError("Workspace hours not configured", 404);
@@ -35,6 +49,13 @@ export async function PUT(request: NextRequest) {
   try {
     const user = await authenticate(request);
     const workspaceId = await getWorkspaceIdForUser(user.id);
+
+    if (!workspaceId) {
+      return NextResponse.json(
+        { message: "No workspace" },
+        { status: 404 }
+      );
+    }
 
     const body = await request.json().catch(() => null);
     if (!body || typeof body !== "object") {

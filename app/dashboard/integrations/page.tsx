@@ -7,7 +7,6 @@ import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 
 import { integrationsAPI } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { useOnboardingTour } from "@/lib/contexts/OnboardingTourContext";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 
 // CHANNELS - only Telegram (Instagram, WhatsApp, Messenger removed)
@@ -69,13 +68,6 @@ function ParentLoader({ isLoading }: { isLoading: boolean }) {
 export default function IntegrationsPage() {
   const { t } = useLanguage();
   const { user } = useAuth();
-  const { onNavigateToIntegrations } = useOnboardingTour();
-
-  useEffect(() => {
-    const timer = setTimeout(() => onNavigateToIntegrations(), 500);
-    return () => clearTimeout(timer);
-  }, [onNavigateToIntegrations]);
-
   const [initialLoading, setInitialLoading] = useState(true);
   const [showTelegramModal, setShowTelegramModal] = useState(false);
   const [telegramBotToken, setTelegramBotToken] = useState("");

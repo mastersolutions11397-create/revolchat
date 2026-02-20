@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
-import { useOnboardingTour } from "@/lib/contexts/OnboardingTourContext";
 import {
   LayoutDashboard,
   BookOpen,
@@ -31,13 +30,6 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
   const { t } = useLanguage();
   const pathname = usePathname();
-  const {
-    tourActive,
-    tourStatus,
-    onNavigateToKnowledgeBase,
-    onNavigateToIntegrations,
-    onNavigateToSettings,
-  } = useOnboardingTour();
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -45,13 +37,6 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setMobileSidebarOpen(false);
   }, [pathname]);
-
-  // Collapse sidebar when tour becomes active or in progress
-  useEffect(() => {
-    if (tourActive || tourStatus === "in_progress") {
-      setSidebarExpanded(false);
-    }
-  }, [tourActive, tourStatus]);
 
   // Prevent body scroll when mobile sidebar is open
   useEffect(() => {
@@ -71,23 +56,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
   const isActive = (path: string) => pathname === path;
 
-  // Handle navigation link clicks for onboarding tour
-  const handleNavClick = (href: string) => {
-    console.log("Navigation clicked:", href, { tourActive });
-    if (tourActive) {
-      // Trigger appropriate onboarding callback based on destination
-      if (href === "/dashboard/knowledge-base") {
-        console.log("Triggering Knowledge Base callback");
-        onNavigateToKnowledgeBase();
-      } else if (href === "/dashboard/integrations") {
-        console.log("Triggering Integrations callback");
-        onNavigateToIntegrations();
-      } else if (href === "/dashboard/settings") {
-        console.log("Triggering Settings callback");
-        onNavigateToSettings();
-      }
-    }
-    // Close mobile sidebar after navigation
+  const handleNavClick = () => {
     setMobileSidebarOpen(false);
   };
 
@@ -105,16 +74,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside
-        onMouseEnter={() => {
-          // Don't expand sidebar if tour is active or in progress
-          if (!tourActive && tourStatus !== "in_progress") {
-            setSidebarExpanded(true);
-          }
-        }}
-        onMouseLeave={() => {
-          // Always collapse on mouse leave
-          setSidebarExpanded(false);
-        }}
+        onMouseEnter={() => setSidebarExpanded(true)}
+        onMouseLeave={() => setSidebarExpanded(false)}
         className={`fixed inset-y-0 left-0 z-50 bg-dashboard-card border-r border-dashboard-border transition-all duration-300 ease-in-out shadow-sm ${
           // Mobile: always full width when open, hidden when closed
           mobileSidebarOpen ? "w-72 translate-x-0" : "-translate-x-full"
@@ -242,8 +203,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.href}
                   href={buildLink(item.href)}
-                  onClick={() => handleNavClick(item.href)}
-                  data-tour={item.tourId || undefined}
+                  onClick={handleNavClick}
                   className={`group flex items-center rounded-xl px-3 py-3 transition-all duration-200 ${
                     active
                       ? "bg-teal-primary/10 text-teal-primary shadow-sm ring-1 ring-teal-primary/20"

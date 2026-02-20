@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
-import { useOnboardingTour } from "@/lib/contexts/OnboardingTourContext";
-import { chatAPI } from "@/lib/api/chat";
+import { agentsAPI, type Agent, type AgentModel } from "@/lib/api/agents";
+import { agentChatAPI } from "@/lib/api/agent-chat";
 import ReactMarkdown from "react-markdown";
 import Image from "next/image";
 import {
@@ -25,20 +25,33 @@ export type AgentRecord = {
   name: string;
   systemPrompt: string;
   model: string;
-  apiKey: string; // stored in state; display masked
+  modelId: string | null;
+  apiKey: string; // from API always masked as "***"
 };
 
-const MODELS = [
-  "gpt-4o",
-  "gpt-4o-mini",
-  "gpt-4-turbo",
-  "gpt-4",
-  "gpt-3.5-turbo",
-  "claude-3-5-sonnet-20241022",
-  "claude-3-opus-20240229",
-  "claude-3-sonnet-20240229",
-  "claude-3-haiku-20240307",
-];
+const MODEL_PROVIDERS: AgentModel[] = ["openai", "deepseek", "gemini"];
+
+const MODEL_IDS_BY_PROVIDER: Record<AgentModel, string[]> = {
+  openai: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo"],
+  deepseek: ["deepseek-chat", "deepseek-reasoner"],
+  gemini: ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-pro"],
+};
+
+const MODEL_LABELS: Record<string, string> = {
+  "deepseek-chat": "DeepSeek-V3.2 (Non-thinking Mode)",
+  "deepseek-reasoner": "DeepSeek-V3.2 (Thinking Mode)",
+};
+
+function agentFromAPI(a: Agent): AgentRecord {
+  return {
+    id: a.id,
+    name: a.name,
+    systemPrompt: a.system_prompt,
+    model: a.model,
+    modelId: a.model_id ?? null,
+    apiKey: a.api_key ?? "***",
+  };
+}
 
 function maskApiKey(key: string): string {
   if (!key || key.length < 8) return "••••••••";
@@ -48,32 +61,48 @@ function maskApiKey(key: string): string {
 export default function AgentsPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const { onNavigateToKnowledgeBase, onTestAgentMessageCompleted } =
-    useOnboardingTour();
   const [agents, setAgents] = useState<AgentRecord[]>([]);
+  const [agentsLoading, setAgentsLoading] = useState(true);
+  const [agentsError, setAgentsError] = useState<string | null>(null);
   const [addAgentModalOpen, setAddAgentModalOpen] = useState(false);
   const [agentSystemPrompt, setAgentSystemPrompt] = useState("");
-  const [agentModel, setAgentModel] = useState(MODELS[0]);
+  const [agentModel, setAgentModel] = useState<AgentModel>("openai");
+  const [agentModelId, setAgentModelId] = useState(MODEL_IDS_BY_PROVIDER.openai[0] ?? "");
   const [agentApiKey, setAgentApiKey] = useState("");
   const [agentName, setAgentName] = useState("");
   const [addAgentError, setAddAgentError] = useState<string | null>(null);
   const [addAgentSaving, setAddAgentSaving] = useState(false);
 
+  const fetchAgents = useCallback(async () => {
+    setAgentsLoading(true);
+    setAgentsError(null);
+    try {
+      const { agents: list } = await agentsAPI.list();
+      setAgents(list.map(agentFromAPI));
+    } catch (err) {
+      setAgentsError(err instanceof Error ? err.message : "Failed to load agents.");
+      setAgents([]);
+    } finally {
+      setAgentsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    onNavigateToKnowledgeBase();
-  }, [onNavigateToKnowledgeBase]);
+    fetchAgents();
+  }, [fetchAgents]);
 
   const hasAgents = agents.length > 0;
 
   const resetAddAgentForm = useCallback(() => {
     setAgentSystemPrompt("");
-    setAgentModel(MODELS[0]);
+    setAgentModel("openai");
+    setAgentModelId(MODEL_IDS_BY_PROVIDER.openai[0] ?? "");
     setAgentApiKey("");
     setAgentName("");
     setAddAgentError(null);
   }, []);
 
-  const handleAddAgent = useCallback(() => {
+  const handleAddAgent = useCallback(async () => {
     setAddAgentError(null);
     if (!agentSystemPrompt.trim()) {
       setAddAgentError("System prompt is required.");
@@ -84,31 +113,44 @@ export default function AgentsPage() {
       return;
     }
     setAddAgentSaving(true);
-    setAgents((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
+    try {
+      const created = await agentsAPI.create({
         name: agentName.trim() || "Unnamed agent",
-        systemPrompt: agentSystemPrompt.trim(),
         model: agentModel,
-        apiKey: agentApiKey.trim(),
-      },
-    ]);
-    resetAddAgentForm();
-    setAddAgentSaving(false);
-    setAddAgentModalOpen(false);
+        model_id: agentModelId.trim() || null,
+        system_prompt: agentSystemPrompt.trim(),
+        api_key: agentApiKey.trim(),
+      });
+      setAgents((prev) => [...prev, agentFromAPI(created)]);
+      resetAddAgentForm();
+      setAddAgentModalOpen(false);
+    } catch (err) {
+      setAddAgentError(err instanceof Error ? err.message : "Failed to create agent.");
+    } finally {
+      setAddAgentSaving(false);
+    }
   }, [
     agentSystemPrompt,
     agentModel,
+    agentModelId,
     agentApiKey,
     agentName,
     resetAddAgentForm,
   ]);
 
-  const handleDeleteAgent = useCallback((id: string) => {
-    if (!confirm("Remove this agent? This cannot be undone.")) return;
-    setAgents((prev) => prev.filter((a) => a.id !== id));
-  }, []);
+  const handleDeleteAgent = useCallback(
+    async (id: string) => {
+      if (!confirm("Remove this agent? This cannot be undone.")) return;
+      try {
+        await agentsAPI.delete(id);
+        setAgents((prev) => prev.filter((a) => a.id !== id));
+      } catch (err) {
+        console.error("Delete agent failed:", err);
+        alert(err instanceof Error ? err.message : "Failed to delete agent.");
+      }
+    },
+    []
+  );
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6 w-full max-w-7xl mx-auto lg:min-h-[calc(100vh-8rem)]">
@@ -167,7 +209,33 @@ export default function AgentsPage() {
             </div>
           </div>
           <div className="flex-1 overflow-y-auto p-4">
-            {agents.length === 0 ? (
+            {agentsLoading ? (
+              <div className="flex h-full items-center justify-center">
+                <div className="flex flex-col items-center gap-3 text-slate-500">
+                  <Loader2 className="h-8 w-8 animate-spin text-teal-primary" />
+                  <p className="text-sm">Loading agents…</p>
+                </div>
+              </div>
+            ) : agentsError ? (
+              <div className="flex h-full items-center justify-center">
+                <div className="text-center max-w-sm">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                    <AlertCircle className="h-6 w-6" />
+                  </div>
+                  <p className="text-sm font-semibold text-slate-900">
+                    Could not load agents
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">{agentsError}</p>
+                  <button
+                    type="button"
+                    onClick={() => fetchAgents()}
+                    className="mt-3 text-sm font-medium text-teal-primary hover:underline"
+                  >
+                    Try again
+                  </button>
+                </div>
+              </div>
+            ) : agents.length === 0 ? (
               <div className="flex h-full items-center justify-center">
                 <div className="text-center">
                   <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-teal-primary/10 text-teal-primary">
@@ -193,7 +261,7 @@ export default function AgentsPage() {
                         {agent.name}
                       </p>
                       <p className="text-xs text-slate-500 mt-0.5">
-                        {agent.model}
+                        {MODEL_LABELS[agent.modelId ?? ""] ?? agent.modelId ?? agent.model}
                       </p>
                       <p className="text-xs text-slate-400 mt-1 truncate">
                         {agent.systemPrompt.slice(0, 60)}
@@ -220,10 +288,9 @@ export default function AgentsPage() {
 
         <div className="min-h-[320px] h-[40vh] sm:h-[420px] xl:h-[520px] xl:w-[360px] xl:flex-shrink-0 min-w-0">
           <ChatPanel
-            hasKnowledge={hasAgents}
+            agents={agents}
             hasGoogleSheet={false}
             user={user}
-            onTestAgentMessageCompleted={onTestAgentMessageCompleted}
             emptyStateMessage="Add an agent to enable the chat."
             noItemsMessage="No agents yet"
             useAddToStartMessage="Use “Add Agent” to get started."
@@ -298,16 +365,37 @@ export default function AgentsPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
-                    Model
+                    Provider
                   </label>
                   <select
                     value={agentModel}
-                    onChange={(e) => setAgentModel(e.target.value)}
+                    onChange={(e) => {
+                      const next = e.target.value as AgentModel;
+                      setAgentModel(next);
+                      const ids = MODEL_IDS_BY_PROVIDER[next];
+                      setAgentModelId(ids?.[0] ?? "");
+                    }}
                     className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-dashboard-border rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
                   >
-                    {MODELS.map((m) => (
+                    {MODEL_PROVIDERS.map((m) => (
                       <option key={m} value={m}>
                         {m}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                    Model ID (optional)
+                  </label>
+                  <select
+                    value={agentModelId}
+                    onChange={(e) => setAgentModelId(e.target.value)}
+                    className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-dashboard-border rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                  >
+                    {MODEL_IDS_BY_PROVIDER[agentModel]?.map((id) => (
+                      <option key={id} value={id}>
+                        {MODEL_LABELS[id] ?? id}
                       </option>
                     ))}
                   </select>
@@ -374,7 +462,7 @@ type ChatMessage = {
 };
 
 interface ChatPanelProps {
-  hasKnowledge: boolean;
+  agents: AgentRecord[];
   hasGoogleSheet: boolean;
   user?: User | null;
   onTestAgentMessageCompleted?: () => void;
@@ -384,7 +472,7 @@ interface ChatPanelProps {
 }
 
 function ChatPanel({
-  hasKnowledge,
+  agents,
   hasGoogleSheet,
   user,
   onTestAgentMessageCompleted,
@@ -394,18 +482,22 @@ function ChatPanel({
 }: ChatPanelProps) {
   const { t } = useLanguage();
   const listRef = useRef<HTMLDivElement | null>(null);
+  const hasKnowledge = agents.length > 0;
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
       role: "assistant",
       content: hasGoogleSheet
         ? "Chat is disabled when a Google Sheet is connected."
         : hasKnowledge
-          ? "Hi! Ask me anything about your knowledge library."
+          ? "Select an agent above, then send a message to start chatting."
           : (emptyStateMessage ?? "Add knowledge to enable the chat."),
     },
   ]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const streamContentRef = useRef("");
 
   useEffect(() => {
     if (listRef.current) {
@@ -414,127 +506,121 @@ function ChatPanel({
   }, [messages]);
 
   useEffect(() => {
-    setMessages([
-      {
-        role: "assistant",
-        content: hasGoogleSheet
-          ? "Chat is disabled when a Google Sheet is connected."
-          : hasKnowledge
-            ? "Hi! Ask me anything about your knowledge library."
-            : (emptyStateMessage ?? "Add knowledge to enable the chat."),
-      },
-    ]);
+    const welcome = hasGoogleSheet
+      ? "Chat is disabled when a Google Sheet is connected."
+      : hasKnowledge
+        ? "Select an agent above, then send a message to start chatting."
+        : (emptyStateMessage ?? "Add knowledge to enable the chat.");
+    setMessages([{ role: "assistant", content: welcome }]);
     setInput("");
   }, [hasKnowledge, hasGoogleSheet, emptyStateMessage]);
 
   useEffect(() => {
-    setMessages((prev) => {
-      if (prev.length === 1 && prev[0].role === "assistant") {
-        const content = hasGoogleSheet
-          ? t("knowledgeBase.chatDisabledWithSheet")
-          : hasKnowledge
-            ? t("knowledgeBase.chatWelcome")
-            : (emptyStateMessage ??
-              t("knowledgeBase.addKnowledgeToEnableChat"));
-        if (prev[0].content === content) {
-          return prev;
-        }
-        return [{ role: "assistant", content }];
-      }
-      return prev;
-    });
-  }, [hasKnowledge, hasGoogleSheet, emptyStateMessage, t]);
+    if (!selectedAgentId && agents.length > 0 && agents[0]) {
+      setSelectedAgentId(agents[0].id);
+    }
+  }, [agents, selectedAgentId]);
 
   const disabledReason = hasGoogleSheet
     ? "Chat is disabled when a Google Sheet is connected."
     : !hasKnowledge
       ? (emptyStateMessage ?? "Add knowledge to enable chat.")
-      : null;
+      : !selectedAgentId
+        ? "Select an agent to chat."
+        : null;
+
+  const handleNewChat = () => {
+    setConversationId(null);
+    setMessages([
+      {
+        role: "assistant",
+        content: hasKnowledge
+          ? "Select an agent above, then send a message to start chatting."
+          : (emptyStateMessage ?? "Add knowledge to enable the chat."),
+      },
+    ]);
+  };
 
   const handleSend = async () => {
     const text = input.trim();
-    if (!text || sending || !hasKnowledge || hasGoogleSheet) return;
+    if (!text || sending || !selectedAgentId || hasGoogleSheet) return;
 
     setSending(true);
-    setMessages((prev) => [...prev, { role: "user", content: text }]);
+    streamContentRef.current = "";
     setInput("");
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", content: text },
+      { role: "assistant", content: "" },
+    ]);
+
+    const appendToken = (chunk: string) => {
+      streamContentRef.current += chunk;
+      setMessages((prev) => {
+        const next = [...prev];
+        const last = next[next.length - 1];
+        if (last && last.role === "assistant") {
+          next[next.length - 1] = { ...last, content: streamContentRef.current };
+        }
+        return next;
+      });
+    };
 
     try {
-      const response = await chatAPI.sendMessage({
-        message: text,
-        user_id: user?.id,
-      });
-
-      let content = "";
-      try {
-        if (response && typeof response.answer === "string") {
-          const match = response.answer.match(/content='([\s\S]*?)'/);
-
-          if (match && match[1]) {
-            content = match[1]
-              .replace(/\\n/g, "\n")
-              .replace(/\\t/g, "\t")
-              .replace(/\\\\/g, "\\")
-              .replace(/\\"/g, '"');
-          } else {
-            content = response.answer;
-          }
-        } else if (
-          response &&
-          response.answer &&
-          typeof response.answer === "object" &&
-          "content" in response.answer &&
-          typeof (response.answer as { content?: unknown }).content === "string"
-        ) {
-          content = (response.answer as { content: string }).content;
-        } else {
-          content = JSON.stringify(response);
-        }
-      } catch (error) {
-        console.error("Error extracting assistant content:", error);
-        const fallbackAnswer = response?.answer;
-        content =
-          typeof fallbackAnswer === "string"
-            ? fallbackAnswer
-            : JSON.stringify(fallbackAnswer ?? "");
-      }
-
-      setMessages((prev) => {
-        const newMessages: ChatMessage[] = [
-          ...prev,
-          { role: "assistant" as const, content },
-        ];
-
-        if (onTestAgentMessageCompleted) {
-          const assistantMessages = newMessages.filter(
-            (m) => m.role === "assistant" && m.content && !m.isError,
-          );
-          const userMessages = newMessages.filter(
-            (m) => m.role === "user",
-          ).length;
-
-          if (userMessages > 0 && assistantMessages.length > 1) {
-            setTimeout(() => {
-              onTestAgentMessageCompleted();
-            }, 500);
-          }
-        }
-
-        return newMessages;
-      });
-    } catch (error: unknown) {
-      console.error("Error sending message:", error);
-      const errorMessage =
-        (error instanceof Error ? error.message : undefined) ||
-        "Failed to send message. Please try again.";
-      setMessages((prev) => [
-        ...prev,
+      await new Promise((r) => setTimeout(r, 0));
+      await agentChatAPI.stream(
+        text,
+        selectedAgentId,
+        { conversationId, userId: user?.id ?? undefined },
         {
-          role: "assistant",
-          content: `⚠️ **Connection Error**\n\nI'm having trouble connecting right now. ${errorMessage}\n\nPlease try again in a moment.`,
-          isError: true,
-        } as ChatMessage,
-      ]);
+          onToken: appendToken,
+          onDone(data) {
+            if (data.full_text != null) {
+              streamContentRef.current = data.full_text;
+              setMessages((prev) => {
+                const next = [...prev];
+                const last = next[next.length - 1];
+                if (last && last.role === "assistant") {
+                  next[next.length - 1] = { ...last, content: data.full_text ?? streamContentRef.current };
+                }
+                return next;
+              });
+            }
+          },
+          onError(err) {
+            setMessages((prev) => {
+              const next = [...prev];
+              const last = next[next.length - 1];
+              if (last && last.role === "assistant" && !last.content) {
+                next[next.length - 1] = {
+                  ...last,
+                  content: `⚠️ **Error**\n\n${err.message}`,
+                  isError: true,
+                };
+              }
+              return next;
+            });
+          },
+        }
+      );
+      if (onTestAgentMessageCompleted) {
+        setTimeout(() => onTestAgentMessageCompleted(), 500);
+      }
+    } catch (error: unknown) {
+      const errMessage =
+        error instanceof Error ? error.message : "Failed to send message. Please try again.";
+      setMessages((prev) => {
+        const next = [...prev];
+        const last = next[next.length - 1];
+        if (last && last.role === "assistant" && !last.content) {
+          next[next.length - 1] = {
+            ...last,
+            content: `⚠️ **Connection Error**\n\n${errMessage}`,
+            isError: true,
+          };
+        }
+        return next;
+      });
     } finally {
       setSending(false);
     }
@@ -552,11 +638,40 @@ function ChatPanel({
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
       <div
-        className="flex-none border-b border-gray-200 px-6 py-4"
+        className="flex-none border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4 space-y-3"
         data-tour="test-chat-section"
       >
-        <h3 className="text-xl font-semibold text-gray-900">Test Chat</h3>
-        <p className="text-xs text-gray-500">Chat</p>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-xl font-semibold text-gray-900">Test Chat</h3>
+          {hasKnowledge && conversationId && (
+            <button
+              type="button"
+              onClick={handleNewChat}
+              className="text-xs font-medium text-teal-primary hover:underline"
+            >
+              New chat
+            </button>
+          )}
+        </div>
+        {hasKnowledge && (
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">
+              Agent
+            </label>
+            <select
+              value={selectedAgentId ?? ""}
+              onChange={(e) => setSelectedAgentId(e.target.value || null)}
+              className="w-full rounded-lg border border-dashboard-border bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-primary focus:ring-1 focus:ring-teal-primary"
+            >
+              <option value="">Select an agent…</option>
+              {agents.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name} ({MODEL_LABELS[a.modelId ?? ""] ?? a.modelId ?? a.model})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       <div className="flex-1 min-h-0 relative bg-gradient-to-b from-transparent to-slate-50/20">

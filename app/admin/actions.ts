@@ -38,27 +38,29 @@ export async function checkAuth() {
 
 export async function approveCashout(requestId: string) {
   const cookieStore = await cookies();
-  if (!cookieStore.has(COOKIE_NAME)) return { success: false, error: "Unauthorized" };
+  if (!cookieStore.has(COOKIE_NAME))
+    return { success: false, error: "Unauthorized" };
 
   try {
     const { supabaseAdmin } = await import("@/lib/supabase-admin");
-    
+
     // Get request details
     const { data: request, error: reqError } = await supabaseAdmin
       .from("referral_cashout_requests")
       .select("*")
       .eq("id", requestId)
       .single();
-      
+
     if (reqError) throw reqError;
-    if (request.status !== "pending") return { success: false, error: "Request not pending" };
+    if (request.status !== "pending")
+      return { success: false, error: "Request not pending" };
 
     // Update request status
     const { error: updateError } = await supabaseAdmin
       .from("referral_cashout_requests")
-      .update({ 
+      .update({
         status: "completed",
-        processed_at: new Date().toISOString()
+        processed_at: new Date().toISOString(),
       })
       .eq("id", requestId);
 
@@ -68,23 +70,24 @@ export async function approveCashout(requestId: string) {
     if (request.commission_ids && request.commission_ids.length > 0) {
       await supabaseAdmin
         .from("referral_commissions")
-        .update({ 
+        .update({
           status: "paid",
-          paid_at: new Date().toISOString()
+          paid_at: new Date().toISOString(),
         })
         .in("id", request.commission_ids);
-        
-       // Recalculate if needed
-    }
 
+      // Recalculate if needed
+    }
 
     // Send Email Notification
     if (process.env.RESEND_API_KEY) {
       const { Resend } = await import("resend");
       const resend = new Resend(process.env.RESEND_API_KEY);
-      
+
       // Get user email from payment_details or auth
-      const { data: user } = await supabaseAdmin.auth.admin.getUserById(request.user_id);
+      const { data: user } = await supabaseAdmin.auth.admin.getUserById(
+        request.user_id,
+      );
       const userEmail = request.payment_details?.email || user?.user?.email;
 
       if (userEmail) {
@@ -105,7 +108,7 @@ export async function approveCashout(requestId: string) {
         });
       }
     }
-    
+
     return { success: true };
   } catch (error: any) {
     console.error("Error approving cashout:", error);
@@ -115,7 +118,8 @@ export async function approveCashout(requestId: string) {
 
 export async function rejectCashout(requestId: string) {
   const cookieStore = await cookies();
-  if (!cookieStore.has(COOKIE_NAME)) return { success: false, error: "Unauthorized" };
+  if (!cookieStore.has(COOKIE_NAME))
+    return { success: false, error: "Unauthorized" };
 
   try {
     const { supabaseAdmin } = await import("@/lib/supabase-admin");
@@ -123,23 +127,23 @@ export async function rejectCashout(requestId: string) {
     // Update request status
     const { error: updateError } = await supabaseAdmin
       .from("referral_cashout_requests")
-      .update({ 
-        status: "rejected", 
-        processed_at: new Date().toISOString() 
+      .update({
+        status: "rejected",
+        processed_at: new Date().toISOString(),
       })
       .eq("id", requestId);
 
     if (updateError) throw updateError;
-    
+
     // Revert commissions
     const { data: request } = await supabaseAdmin
       .from("referral_cashout_requests")
       .select("commission_ids")
       .eq("id", requestId)
       .single();
-      
+
     if (request?.commission_ids) {
-       await supabaseAdmin
+      await supabaseAdmin
         .from("referral_commissions")
         .update({ status: "pending", cashout_requested_at: null })
         .in("id", request.commission_ids);
