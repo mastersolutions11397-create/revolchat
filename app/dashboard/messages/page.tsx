@@ -18,6 +18,8 @@ import {
   Video,
   Info,
   ArrowLeft,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 
 type ChannelType = "instagram" | "telegram";
@@ -280,6 +282,7 @@ export default function LeadsPage() {
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
   const [showChatView, setShowChatView] = useState(false);
+  const [isChatExpanded, setIsChatExpanded] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -430,8 +433,12 @@ export default function LeadsPage() {
     }
   };
 
+  const chatContainerClass = isChatExpanded
+    ? "fixed inset-0 z-50 flex flex-col md:flex-row h-screen overflow-hidden rounded-none border-0 bg-white shadow-2xl"
+    : "flex flex-col md:flex-row h-[calc(100vh-5rem)] md:h-[calc(100vh-8rem)] overflow-hidden rounded-xl sm:rounded-2xl border border-slate-200 bg-white shadow-xl";
+
   return (
-    <div className="flex flex-col md:flex-row h-[calc(100vh-5rem)] md:h-[calc(100vh-8rem)] overflow-hidden rounded-xl sm:rounded-2xl border border-slate-200 bg-white shadow-xl">
+    <div className={chatContainerClass}>
       {/* Sidebar - Channel Selection & Conversations */}
       <div
         className={`${showChatView ? "hidden md:flex" : "flex"} w-full md:w-80 flex-shrink-0 flex flex-col border-r border-slate-200 bg-slate-50/50`}
@@ -636,6 +643,18 @@ export default function LeadsPage() {
               </div>
 
               <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsChatExpanded((v) => !v)}
+                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
+                  aria-label={isChatExpanded ? "Minimize chat" : "Expand chat"}
+                  title={isChatExpanded ? "Minimize" : "Expand"}
+                >
+                  {isChatExpanded ? (
+                    <Minimize2 className="h-5 w-5" />
+                  ) : (
+                    <Maximize2 className="h-5 w-5" />
+                  )}
+                </button>
                 <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
                   <Info className="h-5 w-5" />
                 </button>

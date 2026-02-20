@@ -18,6 +18,8 @@ import {
   AlertCircle,
   FileSpreadsheet,
   FileText,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 
 export type AgentRecord = {
@@ -72,6 +74,7 @@ export default function AgentsPage() {
   const [agentName, setAgentName] = useState("");
   const [addAgentError, setAddAgentError] = useState<string | null>(null);
   const [addAgentSaving, setAddAgentSaving] = useState(false);
+  const [chatExpanded, setChatExpanded] = useState(false);
 
   const fetchAgents = useCallback(async () => {
     setAgentsLoading(true);
@@ -169,7 +172,7 @@ export default function AgentsPage() {
               </h1>
               <p className="mt-1 sm:mt-2 text-sm sm:text-base md:text-lg text-white/80 max-w-xl">
                 Create and manage your agents. Configure system prompts, models,
-                and API keys—then test them in the chat.
+                and API keys then test them in the chat
               </p>
             </div>
           </div>
@@ -286,7 +289,13 @@ export default function AgentsPage() {
           </div>
         </div>
 
-        <div className="min-h-[320px] h-[40vh] sm:h-[420px] xl:h-[520px] xl:w-[360px] xl:flex-shrink-0 min-w-0">
+        <div
+          className={
+            chatExpanded
+              ? "fixed inset-4 z-50 min-h-0 flex flex-col rounded-2xl shadow-2xl ring-2 ring-slate-200/50 bg-white"
+              : "min-h-[320px] h-[40vh] sm:h-[420px] xl:h-[520px] xl:w-[360px] xl:flex-shrink-0 min-w-0"
+          }
+        >
           <ChatPanel
             agents={agents}
             hasGoogleSheet={false}
@@ -294,6 +303,8 @@ export default function AgentsPage() {
             emptyStateMessage="Add an agent to enable the chat."
             noItemsMessage="No agents yet"
             useAddToStartMessage="Use “Add Agent” to get started."
+            expanded={chatExpanded}
+            onToggleExpand={() => setChatExpanded((v) => !v)}
           />
         </div>
       </div>
@@ -469,6 +480,8 @@ interface ChatPanelProps {
   emptyStateMessage?: string;
   noItemsMessage?: string;
   useAddToStartMessage?: string;
+  expanded?: boolean;
+  onToggleExpand?: () => void;
 }
 
 function ChatPanel({
@@ -479,6 +492,8 @@ function ChatPanel({
   emptyStateMessage,
   noItemsMessage,
   useAddToStartMessage,
+  expanded,
+  onToggleExpand,
 }: ChatPanelProps) {
   const { t } = useLanguage();
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -555,7 +570,13 @@ function ChatPanel({
     ]);
 
     const appendToken = (chunk: string) => {
-      streamContentRef.current += chunk;
+      const prev = streamContentRef.current;
+      const needsSpace =
+        prev.length > 0 &&
+        !/[\s\u00A0]$/.test(prev) &&
+        chunk.length > 0 &&
+        !/^[\s\u00A0]/.test(chunk);
+      streamContentRef.current = prev + (needsSpace ? " " : "") + chunk;
       setMessages((prev) => {
         const next = [...prev];
         const last = next[next.length - 1];
@@ -643,15 +664,32 @@ function ChatPanel({
       >
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-xl font-semibold text-gray-900">Test Chat</h3>
-          {hasKnowledge && conversationId && (
-            <button
-              type="button"
-              onClick={handleNewChat}
-              className="text-xs font-medium text-teal-primary hover:underline"
-            >
-              New chat
-            </button>
-          )}
+          <div className="flex items-center gap-1">
+            {hasKnowledge && conversationId && (
+              <button
+                type="button"
+                onClick={handleNewChat}
+                className="text-xs font-medium text-teal-primary hover:underline"
+              >
+                New chat
+              </button>
+            )}
+            {onToggleExpand && (
+              <button
+                type="button"
+                onClick={onToggleExpand}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                aria-label={expanded ? "Minimize chat" : "Expand chat"}
+                title={expanded ? "Minimize" : "Expand"}
+              >
+                {expanded ? (
+                  <Minimize2 className="h-5 w-5" />
+                ) : (
+                  <Maximize2 className="h-5 w-5" />
+                )}
+              </button>
+            )}
+          </div>
         </div>
         {hasKnowledge && (
           <div>
@@ -708,54 +746,73 @@ function ChatPanel({
                 }`}
               >
                 {message.role === "assistant" ? (
-                  <div className="prose prose-sm max-w-none prose-p:mb-2 prose-p:last:mb-0">
-                    <ReactMarkdown
-                      components={{
-                        p: ({ children }) => (
-                          <p className="mb-2 last:mb-0">{children}</p>
-                        ),
-                        ul: ({ children }) => (
-                          <ul className="mb-2 list-disc list-inside space-y-1">
-                            {children}
-                          </ul>
-                        ),
-                        ol: ({ children }) => (
-                          <ol className="mb-2 list-decimal list-inside space-y-1">
-                            {children}
-                          </ol>
-                        ),
-                        li: ({ children }) => (
-                          <li className="ml-2">{children}</li>
-                        ),
-                        h1: ({ children }) => (
-                          <h1 className="mb-2 text-base font-bold">
-                            {children}
-                          </h1>
-                        ),
-                        h2: ({ children }) => (
-                          <h2 className="mb-2 text-sm font-bold">{children}</h2>
-                        ),
-                        h3: ({ children }) => (
-                          <h3 className="mb-2 text-xs font-bold">{children}</h3>
-                        ),
-                        strong: ({ children }) => (
-                          <strong className="font-semibold text-slate-900">
-                            {children}
-                          </strong>
-                        ),
-                        em: ({ children }) => (
-                          <em className="italic">{children}</em>
-                        ),
-                        code: ({ children }) => (
-                          <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-mono text-teal-primary border border-dashboard-border">
-                            {children}
-                          </code>
-                        ),
-                      }}
-                    >
-                      {message.content}
-                    </ReactMarkdown>
-                  </div>
+                  index === messages.length - 1 &&
+                  sending &&
+                  !message.content.trim() ? (
+                    <div className="flex items-center gap-1 py-1" aria-label="Getting response…">
+                      <span
+                        className="h-2 w-2 rounded-full bg-slate-400 animate-bounce"
+                        style={{ animationDelay: "0ms" }}
+                      />
+                      <span
+                        className="h-2 w-2 rounded-full bg-slate-400 animate-bounce"
+                        style={{ animationDelay: "150ms" }}
+                      />
+                      <span
+                        className="h-2 w-2 rounded-full bg-slate-400 animate-bounce"
+                        style={{ animationDelay: "300ms" }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="prose prose-sm max-w-none prose-p:mb-2 prose-p:last:mb-0">
+                      <ReactMarkdown
+                        components={{
+                          p: ({ children }) => (
+                            <p className="mb-2 last:mb-0">{children}</p>
+                          ),
+                          ul: ({ children }) => (
+                            <ul className="mb-2 list-disc list-inside space-y-1">
+                              {children}
+                            </ul>
+                          ),
+                          ol: ({ children }) => (
+                            <ol className="mb-2 list-decimal list-inside space-y-1">
+                              {children}
+                            </ol>
+                          ),
+                          li: ({ children }) => (
+                            <li className="ml-2">{children}</li>
+                          ),
+                          h1: ({ children }) => (
+                            <h1 className="mb-2 text-base font-bold">
+                              {children}
+                            </h1>
+                          ),
+                          h2: ({ children }) => (
+                            <h2 className="mb-2 text-sm font-bold">{children}</h2>
+                          ),
+                          h3: ({ children }) => (
+                            <h3 className="mb-2 text-xs font-bold">{children}</h3>
+                          ),
+                          strong: ({ children }) => (
+                            <strong className="font-semibold text-slate-900">
+                              {children}
+                            </strong>
+                          ),
+                          em: ({ children }) => (
+                            <em className="italic">{children}</em>
+                          ),
+                          code: ({ children }) => (
+                            <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-mono text-teal-primary border border-dashboard-border">
+                              {children}
+                            </code>
+                          ),
+                        }}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
+                    </div>
+                  )
                 ) : (
                   <div className="font-medium">{message.content}</div>
                 )}

@@ -50,7 +50,7 @@
   "features.alwaysOnBrand.title": "Always On-Brand",
   "features.alwaysOnBrand.desc": "Built-in guardrails keep responses accurate and trustworthy.",
   "integrations.title": "Deploy Where Your Customers Are",
-  "integrations.subtitle": "Connect Telegram to let your agents engage 24/7—multiple bots per workspace supported.",
+  "integrations.subtitle": "Connect Telegram to let your agents engage 24/7",
   "integrations.instagram.title": "Instagram",
   "integrations.instagram.desc": "Automate DMs, comments, and stories. Convert followers into customers—automatically.",
   "integrations.messenger.title": "Messenger",
