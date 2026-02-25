@@ -1,0 +1,95 @@
+import { apiRequest } from "./client";
+import type {
+  ChatSession,
+  ChatMessage,
+  SessionWithLastMessage,
+  CreateMessageParams,
+  UpdateSessionParams,
+} from "@/lib/types/chat";
+
+export interface GetSessionsResponse {
+  sessions: SessionWithLastMessage[];
+}
+
+export interface GetMessagesResponse {
+  messages: ChatMessage[];
+}
+
+export interface SendMessageRequest {
+  session_id: string;
+  message_text: string;
+  sender_type: "admin";
+}
+
+export interface SendMessageResponse {
+  success: boolean;
+  message: ChatMessage;
+}
+
+export interface ToggleAIModeRequest {
+  session_id: string;
+  ai_mode: boolean;
+}
+
+export interface ToggleAIModeResponse {
+  success: boolean;
+  session: ChatSession;
+}
+
+class ChatSystemAPI {
+  // Get all chat sessions (with online users)
+  async getSessions(platform?: string): Promise<SessionWithLastMessage[]> {
+    const params = new URLSearchParams();
+    if (platform) params.append("platform", platform);
+
+    const queryString = params.toString();
+    const url = queryString
+      ? `/api/chat/sessions?${queryString}`
+      : `/api/chat/sessions`;
+
+    const response = await apiRequest<GetSessionsResponse>(url, {
+      method: "GET",
+    });
+    return response.sessions;
+  }
+
+  // Get messages for a specific session
+  async getMessages(sessionId: string): Promise<ChatMessage[]> {
+    const response = await apiRequest<GetMessagesResponse>(
+      `/api/chat/messages?session_id=${sessionId}`,
+      { method: "GET" }
+    );
+    return response.messages;
+  }
+
+  // Send a message as admin
+  async sendMessage(payload: SendMessageRequest): Promise<ChatMessage> {
+    const response = await apiRequest<SendMessageResponse>(`/api/chat/send`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    return response.message;
+  }
+
+  // Toggle AI mode for a session
+  async toggleAIMode(payload: ToggleAIModeRequest): Promise<ChatSession> {
+    const response = await apiRequest<ToggleAIModeResponse>(
+      `/api/chat/toggle-ai`,
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }
+    );
+    return response.session;
+  }
+
+  // Mark messages as read
+  async markMessagesAsRead(sessionId: string): Promise<void> {
+    await apiRequest(`/api/chat/mark-read`, {
+      method: "POST",
+      body: JSON.stringify({ session_id: sessionId }),
+    });
+  }
+}
+
+export const chatSystemAPI = new ChatSystemAPI();

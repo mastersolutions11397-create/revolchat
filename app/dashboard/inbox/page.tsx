@@ -4,168 +4,64 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { type Conversation, type Message } from "@/lib/api/integrations";
-import { MessageSquare, Search, Info, ArrowLeft } from "lucide-react";
+import { MessageSquare, Search, Info, ArrowLeft, Send, Bot, User } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { apiRequest } from "@/lib/api/client";
+import type { ChatSession, ChatMessage } from "@/lib/types/chat";
 
 type ChannelType = "telegram" | "instagram";
 
-// Chat history data structure
-interface ChatHistoryResponse {
-  data: {
-    Instagram: ChatHistoryItem[];
-    Telegram: ChatHistoryItem[];
-  };
+interface SessionWithLastMessage extends ChatSession {
+  last_message?: string;
+  last_message_time?: string;
+  unread_count?: number;
 }
 
-interface ChatHistoryItem {
-  chat_id: string;
-  messages: ChatHistoryMessage[];
-}
-
-interface ChatHistoryMessage {
-  id: number;
-  message: string;
-  message_source: "agent" | "user";
-  created_at: string;
-  period_ago: string;
-}
-
-// Supabase chat history row type
-interface SupabaseChatHistoryRow {
-  id: number;
-  chat_id: string;
-  message: string;
-  source: "IG" | "TG";
-  message_source: "agent" | "user";
-  created_at: string;
-  workspace_id: string;
-}
-
-// Fetch chat history from Supabase
-const fetchChatHistory = async (
-  workspaceId: string
-): Promise<ChatHistoryResponse> => {
-  const { data, error } = await supabase
-    .from("yetti_chat_history")
-    .select("*")
-    .eq("workspace_id", workspaceId)
-    .order("created_at", { ascending: true })
-    .order("id", { ascending: true });
-
-  if (error) {
-    console.error("Error fetching chat history:", error);
-    return { data: { Instagram: [], Telegram: [] } };
-  }
-
-  // Initialize grouped data structure
-  const groupedData: {
-    Instagram: ChatHistoryItem[];
-    Telegram: ChatHistoryItem[];
-  } = {
-    Instagram: [],
-    Telegram: [],
-  };
-
-  // Group messages by chat_id
-  const messagesByChat: Record<
-    string,
-    { source: "IG" | "TG"; messages: ChatHistoryMessage[] }
-  > = {};
-
-  data.forEach((row: SupabaseChatHistoryRow) => {
-    if (!messagesByChat[row.chat_id]) {
-      messagesByChat[row.chat_id] = {
-        source: row.source,
-        messages: [],
-      };
-    }
-
-    messagesByChat[row.chat_id].messages.push({
-      id: row.id,
-      message: row.message,
-      message_source: row.message_source,
-      created_at: row.created_at,
-      period_ago: "", // This can be calculated if needed
-    });
-  });
-
-  // Convert to the expected format
-  Object.entries(messagesByChat).forEach(([chatId, chatData]) => {
-    const platform = chatData.source === "IG" ? "Instagram" : "Telegram";
-    groupedData[platform].push({
-      chat_id: chatId,
-      messages: chatData.messages,
-    });
-  });
-
-  return { data: groupedData };
+// Helper to check if user is online (active in last 5 minutes)
+const isUserOnline = (lastSeenAt?: string): boolean => {
+  if (!lastSeenAt) return false;
+  const lastSeen = new Date(lastSeenAt);
+  const now = new Date();
+  const diffMinutes = (now.getTime() - lastSeen.getTime()) / (1000 * 60);
+  return diffMinutes < 5; // Consider online if active in last 5 minutes
 };
 
-// Transform chat history data to Conversation format
-const transformChatHistoryToConversations = (
-  chatHistory: ChatHistoryResponse,
-  channel: ChannelType
+// Transform chat sessions to Conversation format
+const transformSessionsToConversations = (
+  sessions: SessionWithLastMessage[]
 ): Conversation[] => {
-  const platformData =
-    channel === "instagram"
-      ? chatHistory.data.Instagram
-      : chatHistory.data.Telegram;
-
-  return platformData.map((chat) => {
-    // Sort messages descending to find the most recent message for the conversation
-    const sortedMessages = [...chat.messages].sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
-    const lastMessage = sortedMessages[0];
-
-    return {
-      id: `${channel}_${chat.chat_id}`,
-      participant_id: `user_${chat.chat_id}`,
-      participant_name: `Chat ${chat.chat_id}`,
-      participant_avatar: undefined,
-      last_message: lastMessage?.message || "",
-      last_message_time: lastMessage?.created_at || new Date().toISOString(),
-      unread_count: 0,
-    };
-  });
+  return sessions.map((session) => ({
+    id: session.id,
+    participant_id: session.external_user_id,
+    participant_name:
+      session.external_first_name ||
+      session.external_username ||
+      `User ${session.external_user_id.slice(0, 6)}`,
+    participant_avatar: session.external_photo_url,
+    last_message: session.last_message || "",
+    last_message_time: session.last_message_time || session.last_activity_at,
+    unread_count: session.unread_count || 0,
+    // Calculate online status based on last_seen_at
+    is_online: isUserOnline(session.last_seen_at),
+    ai_mode: session.ai_mode,
+  }));
 };
 
-// Transform chat history data to Message format
-const transformChatHistoryToMessages = (
-  chatHistory: ChatHistoryResponse,
-  channel: ChannelType,
-  chatId: string
+// Transform chat messages to Message format
+const transformMessagesToMessages = (
+  chatMessages: ChatMessage[]
 ): Message[] => {
-  const platformData =
-    channel === "instagram"
-      ? chatHistory.data.Instagram
-      : chatHistory.data.Telegram;
-  const chat = platformData.find((c) => c.chat_id === chatId);
-
-  if (!chat) return [];
-
-  // Messages are already sorted by created_at asc, then id asc in the data structure
-  return chat.messages.map((msg) => ({
-    id: `${channel}_${chatId}_msg_${msg.id}`,
-    text: msg.message,
-    sender_id: msg.message_source === "agent" ? "agent" : `user_${chatId}`,
-    sender_name: msg.message_source === "agent" ? "" : `Chat ${chatId}`,
+  return chatMessages.map((msg) => ({
+    id: msg.id,
+    text: msg.message_text,
+    sender_id: msg.sender_type === "ai" || msg.sender_type === "admin" ? "agent" : msg.session_id,
+    sender_name: msg.sender_type === "user" ? "User" : "Agent",
     timestamp: msg.created_at,
-    is_from_me: msg.message_source === "agent",
+    is_from_me: msg.sender_type === "ai" || msg.sender_type === "admin",
   }));
 };
 
 export default function InboxPage() {
   const { t } = useLanguage();
-  const [resolvedId, setResolvedId] = useState<string | null>(null);
-
-  useEffect(() => {
-    apiRequest<{ workspace_id: string }>("/api/yetti/me")
-      .then((r) => setResolvedId(r.workspace_id))
-      .catch(() => setResolvedId(null));
-  }, []);
 
   const [selectedChannel, setSelectedChannel] =
     useState<ChannelType>("telegram");
@@ -175,20 +71,64 @@ export default function InboxPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
   const [showChatView, setShowChatView] = useState(false);
+  const [messageInput, setMessageInput] = useState("");
+  const [sending, setSending] = useState(false);
 
-  // Load conversations when channel changes
-  useEffect(() => {
-    if (!resolvedId) return;
-
-    const loadConversations = async () => {
+  // Function to load conversations (extracted so it can be called from multiple places)
+  const loadConversations = async () => {
       setLoading(true);
       try {
-        const chatHistoryData = await fetchChatHistory(resolvedId);
-        const data = transformChatHistoryToConversations(
-          chatHistoryData,
-          selectedChannel
+        console.log("Fetching sessions for channel:", selectedChannel);
+
+        // Fetch sessions directly from Supabase
+        const { data: sessions, error } = await supabase
+          .from("chat_sessions")
+          .select("*")
+          .eq("platform", selectedChannel)
+          .order("last_activity_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching sessions:", error);
+          setConversations([]);
+          return;
+        }
+
+        console.log("Received sessions from Supabase:", sessions);
+
+        // For each session, get last message and unread count
+        const sessionsWithMessages = await Promise.all(
+          (sessions || []).map(async (session) => {
+            // Get last message
+            const { data: lastMessage } = await supabase
+              .from("chat_messages")
+              .select("message_text, created_at")
+              .eq("session_id", session.id)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .single();
+
+            // Get unread count
+            const { count: unreadCount } = await supabase
+              .from("chat_messages")
+              .select("*", { count: "exact", head: true })
+              .eq("session_id", session.id)
+              .eq("is_read", false)
+              .eq("sender_type", "user");
+
+            return {
+              ...session,
+              last_message: lastMessage?.message_text,
+              last_message_time: lastMessage?.created_at,
+              unread_count: unreadCount || 0,
+            };
+          })
         );
+
+        console.log("Sessions with messages:", sessionsWithMessages);
+        const data = transformSessionsToConversations(sessionsWithMessages);
+        console.log("Transformed conversations:", data);
         setConversations(data);
+
         // Auto-select first conversation if available
         if (data.length > 0 && !selectedConversation) {
           setSelectedConversation(data[0]);
@@ -199,14 +139,16 @@ export default function InboxPage() {
       } finally {
         setLoading(false);
       }
-    };
+  };
 
+  // Load conversations when channel changes
+  useEffect(() => {
     loadConversations();
-  }, [resolvedId, selectedChannel, selectedConversation]);
+  }, [selectedChannel]);
 
   // Load messages when conversation is selected
   useEffect(() => {
-    if (!resolvedId || !selectedConversation) {
+    if (!selectedConversation) {
       setMessages([]);
       return;
     }
@@ -214,17 +156,29 @@ export default function InboxPage() {
     const loadMessages = async () => {
       setLoading(true);
       try {
-        const chatId = selectedConversation.id.replace(
-          `${selectedChannel}_`,
-          ""
-        );
-        const chatHistoryData = await fetchChatHistory(resolvedId);
-        const data = transformChatHistoryToMessages(
-          chatHistoryData,
-          selectedChannel,
-          chatId
-        );
+        // Fetch messages directly from Supabase
+        const { data: chatMessages, error } = await supabase
+          .from("chat_messages")
+          .select("*")
+          .eq("session_id", selectedConversation.id)
+          .order("created_at", { ascending: true });
+
+        if (error) {
+          console.error("Error fetching messages:", error);
+          setMessages([]);
+          return;
+        }
+
+        const data = transformMessagesToMessages(chatMessages || []);
         setMessages(data);
+
+        // Mark messages as read
+        await supabase
+          .from("chat_messages")
+          .update({ is_read: true })
+          .eq("session_id", selectedConversation.id)
+          .eq("sender_type", "user")
+          .eq("is_read", false);
       } catch (err: unknown) {
         console.error("Error loading messages:", err);
         setMessages([]);
@@ -234,7 +188,88 @@ export default function InboxPage() {
     };
 
     loadMessages();
-  }, [resolvedId, selectedConversation, selectedChannel]);
+  }, [selectedConversation]);
+
+  // Toggle AI mode for a session
+  const handleToggleAI = async () => {
+    if (!selectedConversation) return;
+
+    try {
+      const session = conversations.find(c => c.id === selectedConversation.id);
+      if (!session) return;
+
+      // Get the current AI mode from the session data
+      const { data: sessionData } = await supabase
+        .from("chat_sessions")
+        .select("ai_mode")
+        .eq("id", selectedConversation.id)
+        .single();
+
+      const newAiMode = !sessionData?.ai_mode;
+
+      // Update AI mode in database
+      const { error } = await supabase
+        .from("chat_sessions")
+        .update({ ai_mode: newAiMode })
+        .eq("id", selectedConversation.id);
+
+      if (error) {
+        console.error("Error toggling AI mode:", error);
+        return;
+      }
+
+      // Reload conversations to get updated AI mode
+      loadConversations();
+    } catch (error) {
+      console.error("Error toggling AI mode:", error);
+    }
+  };
+
+  // Send manual message as admin
+  const handleSendMessage = async () => {
+    if (!messageInput.trim() || !selectedConversation || sending) return;
+
+    setSending(true);
+    try {
+      // Save message to database
+      const { data: newMessage, error } = await supabase
+        .from("chat_messages")
+        .insert({
+          session_id: selectedConversation.id,
+          message_text: messageInput,
+          sender_type: "admin",
+          is_read: true,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error sending message:", error);
+        return;
+      }
+
+      // Add message to UI
+      const formattedMessage = transformMessagesToMessages([newMessage])[0];
+      setMessages((prev) => [...prev, formattedMessage]);
+
+      // Send to Telegram via API
+      await fetch("/api/chat/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: selectedConversation.id,
+          message_text: messageInput,
+          sender_type: "admin",
+        }),
+      });
+
+      setMessageInput("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+    } finally {
+      setSending(false);
+    }
+  };
 
   const formatTime = (timestamp?: string) => {
     if (!timestamp) return "";
@@ -346,6 +381,10 @@ export default function InboxPage() {
                   <div className="flex items-start gap-2 sm:gap-3">
                     <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 rounded-xl overflow-hidden bg-teal-primary/10 flex items-center justify-center shadow-sm">
                       <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-teal-primary" />
+                      {/* Online indicator - green dot */}
+                      {conversation.is_online && (
+                        <div className="absolute top-0 right-0 h-3 w-3 sm:h-3.5 sm:w-3.5 bg-green-500 rounded-full border-2 border-white" />
+                      )}
                       <div className="absolute bottom-0 right-0 h-3 w-3 sm:h-4 sm:w-4 bg-white rounded-full p-0.5">
                         <Image
                           src="/yetti/telegram_logo.png"
@@ -423,6 +462,10 @@ export default function InboxPage() {
 
                 <div className="relative h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 rounded-xl overflow-hidden bg-teal-primary/10 flex items-center justify-center shadow-sm">
                   <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-teal-primary" />
+                  {/* Online indicator in header */}
+                  {selectedConversation.is_online && (
+                    <div className="absolute top-0 right-0 h-2.5 w-2.5 sm:h-3 sm:w-3 bg-green-500 rounded-full border-2 border-white" />
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2 truncate">
@@ -433,13 +476,46 @@ export default function InboxPage() {
                       {t("inbox.telegram")}
                     </span>
                   </h3>
-                  <p className="text-xs text-slate-500 truncate">
-                    {t("inbox.chatConversation")}
+                  <p className="text-xs text-slate-500 truncate flex items-center gap-1.5">
+                    {selectedConversation.is_online && (
+                      <>
+                        <span className="flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-green-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                        </span>
+                        <span>Online</span>
+                      </>
+                    )}
+                    {!selectedConversation.is_online && (
+                      <span>Offline</span>
+                    )}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 flex-shrink-0">
+                {/* AI Mode Toggle */}
+                <button
+                  onClick={handleToggleAI}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    selectedConversation.ai_mode
+                      ? "bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200"
+                      : "bg-orange-50 text-orange-600 hover:bg-orange-100 border border-orange-200"
+                  }`}
+                  title={selectedConversation.ai_mode ? "AI Mode ON - Click to take over manually" : "Manual Mode ON - Click to enable AI"}
+                >
+                  {selectedConversation.ai_mode ? (
+                    <>
+                      <Bot className="h-4 w-4" />
+                      <span className="hidden sm:inline">AI</span>
+                    </>
+                  ) : (
+                    <>
+                      <User className="h-4 w-4" />
+                      <span className="hidden sm:inline">Manual</span>
+                    </>
+                  )}
+                </button>
                 <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
                   <Info className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
@@ -537,6 +613,45 @@ export default function InboxPage() {
                   );
                 })
               )}
+            </div>
+
+            {/* Message Input Area */}
+            <div className="border-t border-dashboard-border bg-dashboard-card/80 backdrop-blur-sm p-4">
+              <div className="flex items-end gap-3">
+                <div className="flex-1">
+                  <textarea
+                    value={messageInput}
+                    onChange={(e) => setMessageInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    placeholder={selectedConversation.ai_mode ? "AI is responding..." : "Type your message..."}
+                    disabled={selectedConversation.ai_mode || sending}
+                    className="w-full px-4 py-3 bg-dashboard-bg border border-dashboard-border rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-teal-primary/20 focus:border-teal-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    rows={2}
+                  />
+                  {selectedConversation.ai_mode && (
+                    <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
+                      <Bot className="h-3 w-3" />
+                      AI mode is ON. Disable AI mode to send manual messages.
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!messageInput.trim() || sending || selectedConversation.ai_mode}
+                  className="p-3 bg-teal-primary text-white rounded-xl hover:bg-teal-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  {sending ? (
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  ) : (
+                    <Send className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
             </div>
           </>
         ) : (

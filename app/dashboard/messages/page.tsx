@@ -1,413 +1,214 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { useAuth } from "@/lib/auth-context";
-import {
-  integrationsAPI,
-  type Conversation,
-  type Message,
-} from "@/lib/api/integrations";
+import { chatSystemAPI } from "@/lib/api/chat-system";
+import { supabase } from "@/lib/supabase";
+import type { ChatSession, ChatMessage, SessionWithLastMessage } from "@/lib/types/chat";
 import {
   MessageSquare,
   Send,
   Search,
-  MoreVertical,
-  Phone,
-  Video,
   Info,
   ArrowLeft,
   Maximize2,
   Minimize2,
+  Bot,
+  User,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 
-type ChannelType = "instagram" | "telegram";
+type ChannelType = "telegram" | "instagram";
 
-// Dummy data for Instagram conversations
-const dummyInstagramConversations: Conversation[] = [
-  {
-    id: "inst_conv_1",
-    participant_id: "user_1",
-    participant_name: "Lead 1",
-    participant_avatar: undefined,
-    last_message: "Thanks for the quick response!",
-    last_message_time: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
-    unread_count: 2,
-  },
-  {
-    id: "inst_conv_2",
-    participant_id: "user_2",
-    participant_name: "Lead 2",
-    participant_avatar: undefined,
-    last_message: "I'll check that for you right away.",
-    last_message_time: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-    unread_count: 0,
-  },
-  {
-    id: "inst_conv_3",
-    participant_id: "user_3",
-    participant_name: "Lead 3",
-    participant_avatar: undefined,
-    last_message: "Interested in your services",
-    last_message_time: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
-    unread_count: 1,
-  },
-];
-
-// Dummy data for Instagram messages
-const dummyInstagramMessages: Record<string, Message[]> = {
-  inst_conv_1: [
-    {
-      id: "inst_msg_1",
-      text: "Hi! I have a question about your product.",
-      sender_id: "user_1",
-      sender_name: "Sarah Johnson",
-      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
-      is_from_me: false,
-    },
-    {
-      id: "inst_msg_2",
-      text: "Hello Sarah! I'd be happy to help. What would you like to know?",
-      sender_id: "me",
-      sender_name: "You",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-      is_from_me: true,
-    },
-    {
-      id: "inst_msg_3",
-      text: "I'm interested in the pricing plans. Can you tell me more?",
-      sender_id: "user_1",
-      sender_name: "Sarah Johnson",
-      timestamp: new Date(Date.now() - 90 * 60 * 1000).toISOString(), // 90 minutes ago
-      is_from_me: false,
-    },
-    {
-      id: "inst_msg_4",
-      text: "Of course! We have three plans: Basic, Pro, and Enterprise. The Basic plan starts at $29/month.",
-      sender_id: "me",
-      sender_name: "You",
-      timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(), // 1 hour ago
-      is_from_me: true,
-    },
-    {
-      id: "inst_msg_5",
-      text: "That sounds great! What features are included in the Basic plan?",
-      sender_id: "user_1",
-      sender_name: "Sarah Johnson",
-      timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(), // 45 minutes ago
-      is_from_me: false,
-    },
-    {
-      id: "inst_msg_6",
-      text: "The Basic plan includes 10,000 messages per month, email support, and all core features.",
-      sender_id: "me",
-      sender_name: "You",
-      timestamp: new Date(Date.now() - 35 * 60 * 1000).toISOString(), // 35 minutes ago
-      is_from_me: true,
-    },
-    {
-      id: "inst_msg_7",
-      text: "Thanks for the quick response!",
-      sender_id: "user_1",
-      sender_name: "Sarah Johnson",
-      timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
-      is_from_me: false,
-    },
-  ],
-  inst_conv_2: [
-    {
-      id: "inst_msg_8",
-      text: "Hello, I need help with my account.",
-      sender_id: "user_2",
-      sender_name: "Michael Chen",
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
-      is_from_me: false,
-    },
-    {
-      id: "inst_msg_9",
-      text: "Hi Michael! I'm here to help. What seems to be the issue?",
-      sender_id: "me",
-      sender_name: "You",
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
-      is_from_me: true,
-    },
-    {
-      id: "inst_msg_10",
-      text: "I can't log into my account. It says my password is incorrect.",
-      sender_id: "user_2",
-      sender_name: "Michael Chen",
-      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(), // 3 hours ago
-      is_from_me: false,
-    },
-    {
-      id: "inst_msg_11",
-      text: "I'll check that for you right away.",
-      sender_id: "me",
-      sender_name: "You",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-      is_from_me: true,
-    },
-  ],
-};
-
-// Dummy data for Telegram conversations
-const dummyTelegramConversations: Conversation[] = [
-  {
-    id: "tg_conv_1",
-    participant_id: "user_1",
-    participant_name: "Lead 4",
-    participant_avatar: undefined,
-    last_message: "Perfect! I'll sign up today.",
-    last_message_time: new Date(Date.now() - 15 * 60 * 1000).toISOString(), // 15 minutes ago
-    unread_count: 1,
-  },
-  {
-    id: "tg_conv_2",
-    participant_id: "user_2",
-    participant_name: "Lead 5",
-    participant_avatar: undefined,
-    last_message: "Got it, thanks!",
-    last_message_time: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
-    unread_count: 0,
-  },
-  {
-    id: "tg_conv_3",
-    participant_id: "user_3",
-    participant_name: "Lead 6",
-    participant_avatar: undefined,
-    last_message: "Can you provide more details?",
-    last_message_time: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
-    unread_count: 3,
-  },
-];
-
-// Dummy data for Telegram messages
-const dummyTelegramMessages: Record<string, Message[]> = {
-  tg_conv_1: [
-    {
-      id: "tg_msg_1",
-      text: "Hey! Is the service available 24/7?",
-      sender_id: "user_1",
-      sender_name: "Emma Wilson",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-      is_from_me: false,
-    },
-    {
-      id: "tg_msg_2",
-      text: "Yes, absolutely! Our service is available 24/7 to assist you anytime.",
-      sender_id: "me",
-      sender_name: "You",
-      timestamp: new Date(Date.now() - 90 * 60 * 1000).toISOString(), // 90 minutes ago
-      is_from_me: true,
-    },
-    {
-      id: "tg_msg_3",
-      text: "That's amazing! How do I get started?",
-      sender_id: "user_1",
-      sender_name: "Emma Wilson",
-      timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(), // 1 hour ago
-      is_from_me: false,
-    },
-    {
-      id: "tg_msg_4",
-      text: "You can sign up on our website. It only takes a few minutes to set up your account.",
-      sender_id: "me",
-      sender_name: "You",
-      timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
-      is_from_me: true,
-    },
-    {
-      id: "tg_msg_5",
-      text: "Perfect! I'll sign up today.",
-      sender_id: "user_1",
-      sender_name: "Emma Wilson",
-      timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(), // 15 minutes ago
-      is_from_me: false,
-    },
-  ],
-  tg_conv_2: [
-    {
-      id: "tg_msg_6",
-      text: "Hi, can you help me with integration?",
-      sender_id: "user_2",
-      sender_name: "James Rodriguez",
-      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
-      is_from_me: false,
-    },
-    {
-      id: "tg_msg_7",
-      text: "Sure! What platform are you looking to integrate with?",
-      sender_id: "me",
-      sender_name: "You",
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
-      is_from_me: true,
-    },
-    {
-      id: "tg_msg_8",
-      text: "I want to integrate with my Shopify store.",
-      sender_id: "user_2",
-      sender_name: "James Rodriguez",
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
-      is_from_me: false,
-    },
-    {
-      id: "tg_msg_9",
-      text: "Great! We have a Shopify plugin available. I'll send you the setup guide.",
-      sender_id: "me",
-      sender_name: "You",
-      timestamp: new Date(
-        Date.now() - 4 * 60 * 60 * 1000 + 5 * 60 * 1000
-      ).toISOString(), // 3h 55m ago
-      is_from_me: true,
-    },
-    {
-      id: "tg_msg_10",
-      text: "Got it, thanks!",
-      sender_id: "user_2",
-      sender_name: "James Rodriguez",
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4 hours ago
-      is_from_me: false,
-    },
-  ],
-};
-
-export default function LeadsPage() {
+export default function MessagesPage() {
   const { t } = useLanguage();
   const { user } = useAuth();
 
-  const [selectedChannel, setSelectedChannel] =
-    useState<ChannelType>("instagram");
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedConversation, setSelectedConversation] =
-    useState<Conversation | null>(null);
+  const [selectedChannel, setSelectedChannel] = useState<ChannelType>("telegram");
+  const [sessions, setSessions] = useState<SessionWithLastMessage[]>([]);
+  const [selectedSession, setSelectedSession] = useState<SessionWithLastMessage | null>(null);
   const [showChatView, setShowChatView] = useState(false);
   const [isChatExpanded, setIsChatExpanded] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  const [messageInput, setMessageInput] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSelectConversation = (conversation: Conversation) => {
-    setSelectedConversation(conversation);
-    if (typeof window !== "undefined" && window.innerWidth < 768) {
-      setShowChatView(true);
-    }
+  // Scroll to bottom of messages
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Fetch conversations when channel or workspace changes
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Fetch sessions when channel changes
   useEffect(() => {
     if (!user) return;
 
-    const fetchConversations = async () => {
+    const fetchSessions = async () => {
       setLoading(true);
-      setError(null);
       try {
-        let data: Conversation[] = [];
-        if (selectedChannel === "instagram") {
-          // Try API first, fallback to dummy data
-          try {
-            data = await integrationsAPI.getInstagramConversations();
-            if (data.length === 0) {
-              data = dummyInstagramConversations;
-            }
-          } catch {
-            data = dummyInstagramConversations;
-          }
-        } else {
-          // Try API first, fallback to dummy data
-          try {
-            data = await integrationsAPI.getTelegramConversations();
-            if (data.length === 0) {
-              data = dummyTelegramConversations;
-            }
-          } catch {
-            data = dummyTelegramConversations;
-          }
+        const data = await chatSystemAPI.getSessions(selectedChannel);
+        setSessions(data);
+
+        // Auto-select first session if available
+        if (data.length > 0 && !selectedSession) {
+          setSelectedSession(data[0]);
         }
-        setConversations(data);
-        // Auto-select first conversation if available
-        if (data.length > 0 && !selectedConversation) {
-          setSelectedConversation(data[0]);
-        }
-      } catch (err: unknown) {
-        // Fallback to dummy data on error
-        const dummyData =
-          selectedChannel === "instagram"
-            ? dummyInstagramConversations
-            : dummyTelegramConversations;
-        setConversations(dummyData);
-        if (dummyData.length > 0 && !selectedConversation) {
-          setSelectedConversation(dummyData[0]);
-        }
-        console.error("Error fetching conversations:", err);
+      } catch (error) {
+        console.error("Error fetching sessions:", error);
+        toast.error("Failed to load conversations");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchConversations();
+    fetchSessions();
   }, [user, selectedChannel]);
 
-  // Fetch messages when conversation is selected
+  // Fetch messages when session is selected
   useEffect(() => {
-    if (!selectedConversation) {
+    if (!selectedSession) {
       setMessages([]);
       return;
     }
 
     const fetchMessages = async () => {
       setLoading(true);
-      setError(null);
       try {
-        let data: Message[] = [];
-        if (selectedChannel === "instagram") {
-          // Try API first, fallback to dummy data
-          try {
-            data = await integrationsAPI.getInstagramMessages(
-              selectedConversation.id
-            );
-            if (
-              data.length === 0 &&
-              dummyInstagramMessages[selectedConversation.id]
-            ) {
-              data = dummyInstagramMessages[selectedConversation.id];
-            }
-          } catch {
-            data = dummyInstagramMessages[selectedConversation.id] || [];
-          }
-        } else {
-          // Try API first, fallback to dummy data
-          try {
-            data = await integrationsAPI.getTelegramMessages(
-              selectedConversation.id
-            );
-            if (
-              data.length === 0 &&
-              dummyTelegramMessages[selectedConversation.id]
-            ) {
-              data = dummyTelegramMessages[selectedConversation.id];
-            }
-          } catch {
-            data = dummyTelegramMessages[selectedConversation.id] || [];
-          }
-        }
+        const data = await chatSystemAPI.getMessages(selectedSession.id);
         setMessages(data);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (err: any) {
-        // Fallback to dummy data on error
-        const dummyData =
-          selectedChannel === "instagram"
-            ? dummyInstagramMessages[selectedConversation.id] || []
-            : dummyTelegramMessages[selectedConversation.id] || [];
-        setMessages(dummyData);
-        console.error("Error fetching messages:", err);
+
+        // Mark messages as read
+        await chatSystemAPI.markMessagesAsRead(selectedSession.id);
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+        toast.error("Failed to load messages");
       } finally {
         setLoading(false);
       }
     };
 
     fetchMessages();
-  }, [selectedConversation, selectedChannel]);
+  }, [selectedSession]);
+
+  // Real-time subscription for new messages
+  useEffect(() => {
+    if (!selectedSession) return;
+
+    const channel = supabase
+      .channel(`chat_messages:${selectedSession.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "chat_messages",
+          filter: `session_id=eq.${selectedSession.id}`,
+        },
+        (payload) => {
+          const newMessage = payload.new as ChatMessage;
+          setMessages((prev) => [...prev, newMessage]);
+
+          // Mark as read if admin is viewing
+          if (newMessage.sender_type === "user") {
+            chatSystemAPI.markMessagesAsRead(selectedSession.id);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedSession]);
+
+  // Real-time subscription for session updates
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('chat_sessions:all')
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "chat_sessions",
+        },
+        async () => {
+          // Refresh sessions list
+          try {
+            const data = await chatSystemAPI.getSessions(selectedChannel);
+            setSessions(data);
+          } catch (error) {
+            console.error("Error refreshing sessions:", error);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, selectedChannel]);
+
+  const handleSelectSession = (session: SessionWithLastMessage) => {
+    setSelectedSession(session);
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      setShowChatView(true);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!messageInput.trim() || !selectedSession || sending) return;
+
+    setSending(true);
+    try {
+      await chatSystemAPI.sendMessage({
+        session_id: selectedSession.id,
+        message_text: messageInput,
+        sender_type: "admin",
+      });
+
+      setMessageInput("");
+      toast.success("Message sent");
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast.error("Failed to send message");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleToggleAIMode = async () => {
+    if (!selectedSession) return;
+
+    try {
+      const updatedSession = await chatSystemAPI.toggleAIMode({
+        session_id: selectedSession.id,
+        ai_mode: !selectedSession.ai_mode,
+      });
+
+      setSelectedSession({ ...selectedSession, ...updatedSession });
+      toast.success(
+        updatedSession.ai_mode ? "AI mode enabled" : "Manual mode enabled"
+      );
+
+      // Refresh sessions to update AI mode status
+      const data = await chatSystemAPI.getSessions(selectedChannel);
+      setSessions(data);
+    } catch (error) {
+      console.error("Error toggling AI mode:", error);
+      toast.error("Failed to toggle AI mode");
+    }
+  };
 
   const formatTime = (timestamp?: string) => {
     if (!timestamp) return "";
@@ -422,7 +223,7 @@ export default function LeadsPage() {
         minute: "2-digit",
       });
     } else if (days === 1) {
-      return t("messages.yesterday");
+      return "Yesterday";
     } else if (days < 7) {
       return date.toLocaleDateString("en-US", { weekday: "short" });
     } else {
@@ -433,13 +234,21 @@ export default function LeadsPage() {
     }
   };
 
+  const getDisplayName = (session: SessionWithLastMessage) => {
+    return (
+      session.external_first_name ||
+      session.external_username ||
+      `User ${session.external_user_id.slice(0, 6)}`
+    );
+  };
+
   const chatContainerClass = isChatExpanded
     ? "fixed inset-0 z-50 flex flex-col md:flex-row h-screen overflow-hidden rounded-none border-0 bg-white shadow-2xl"
     : "flex flex-col md:flex-row h-[calc(100vh-5rem)] md:h-[calc(100vh-8rem)] overflow-hidden rounded-xl sm:rounded-2xl border border-slate-200 bg-white shadow-xl";
 
   return (
     <div className={chatContainerClass}>
-      {/* Sidebar - Channel Selection & Conversations */}
+      {/* Sidebar - Channel Selection & Sessions */}
       <div
         className={`${showChatView ? "hidden md:flex" : "flex"} w-full md:w-80 flex-shrink-0 flex flex-col border-r border-slate-200 bg-slate-50/50`}
       >
@@ -454,7 +263,7 @@ export default function LeadsPage() {
             <button
               onClick={() => {
                 setSelectedChannel("instagram");
-                setSelectedConversation(null);
+                setSelectedSession(null);
               }}
               className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all ${
                 selectedChannel === "instagram"
@@ -465,7 +274,7 @@ export default function LeadsPage() {
               <div className="relative h-5 w-5">
                 <Image
                   src="/yetti/instagram_logo.png"
-                  alt={t("messages.instagram")}
+                  alt="Instagram"
                   fill
                   className="object-contain"
                 />
@@ -475,7 +284,7 @@ export default function LeadsPage() {
             <button
               onClick={() => {
                 setSelectedChannel("telegram");
-                setSelectedConversation(null);
+                setSelectedSession(null);
               }}
               className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all ${
                 selectedChannel === "telegram"
@@ -486,7 +295,7 @@ export default function LeadsPage() {
               <div className="relative h-5 w-5">
                 <Image
                   src="/yetti/telegram_logo.png"
-                  alt={t("messages.telegram")}
+                  alt="Telegram"
                   fill
                   className="object-contain"
                 />
@@ -502,32 +311,35 @@ export default function LeadsPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
               type="text"
-              placeholder={t("messages.search")}
+              placeholder="Search conversations..."
               className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
             />
           </div>
         </div>
 
-        {/* Conversations List */}
+        {/* Sessions List */}
         <div className="flex-1 overflow-y-auto">
-          {loading && conversations.length === 0 ? (
+          {loading && sessions.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 gap-3">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
-              <p className="text-slate-500 text-sm">{t("messages.loading")}</p>
+              <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
+              <p className="text-slate-500 text-sm">Loading conversations...</p>
             </div>
-          ) : conversations.length === 0 ? (
+          ) : sessions.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 gap-2 p-4 text-center">
               <MessageSquare className="h-8 w-8 text-slate-300" />
-              <p className="text-slate-500 text-sm">{t("messages.noLeads")}</p>
+              <p className="text-slate-500 text-sm">No conversations yet</p>
+              <p className="text-slate-400 text-xs">
+                Users will appear here when they start chatting
+              </p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
-              {conversations.map((conversation) => (
+              {sessions.map((session) => (
                 <button
-                  key={conversation.id}
-                  onClick={() => handleSelectConversation(conversation)}
+                  key={session.id}
+                  onClick={() => handleSelectSession(session)}
                   className={`w-full text-left p-3 sm:p-4 hover:bg-white transition-all duration-200 ${
-                    selectedConversation?.id === conversation.id
+                    selectedSession?.id === session.id
                       ? "bg-white border-l-4 border-sky-500 shadow-sm"
                       : "border-l-4 border-transparent"
                   }`}
@@ -535,62 +347,49 @@ export default function LeadsPage() {
                   <div className="flex items-start gap-3">
                     <div className="relative h-12 w-12 flex-shrink-0 rounded-xl overflow-hidden bg-gradient-to-br from-sky-100 to-blue-100 flex items-center justify-center shadow-sm">
                       <MessageSquare className="h-6 w-6 text-sky-500" />
-                      {selectedChannel === "instagram" ? (
-                        <div className="absolute bottom-0 right-0 h-4 w-4 bg-white rounded-full p-0.5">
-                          <Image
-                            src="/yetti/instagram_logo.png"
-                            alt="IG"
-                            width={12}
-                            height={12}
-                          />
-                        </div>
-                      ) : (
-                        <div className="absolute bottom-0 right-0 h-4 w-4 bg-white rounded-full p-0.5">
-                          <Image
-                            src="/yetti/telegram_logo.png"
-                            alt="TG"
-                            width={12}
-                            height={12}
-                          />
-                        </div>
+                      {session.is_online && (
+                        <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-white"></div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
                         <h4
                           className={`text-sm font-semibold truncate ${
-                            selectedConversation?.id === conversation.id
+                            selectedSession?.id === session.id
                               ? "text-sky-900"
                               : "text-slate-900"
                           }`}
                         >
-                          {conversation.participant_name}
+                          {getDisplayName(session)}
                         </h4>
-                        {conversation.last_message_time && (
+                        {session.last_message_time && (
                           <span className="text-xs text-slate-400 flex-shrink-0 ml-2">
-                            {formatTime(conversation.last_message_time)}
+                            {formatTime(session.last_message_time)}
                           </span>
                         )}
                       </div>
-                      <p
-                        className={`text-sm truncate ${
-                          conversation.unread_count &&
-                          conversation.unread_count > 0
-                            ? "text-slate-900 font-medium"
-                            : "text-slate-500"
-                        }`}
-                      >
-                        {conversation.last_message || t("messages.noMessages")}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p
+                          className={`text-sm truncate flex-1 ${
+                            session.unread_count && session.unread_count > 0
+                              ? "text-slate-900 font-medium"
+                              : "text-slate-500"
+                          }`}
+                        >
+                          {session.last_message || "No messages yet"}
+                        </p>
+                        {session.ai_mode && (
+                          <Bot className="h-3 w-3 text-sky-500 flex-shrink-0" title="AI Mode Active" />
+                        )}
+                      </div>
                     </div>
-                    {conversation.unread_count &&
-                      conversation.unread_count > 0 && (
-                        <div className="flex flex-col justify-center h-full ml-2">
-                          <span className="flex items-center justify-center h-5 min-w-[1.25rem] px-1.5 text-[10px] font-bold text-white bg-sky-500 rounded-full shadow-sm shadow-sky-200">
-                            {conversation.unread_count}
-                          </span>
-                        </div>
-                      )}
+                    {session.unread_count && session.unread_count > 0 && (
+                      <div className="flex flex-col justify-center h-full ml-2">
+                        <span className="flex items-center justify-center h-5 min-w-[1.25rem] px-1.5 text-[10px] font-bold text-white bg-sky-500 rounded-full shadow-sm shadow-sky-200">
+                          {session.unread_count}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </button>
               ))}
@@ -603,10 +402,7 @@ export default function LeadsPage() {
       <div
         className={`${!showChatView ? "hidden md:flex" : "flex"} flex-1 flex flex-col min-w-0 bg-white relative`}
       >
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none" />
-
-        {selectedConversation ? (
+        {selectedSession ? (
           <>
             {/* Chat Header */}
             <div className="h-16 sm:h-20 px-4 sm:px-6 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-sm sticky top-0 z-10">
@@ -620,29 +416,52 @@ export default function LeadsPage() {
                 </button>
                 <div className="relative h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 rounded-xl overflow-hidden bg-gradient-to-br from-sky-100 to-blue-100 flex items-center justify-center shadow-sm">
                   <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-sky-500" />
+                  {selectedSession.is_online && (
+                    <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-white"></div>
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2 truncate">
-                    {selectedConversation.participant_name}
+                    {getDisplayName(selectedSession)}
                     <span
                       className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${
-                        selectedChannel === "instagram"
+                        selectedSession.platform === "instagram"
                           ? "bg-pink-50 text-pink-600 border border-pink-100"
                           : "bg-sky-50 text-sky-500 border border-sky-100"
                       }`}
                     >
-                      {selectedChannel === "instagram"
-                        ? t("messages.instagram")
-                        : t("messages.telegram")}
+                      {selectedSession.platform}
                     </span>
+                    {selectedSession.is_online && (
+                      <span className="text-[10px] text-green-600 font-medium">
+                        Online
+                      </span>
+                    )}
                   </h3>
                   <p className="text-xs text-slate-500">
-                    {t("messages.leadConversation")}
+                    {selectedSession.ai_mode ? "AI Mode Active" : "Manual Mode"}
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-2">
+                {/* AI Mode Toggle */}
+                <button
+                  onClick={handleToggleAIMode}
+                  className={`p-2 rounded-lg transition-colors ${
+                    selectedSession.ai_mode
+                      ? "bg-sky-100 text-sky-600 hover:bg-sky-200"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                  title={selectedSession.ai_mode ? "Disable AI Mode" : "Enable AI Mode"}
+                >
+                  {selectedSession.ai_mode ? (
+                    <Bot className="h-5 w-5" />
+                  ) : (
+                    <User className="h-5 w-5" />
+                  )}
+                </button>
+
                 <button
                   onClick={() => setIsChatExpanded((v) => !v)}
                   className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
@@ -666,10 +485,8 @@ export default function LeadsPage() {
               {loading && messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="flex flex-col items-center gap-3">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
-                    <p className="text-slate-400 text-sm">
-                      {t("messages.loadingMessages")}
-                    </p>
+                    <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+                    <p className="text-slate-400 text-sm">Loading messages...</p>
                   </div>
                 </div>
               ) : messages.length === 0 ? (
@@ -678,68 +495,98 @@ export default function LeadsPage() {
                     <MessageSquare className="h-8 w-8 text-slate-300" />
                   </div>
                   <h3 className="text-slate-900 font-medium mb-1">
-                    {t("messages.noMessages")}
+                    No messages yet
                   </h3>
                   <p className="text-slate-500 text-sm max-w-xs">
-                    {t("messages.startConversation")}
+                    Start the conversation with this user
                   </p>
                 </div>
               ) : (
-                messages.map((message, index) => {
-                  const isLast = index === messages.length - 1;
-                  const showAvatar =
-                    !message.is_from_me &&
-                    (index === 0 ||
-                      messages[index - 1].is_from_me ||
-                      messages[index - 1].sender_id !== message.sender_id);
+                <>
+                  {messages.map((message, index) => {
+                    const isFromAdmin = message.sender_type === "admin";
+                    const isFromAI = message.sender_type === "ai";
+                    const isFromMe = isFromAdmin || isFromAI;
 
-                  return (
-                    <div
-                      key={message.id}
-                      className={`flex gap-3 ${
-                        message.is_from_me ? "justify-end" : "justify-start"
-                      } animate-in fade-in slide-in-from-bottom-2 duration-300`}
-                    >
-                      {!message.is_from_me && (
-                        <div
-                          className={`flex-shrink-0 w-8 ${!showAvatar && "invisible"}`}
-                        >
-                          {showAvatar && (
+                    return (
+                      <div
+                        key={message.id}
+                        className={`flex gap-3 ${
+                          isFromMe ? "justify-end" : "justify-start"
+                        } animate-in fade-in slide-in-from-bottom-2 duration-300`}
+                      >
+                        {!isFromMe && (
+                          <div className="flex-shrink-0 w-8">
                             <div className="relative h-8 w-8 rounded-lg overflow-hidden bg-gradient-to-br from-sky-100 to-blue-100 flex items-center justify-center shadow-sm">
                               <MessageSquare className="h-4 w-4 text-sky-500" />
                             </div>
-                          )}
-                        </div>
-                      )}
+                          </div>
+                        )}
 
-                      <div
-                        className={`flex flex-col ${message.is_from_me ? "items-end" : "items-start"} max-w-[85%] sm:max-w-[70%]`}
-                      >
                         <div
-                          className={`px-5 py-3 shadow-sm ${
-                            message.is_from_me
-                              ? "bg-gradient-to-br from-sky-500 to-sky-500 text-white rounded-2xl rounded-tr-sm"
-                              : "bg-white border border-slate-100 text-slate-800 rounded-2xl rounded-tl-sm"
-                          }`}
+                          className={`flex flex-col ${isFromMe ? "items-end" : "items-start"} max-w-[85%] sm:max-w-[70%]`}
                         >
-                          <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                            {message.text}
-                          </p>
+                          <div
+                            className={`px-5 py-3 shadow-sm ${
+                              isFromMe
+                                ? isFromAI
+                                  ? "bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-2xl rounded-tr-sm"
+                                  : "bg-gradient-to-br from-sky-500 to-sky-600 text-white rounded-2xl rounded-tr-sm"
+                                : "bg-white border border-slate-100 text-slate-800 rounded-2xl rounded-tl-sm"
+                            }`}
+                          >
+                            {isFromAI && (
+                              <div className="flex items-center gap-1 mb-1 text-xs text-white/80">
+                                <Bot className="h-3 w-3" />
+                                <span>AI Assistant</span>
+                              </div>
+                            )}
+                            <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                              {message.message_text}
+                            </p>
+                          </div>
+                          <span className="text-[10px] mt-1.5 px-1 text-slate-400">
+                            {formatTime(message.created_at)}
+                          </span>
                         </div>
-                        <span
-                          className={`text-[10px] mt-1.5 px-1 ${
-                            message.is_from_me
-                              ? "text-slate-400"
-                              : "text-slate-400"
-                          }`}
-                        >
-                          {formatTime(message.timestamp)}
-                        </span>
                       </div>
-                    </div>
-                  );
-                })
+                    );
+                  })}
+                  <div ref={messagesEndRef} />
+                </>
               )}
+            </div>
+
+            {/* Message Input */}
+            <div className="p-4 sm:p-6 border-t border-slate-100 bg-white">
+              {selectedSession.ai_mode && (
+                <div className="mb-3 flex items-center gap-2 text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
+                  <Bot className="h-4 w-4" />
+                  <span>AI mode is active. AI will respond to user messages automatically.</span>
+                </div>
+              )}
+              <div className="flex gap-2 sm:gap-3">
+                <input
+                  type="text"
+                  value={messageInput}
+                  onChange={(e) => setMessageInput(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                  placeholder="Type your message..."
+                  disabled={sending}
+                  className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all disabled:opacity-50"
+                />
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!messageInput.trim() || sending}
+                  className="px-6 py-3 bg-gradient-to-r from-sky-500 to-blue-500 text-white rounded-xl hover:from-sky-600 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-sky-200"
+                >
+                  {sending ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Send className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
             </div>
           </>
         ) : (
@@ -748,33 +595,33 @@ export default function LeadsPage() {
               <MessageSquare className="h-8 w-8 sm:h-10 sm:w-10 text-sky-500" />
             </div>
             <h2 className="text-lg sm:text-2xl font-bold text-slate-900 mb-2">
-              {t("messages.selectLead")}
+              Select a conversation
             </h2>
             <p className="text-slate-500 text-sm sm:text-base max-w-md mx-auto mb-6 sm:mb-8">
-              {t("messages.selectLeadDesc")}
+              Choose a conversation from the sidebar to start chatting
             </p>
             <div className="flex flex-wrap justify-center gap-2 sm:gap-4">
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm text-sm text-slate-600">
                 <div className="relative h-4 w-4">
                   <Image
-                    src="/yetti/instagram_logo.png"
-                    alt="IG"
+                    src="/yetti/telegram_logo.png"
+                    alt="Telegram"
                     fill
                     className="object-contain"
                   />
                 </div>
-                {t("messages.instagram")}
+                Telegram
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm text-sm text-slate-600">
                 <div className="relative h-4 w-4">
                   <Image
-                    src="/yetti/telegram_logo.png"
-                    alt="TG"
+                    src="/yetti/instagram_logo.png"
+                    alt="Instagram"
                     fill
                     className="object-contain"
                   />
                 </div>
-                {t("messages.telegram")}
+                Instagram
               </div>
             </div>
           </div>

@@ -46,6 +46,8 @@ export type Conversation = {
   last_message?: string;
   last_message_time?: string;
   unread_count?: number;
+  is_online?: boolean;
+  ai_mode?: boolean;
 };
 
 export type MessagesResponse = {
