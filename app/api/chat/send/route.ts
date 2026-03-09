@@ -12,6 +12,78 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   }
 });
 
+// Helper function to check if a string is an image URL
+function isImageUrl(text: string): boolean {
+  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
+  const lowerText = text.toLowerCase();
+  return imageExtensions.some(ext => lowerText.includes(ext)) &&
+         (lowerText.startsWith('http://') || lowerText.startsWith('https://'));
+}
+
+// Helper function to check if a string is a video URL
+function isVideoUrl(text: string): boolean {
+  const videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm'];
+  const lowerText = text.toLowerCase();
+  return videoExtensions.some(ext => lowerText.includes(ext)) &&
+         (lowerText.startsWith('http://') || lowerText.startsWith('https://'));
+}
+
+// Helper function to send photo via Telegram Bot API
+async function sendTelegramPhoto(chatId: string, photoUrl: string) {
+  try {
+    const response = await fetch(
+      `https://api.telegram.org/bot${telegramBotToken}/sendPhoto`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          photo: photoUrl,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("Error sending Telegram photo:", error);
+      throw new Error("Failed to send Telegram photo");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error sending Telegram photo:", error);
+    throw error;
+  }
+}
+
+// Helper function to send video via Telegram Bot API
+async function sendTelegramVideo(chatId: string, videoUrl: string) {
+  try {
+    const response = await fetch(
+      `https://api.telegram.org/bot${telegramBotToken}/sendVideo`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          video: videoUrl,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("Error sending Telegram video:", error);
+      throw new Error("Failed to send Telegram video");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error sending Telegram video:", error);
+    throw error;
+  }
+}
+
 // Helper function to send message via Telegram Bot API
 async function sendTelegramMessage(chatId: string, text: string) {
   try {
@@ -94,10 +166,25 @@ export async function POST(request: NextRequest) {
     // Send message via appropriate platform
     if (session.platform === "telegram") {
       try {
-        const telegramResponse = await sendTelegramMessage(
-          session.external_user_id,
-          message_text
-        );
+        let telegramResponse;
+
+        // Check if the message is a media URL and send appropriately
+        if (isImageUrl(message_text)) {
+          telegramResponse = await sendTelegramPhoto(
+            session.external_user_id,
+            message_text
+          );
+        } else if (isVideoUrl(message_text)) {
+          telegramResponse = await sendTelegramVideo(
+            session.external_user_id,
+            message_text
+          );
+        } else {
+          telegramResponse = await sendTelegramMessage(
+            session.external_user_id,
+            message_text
+          );
+        }
 
         // Update message with platform message ID
         if (telegramResponse.result?.message_id) {

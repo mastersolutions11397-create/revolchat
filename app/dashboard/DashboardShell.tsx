@@ -18,6 +18,7 @@ import {
   Menu,
   X,
   Gift,
+  Zap,
 } from "lucide-react";
 
 function WorkspaceSelector() {
@@ -162,6 +163,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 icon: Link2,
                 label: t("dashboard.sidebar.integrations"),
                 tourId: "integrations-nav",
+              },
+              {
+                href: "/dashboard/triggers",
+                icon: Zap,
+                label: "Triggers",
+                tourId: null,
               },
               // Plans - hidden for now
               // {

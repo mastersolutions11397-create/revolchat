@@ -1,12 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { type Conversation, type Message } from "@/lib/api/integrations";
-import { MessageSquare, Search, Info, ArrowLeft, Send, Bot, User } from "lucide-react";
+import { MessageSquare, Search, Info, ArrowLeft, Send, Bot, User, Zap, Image as ImageIcon, Video, File, Music } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import type { ChatSession, ChatMessage } from "@/lib/types/chat";
+import type { ChatSession, ChatMessage, TriggerWord } from "@/lib/types/chat";
+import { triggerWordsAPI } from "@/lib/api/trigger-words";
+
+function getTriggerMediaIcon(type: string) {
+  switch (type) {
+    case "image":
+      return ImageIcon;
+    case "video":
+      return Video;
+    case "audio":
+      return Music;
+    default:
+      return File;
+  }
+}
 
 type ChannelType = "telegram" | "instagram";
 
@@ -73,6 +87,18 @@ export default function InboxPage() {
   const [showChatView, setShowChatView] = useState(false);
   const [messageInput, setMessageInput] = useState("");
   const [sending, setSending] = useState(false);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to bottom of messages
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Trigger words state
+  const [triggerWords, setTriggerWords] = useState<TriggerWord[]>([]);
+  const [showTriggerSuggestions, setShowTriggerSuggestions] = useState(false);
+  const [selectedTriggerIndex, setSelectedTriggerIndex] = useState(0);
 
   // Function to load conversations (extracted so it can be called from multiple places)
   const loadConversations = async () => {
@@ -141,6 +167,39 @@ export default function InboxPage() {
       }
   };
 
+  // Fetch trigger words
+  useEffect(() => {
+    const fetchTriggers = async () => {
+      try {
+        const data = await triggerWordsAPI.getActiveTriggerWords();
+        setTriggerWords(data);
+      } catch (error) {
+        console.error("Error fetching triggers:", error);
+      }
+    };
+
+    fetchTriggers();
+  }, []);
+
+  // Filter trigger words based on input
+  const filteredTriggers = useMemo(() => {
+    if (!messageInput.startsWith("/")) return [];
+    const searchTerm = messageInput.slice(1).toLowerCase();
+    return triggerWords.filter((t) =>
+      t.trigger_word.slice(1).toLowerCase().includes(searchTerm)
+    );
+  }, [messageInput, triggerWords]);
+
+  // Show/hide trigger suggestions
+  useEffect(() => {
+    if (messageInput.startsWith("/") && filteredTriggers.length > 0) {
+      setShowTriggerSuggestions(true);
+      setSelectedTriggerIndex(0);
+    } else {
+      setShowTriggerSuggestions(false);
+    }
+  }, [messageInput, filteredTriggers.length]);
+
   // Load conversations when channel changes
   useEffect(() => {
     loadConversations();
@@ -172,6 +231,9 @@ export default function InboxPage() {
         const data = transformMessagesToMessages(chatMessages || []);
         setMessages(data);
 
+        // Scroll to bottom after messages load
+        setTimeout(() => scrollToBottom(), 100);
+
         // Mark messages as read
         await supabase
           .from("chat_messages")
@@ -190,44 +252,240 @@ export default function InboxPage() {
     loadMessages();
   }, [selectedConversation]);
 
+  // Real-time subscription for new messages in selected conversation
+  useEffect(() => {
+    if (!selectedConversation) return;
+
+    const channel = supabase
+      .channel(`inbox_messages:${selectedConversation.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "chat_messages",
+          filter: `session_id=eq.${selectedConversation.id}`,
+        },
+        (payload) => {
+          const newMessage = payload.new as ChatMessage;
+          // Avoid duplicates - check if message already exists
+          setMessages((prev) => {
+            if (prev.some(m => m.id === newMessage.id)) return prev;
+            const formattedMessage = transformMessagesToMessages([newMessage])[0];
+            return [...prev, formattedMessage];
+          });
+
+          // Update conversation list with new last message (without full reload)
+          setConversations((prev) =>
+            prev.map((c) =>
+              c.id === selectedConversation.id
+                ? {
+                    ...c,
+                    last_message: newMessage.message_text,
+                    last_message_time: newMessage.created_at,
+                    unread_count: newMessage.sender_type === "user" ? (c.unread_count || 0) + 1 : c.unread_count,
+                  }
+                : c
+            )
+          );
+
+          // Scroll to bottom for new messages
+          setTimeout(() => scrollToBottom(), 100);
+
+          // Mark as read if from user (since we're viewing this conversation)
+          if (newMessage.sender_type === "user") {
+            supabase
+              .from("chat_messages")
+              .update({ is_read: true })
+              .eq("id", newMessage.id);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedConversation]);
+
+  // Real-time subscription for ALL new messages (to update sidebar)
+  useEffect(() => {
+    const channel = supabase
+      .channel("inbox_all_messages")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "chat_messages",
+        },
+        (payload) => {
+          const newMessage = payload.new as ChatMessage;
+          const sessionId = newMessage.session_id;
+
+          // Skip if this is the currently selected conversation (already handled above)
+          if (selectedConversation?.id === sessionId) return;
+
+          // Update conversation in sidebar without full reload
+          setConversations((prev) => {
+            const existingConv = prev.find((c) => c.id === sessionId);
+            if (existingConv) {
+              // Update existing conversation
+              return prev.map((c) =>
+                c.id === sessionId
+                  ? {
+                      ...c,
+                      last_message: newMessage.message_text,
+                      last_message_time: newMessage.created_at,
+                      unread_count: newMessage.sender_type === "user" ? (c.unread_count || 0) + 1 : c.unread_count,
+                    }
+                  : c
+              );
+            }
+            // New conversation - reload to get full details
+            loadConversations();
+            return prev;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedConversation]);
+
+  // Real-time subscription for new sessions only
+  useEffect(() => {
+    const channel = supabase
+      .channel("inbox_sessions")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "chat_sessions",
+          filter: `platform=eq.${selectedChannel}`,
+        },
+        () => {
+          // Only reload for new sessions
+          loadConversations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedChannel]);
+
   // Toggle AI mode for a session
   const handleToggleAI = async () => {
     if (!selectedConversation) return;
 
+    const newAiMode = !selectedConversation.ai_mode;
+    const conversationId = selectedConversation.id;
+
+    // Optimistically update UI immediately
+    setSelectedConversation(prev => prev ? { ...prev, ai_mode: newAiMode } : prev);
+    setConversations(prev =>
+      prev.map(c => c.id === conversationId ? { ...c, ai_mode: newAiMode } : c)
+    );
+
     try {
-      const session = conversations.find(c => c.id === selectedConversation.id);
-      if (!session) return;
-
-      // Get the current AI mode from the session data
-      const { data: sessionData } = await supabase
-        .from("chat_sessions")
-        .select("ai_mode")
-        .eq("id", selectedConversation.id)
-        .single();
-
-      const newAiMode = !sessionData?.ai_mode;
-
       // Update AI mode in database
       const { error } = await supabase
         .from("chat_sessions")
         .update({ ai_mode: newAiMode })
-        .eq("id", selectedConversation.id);
+        .eq("id", conversationId);
 
       if (error) {
         console.error("Error toggling AI mode:", error);
+        // Revert on error
+        setSelectedConversation(prev => prev ? { ...prev, ai_mode: !newAiMode } : prev);
+        setConversations(prev =>
+          prev.map(c => c.id === conversationId ? { ...c, ai_mode: !newAiMode } : c)
+        );
+        return;
+      }
+    } catch (error) {
+      console.error("Error toggling AI mode:", error);
+      // Revert on error
+      setSelectedConversation(prev => prev ? { ...prev, ai_mode: !newAiMode } : prev);
+      setConversations(prev =>
+        prev.map(c => c.id === conversationId ? { ...c, ai_mode: !newAiMode } : c)
+      );
+    }
+  };
+
+  // Handle selecting a trigger word
+  const handleSelectTrigger = async (trigger: TriggerWord) => {
+    if (!selectedConversation || sending) return;
+
+    setShowTriggerSuggestions(false);
+    setSending(true);
+
+    try {
+      // Save message to database with the media URL
+      const { data: newMessage, error } = await supabase
+        .from("chat_messages")
+        .insert({
+          session_id: selectedConversation.id,
+          message_text: trigger.media_url,
+          sender_type: "admin",
+          is_read: true,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error sending trigger:", error);
         return;
       }
 
-      // Reload conversations to get updated AI mode
-      loadConversations();
+      // Add message to UI
+      const formattedMessage = transformMessagesToMessages([newMessage])[0];
+      setMessages((prev) => [...prev, formattedMessage]);
+
+      // Send to Telegram via API
+      await fetch("/api/chat/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          session_id: selectedConversation.id,
+          message_text: trigger.media_url,
+          sender_type: "admin",
+        }),
+      });
+
+      // Increment usage count
+      try {
+        await triggerWordsAPI.incrementUsage(trigger.id);
+      } catch {
+        // Silently fail usage tracking
+      }
+
+      setMessageInput("");
     } catch (error) {
-      console.error("Error toggling AI mode:", error);
+      console.error("Error sending trigger:", error);
+    } finally {
+      setSending(false);
     }
   };
 
   // Send manual message as admin
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !selectedConversation || sending) return;
+
+    // Check if input matches a trigger word exactly
+    const exactTrigger = triggerWords.find(
+      (t) => t.trigger_word.toLowerCase() === messageInput.toLowerCase()
+    );
+
+    if (exactTrigger) {
+      await handleSelectTrigger(exactTrigger);
+      return;
+    }
 
     setSending(true);
     try {
@@ -613,17 +871,107 @@ export default function InboxPage() {
                   );
                 })
               )}
+              <div ref={messagesEndRef} />
             </div>
 
             {/* Message Input Area */}
             <div className="border-t border-dashboard-border bg-dashboard-card/80 backdrop-blur-sm p-4">
-              <div className="flex items-end gap-3">
+              {/* Trigger Words Hint */}
+              {triggerWords.length > 0 && !messageInput && !selectedConversation.ai_mode && (
+                <div className="mb-2 flex items-center gap-2 text-xs text-slate-500">
+                  <Zap className="h-3 w-3" />
+                  <span>Type / to see available triggers</span>
+                </div>
+              )}
+
+              <div className="flex items-end gap-3 relative">
+                {/* Trigger Suggestions Dropdown */}
+                {showTriggerSuggestions && filteredTriggers.length > 0 && (
+                  <div className="absolute bottom-full left-0 right-16 mb-2 bg-white border border-dashboard-border rounded-xl shadow-lg overflow-hidden z-10 max-h-64 overflow-y-auto">
+                    <div className="p-2 border-b border-slate-100 bg-slate-50">
+                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                        <Zap className="h-3 w-3 text-teal-primary" />
+                        <span>Trigger Words</span>
+                      </div>
+                    </div>
+                    <div className="py-1">
+                      {filteredTriggers.map((trigger, index) => {
+                        const MediaIcon = getTriggerMediaIcon(trigger.media_type);
+                        return (
+                          <button
+                            key={trigger.id}
+                            onClick={() => handleSelectTrigger(trigger)}
+                            className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors ${
+                              index === selectedTriggerIndex
+                                ? "bg-teal-primary/10 text-teal-primary"
+                                : "hover:bg-slate-50 text-slate-700"
+                            }`}
+                          >
+                            <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                              index === selectedTriggerIndex
+                                ? "bg-teal-primary/20"
+                                : "bg-slate-100"
+                            }`}>
+                              <MediaIcon className="h-4 w-4" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {trigger.trigger_word}
+                              </p>
+                              {trigger.description && (
+                                <p className="text-xs text-slate-500 truncate">
+                                  {trigger.description}
+                                </p>
+                              )}
+                            </div>
+                            {trigger.media_type === "image" && (
+                              <div className="relative h-8 w-8 rounded overflow-hidden bg-slate-100 shrink-0">
+                                <Image
+                                  src={trigger.media_url}
+                                  alt=""
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="p-2 border-t border-slate-100 bg-slate-50">
+                      <p className="text-[10px] text-slate-400 text-center">
+                        Use ↑↓ to navigate, Enter to select, Esc to close
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex-1">
                   <textarea
+                    ref={inputRef}
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
+                      if (showTriggerSuggestions) {
+                        if (e.key === "ArrowDown") {
+                          e.preventDefault();
+                          setSelectedTriggerIndex((prev) =>
+                            prev < filteredTriggers.length - 1 ? prev + 1 : 0
+                          );
+                        } else if (e.key === "ArrowUp") {
+                          e.preventDefault();
+                          setSelectedTriggerIndex((prev) =>
+                            prev > 0 ? prev - 1 : filteredTriggers.length - 1
+                          );
+                        } else if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (filteredTriggers[selectedTriggerIndex]) {
+                            handleSelectTrigger(filteredTriggers[selectedTriggerIndex]);
+                          }
+                        } else if (e.key === "Escape") {
+                          setShowTriggerSuggestions(false);
+                        }
+                      } else if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
                         handleSendMessage();
                       }

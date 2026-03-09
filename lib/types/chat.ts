@@ -158,3 +158,40 @@ export interface SessionWithLastMessage extends ChatSession {
   last_message_time?: string;
   unread_count: number;
 }
+
+// Trigger Words Types
+export type TriggerMediaType = 'image' | 'video' | 'file' | 'audio';
+
+export interface TriggerWord {
+  id: string;
+  user_id: string;
+  trigger_word: string;
+  description?: string;
+  media_url: string;
+  media_type: TriggerMediaType;
+  media_filename?: string;
+  media_size?: number;
+  is_active: boolean;
+  usage_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateTriggerWordParams {
+  trigger_word: string;
+  description?: string;
+  media_url: string;
+  media_type: TriggerMediaType;
+  media_filename?: string;
+  media_size?: number;
+}
+
+export interface UpdateTriggerWordParams {
+  trigger_word?: string;
+  description?: string;
+  media_url?: string;
+  media_type?: TriggerMediaType;
+  media_filename?: string;
+  media_size?: number;
+  is_active?: boolean;
+}

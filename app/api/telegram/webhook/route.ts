@@ -263,14 +263,8 @@ export async function POST(request: NextRequest) {
           last_ai_response_at: new Date().toISOString(),
         })
         .eq("id", session.id);
-    } else {
-      // AI mode is off, admin will respond manually
-      // Send acknowledgment message
-      await sendTelegramMessage(
-        chatId,
-        "Thank you for your message. Our team will respond shortly."
-      );
     }
+    // AI mode is off - no auto-reply, admin will respond manually
 
     return NextResponse.json({ ok: true, message: "Message processed" });
   } catch (error) {

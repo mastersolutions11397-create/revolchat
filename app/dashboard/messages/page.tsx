@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { useAuth } from "@/lib/auth-context";
 import { chatSystemAPI } from "@/lib/api/chat-system";
+import { triggerWordsAPI } from "@/lib/api/trigger-words";
 import { supabase } from "@/lib/supabase";
-import type { ChatSession, ChatMessage, SessionWithLastMessage } from "@/lib/types/chat";
+import type { ChatSession, ChatMessage, SessionWithLastMessage, TriggerWord } from "@/lib/types/chat";
 import {
   MessageSquare,
   Send,
@@ -18,10 +19,28 @@ import {
   Bot,
   User,
   Loader2,
+  Zap,
+  Image as ImageIcon,
+  Video,
+  File,
+  Music,
 } from "lucide-react";
 import { toast } from "sonner";
 
 type ChannelType = "telegram" | "instagram";
+
+function getTriggerMediaIcon(type: string) {
+  switch (type) {
+    case "image":
+      return ImageIcon;
+    case "video":
+      return Video;
+    case "audio":
+      return Music;
+    default:
+      return File;
+  }
+}
 
 export default function MessagesPage() {
   const { t } = useLanguage();
@@ -37,6 +56,18 @@ export default function MessagesPage() {
   const [sending, setSending] = useState(false);
   const [messageInput, setMessageInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const selectedSessionRef = useRef<SessionWithLastMessage | null>(null);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    selectedSessionRef.current = selectedSession;
+  }, [selectedSession]);
+
+  // Trigger words state
+  const [triggerWords, setTriggerWords] = useState<TriggerWord[]>([]);
+  const [showTriggerSuggestions, setShowTriggerSuggestions] = useState(false);
+  const [selectedTriggerIndex, setSelectedTriggerIndex] = useState(0);
 
   // Scroll to bottom of messages
   const scrollToBottom = () => {
@@ -46,6 +77,41 @@ export default function MessagesPage() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Fetch trigger words
+  useEffect(() => {
+    const fetchTriggers = async () => {
+      if (!user) return;
+
+      try {
+        const data = await triggerWordsAPI.getActiveTriggerWords();
+        setTriggerWords(data);
+      } catch (error) {
+        console.error("Error fetching triggers:", error);
+      }
+    };
+
+    fetchTriggers();
+  }, [user]);
+
+  // Filter trigger words based on input
+  const filteredTriggers = useMemo(() => {
+    if (!messageInput.startsWith("/")) return [];
+    const searchTerm = messageInput.slice(1).toLowerCase();
+    return triggerWords.filter((t) =>
+      t.trigger_word.slice(1).toLowerCase().includes(searchTerm)
+    );
+  }, [messageInput, triggerWords]);
+
+  // Show/hide trigger suggestions
+  useEffect(() => {
+    if (messageInput.startsWith("/") && filteredTriggers.length > 0) {
+      setShowTriggerSuggestions(true);
+      setSelectedTriggerIndex(0);
+    } else {
+      setShowTriggerSuggestions(false);
+    }
+  }, [messageInput, filteredTriggers.length]);
 
   // Fetch sessions when channel changes
   useEffect(() => {
@@ -142,11 +208,31 @@ export default function MessagesPage() {
           schema: "public",
           table: "chat_sessions",
         },
-        async () => {
+        async (payload) => {
+          const currentSelectedSession = selectedSessionRef.current;
+
+          // If it's an update to the currently selected session, update it directly
+          if (payload.eventType === "UPDATE" && payload.new && currentSelectedSession) {
+            const updatedSession = payload.new as SessionWithLastMessage;
+            if (updatedSession.id === currentSelectedSession.id) {
+              setSelectedSession((prev) =>
+                prev ? { ...prev, ...updatedSession } : prev
+              );
+            }
+          }
+
           // Refresh sessions list
           try {
             const data = await chatSystemAPI.getSessions(selectedChannel);
             setSessions(data);
+
+            // Also update selectedSession if it exists in the new data
+            if (currentSelectedSession) {
+              const updatedSelected = data.find((s) => s.id === currentSelectedSession.id);
+              if (updatedSelected) {
+                setSelectedSession(updatedSelected);
+              }
+            }
           } catch (error) {
             console.error("Error refreshing sessions:", error);
           }
@@ -166,8 +252,50 @@ export default function MessagesPage() {
     }
   };
 
+  // Handle selecting a trigger word
+  const handleSelectTrigger = async (trigger: TriggerWord) => {
+    if (!selectedSession || sending) return;
+
+    setShowTriggerSuggestions(false);
+    setSending(true);
+
+    try {
+      // Send the media URL with the trigger word as context
+      await chatSystemAPI.sendMessage({
+        session_id: selectedSession.id,
+        message_text: trigger.media_url,
+        sender_type: "admin",
+      });
+
+      // Increment usage count
+      try {
+        await triggerWordsAPI.incrementUsage(trigger.id);
+      } catch {
+        // Silently fail usage tracking
+      }
+
+      setMessageInput("");
+      toast.success(`Sent ${trigger.trigger_word}`);
+    } catch (error) {
+      console.error("Error sending trigger:", error);
+      toast.error("Failed to send media");
+    } finally {
+      setSending(false);
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !selectedSession || sending) return;
+
+    // Check if input matches a trigger word exactly
+    const exactTrigger = triggerWords.find(
+      (t) => t.trigger_word.toLowerCase() === messageInput.toLowerCase()
+    );
+
+    if (exactTrigger) {
+      await handleSelectTrigger(exactTrigger);
+      return;
+    }
 
     setSending(true);
     try {
@@ -187,25 +315,71 @@ export default function MessagesPage() {
     }
   };
 
+  // Handle keyboard navigation for trigger suggestions
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (showTriggerSuggestions) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedTriggerIndex((prev) =>
+          prev < filteredTriggers.length - 1 ? prev + 1 : 0
+        );
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedTriggerIndex((prev) =>
+          prev > 0 ? prev - 1 : filteredTriggers.length - 1
+        );
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (filteredTriggers[selectedTriggerIndex]) {
+          handleSelectTrigger(filteredTriggers[selectedTriggerIndex]);
+        }
+      } else if (e.key === "Escape") {
+        setShowTriggerSuggestions(false);
+      }
+    } else if (e.key === "Enter") {
+      handleSendMessage();
+    }
+  };
+
   const handleToggleAIMode = async () => {
     if (!selectedSession) return;
 
+    const newAiMode = !selectedSession.ai_mode;
+    const sessionId = selectedSession.id;
+    const originalAiMode = selectedSession.ai_mode;
+
+    console.log("Toggle AI Mode - Before:", { sessionId, currentMode: originalAiMode, newMode: newAiMode });
+
+    // Optimistically update the UI immediately
+    setSelectedSession(prev => prev ? { ...prev, ai_mode: newAiMode } : prev);
+
+    // Also update in sessions list for consistency
+    setSessions((prev) =>
+      prev.map((s) =>
+        s.id === sessionId ? { ...s, ai_mode: newAiMode } : s
+      )
+    );
+
     try {
-      const updatedSession = await chatSystemAPI.toggleAIMode({
-        session_id: selectedSession.id,
-        ai_mode: !selectedSession.ai_mode,
+      const result = await chatSystemAPI.toggleAIMode({
+        session_id: sessionId,
+        ai_mode: newAiMode,
       });
 
-      setSelectedSession({ ...selectedSession, ...updatedSession });
-      toast.success(
-        updatedSession.ai_mode ? "AI mode enabled" : "Manual mode enabled"
-      );
+      console.log("Toggle AI Mode - API Result:", result);
 
-      // Refresh sessions to update AI mode status
-      const data = await chatSystemAPI.getSessions(selectedChannel);
-      setSessions(data);
+      toast.success(
+        newAiMode ? "AI mode enabled" : "Manual mode enabled"
+      );
     } catch (error) {
-      console.error("Error toggling AI mode:", error);
+      // Revert on error
+      console.error("Toggle AI Mode - Error:", error);
+      setSelectedSession(prev => prev ? { ...prev, ai_mode: originalAiMode } : prev);
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === sessionId ? { ...s, ai_mode: originalAiMode } : s
+        )
+      );
       toast.error("Failed to toggle AI mode");
     }
   };
@@ -447,8 +621,12 @@ export default function MessagesPage() {
               <div className="flex items-center gap-2">
                 {/* AI Mode Toggle */}
                 <button
-                  onClick={handleToggleAIMode}
-                  className={`p-2 rounded-lg transition-colors ${
+                  type="button"
+                  onClick={() => {
+                    alert("AI Toggle clicked! Current mode: " + (selectedSession.ai_mode ? "AI" : "Manual"));
+                    handleToggleAIMode();
+                  }}
+                  className={`p-2 rounded-lg transition-colors cursor-pointer ${
                     selectedSession.ai_mode
                       ? "bg-sky-100 text-sky-600 hover:bg-sky-200"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -565,13 +743,84 @@ export default function MessagesPage() {
                   <span>AI mode is active. AI will respond to user messages automatically.</span>
                 </div>
               )}
-              <div className="flex gap-2 sm:gap-3">
+
+              {/* Trigger Words Hint */}
+              {triggerWords.length > 0 && !messageInput && (
+                <div className="mb-2 flex items-center gap-2 text-xs text-slate-500">
+                  <Zap className="h-3 w-3" />
+                  <span>Type / to see available triggers</span>
+                </div>
+              )}
+
+              <div className="relative flex gap-2 sm:gap-3">
+                {/* Trigger Suggestions Dropdown */}
+                {showTriggerSuggestions && filteredTriggers.length > 0 && (
+                  <div className="absolute bottom-full left-0 right-16 mb-2 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden z-10 max-h-64 overflow-y-auto">
+                    <div className="p-2 border-b border-slate-100 bg-slate-50">
+                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                        <Zap className="h-3 w-3 text-teal-primary" />
+                        <span>Trigger Words</span>
+                      </div>
+                    </div>
+                    <div className="py-1">
+                      {filteredTriggers.map((trigger, index) => {
+                        const MediaIcon = getTriggerMediaIcon(trigger.media_type);
+                        return (
+                          <button
+                            key={trigger.id}
+                            onClick={() => handleSelectTrigger(trigger)}
+                            className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors ${
+                              index === selectedTriggerIndex
+                                ? "bg-teal-primary/10 text-teal-primary"
+                                : "hover:bg-slate-50 text-slate-700"
+                            }`}
+                          >
+                            <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                              index === selectedTriggerIndex
+                                ? "bg-teal-primary/20"
+                                : "bg-slate-100"
+                            }`}>
+                              <MediaIcon className="h-4 w-4" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {trigger.trigger_word}
+                              </p>
+                              {trigger.description && (
+                                <p className="text-xs text-slate-500 truncate">
+                                  {trigger.description}
+                                </p>
+                              )}
+                            </div>
+                            {trigger.media_type === "image" && (
+                              <div className="relative h-8 w-8 rounded overflow-hidden bg-slate-100 shrink-0">
+                                <Image
+                                  src={trigger.media_url}
+                                  alt=""
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="p-2 border-t border-slate-100 bg-slate-50">
+                      <p className="text-[10px] text-slate-400 text-center">
+                        Use ↑↓ to navigate, Enter to select, Esc to close
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <input
+                  ref={inputRef}
                   type="text"
                   value={messageInput}
                   onChange={(e) => setMessageInput(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-                  placeholder="Type your message..."
+                  onKeyDown={handleInputKeyDown}
+                  placeholder="Type your message or / for triggers..."
                   disabled={sending}
                   className="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all disabled:opacity-50"
                 />

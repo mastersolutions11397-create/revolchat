@@ -56,10 +56,16 @@ class ApiRequestError extends Error {
 }
 
 /**
- * Use same-origin for /api/yetti/ routes (no workspace in URL); external base for rest.
+ * Use same-origin for local API routes; external base for rest.
  */
 function getBaseUrl(endpoint: string): string {
   if (endpoint.startsWith("/api/yetti/") && !endpoint.includes("workspaces/")) {
+    return "";
+  }
+  if (endpoint.startsWith("/api/trigger-words")) {
+    return "";
+  }
+  if (endpoint.startsWith("/api/chat/")) {
     return "";
   }
   return API_BASE_URL;
