@@ -19,6 +19,7 @@ import {
   X,
   Gift,
   Zap,
+  Bot,
 } from "lucide-react";
 
 function WorkspaceSelector() {
@@ -153,10 +154,10 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 tourId: null,
               },
               {
-                href: "/dashboard/knowledge-base",
-                icon: BookOpen,
-                label: t("dashboard.sidebar.knowledgeBase"),
-                tourId: "knowledge-base-nav",
+                href: "/dashboard/bots",
+                icon: Bot,
+                label: "Bots",
+                tourId: "bots-nav",
               },
               {
                 href: "/dashboard/integrations",

@@ -4,8 +4,19 @@ import type { TelegramWebhookUpdate } from "@/lib/types/chat";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN!;
 const agentsApiUrl = process.env.NEXT_PUBLIC_AGENTS_API_URL || "http://127.0.0.1:8000";
+
+type AgentBot = {
+  id: string;
+  name: string;
+  model: string;
+  model_id: string | null;
+  system_prompt: string;
+  api_key: string;
+  telegram_bot_token: string;
+  telegram_username: string | null;
+  telegram_first_name: string | null;
+};
 
 // Create Supabase admin client (bypasses RLS)
 const supabase = createClient(supabaseUrl, supabaseServiceKey, {
@@ -15,29 +26,114 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   }
 });
 
-// Helper function to send message via Telegram Bot API
-async function sendTelegramMessage(chatId: number, text: string) {
-  try {
-    const response = await fetch(
-      `https://api.telegram.org/bot${telegramBotToken}/sendMessage`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: text,
-          parse_mode: "HTML",
-        }),
-      }
-    );
+// Helper function to find agent/bot by Telegram bot username
+async function findAgentByTelegramBot(botUsername: string): Promise<AgentBot | null> {
+  const { data, error } = await supabase
+    .from("agents")
+    .select("*")
+    .eq("telegram_username", botUsername)
+    .single();
 
-    if (!response.ok) {
-      const error = await response.json();
-      console.error("Error sending Telegram message:", error);
-      throw new Error("Failed to send Telegram message");
+  if (error || !data) {
+    console.error("Agent not found for bot:", botUsername, error);
+    return null;
+  }
+
+  return data as AgentBot;
+}
+
+// Helper function to strip unsupported HTML/XML tags from text
+function sanitizeForTelegram(text: string): string {
+  // Remove any XML-like tags that Telegram doesn't support
+  // Telegram HTML only supports: <b>, <i>, <u>, <s>, <code>, <pre>, <a>, <tg-spoiler>, <tg-emoji>
+  const supportedTags = ['b', 'i', 'u', 's', 'code', 'pre', 'a', 'tg-spoiler', 'tg-emoji', 'strong', 'em'];
+
+  // Replace unsupported tags with their content
+  let sanitized = text.replace(/<\/?([a-zA-Z_][a-zA-Z0-9_-]*)[^>]*>/g, (match, tagName) => {
+    const tag = tagName.toLowerCase();
+    if (supportedTags.includes(tag)) {
+      return match; // Keep supported tags
+    }
+    return ''; // Remove unsupported tags
+  });
+
+  // Also escape any remaining < or > that might cause issues
+  // But only if they're not part of valid HTML tags
+  return sanitized;
+}
+
+// Telegram max message length
+const TELEGRAM_MAX_LENGTH = 4096;
+
+// Helper function to split text into chunks for Telegram
+function splitMessageForTelegram(text: string, maxLength: number = TELEGRAM_MAX_LENGTH): string[] {
+  if (text.length <= maxLength) {
+    return [text];
+  }
+
+  const chunks: string[] = [];
+  let remaining = text;
+
+  while (remaining.length > 0) {
+    if (remaining.length <= maxLength) {
+      chunks.push(remaining);
+      break;
     }
 
-    return await response.json();
+    // Try to split at a newline or space
+    let splitIndex = remaining.lastIndexOf('\n', maxLength);
+    if (splitIndex === -1 || splitIndex < maxLength / 2) {
+      splitIndex = remaining.lastIndexOf(' ', maxLength);
+    }
+    if (splitIndex === -1 || splitIndex < maxLength / 2) {
+      splitIndex = maxLength;
+    }
+
+    chunks.push(remaining.substring(0, splitIndex));
+    remaining = remaining.substring(splitIndex).trimStart();
+  }
+
+  return chunks;
+}
+
+// Helper function to send message via Telegram Bot API
+async function sendTelegramMessage(chatId: number, text: string, botToken: string) {
+  try {
+    // Strip ALL HTML/XML tags for plain text to avoid parsing issues
+    const plainText = text.replace(/<[^>]*>/g, '');
+
+    // Split long messages into chunks
+    const chunks = splitMessageForTelegram(plainText);
+    let lastResponse = null;
+
+    for (const chunk of chunks) {
+      const response = await fetch(
+        `https://api.telegram.org/bot${botToken}/sendMessage`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: chunk,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("Error sending Telegram message:", error);
+        throw new Error("Failed to send Telegram message");
+      }
+
+      lastResponse = await response.json();
+
+      // Small delay between chunks to avoid rate limiting
+      if (chunks.length > 1) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+
+    return lastResponse;
   } catch (error) {
     console.error("Error sending Telegram message:", error);
     throw error;
@@ -45,70 +141,35 @@ async function sendTelegramMessage(chatId: number, text: string) {
 }
 
 // Helper function to get AI response from knowledge base
-async function getAIResponse(message: string, workspaceId: string, userId: string): Promise<string> {
+async function getAIResponse(message: string, agentId: string, userId: string): Promise<string> {
   try {
-    const agentId = process.env.DEFAULT_AGENT_ID || "d7abb763-88eb-4b76-b07e-90055d5fbf23";
+    const conversationId = `telegram_${userId}_${agentId}`;
     const requestBody = {
-      prompt: message,
       agent_id: agentId,
       user_id: userId,
-      conversation_id: `telegram_${userId}`,
+      message: message,
+      conversation_id: conversationId,
     };
 
-    console.log("Sending AI request:", JSON.stringify(requestBody, null, 2));
+    console.log("Sending AI request to /telegram/chat:", JSON.stringify(requestBody, null, 2));
 
-    // The API expects form-urlencoded data, not JSON
-    const formData = new URLSearchParams();
-    formData.append('prompt', message);
-    formData.append('agent_id', agentId);
-    formData.append('user_id', userId);
-    formData.append('conversation_id', `telegram_${userId}`);
-
-    // Use the /agent/stream endpoint from your knowledge base API
-    const response = await fetch(`${agentsApiUrl}/agent/stream`, {
+    // Use the new non-streaming /telegram/chat endpoint
+    const response = await fetch(`${agentsApiUrl}/telegram/chat`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Type": "application/json",
       },
-      body: formData.toString(),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
-      console.error("Error getting AI response:", response.status, await response.text());
+      const errorText = await response.text();
+      console.error("Error getting AI response:", response.status, errorText);
       return "Sorry, I'm having trouble processing your request right now. An admin will respond shortly.";
     }
 
-    // For streaming endpoint, read the full stream
-    const reader = response.body?.getReader();
-    if (!reader) {
-      return "Sorry, I couldn't get a response. An admin will help you shortly.";
-    }
-
-    const decoder = new TextDecoder();
-    let fullResponse = "";
-    let currentEvent = "";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value);
-      // Parse SSE format: "event: token\ndata: text\n"
-      const lines = chunk.split('\n');
-      for (const line of lines) {
-        if (line.startsWith('event: ')) {
-          currentEvent = line.substring(7).trim();
-        } else if (line.startsWith('data: ')) {
-          // Only process tokens, skip the final "done" event with JSON
-          if (currentEvent === 'token') {
-            const token = line.substring(6);
-            fullResponse += token;
-          }
-        }
-      }
-    }
-
-    return fullResponse || "I received your message. An admin will respond shortly.";
+    const data = await response.json();
+    return data.response || "I received your message. An admin will respond shortly.";
   } catch (error) {
     console.error("Error getting AI response:", error);
     return "Sorry, I'm having trouble processing your request right now. An admin will respond shortly.";
@@ -220,6 +281,58 @@ export async function POST(request: NextRequest) {
     const messageText = message.text!;
     const messageId = message.message_id.toString();
 
+    // Get the bot username from the update (the bot that received this message)
+    // For direct messages, we need to look up by the bot info in the message
+    // The bot's username comes from message.entities or we need to get it via getMe
+    // For simplicity, let's try to find by checking which bot token matches this chat
+
+    // First, try to find the agent by checking all bots with telegram tokens
+    const { data: agents, error: agentsError } = await supabase
+      .from("agents")
+      .select("*")
+      .not("telegram_bot_token", "is", null);
+
+    if (agentsError || !agents || agents.length === 0) {
+      console.error("No agents with Telegram tokens found");
+      return NextResponse.json({ ok: true, message: "No bot configured" });
+    }
+
+    // Find the agent whose bot received this message by checking getMe for each
+    let matchedAgent: AgentBot | null = null;
+    for (const agent of agents) {
+      try {
+        const getMeResponse = await fetch(
+          `https://api.telegram.org/bot${agent.telegram_bot_token}/getMe`
+        );
+        const getMeData = await getMeResponse.json();
+        if (getMeData.ok) {
+          // Check if this webhook came from this bot by trying to send a typing action
+          // This is a lightweight way to verify the bot can interact with this chat
+          const chatResponse = await fetch(
+            `https://api.telegram.org/bot${agent.telegram_bot_token}/sendChatAction`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ chat_id: chatId, action: "typing" }),
+            }
+          );
+          if (chatResponse.ok) {
+            matchedAgent = agent as AgentBot;
+            break;
+          }
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    if (!matchedAgent) {
+      console.error("Could not find matching agent for this chat");
+      return NextResponse.json({ ok: true, message: "No matching bot found" });
+    }
+
+    console.log(`Matched agent: ${matchedAgent.name} (${matchedAgent.id})`);
+
     // Find or create chat session
     const session = await findOrCreateSession(
       userId,
@@ -240,19 +353,19 @@ export async function POST(request: NextRequest) {
 
     // Check if AI mode is enabled
     if (session.ai_mode) {
-      // Get AI response
-      const aiResponse = await getAIResponse(messageText, "", userId);
+      // Get AI response using the matched agent
+      const aiResponse = await getAIResponse(messageText, matchedAgent.id, userId);
 
-      // Send AI response via Telegram
-      const sentMessage = await sendTelegramMessage(chatId, aiResponse);
+      // Send AI response via Telegram using the agent's bot token
+      const sentMessage = await sendTelegramMessage(chatId, aiResponse, matchedAgent.telegram_bot_token);
 
       // Save AI response to database
       await saveMessage(
         session.id,
         aiResponse,
         "ai",
-        "ai-bot",
-        "AI Assistant",
+        matchedAgent.id,
+        matchedAgent.name,
         sentMessage.result?.message_id?.toString()
       );
 
