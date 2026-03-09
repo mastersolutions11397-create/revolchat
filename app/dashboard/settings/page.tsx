@@ -463,12 +463,12 @@ export default function SettingsPage() {
                     <div className="h-2 w-2 rounded-full bg-teal-primary animate-pulse"></div>
                     {t("settings.profile.active")}
                   </div>
-                  {user?.created_at && (
+                  {user && (
                     <div className="flex items-center gap-1.5 text-xs text-slate-500">
                       <Calendar className="h-3.5 w-3.5" />
                       <span>
                         {t("settings.profile.since")}{" "}
-                        {new Date(user.created_at).toLocaleDateString("en-US", {
+                        {new Date().toLocaleDateString("en-US", {
                           month: "short",
                           year: "numeric",
                         })}

@@ -420,14 +420,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-700">Member Since</span>
-                  <span className="font-semibold text-gray-900">
-                    {user?.created_at
-                      ? new Date(user.created_at).toLocaleDateString("en-US", {
-                          month: "short",
-                          year: "numeric",
-                        })
-                      : "—"}
-                  </span>
+                  <span className="font-semibold text-gray-900">—</span>
                 </div>
               </div>
               <div className="mt-6">

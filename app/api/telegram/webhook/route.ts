@@ -217,7 +217,7 @@ export async function POST(request: NextRequest) {
     const { message } = update;
     const chatId = message.chat.id;
     const userId = message.from.id.toString();
-    const messageText = message.text;
+    const messageText = message.text!;
     const messageId = message.message_id.toString();
 
     // Find or create chat session

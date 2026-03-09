@@ -553,7 +553,9 @@ export default function MessagesPage() {
                           {session.last_message || "No messages yet"}
                         </p>
                         {session.ai_mode && (
-                          <Bot className="h-3 w-3 text-sky-500 flex-shrink-0" title="AI Mode Active" />
+                          <span className="flex-shrink-0" title="AI Mode Active">
+                            <Bot className="h-3 w-3 text-sky-500" />
+                          </span>
                         )}
                       </div>
                     </div>

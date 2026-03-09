@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { User } from "@supabase/supabase-js";
-import { useAuth } from "@/lib/auth-context";
+import { useAuth, type AppUser } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { agentsAPI, type Agent, type AgentModel } from "@/lib/api/agents";
 import { agentChatAPI } from "@/lib/api/agent-chat";
@@ -475,7 +474,7 @@ type ChatMessage = {
 interface ChatPanelProps {
   agents: AgentRecord[];
   hasGoogleSheet: boolean;
-  user?: User | null;
+  user?: AppUser | null;
   onTestAgentMessageCompleted?: () => void;
   emptyStateMessage?: string;
   noItemsMessage?: string;
