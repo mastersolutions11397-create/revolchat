@@ -1,8 +1,62 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { headers } from "next/headers";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+
+// Get the base URL for webhook registration
+async function getWebhookUrl(): Promise<string> {
+  const headersList = await headers();
+  const host = headersList.get("host") || "localhost:3000";
+  const protocol = headersList.get("x-forwarded-proto") || "http";
+
+  // In production, use the actual domain
+  // Check for common production indicators
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}/api/telegram/webhook`;
+  }
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return `${process.env.NEXT_PUBLIC_APP_URL}/api/telegram/webhook`;
+  }
+
+  return `${protocol}://${host}/api/telegram/webhook`;
+}
+
+// Register webhook for a Telegram bot
+async function registerTelegramWebhook(botToken: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const webhookUrl = await getWebhookUrl();
+
+    // Skip webhook registration for localhost (won't work anyway)
+    if (webhookUrl.includes("localhost")) {
+      console.log("Skipping webhook registration for localhost - use ngrok and setup script");
+      return { success: true };
+    }
+
+    const response = await fetch(
+      `https://api.telegram.org/bot${botToken}/setWebhook`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: webhookUrl }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.ok) {
+      console.log(`Webhook registered successfully: ${webhookUrl}`);
+      return { success: true };
+    } else {
+      console.error("Failed to register webhook:", data.description);
+      return { success: false, error: data.description };
+    }
+  } catch (err) {
+    console.error("Error registering webhook:", err);
+    return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
+  }
+}
 
 function getSupabase() {
   return createClient(supabaseUrl, supabaseServiceKey);
@@ -98,7 +152,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json(maskSensitiveFields(data), { status: 201 });
+    // Auto-register webhook if Telegram bot token is provided
+    let webhookRegistered = false;
+    if (row.telegram_bot_token) {
+      const webhookResult = await registerTelegramWebhook(row.telegram_bot_token);
+      webhookRegistered = webhookResult.success;
+      if (!webhookResult.success) {
+        console.warn(`Webhook registration failed for bot ${data.id}: ${webhookResult.error}`);
+      }
+    }
+
+    return NextResponse.json(
+      { ...maskSensitiveFields(data), webhook_registered: webhookRegistered },
+      { status: 201 }
+    );
   } catch (err) {
     console.error("Error creating bot:", err);
     return NextResponse.json(

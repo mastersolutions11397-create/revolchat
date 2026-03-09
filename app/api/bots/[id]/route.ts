@@ -4,6 +4,65 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
+// Get the base URL for webhook registration
+function getWebhookUrl(): string {
+  // In production, use the actual domain
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}/api/telegram/webhook`;
+  }
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return `${process.env.NEXT_PUBLIC_APP_URL}/api/telegram/webhook`;
+  }
+  return "";
+}
+
+// Register webhook for a Telegram bot
+async function registerTelegramWebhook(botToken: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const webhookUrl = getWebhookUrl();
+
+    // Skip webhook registration for localhost
+    if (!webhookUrl || webhookUrl.includes("localhost")) {
+      console.log("Skipping webhook registration - no production URL configured");
+      return { success: true };
+    }
+
+    const response = await fetch(
+      `https://api.telegram.org/bot${botToken}/setWebhook`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: webhookUrl }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.ok) {
+      console.log(`Webhook registered successfully: ${webhookUrl}`);
+      return { success: true };
+    } else {
+      console.error("Failed to register webhook:", data.description);
+      return { success: false, error: data.description };
+    }
+  } catch (err) {
+    console.error("Error registering webhook:", err);
+    return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
+  }
+}
+
+// Remove webhook for a Telegram bot
+async function removeTelegramWebhook(botToken: string): Promise<void> {
+  try {
+    await fetch(
+      `https://api.telegram.org/bot${botToken}/deleteWebhook`,
+      { method: "POST" }
+    );
+  } catch (err) {
+    console.error("Error removing webhook:", err);
+  }
+}
+
 function getSupabase() {
   return createClient(supabaseUrl, supabaseServiceKey);
 }
@@ -97,7 +156,14 @@ export async function PATCH(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json(maskSensitiveFields(data));
+    // Re-register webhook if Telegram token was updated
+    let webhookRegistered = false;
+    if (updates.telegram_bot_token && data.telegram_bot_token) {
+      const webhookResult = await registerTelegramWebhook(data.telegram_bot_token);
+      webhookRegistered = webhookResult.success;
+    }
+
+    return NextResponse.json({ ...maskSensitiveFields(data), webhook_registered: webhookRegistered });
   } catch (err) {
     console.error("Error updating bot:", err);
     return NextResponse.json(
@@ -116,6 +182,13 @@ export async function DELETE(
     const { id } = await params;
     const supabase = getSupabase();
 
+    // Get the bot first to remove webhook
+    const { data: existingBot } = await supabase
+      .from("agents")
+      .select("telegram_bot_token")
+      .eq("id", id)
+      .single();
+
     const { data, error } = await supabase
       .from("agents")
       .delete()
@@ -128,6 +201,11 @@ export async function DELETE(
         return NextResponse.json({ error: "Bot not found" }, { status: 404 });
       }
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Remove webhook if bot had a Telegram token
+    if (existingBot?.telegram_bot_token) {
+      await removeTelegramWebhook(existingBot.telegram_bot_token);
     }
 
     return NextResponse.json({ message: "Bot deleted", id });
