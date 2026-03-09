@@ -14,7 +14,8 @@ const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 async function syncProfileToTelegram(botToken: string, imageBuffer: Buffer): Promise<boolean> {
   try {
     const formData = new FormData();
-    const blob = new Blob([imageBuffer], { type: "image/png" });
+    const uint8Array = new Uint8Array(imageBuffer);
+    const blob = new Blob([uint8Array], { type: "image/png" });
     formData.append("photo", blob, "profile.png");
 
     const response = await fetch(`https://api.telegram.org/bot${botToken}/setMyPhoto`, {
