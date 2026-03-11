@@ -4,7 +4,7 @@ import type { TelegramWebhookUpdate } from "@/lib/types/chat";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const agentsApiUrl = process.env.NEXT_PUBLIC_AGENTS_API_URL || "http://127.0.0.1:8000";
+const tgServerUrl = process.env.NEXT_PUBLIC_TG_SERVER_URL || "http://127.0.0.1:8000";
 
 type AgentBot = {
   id: string;
@@ -154,7 +154,7 @@ async function getAIResponse(message: string, agentId: string, userId: string): 
     console.log("Sending AI request to /telegram/chat:", JSON.stringify(requestBody, null, 2));
 
     // Use the new non-streaming /telegram/chat endpoint
-    const response = await fetch(`${agentsApiUrl}/telegram/chat`, {
+    const response = await fetch(`${tgServerUrl}/telegram/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
