@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { chatSystemAPI } from "@/lib/api/chat-system";
 import { triggerWordsAPI } from "@/lib/api/trigger-words";
 import { supabase } from "@/lib/supabase";
-import type { ChatSession, ChatMessage, SessionWithLastMessage, TriggerWord } from "@/lib/types/chat";
+import type { ChatMessage, SessionWithLastMessage, TriggerWord } from "@/lib/types/chat";
 import {
   MessageSquare,
   Send,
@@ -40,6 +40,78 @@ function getTriggerMediaIcon(type: string) {
     default:
       return File;
   }
+}
+
+function renderMessageContent(message: ChatMessage) {
+  const attachment = message.attachments?.[0];
+
+  if (message.message_type === "image" && attachment?.url) {
+    return (
+      <div className="space-y-2">
+        <div className="relative h-64 w-full overflow-hidden rounded-xl bg-slate-100">
+          <Image
+            src={attachment.url}
+            alt={attachment.filename || "Sent image"}
+            fill
+            className="object-cover"
+          />
+        </div>
+        {message.message_text ? (
+          <p className="text-sm leading-relaxed whitespace-pre-wrap">
+            {message.message_text}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (message.message_type === "video" && attachment?.url) {
+    return (
+      <div className="space-y-2">
+        <video
+          src={attachment.url}
+          controls
+          className="max-h-64 w-full rounded-xl bg-black"
+        />
+        {message.message_text ? (
+          <p className="text-sm leading-relaxed whitespace-pre-wrap">
+            {message.message_text}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
+  if ((message.message_type === "audio" || message.message_type === "file") && attachment?.url) {
+    return (
+      <div className="space-y-2">
+        {message.message_type === "audio" ? (
+          <audio src={attachment.url} controls className="w-full" />
+        ) : (
+          <a
+            href={attachment.url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-lg bg-black/5 px-3 py-2 text-sm underline-offset-2 hover:underline"
+          >
+            <File className="h-4 w-4" />
+            {attachment.filename || "Open file"}
+          </a>
+        )}
+        {message.message_text ? (
+          <p className="text-sm leading-relaxed whitespace-pre-wrap">
+            {message.message_text}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <p className="text-sm leading-relaxed whitespace-pre-wrap">
+      {message.message_text}
+    </p>
+  );
 }
 
 export default function MessagesPage() {
@@ -260,10 +332,18 @@ export default function MessagesPage() {
     setSending(true);
 
     try {
-      // Send the media URL with the trigger word as context
       await chatSystemAPI.sendMessage({
         session_id: selectedSession.id,
-        message_text: trigger.media_url,
+        message_text: trigger.description || "",
+        message_type: trigger.media_type,
+        attachments: [
+          {
+            type: trigger.media_type,
+            url: trigger.media_url,
+            filename: trigger.media_filename,
+            size: trigger.media_size,
+          },
+        ],
         sender_type: "admin",
       });
 
@@ -683,7 +763,7 @@ export default function MessagesPage() {
                 </div>
               ) : (
                 <>
-                  {messages.map((message, index) => {
+                  {messages.map((message) => {
                     const isFromAdmin = message.sender_type === "admin";
                     const isFromAI = message.sender_type === "ai";
                     const isFromMe = isFromAdmin || isFromAI;
@@ -721,9 +801,7 @@ export default function MessagesPage() {
                                 <span>AI Assistant</span>
                               </div>
                             )}
-                            <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                              {message.message_text}
-                            </p>
+                            {renderMessageContent(message)}
                           </div>
                           <span className="text-[10px] mt-1.5 px-1 text-slate-400">
                             {formatTime(message.created_at)}

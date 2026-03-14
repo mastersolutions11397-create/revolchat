@@ -29,17 +29,22 @@ export interface UploadMediaResponse {
 
 class TriggerWordsAPI {
   // Get all trigger words for user
-  async getTriggerWords(): Promise<TriggerWord[]> {
-    const response = await apiRequest<GetTriggerWordsResponse>(`/api/trigger-words`, {
+  async getTriggerWords(botId?: string): Promise<TriggerWord[]> {
+    const query = botId ? `?bot_id=${encodeURIComponent(botId)}` : "";
+    const response = await apiRequest<GetTriggerWordsResponse>(`/api/trigger-words${query}`, {
       method: "GET",
     });
     return response.trigger_words;
   }
 
   // Get active trigger words for user (for chat suggestions)
-  async getActiveTriggerWords(): Promise<TriggerWord[]> {
+  async getActiveTriggerWords(botId?: string): Promise<TriggerWord[]> {
+    const params = new URLSearchParams({ active_only: "true" });
+    if (botId) {
+      params.set("bot_id", botId);
+    }
     const response = await apiRequest<GetTriggerWordsResponse>(
-      `/api/trigger-words?active_only=true`,
+      `/api/trigger-words?${params.toString()}`,
       { method: "GET" }
     );
     return response.trigger_words;

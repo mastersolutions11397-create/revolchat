@@ -24,6 +24,21 @@ async function getUserIdFromCookie(): Promise<string | null> {
   return admin?.id || null;
 }
 
+async function validateBotOwnership(userId: string, botId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("agents")
+    .select("id")
+    .eq("id", botId)
+    .eq("user_id", userId)
+    .single();
+
+  if (error) {
+    return false;
+  }
+
+  return !!data;
+}
+
 // GET /api/trigger-words/[id] - Get a specific trigger word
 export async function GET(
   request: NextRequest,
@@ -83,8 +98,22 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
+    const { data: existingTrigger, error: existingTriggerError } = await supabase
+      .from("trigger_words")
+      .select("id, bot_id, trigger_word")
+      .eq("id", id)
+      .eq("user_id", userId)
+      .single();
+
+    if (existingTriggerError || !existingTrigger) {
+      return NextResponse.json(
+        { error: "Trigger word not found" },
+        { status: 404 }
+      );
+    }
 
     const {
+      bot_id,
       trigger_word,
       description,
       media_url,
@@ -96,6 +125,16 @@ export async function PATCH(
 
     // Build update object with only provided fields
     const updateData: Record<string, unknown> = {};
+    if (bot_id !== undefined) {
+      const hasAccessToBot = await validateBotOwnership(userId, bot_id);
+      if (!hasAccessToBot) {
+        return NextResponse.json(
+          { error: "Selected bot not found" },
+          { status: 404 }
+        );
+      }
+      updateData.bot_id = bot_id;
+    }
     if (trigger_word !== undefined) {
       updateData.trigger_word = trigger_word.startsWith("/")
         ? trigger_word.toLowerCase()
@@ -113,6 +152,28 @@ export async function PATCH(
         { error: "No fields to update" },
         { status: 400 }
       );
+    }
+
+    const nextBotId = (updateData.bot_id as string | undefined) ?? existingTrigger.bot_id;
+    const nextTriggerWord =
+      (updateData.trigger_word as string | undefined) ?? existingTrigger.trigger_word;
+
+    if (nextBotId && nextTriggerWord) {
+      const { data: conflictingTrigger } = await supabase
+        .from("trigger_words")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("bot_id", nextBotId)
+        .eq("trigger_word", nextTriggerWord)
+        .neq("id", id)
+        .single();
+
+      if (conflictingTrigger) {
+        return NextResponse.json(
+          { error: "Trigger word already exists for this bot" },
+          { status: 409 }
+        );
+      }
     }
 
     const { data: triggerWord, error } = await supabase

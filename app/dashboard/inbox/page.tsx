@@ -7,6 +7,7 @@ import { type Conversation, type Message } from "@/lib/api/integrations";
 import { MessageSquare, Search, Info, ArrowLeft, Send, Bot, User, Zap, Image as ImageIcon, Video, File, Music } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { ChatSession, ChatMessage, TriggerWord } from "@/lib/types/chat";
+import { chatSystemAPI } from "@/lib/api/chat-system";
 import { triggerWordsAPI } from "@/lib/api/trigger-words";
 
 function getTriggerMediaIcon(type: string) {
@@ -29,6 +30,8 @@ interface SessionWithLastMessage extends ChatSession {
   last_message_time?: string;
   unread_count?: number;
 }
+
+type InboxMessage = Message & Pick<ChatMessage, "message_type" | "attachments">;
 
 // Helper to check if user is online (active in last 5 minutes)
 const isUserOnline = (lastSeenAt?: string): boolean => {
@@ -63,7 +66,7 @@ const transformSessionsToConversations = (
 // Transform chat messages to Message format
 const transformMessagesToMessages = (
   chatMessages: ChatMessage[]
-): Message[] => {
+): InboxMessage[] => {
   return chatMessages.map((msg) => ({
     id: msg.id,
     text: msg.message_text,
@@ -71,8 +74,82 @@ const transformMessagesToMessages = (
     sender_name: msg.sender_type === "user" ? "User" : "Agent",
     timestamp: msg.created_at,
     is_from_me: msg.sender_type === "ai" || msg.sender_type === "admin",
+    message_type: msg.message_type,
+    attachments: msg.attachments,
   }));
 };
+
+function renderInboxMessageContent(message: InboxMessage) {
+  const attachment = message.attachments?.[0];
+
+  if (message.message_type === "image" && attachment?.url) {
+    return (
+      <div className="space-y-2">
+        <div className="relative h-64 w-full overflow-hidden rounded-xl bg-slate-100">
+          <Image
+            src={attachment.url}
+            alt={attachment.filename || "Sent image"}
+            fill
+            className="object-cover"
+          />
+        </div>
+        {message.text ? (
+          <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
+            {message.text}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (message.message_type === "video" && attachment?.url) {
+    return (
+      <div className="space-y-2">
+        <video
+          src={attachment.url}
+          controls
+          className="max-h-64 w-full rounded-xl bg-black"
+        />
+        {message.text ? (
+          <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
+            {message.text}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
+  if ((message.message_type === "audio" || message.message_type === "file") && attachment?.url) {
+    return (
+      <div className="space-y-2">
+        {message.message_type === "audio" ? (
+          <audio src={attachment.url} controls className="w-full" />
+        ) : (
+          <a
+            href={attachment.url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 rounded-lg bg-black/5 px-3 py-2 text-xs sm:text-sm underline-offset-2 hover:underline"
+          >
+            <File className="h-4 w-4" />
+            {attachment.filename || "Open file"}
+          </a>
+        )}
+        {message.text ? (
+          <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
+            {message.text}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
+      {message.text}
+    </p>
+  );
+}
 
 export default function InboxPage() {
   const { t } = useLanguage();
@@ -82,7 +159,7 @@ export default function InboxPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] =
     useState<Conversation | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<InboxMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [showChatView, setShowChatView] = useState(false);
   const [messageInput, setMessageInput] = useState("");
@@ -426,37 +503,23 @@ export default function InboxPage() {
     setSending(true);
 
     try {
-      // Save message to database with the media URL
-      const { data: newMessage, error } = await supabase
-        .from("chat_messages")
-        .insert({
-          session_id: selectedConversation.id,
-          message_text: trigger.media_url,
-          sender_type: "admin",
-          is_read: true,
-        })
-        .select()
-        .single();
+      const newMessage = await chatSystemAPI.sendMessage({
+        session_id: selectedConversation.id,
+        message_text: trigger.description || "",
+        message_type: trigger.media_type,
+        attachments: [
+          {
+            type: trigger.media_type,
+            url: trigger.media_url,
+            filename: trigger.media_filename,
+            size: trigger.media_size,
+          },
+        ],
+        sender_type: "admin",
+      });
 
-      if (error) {
-        console.error("Error sending trigger:", error);
-        return;
-      }
-
-      // Add message to UI
       const formattedMessage = transformMessagesToMessages([newMessage])[0];
       setMessages((prev) => [...prev, formattedMessage]);
-
-      // Send to Telegram via API
-      await fetch("/api/chat/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: selectedConversation.id,
-          message_text: trigger.media_url,
-          sender_type: "admin",
-        }),
-      });
 
       // Increment usage count
       try {
@@ -853,9 +916,7 @@ export default function InboxPage() {
                               : "bg-dashboard-card border border-dashboard-border text-slate-800 rounded-2xl rounded-tl-sm"
                           }`}
                         >
-                          <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">
-                            {message.text}
-                          </p>
+                          {renderInboxMessageContent(message)}
                         </div>
                         <span
                           className={`text-[10px] mt-1 sm:mt-1.5 px-1 ${

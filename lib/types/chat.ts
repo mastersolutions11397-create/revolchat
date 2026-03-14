@@ -165,6 +165,7 @@ export type TriggerMediaType = 'image' | 'video' | 'file' | 'audio';
 export interface TriggerWord {
   id: string;
   user_id: string;
+  bot_id?: string | null;
   trigger_word: string;
   description?: string;
   media_url: string;
@@ -178,6 +179,7 @@ export interface TriggerWord {
 }
 
 export interface CreateTriggerWordParams {
+  bot_id: string;
   trigger_word: string;
   description?: string;
   media_url: string;
@@ -187,6 +189,7 @@ export interface CreateTriggerWordParams {
 }
 
 export interface UpdateTriggerWordParams {
+  bot_id?: string;
   trigger_word?: string;
   description?: string;
   media_url?: string;

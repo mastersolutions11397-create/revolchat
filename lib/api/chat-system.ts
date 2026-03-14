@@ -3,8 +3,8 @@ import type {
   ChatSession,
   ChatMessage,
   SessionWithLastMessage,
-  CreateMessageParams,
-  UpdateSessionParams,
+  Attachment,
+  MessageType,
 } from "@/lib/types/chat";
 
 export interface GetSessionsResponse {
@@ -17,7 +17,9 @@ export interface GetMessagesResponse {
 
 export interface SendMessageRequest {
   session_id: string;
-  message_text: string;
+  message_text?: string;
+  message_type?: MessageType;
+  attachments?: Attachment[];
   sender_type: "admin";
 }
 

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import type { Attachment, MessageType } from "@/lib/types/chat";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -84,6 +85,60 @@ async function sendTelegramVideo(chatId: string, videoUrl: string) {
   }
 }
 
+async function sendTelegramDocument(chatId: string, documentUrl: string) {
+  try {
+    const response = await fetch(
+      `https://api.telegram.org/bot${telegramBotToken}/sendDocument`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          document: documentUrl,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("Error sending Telegram document:", error);
+      throw new Error("Failed to send Telegram document");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error sending Telegram document:", error);
+    throw error;
+  }
+}
+
+async function sendTelegramAudio(chatId: string, audioUrl: string) {
+  try {
+    const response = await fetch(
+      `https://api.telegram.org/bot${telegramBotToken}/sendAudio`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          audio: audioUrl,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      console.error("Error sending Telegram audio:", error);
+      throw new Error("Failed to send Telegram audio");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error sending Telegram audio:", error);
+    throw error;
+  }
+}
+
 // Helper function to send message via Telegram Bot API
 async function sendTelegramMessage(chatId: string, text: string) {
   try {
@@ -116,11 +171,23 @@ async function sendTelegramMessage(chatId: string, text: string) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { session_id, message_text, sender_type = "admin" } = body;
+    const {
+      session_id,
+      message_text = "",
+      message_type = "text",
+      attachments = [],
+      sender_type = "admin",
+    }: {
+      session_id?: string;
+      message_text?: string;
+      message_type?: MessageType;
+      attachments?: Attachment[];
+      sender_type?: "admin";
+    } = body;
 
-    if (!session_id || !message_text) {
+    if (!session_id || (!message_text && attachments.length === 0)) {
       return NextResponse.json(
-        { error: "session_id and message_text are required" },
+        { error: "session_id and either message_text or attachments are required" },
         { status: 400 }
       );
     }
@@ -146,7 +213,8 @@ export async function POST(request: NextRequest) {
       .insert({
         session_id: session_id,
         message_text: message_text,
-        message_type: "text",
+        message_type,
+        attachments,
         sender_type: sender_type,
         sender_id: "admin", // TODO: Get actual admin user ID from auth
         sender_name: "Support Team",
@@ -167,9 +235,30 @@ export async function POST(request: NextRequest) {
     if (session.platform === "telegram") {
       try {
         let telegramResponse;
+        const primaryAttachment = attachments[0];
+        const attachmentUrl = primaryAttachment?.url;
 
-        // Check if the message is a media URL and send appropriately
-        if (isImageUrl(message_text)) {
+        if (message_type === "image" && attachmentUrl) {
+          telegramResponse = await sendTelegramPhoto(
+            session.external_user_id,
+            attachmentUrl
+          );
+        } else if (message_type === "video" && attachmentUrl) {
+          telegramResponse = await sendTelegramVideo(
+            session.external_user_id,
+            attachmentUrl
+          );
+        } else if (message_type === "audio" && attachmentUrl) {
+          telegramResponse = await sendTelegramAudio(
+            session.external_user_id,
+            attachmentUrl
+          );
+        } else if (message_type === "file" && attachmentUrl) {
+          telegramResponse = await sendTelegramDocument(
+            session.external_user_id,
+            attachmentUrl
+          );
+        } else if (isImageUrl(message_text)) {
           telegramResponse = await sendTelegramPhoto(
             session.external_user_id,
             message_text

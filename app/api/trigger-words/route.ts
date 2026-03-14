@@ -24,6 +24,21 @@ async function getUserIdFromCookie(): Promise<string | null> {
   return admin?.id || null;
 }
 
+async function validateBotOwnership(userId: string, botId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("agents")
+    .select("id")
+    .eq("id", botId)
+    .eq("user_id", userId)
+    .single();
+
+  if (error) {
+    return false;
+  }
+
+  return !!data;
+}
+
 // GET /api/trigger-words - Get all trigger words for user
 export async function GET(request: NextRequest) {
   try {
@@ -37,6 +52,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const activeOnly = searchParams.get("active_only") === "true";
+    const botId = searchParams.get("bot_id");
 
     let query = supabase
       .from("trigger_words")
@@ -46,6 +62,10 @@ export async function GET(request: NextRequest) {
 
     if (activeOnly) {
       query = query.eq("is_active", true);
+    }
+
+    if (botId) {
+      query = query.eq("bot_id", botId);
     }
 
     const { data: triggerWords, error } = await query;
@@ -83,6 +103,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const {
+      bot_id,
       trigger_word,
       description,
       media_url,
@@ -92,10 +113,18 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validate required fields
-    if (!trigger_word || !media_url || !media_type) {
+    if (!bot_id || !trigger_word || !media_url || !media_type) {
       return NextResponse.json(
-        { error: "Missing required fields: trigger_word, media_url, media_type" },
+        { error: "Missing required fields: bot_id, trigger_word, media_url, media_type" },
         { status: 400 }
+      );
+    }
+
+    const hasAccessToBot = await validateBotOwnership(userId, bot_id);
+    if (!hasAccessToBot) {
+      return NextResponse.json(
+        { error: "Selected bot not found" },
+        { status: 404 }
       );
     }
 
@@ -109,6 +138,7 @@ export async function POST(request: NextRequest) {
       .from("trigger_words")
       .select("id")
       .eq("user_id", userId)
+      .eq("bot_id", bot_id)
       .eq("trigger_word", formattedTrigger)
       .single();
 
@@ -123,6 +153,7 @@ export async function POST(request: NextRequest) {
       .from("trigger_words")
       .insert({
         user_id: userId,
+        bot_id,
         trigger_word: formattedTrigger,
         description,
         media_url,

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { useAuth } from "@/lib/auth-context";
 import { triggerWordsAPI } from "@/lib/api/trigger-words";
+import { agentsAPI } from "@/lib/api/agents";
 import type { TriggerWord, TriggerMediaType } from "@/lib/types/chat";
 import { toast } from "sonner";
 import {
@@ -38,10 +39,17 @@ function getMediaIcon(type: TriggerMediaType) {
   return option?.icon || File;
 }
 
+type BotOption = {
+  id: string;
+  name: string;
+  telegram_username?: string | null;
+};
+
 export default function TriggersPage() {
   const { user } = useAuth();
 
   const [triggers, setTriggers] = useState<TriggerWord[]>([]);
+  const [bots, setBots] = useState<BotOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -54,6 +62,7 @@ export default function TriggersPage() {
 
   // Form state
   const [triggerWord, setTriggerWord] = useState("");
+  const [selectedBotId, setSelectedBotId] = useState("");
   const [description, setDescription] = useState("");
   const [mediaUrl, setMediaUrl] = useState("");
   const [mediaType, setMediaType] = useState<TriggerMediaType>("image");
@@ -68,11 +77,21 @@ export default function TriggersPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await triggerWordsAPI.getTriggerWords();
-      setTriggers(data);
+      const [triggerData, botsResponse] = await Promise.all([
+        triggerWordsAPI.getTriggerWords(),
+        agentsAPI.list(user.id),
+      ]);
+      const botData = botsResponse.agents.map((agent) => ({
+        id: agent.id,
+        name: agent.name,
+        telegram_username: agent.telegram_username ?? null,
+      }));
+      setBots(botData);
+      setTriggers(triggerData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load triggers.");
       setTriggers([]);
+      setBots([]);
     } finally {
       setLoading(false);
     }
@@ -87,6 +106,7 @@ export default function TriggersPage() {
   // Reset form
   const resetForm = useCallback(() => {
     setTriggerWord("");
+    setSelectedBotId("");
     setDescription("");
     setMediaUrl("");
     setMediaType("image");
@@ -132,6 +152,7 @@ export default function TriggersPage() {
   const openEditModal = (trigger: TriggerWord) => {
     setEditingTrigger(trigger);
     setTriggerWord(trigger.trigger_word.replace(/^\//, ""));
+    setSelectedBotId(trigger.bot_id || "");
     setDescription(trigger.description || "");
     setMediaUrl(trigger.media_url);
     setMediaType(trigger.media_type);
@@ -147,6 +168,11 @@ export default function TriggersPage() {
 
     if (!triggerWord.trim()) {
       setModalError("Trigger word is required.");
+      return;
+    }
+
+    if (!selectedBotId) {
+      setModalError("Please choose a bot for this trigger.");
       return;
     }
 
@@ -184,6 +210,7 @@ export default function TriggersPage() {
       if (editingTrigger) {
         // Update existing
         const updated = await triggerWordsAPI.updateTriggerWord(editingTrigger.id, {
+          bot_id: selectedBotId,
           trigger_word: triggerWord.trim(),
           description: description.trim() || undefined,
           media_url: finalMediaUrl.trim(),
@@ -196,6 +223,7 @@ export default function TriggersPage() {
       } else {
         // Create new
         const created = await triggerWordsAPI.createTriggerWord({
+          bot_id: selectedBotId,
           trigger_word: triggerWord.trim(),
           description: description.trim() || undefined,
           media_url: finalMediaUrl.trim(),
@@ -211,7 +239,7 @@ export default function TriggersPage() {
     } finally {
       setSaving(false);
     }
-  }, [triggerWord, description, mediaUrl, mediaType, editingTrigger, resetForm, uploadMode, selectedFile]);
+  }, [triggerWord, selectedBotId, description, mediaUrl, mediaType, editingTrigger, resetForm, uploadMode, selectedFile]);
 
   // Handle delete
   const handleDelete = useCallback(async (id: string) => {
@@ -244,7 +272,8 @@ export default function TriggersPage() {
   // Filter triggers
   const filteredTriggers = triggers.filter((trigger) =>
     trigger.trigger_word.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    trigger.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    trigger.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (bots.find((bot) => bot.id === trigger.bot_id)?.name ?? "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -361,6 +390,7 @@ export default function TriggersPage() {
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredTriggers.map((trigger) => {
                   const MediaIcon = getMediaIcon(trigger.media_type);
+                  const bot = bots.find((item) => item.id === trigger.bot_id);
                   return (
                     <div
                       key={trigger.id}
@@ -382,8 +412,9 @@ export default function TriggersPage() {
                             <p className="text-sm font-bold text-slate-900 truncate">
                               {trigger.trigger_word}
                             </p>
-                            <p className="text-[10px] text-slate-500 capitalize">
+                            <p className="text-[10px] text-slate-500 capitalize truncate">
                               {trigger.media_type}
+                              {bot ? ` - ${bot.name}` : ""}
                             </p>
                           </div>
                         </div>
@@ -511,6 +542,29 @@ export default function TriggersPage() {
               )}
 
               <div className="space-y-4">
+                {/* Trigger Word */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                    Bot
+                  </label>
+                  <select
+                    value={selectedBotId}
+                    onChange={(e) => setSelectedBotId(e.target.value)}
+                    className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-dashboard-border rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-primary/20 focus:border-teal-primary transition-all"
+                  >
+                    <option value="">Select a bot...</option>
+                    {bots.map((bot) => (
+                      <option key={bot.id} value={bot.id}>
+                        {bot.name}
+                        {bot.telegram_username ? ` (@${bot.telegram_username})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-slate-500 mt-1 ml-1">
+                    Choose which bot this trigger belongs to
+                  </p>
+                </div>
+
                 {/* Trigger Word */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
