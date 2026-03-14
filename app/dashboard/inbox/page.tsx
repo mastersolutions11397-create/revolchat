@@ -4,11 +4,12 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { type Conversation, type Message } from "@/lib/api/integrations";
-import { MessageSquare, Search, Info, ArrowLeft, Send, Bot, User, Zap, Image as ImageIcon, Video, File, Music } from "lucide-react";
+import { MessageSquare, Search, Info, ArrowLeft, Send, Bot, User, Zap, Image as ImageIcon, Video, File, Music, ChevronDown } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { ChatSession, ChatMessage, TriggerWord } from "@/lib/types/chat";
 import { chatSystemAPI } from "@/lib/api/chat-system";
 import { triggerWordsAPI } from "@/lib/api/trigger-words";
+import { agentsAPI, type Agent } from "@/lib/api/agents";
 
 function getTriggerMediaIcon(type: string) {
   switch (type) {
@@ -177,18 +178,51 @@ export default function InboxPage() {
   const [showTriggerSuggestions, setShowTriggerSuggestions] = useState(false);
   const [selectedTriggerIndex, setSelectedTriggerIndex] = useState(0);
 
+  // Bot selector state
+  const [bots, setBots] = useState<Agent[]>([]);
+  const [selectedBot, setSelectedBot] = useState<Agent | null>(null);
+  const [showBotDropdown, setShowBotDropdown] = useState(false);
+
+  // Fetch bots on mount
+  useEffect(() => {
+    const fetchBots = async () => {
+      try {
+        const response = await agentsAPI.list();
+        // Filter to only bots with telegram tokens
+        const telegramBots = response.agents.filter(bot => bot.telegram_username);
+        setBots(telegramBots);
+        // Auto-select first bot if available
+        if (telegramBots.length > 0 && !selectedBot) {
+          setSelectedBot(telegramBots[0]);
+        }
+      } catch (error) {
+        console.error("Error fetching bots:", error);
+      }
+    };
+
+    fetchBots();
+  }, []);
+
   // Function to load conversations (extracted so it can be called from multiple places)
   const loadConversations = async () => {
+      if (!selectedBot) {
+        setConversations([]);
+        return;
+      }
+
       setLoading(true);
       try {
-        console.log("Fetching sessions for channel:", selectedChannel);
+        console.log("Fetching sessions for channel:", selectedChannel, "bot:", selectedBot.id);
 
-        // Fetch sessions directly from Supabase
-        const { data: sessions, error } = await supabase
+        // Fetch sessions directly from Supabase, filtered by bot_id
+        let query = supabase
           .from("chat_sessions")
           .select("*")
           .eq("platform", selectedChannel)
+          .eq("bot_id", selectedBot.id)
           .order("last_activity_at", { ascending: false });
+
+        const { data: sessions, error } = await query;
 
         if (error) {
           console.error("Error fetching sessions:", error);
@@ -244,11 +278,15 @@ export default function InboxPage() {
       }
   };
 
-  // Fetch trigger words
+  // Fetch trigger words for selected bot
   useEffect(() => {
     const fetchTriggers = async () => {
+      if (!selectedBot) {
+        setTriggerWords([]);
+        return;
+      }
       try {
-        const data = await triggerWordsAPI.getActiveTriggerWords();
+        const data = await triggerWordsAPI.getActiveTriggerWords(selectedBot.id);
         setTriggerWords(data);
       } catch (error) {
         console.error("Error fetching triggers:", error);
@@ -256,7 +294,7 @@ export default function InboxPage() {
     };
 
     fetchTriggers();
-  }, []);
+  }, [selectedBot]);
 
   // Filter trigger words based on input
   const filteredTriggers = useMemo(() => {
@@ -277,10 +315,12 @@ export default function InboxPage() {
     }
   }, [messageInput, filteredTriggers.length]);
 
-  // Load conversations when channel changes
+  // Load conversations when channel or bot changes
   useEffect(() => {
     loadConversations();
-  }, [selectedChannel]);
+    // Clear selected conversation when switching bots
+    setSelectedConversation(null);
+  }, [selectedChannel, selectedBot]);
 
   // Load messages when conversation is selected
   useEffect(() => {
@@ -434,8 +474,10 @@ export default function InboxPage() {
 
   // Real-time subscription for new sessions only
   useEffect(() => {
+    if (!selectedBot) return;
+
     const channel = supabase
-      .channel("inbox_sessions")
+      .channel(`inbox_sessions:${selectedBot.id}`)
       .on(
         "postgres_changes",
         {
@@ -444,9 +486,12 @@ export default function InboxPage() {
           table: "chat_sessions",
           filter: `platform=eq.${selectedChannel}`,
         },
-        () => {
-          // Only reload for new sessions
-          loadConversations();
+        (payload) => {
+          // Only reload if the new session belongs to the selected bot
+          const newSession = payload.new as { bot_id?: string };
+          if (newSession.bot_id === selectedBot.id) {
+            loadConversations();
+          }
         }
       )
       .subscribe();
@@ -454,7 +499,7 @@ export default function InboxPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [selectedChannel]);
+  }, [selectedChannel, selectedBot]);
 
   // Toggle AI mode for a session
   const handleToggleAI = async () => {
@@ -632,6 +677,19 @@ export default function InboxPage() {
     }
   };
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (showBotDropdown && !target.closest("[data-bot-dropdown]")) {
+        setShowBotDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showBotDropdown]);
+
   return (
     <div className="flex flex-col md:flex-row h-[calc(100vh-5rem)] md:h-[calc(100vh-8rem)] overflow-hidden rounded-2xl border border-dashboard-border bg-dashboard-card shadow-xl">
       {/* Sidebar - Channel Selection & Conversations */}
@@ -644,20 +702,73 @@ export default function InboxPage() {
             {t("inbox.chat")}
           </h2>
 
-          {/* Channel - Telegram only */}
-          <div className="flex p-1 bg-dashboard-bg rounded-xl">
-            <div className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2 rounded-lg text-xs sm:text-sm font-medium bg-dashboard-card text-slate-900 shadow-sm">
-              <div className="relative h-4 w-4 sm:h-5 sm:w-5">
-                <Image
-                  src="/yetti/telegram_logo.png"
-                  alt={t("inbox.telegram")}
-                  fill
-                  className="object-contain"
-                />
+          {/* Bot Selector Dropdown */}
+          <div className="relative" data-bot-dropdown>
+            <button
+              onClick={() => setShowBotDropdown(!showBotDropdown)}
+              className="w-full flex items-center justify-between gap-2 p-2.5 bg-dashboard-bg border border-dashboard-border rounded-xl text-sm font-medium text-slate-900 hover:bg-slate-50 transition-colors"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="relative h-6 w-6 flex-shrink-0">
+                  <Image
+                    src="/yetti/telegram_logo.png"
+                    alt="Telegram"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+                <span className="truncate">
+                  {selectedBot?.telegram_first_name || selectedBot?.name || "Select a bot"}
+                </span>
               </div>
-              <span className="hidden sm:inline">{t("inbox.telegram")}</span>
-              <span className="sm:hidden">{t("inbox.tg")}</span>
-            </div>
+              <ChevronDown className={`h-4 w-4 flex-shrink-0 text-slate-400 transition-transform ${showBotDropdown ? "rotate-180" : ""}`} />
+            </button>
+
+            {/* Dropdown menu */}
+            {showBotDropdown && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-dashboard-border rounded-xl shadow-lg z-20 max-h-60 overflow-y-auto">
+                {bots.length === 0 ? (
+                  <div className="p-3 text-center text-sm text-slate-500">
+                    No bots configured
+                  </div>
+                ) : (
+                  bots.map((bot) => (
+                    <button
+                      key={bot.id}
+                      onClick={() => {
+                        setSelectedBot(bot);
+                        setShowBotDropdown(false);
+                      }}
+                      className={`w-full flex items-center gap-2 p-2.5 text-left text-sm hover:bg-slate-50 transition-colors ${
+                        selectedBot?.id === bot.id ? "bg-teal-50 text-teal-700" : "text-slate-700"
+                      }`}
+                    >
+                      <div className="relative h-6 w-6 flex-shrink-0 rounded-full overflow-hidden bg-teal-100 flex items-center justify-center">
+                        {bot.profile_picture_url ? (
+                          <Image
+                            src={bot.profile_picture_url}
+                            alt={bot.name}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <Bot className="h-3.5 w-3.5 text-teal-600" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium truncate">{bot.telegram_first_name || bot.name}</p>
+                        {bot.telegram_username && (
+                          <p className="text-xs text-slate-400 truncate">@{bot.telegram_username}</p>
+                        )}
+                      </div>
+                      {selectedBot?.id === bot.id && (
+                        <div className="h-2 w-2 rounded-full bg-teal-500" />
+                      )}
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -675,7 +786,12 @@ export default function InboxPage() {
 
         {/* Conversations List */}
         <div className="flex-1 overflow-y-auto">
-          {loading && conversations.length === 0 ? (
+          {!selectedBot ? (
+            <div className="flex flex-col items-center justify-center h-40 gap-2 p-4 text-center">
+              <Bot className="h-6 w-6 sm:h-8 sm:w-8 text-slate-300" />
+              <p className="text-slate-500 text-xs sm:text-sm">Select a bot to view conversations</p>
+            </div>
+          ) : loading && conversations.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 gap-3">
               <div className="h-6 w-6 animate-spin rounded-full border-2 border-teal-primary border-t-transparent" />
               <p className="text-slate-500 text-xs sm:text-sm">

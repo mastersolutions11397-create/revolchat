@@ -9,6 +9,7 @@ export interface ChatSession {
   id: string;
   workspace_id: string;
   user_id: string | null;
+  bot_id?: string | null;
 
   // External user info (Telegram user)
   external_user_id: string;
@@ -81,6 +82,7 @@ export interface Attachment {
 
 export interface CreateSessionParams {
   workspace_id: string;
+  bot_id?: string;
   external_user_id: string;
   external_username?: string;
   external_first_name?: string;

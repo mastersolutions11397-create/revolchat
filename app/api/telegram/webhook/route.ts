@@ -346,16 +346,18 @@ async function getAIResponse(message: string, agentId: string, userId: string, t
 // Helper function to find or create chat session
 async function findOrCreateSession(
   externalUserId: string,
+  botId: string,
   firstName?: string,
   lastName?: string,
   username?: string
 ) {
-  // Try to find existing session
+  // Try to find existing session for this user + bot combination
   const { data: existingSession } = await supabase
     .from("chat_sessions")
     .select("*")
     .eq("platform", "telegram")
     .eq("external_user_id", externalUserId)
+    .eq("bot_id", botId)
     .single();
 
   if (existingSession) {
@@ -383,6 +385,7 @@ async function findOrCreateSession(
       external_last_name: lastName,
       external_username: username,
       platform: "telegram",
+      bot_id: botId,
       ai_mode: true, // Start with AI mode enabled
       is_online: true,
       session_status: "active",
@@ -503,9 +506,10 @@ export async function POST(request: NextRequest) {
 
     console.log(`Matched agent: ${matchedAgent.name} (${matchedAgent.id})`);
 
-    // Find or create chat session
+    // Find or create chat session for this user + bot combination
     const session = await findOrCreateSession(
       userId,
+      matchedAgent.id,
       message.from.first_name,
       message.from.last_name,
       message.from.username

@@ -4,7 +4,6 @@ import type { Attachment, MessageType } from "@/lib/types/chat";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const telegramBotToken = process.env.TELEGRAM_BOT_TOKEN!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
@@ -30,10 +29,10 @@ function isVideoUrl(text: string): boolean {
 }
 
 // Helper function to send photo via Telegram Bot API
-async function sendTelegramPhoto(chatId: string, photoUrl: string) {
+async function sendTelegramPhoto(chatId: string, photoUrl: string, botToken: string) {
   try {
     const response = await fetch(
-      `https://api.telegram.org/bot${telegramBotToken}/sendPhoto`,
+      `https://api.telegram.org/bot${botToken}/sendPhoto`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -58,10 +57,10 @@ async function sendTelegramPhoto(chatId: string, photoUrl: string) {
 }
 
 // Helper function to send video via Telegram Bot API
-async function sendTelegramVideo(chatId: string, videoUrl: string) {
+async function sendTelegramVideo(chatId: string, videoUrl: string, botToken: string) {
   try {
     const response = await fetch(
-      `https://api.telegram.org/bot${telegramBotToken}/sendVideo`,
+      `https://api.telegram.org/bot${botToken}/sendVideo`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -85,10 +84,10 @@ async function sendTelegramVideo(chatId: string, videoUrl: string) {
   }
 }
 
-async function sendTelegramDocument(chatId: string, documentUrl: string) {
+async function sendTelegramDocument(chatId: string, documentUrl: string, botToken: string) {
   try {
     const response = await fetch(
-      `https://api.telegram.org/bot${telegramBotToken}/sendDocument`,
+      `https://api.telegram.org/bot${botToken}/sendDocument`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -112,10 +111,10 @@ async function sendTelegramDocument(chatId: string, documentUrl: string) {
   }
 }
 
-async function sendTelegramAudio(chatId: string, audioUrl: string) {
+async function sendTelegramAudio(chatId: string, audioUrl: string, botToken: string) {
   try {
     const response = await fetch(
-      `https://api.telegram.org/bot${telegramBotToken}/sendAudio`,
+      `https://api.telegram.org/bot${botToken}/sendAudio`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -140,10 +139,10 @@ async function sendTelegramAudio(chatId: string, audioUrl: string) {
 }
 
 // Helper function to send message via Telegram Bot API
-async function sendTelegramMessage(chatId: string, text: string) {
+async function sendTelegramMessage(chatId: string, text: string, botToken: string) {
   try {
     const response = await fetch(
-      `https://api.telegram.org/bot${telegramBotToken}/sendMessage`,
+      `https://api.telegram.org/bot${botToken}/sendMessage`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -207,6 +206,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Fetch the bot token for this session
+    let botToken: string | null = null;
+    if (session.bot_id) {
+      const { data: agent, error: agentError } = await supabase
+        .from("agents")
+        .select("telegram_bot_token")
+        .eq("id", session.bot_id)
+        .single();
+
+      if (agentError || !agent?.telegram_bot_token) {
+        console.error("Error fetching bot token:", agentError);
+        return NextResponse.json(
+          { error: "Bot not found for this session" },
+          { status: 404 }
+        );
+      }
+      botToken = agent.telegram_bot_token;
+    } else {
+      // Fallback to env var for legacy sessions without bot_id
+      botToken = process.env.TELEGRAM_BOT_TOKEN || null;
+    }
+
+    if (!botToken) {
+      console.error("No bot token available for session:", session_id);
+      return NextResponse.json(
+        { error: "No bot token configured" },
+        { status: 500 }
+      );
+    }
+
     // Save message to database first
     const { data: message, error: messageError } = await supabase
       .from("chat_messages")
@@ -241,37 +270,44 @@ export async function POST(request: NextRequest) {
         if (message_type === "image" && attachmentUrl) {
           telegramResponse = await sendTelegramPhoto(
             session.external_user_id,
-            attachmentUrl
+            attachmentUrl,
+            botToken
           );
         } else if (message_type === "video" && attachmentUrl) {
           telegramResponse = await sendTelegramVideo(
             session.external_user_id,
-            attachmentUrl
+            attachmentUrl,
+            botToken
           );
         } else if (message_type === "audio" && attachmentUrl) {
           telegramResponse = await sendTelegramAudio(
             session.external_user_id,
-            attachmentUrl
+            attachmentUrl,
+            botToken
           );
         } else if (message_type === "file" && attachmentUrl) {
           telegramResponse = await sendTelegramDocument(
             session.external_user_id,
-            attachmentUrl
+            attachmentUrl,
+            botToken
           );
         } else if (isImageUrl(message_text)) {
           telegramResponse = await sendTelegramPhoto(
             session.external_user_id,
-            message_text
+            message_text,
+            botToken
           );
         } else if (isVideoUrl(message_text)) {
           telegramResponse = await sendTelegramVideo(
             session.external_user_id,
-            message_text
+            message_text,
+            botToken
           );
         } else {
           telegramResponse = await sendTelegramMessage(
             session.external_user_id,
-            message_text
+            message_text,
+            botToken
           );
         }
 
