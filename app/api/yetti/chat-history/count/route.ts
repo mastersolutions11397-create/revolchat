@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { count, error: countError } = await supabaseAdmin
-      .from("yetti_chat_history")
+      .from("chat_messages")
       .select("*", { count: "exact", head: true })
       .eq("workspace_id", workspaceId);
 
