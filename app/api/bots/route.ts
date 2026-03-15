@@ -6,27 +6,29 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 // Get the base URL for webhook registration
-async function getWebhookUrl(): Promise<string> {
+async function getBaseWebhookUrl(): Promise<string> {
   const headersList = await headers();
   const host = headersList.get("host") || "localhost:3000";
   const protocol = headersList.get("x-forwarded-proto") || "http";
 
   // In production, use the actual domain
   // Check for common production indicators
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}/api/telegram/webhook`;
-  }
   if (process.env.NEXT_PUBLIC_APP_URL) {
     return `${process.env.NEXT_PUBLIC_APP_URL}/api/telegram/webhook`;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}/api/telegram/webhook`;
   }
 
   return `${protocol}://${host}/api/telegram/webhook`;
 }
 
-// Register webhook for a Telegram bot
-async function registerTelegramWebhook(botToken: string): Promise<{ success: boolean; error?: string }> {
+// Register webhook for a Telegram bot with bot_id in URL
+async function registerTelegramWebhook(botToken: string, botId: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const webhookUrl = await getWebhookUrl();
+    const baseUrl = await getBaseWebhookUrl();
+    // Include bot_id in webhook URL so we know which bot received the message
+    const webhookUrl = `${baseUrl}?bot_id=${botId}`;
 
     // Skip webhook registration for localhost (won't work anyway)
     if (webhookUrl.includes("localhost")) {
@@ -155,7 +157,7 @@ export async function POST(request: NextRequest) {
     // Auto-register webhook if Telegram bot token is provided
     let webhookRegistered = false;
     if (row.telegram_bot_token) {
-      const webhookResult = await registerTelegramWebhook(row.telegram_bot_token);
+      const webhookResult = await registerTelegramWebhook(row.telegram_bot_token, data.id);
       webhookRegistered = webhookResult.success;
       if (!webhookResult.success) {
         console.warn(`Webhook registration failed for bot ${data.id}: ${webhookResult.error}`);

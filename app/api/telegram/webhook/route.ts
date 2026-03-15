@@ -454,48 +454,64 @@ export async function POST(request: NextRequest) {
     const messageText = message.text!;
     const messageId = message.message_id.toString();
 
-    // Get the bot username from the update (the bot that received this message)
-    // For direct messages, we need to look up by the bot info in the message
-    // The bot's username comes from message.entities or we need to get it via getMe
-    // For simplicity, let's try to find by checking which bot token matches this chat
+    // Get bot_id from URL query parameter (each bot has its own webhook URL)
+    const url = new URL(request.url);
+    const botIdFromUrl = url.searchParams.get("bot_id");
 
-    // First, try to find the agent by checking all bots with telegram tokens
-    const { data: agents, error: agentsError } = await supabase
-      .from("agents")
-      .select("*")
-      .not("telegram_bot_token", "is", null);
-
-    if (agentsError || !agents || agents.length === 0) {
-      console.error("No agents with Telegram tokens found");
-      return NextResponse.json({ ok: true, message: "No bot configured" });
-    }
-
-    // Find the agent whose bot received this message by checking getMe for each
     let matchedAgent: AgentBot | null = null;
-    for (const agent of agents) {
-      try {
-        const getMeResponse = await fetch(
-          `https://api.telegram.org/bot${agent.telegram_bot_token}/getMe`
-        );
-        const getMeData = await getMeResponse.json();
-        if (getMeData.ok) {
-          // Check if this webhook came from this bot by trying to send a typing action
-          // This is a lightweight way to verify the bot can interact with this chat
-          const chatResponse = await fetch(
-            `https://api.telegram.org/bot${agent.telegram_bot_token}/sendChatAction`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ chat_id: chatId, action: "typing" }),
+
+    if (botIdFromUrl) {
+      // Bot ID is in the URL - fetch that specific agent
+      const { data: agent, error } = await supabase
+        .from("agents")
+        .select("*")
+        .eq("id", botIdFromUrl)
+        .not("telegram_bot_token", "is", null)
+        .single();
+
+      if (error || !agent) {
+        console.error("Agent not found for bot_id:", botIdFromUrl, error);
+        return NextResponse.json({ ok: true, message: "Bot not found" });
+      }
+
+      matchedAgent = agent as AgentBot;
+    } else {
+      // Fallback: Try to match by iterating through all bots (legacy support)
+      // This is less reliable but maintains backwards compatibility
+      const { data: agents, error: agentsError } = await supabase
+        .from("agents")
+        .select("*")
+        .not("telegram_bot_token", "is", null);
+
+      if (agentsError || !agents || agents.length === 0) {
+        console.error("No agents with Telegram tokens found");
+        return NextResponse.json({ ok: true, message: "No bot configured" });
+      }
+
+      // If there's only one bot, use it directly
+      if (agents.length === 1) {
+        matchedAgent = agents[0] as AgentBot;
+      } else {
+        // Multiple bots - try to find by sending typing action (less reliable)
+        for (const agent of agents) {
+          try {
+            const chatResponse = await fetch(
+              `https://api.telegram.org/bot${agent.telegram_bot_token}/sendChatAction`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: chatId, action: "typing" }),
+              }
+            );
+            if (chatResponse.ok) {
+              matchedAgent = agent as AgentBot;
+              console.warn("Matched bot via typing action fallback - consider re-registering webhooks with bot_id");
+              break;
             }
-          );
-          if (chatResponse.ok) {
-            matchedAgent = agent as AgentBot;
-            break;
+          } catch {
+            continue;
           }
         }
-      } catch {
-        continue;
       }
     }
 
