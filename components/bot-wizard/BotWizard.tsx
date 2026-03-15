@@ -8,7 +8,6 @@ import {
   ChevronRight,
   Check,
   Loader2,
-  MessageSquare,
   Send,
   ImagePlus,
   AlertCircle,
@@ -20,7 +19,6 @@ import {
   type TelegramBotInfo,
   type CreateAgentBody,
 } from "@/lib/api/agents";
-import { integrationsAPI } from "@/lib/api/integrations";
 
 type WizardStep = "knowledge" | "platform" | "telegram" | "profile" | "review";
 
@@ -195,20 +193,7 @@ export default function BotWizard({
     setError(null);
 
     try {
-      // Step 1: Register the bot with Telegram service (localhost:4000)
-      if (telegramToken.trim() && userId) {
-        try {
-          await integrationsAPI.createTelegramIntegration({
-            user_id: userId,
-            telegram_bot_token: telegramToken.trim(),
-          });
-        } catch (telegramErr) {
-          console.error("Failed to register Telegram bot:", telegramErr);
-          // Continue anyway - we'll still save the bot info
-        }
-      }
-
-      // Step 2: Create the agent/bot in our database
+      // Create the agent/bot in our database (webhook is auto-registered by /api/bots)
       const body: CreateAgentBody = {
         name: botName.trim() || "Unnamed Bot",
         model: modelProvider,
