@@ -116,6 +116,13 @@ export async function PATCH(
     const supabase = getSupabase();
     const body = await request.json();
 
+    if (
+      body.model !== undefined &&
+      !["openai", "deepseek", "gemini"].includes(body.model)
+    ) {
+      return NextResponse.json({ error: "Valid model is required" }, { status: 400 });
+    }
+
     // Build update object with only provided fields
     const updates: Record<string, unknown> = {};
     if (body.name !== undefined) updates.name = body.name.trim();
@@ -189,7 +196,28 @@ export async function DELETE(
       .eq("id", id)
       .single();
 
-    const { data, error } = await supabase
+    // Remove dependent rows first. `chat_sessions.bot_id` uses `ON DELETE SET NULL`,
+    // but that can violate the per-bot unique constraint when multiple sessions would
+    // collapse to the same `(platform, external_user_id, NULL)` key.
+    const { error: triggerWordsError } = await supabase
+      .from("trigger_words")
+      .delete()
+      .eq("bot_id", id);
+
+    if (triggerWordsError) {
+      return NextResponse.json({ error: triggerWordsError.message }, { status: 500 });
+    }
+
+    const { error: chatSessionsError } = await supabase
+      .from("chat_sessions")
+      .delete()
+      .eq("bot_id", id);
+
+    if (chatSessionsError) {
+      return NextResponse.json({ error: chatSessionsError.message }, { status: 500 });
+    }
+
+    const { error } = await supabase
       .from("agents")
       .delete()
       .eq("id", id)

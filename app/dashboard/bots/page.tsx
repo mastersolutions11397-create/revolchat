@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth, type AppUser } from "@/lib/auth-context";
-import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { agentsAPI, type Agent, type AgentModel } from "@/lib/api/agents";
 import { agentChatAPI } from "@/lib/api/agent-chat";
 import ReactMarkdown from "react-markdown";
@@ -19,7 +18,6 @@ import {
   Maximize2,
   Minimize2,
   Edit3,
-  MessageSquare,
   Send,
 } from "lucide-react";
 import BotWizard from "@/components/bot-wizard/BotWizard";
@@ -34,6 +32,14 @@ export type BotRecord = {
   telegramUsername: string | null;
   telegramFirstName: string | null;
   profilePictureUrl: string | null;
+};
+
+const MODEL_PROVIDERS: AgentModel[] = ["openai", "deepseek", "gemini"];
+
+const MODEL_IDS_BY_PROVIDER: Record<AgentModel, string[]> = {
+  openai: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo"],
+  deepseek: ["deepseek-chat", "deepseek-reasoner"],
+  gemini: ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-pro"],
 };
 
 const MODEL_LABELS: Record<string, string> = {
@@ -55,19 +61,14 @@ function botFromAPI(a: Agent): BotRecord {
   };
 }
 
-function maskApiKey(key: string): string {
-  if (!key || key.length < 8) return "********";
-  return key.slice(0, 4) + "********" + key.slice(-4);
-}
-
 export default function BotsPage() {
   const { user } = useAuth();
-  const { t } = useLanguage();
   const [bots, setBots] = useState<BotRecord[]>([]);
   const [botsLoading, setBotsLoading] = useState(true);
   const [botsError, setBotsError] = useState<string | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [chatExpanded, setChatExpanded] = useState(false);
+  const [editingBot, setEditingBot] = useState<BotRecord | null>(null);
 
   const fetchBots = useCallback(async () => {
     setBotsLoading(true);
@@ -87,8 +88,6 @@ export default function BotsPage() {
   useEffect(() => {
     fetchBots();
   }, [fetchBots]);
-
-  const hasBots = bots.length > 0;
 
   const handleDeleteBot = useCallback(async (id: string) => {
     if (!confirm("Delete this bot? This cannot be undone.")) return;
@@ -244,6 +243,14 @@ export default function BotsPage() {
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <button
                         type="button"
+                        onClick={() => setEditingBot(bot)}
+                        className="p-2 text-slate-400 hover:text-teal-primary hover:bg-teal-primary/10 rounded-lg transition-colors"
+                        title="Edit bot"
+                      >
+                        <Edit3 className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => handleDeleteBot(bot.id)}
                         className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Delete bot"
@@ -284,6 +291,16 @@ export default function BotsPage() {
         onCreated={fetchBots}
         userId={user?.id}
       />
+      <EditBotModal
+        bot={editingBot}
+        onClose={() => setEditingBot(null)}
+        onSaved={(updatedBot) => {
+          setBots((prev) =>
+            prev.map((bot) => (bot.id === updatedBot.id ? updatedBot : bot))
+          );
+          setEditingBot(null);
+        }}
+      />
     </div>
   );
 }
@@ -313,7 +330,6 @@ function ChatPanel({
   expanded,
   onToggleExpand,
 }: ChatPanelProps) {
-  const { t } = useLanguage();
   const listRef = useRef<HTMLDivElement | null>(null);
   const hasBots = bots.length > 0;
   const [selectedBotId, setSelectedBotId] = useState<string | null>(null);
@@ -687,6 +703,184 @@ function ChatPanel({
               <SendHorizontal className="h-5 w-5 transition-transform group-hover:translate-x-0.5" />
             )}
             <div className="absolute inset-0 rounded-xl bg-white opacity-0 transition-opacity group-hover:opacity-10" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface EditBotModalProps {
+  bot: BotRecord | null;
+  onClose: () => void;
+  onSaved: (bot: BotRecord) => void;
+}
+
+function EditBotModal({ bot, onClose, onSaved }: EditBotModalProps) {
+  const [name, setName] = useState("");
+  const [systemPrompt, setSystemPrompt] = useState("");
+  const [modelProvider, setModelProvider] = useState<AgentModel>("openai");
+  const [modelId, setModelId] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!bot) return;
+    const nextProvider = MODEL_PROVIDERS.includes(bot.model as AgentModel)
+      ? (bot.model as AgentModel)
+      : "openai";
+    const providerModels = MODEL_IDS_BY_PROVIDER[nextProvider];
+    setName(bot.name);
+    setSystemPrompt(bot.systemPrompt);
+    setModelProvider(nextProvider);
+    setModelId(
+      bot.modelId && providerModels.includes(bot.modelId)
+        ? bot.modelId
+        : (providerModels[0] ?? "")
+    );
+    setError(null);
+    setSaving(false);
+  }, [bot]);
+
+  if (!bot) return null;
+
+  const handleSave = async () => {
+    if (!systemPrompt.trim()) {
+      setError("System prompt is required.");
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      const updated = await agentsAPI.update(bot.id, {
+        name: name.trim() || "Unnamed Bot",
+        model: modelProvider,
+        model_id: modelId || null,
+        system_prompt: systemPrompt.trim(),
+      });
+
+      onSaved(botFromAPI(updated));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update bot.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+      <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-white/20 bg-white shadow-2xl ring-1 ring-black/5">
+        <div className="flex items-center justify-between border-b border-dashboard-border px-6 py-4">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">Edit Bot</h3>
+            <p className="text-xs text-slate-500">
+              Update the bot prompt and model configuration.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="rounded-lg p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="space-y-5 p-6">
+          {error && (
+            <div className="flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
+              <AlertCircle className="h-4 w-4" />
+              {error}
+            </div>
+          )}
+
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Bot Name
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Support Bot"
+              className="w-full rounded-xl border border-dashboard-border bg-slate-50 px-4 py-2.5 text-sm transition-all placeholder:text-slate-400 focus:border-teal-primary focus:bg-white focus:ring-2 focus:ring-teal-primary/20"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+              System Prompt <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              value={systemPrompt}
+              onChange={(e) => setSystemPrompt(e.target.value)}
+              rows={8}
+              placeholder="You are a helpful assistant that..."
+              className="w-full resize-none rounded-xl border border-dashboard-border bg-slate-50 px-4 py-3 text-sm transition-all placeholder:text-slate-400 focus:border-teal-primary focus:bg-white focus:ring-2 focus:ring-teal-primary/20"
+            />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Provider
+              </label>
+              <select
+                value={modelProvider}
+                onChange={(e) => {
+                  const next = e.target.value as AgentModel;
+                  setModelProvider(next);
+                  setModelId(MODEL_IDS_BY_PROVIDER[next]?.[0] ?? "");
+                }}
+                className="w-full rounded-xl border border-dashboard-border bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-teal-primary focus:bg-white focus:ring-2 focus:ring-teal-primary/20"
+              >
+                {MODEL_PROVIDERS.map((provider) => (
+                  <option key={provider} value={provider}>
+                    {provider.charAt(0).toUpperCase() + provider.slice(1)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Model
+              </label>
+              <select
+                value={modelId}
+                onChange={(e) => setModelId(e.target.value)}
+                className="w-full rounded-xl border border-dashboard-border bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-teal-primary focus:bg-white focus:ring-2 focus:ring-teal-primary/20"
+              >
+                {MODEL_IDS_BY_PROVIDER[modelProvider]?.map((id) => (
+                  <option key={id} value={id}>
+                    {MODEL_LABELS[id] ?? id}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-3 border-t border-dashboard-border bg-slate-50 px-6 py-4">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-xl bg-teal-primary px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-teal-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            Save Changes
           </button>
         </div>
       </div>
