@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import {
@@ -8,6 +8,7 @@ import {
   type DashboardResponse,
   integrationsAPI,
   chatAPI,
+  agentsAPI,
 } from "@/lib/api";
 import Link from "next/link";
 import Image from "next/image";
@@ -23,11 +24,8 @@ import {
   AlertCircle,
   Bot,
 } from "lucide-react";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 export default function DashboardPage() {
   const { user } = useAuth();
-  const router = useRouter();
   const { t } = useLanguage();
   const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(
     null
@@ -47,6 +45,8 @@ export default function DashboardPage() {
   const [integrationsLoading, setIntegrationsLoading] = useState(false);
   const [messageCount, setMessageCount] = useState<number>(0);
   const [messageCountLoading, setMessageCountLoading] = useState(false);
+  const [agentsCount, setAgentsCount] = useState<number>(0);
+  const [agentsCountLoading, setAgentsCountLoading] = useState(false);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -120,6 +120,33 @@ export default function DashboardPage() {
       cancelled = true;
     };
   }, [user?.id]);
+
+  // Fetch agents count
+  useEffect(() => {
+    let cancelled = false;
+    if (!user) {
+      setAgentsCount(0);
+      return;
+    }
+    setAgentsCountLoading(true);
+    agentsAPI
+      .list()
+      .then((response) => {
+        if (!cancelled) setAgentsCount(response.count ?? response.agents.length);
+      })
+      .catch(() => {
+        if (!cancelled) setAgentsCount(0);
+      })
+      .finally(() => {
+        if (!cancelled) setAgentsCountLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
+  const integrationsCount =
+    (instagramIntegration ? 1 : 0) + (telegramBotInfo ? 1 : 0);
 
   // Fetch message count
   useEffect(() => {
@@ -210,7 +237,10 @@ export default function DashboardPage() {
       {/* Stats Grid */}
         <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {/* Monthly Messages */}
-        <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-teal-primary/30">
+        <Link
+          href="/dashboard/inbox"
+          className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-teal-primary/30 block"
+        >
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">
@@ -237,10 +267,13 @@ export default function DashboardPage() {
             </span>
             <span className="text-slate-500">{t("dashboard.newThisWeek")}</span>
           </div>
-        </div>
+        </Link>
 
         {/* Active Integrations */}
-        <div className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-teal-primary/30">
+        <Link
+          href="/dashboard/integrations"
+          className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-teal-primary/30 block"
+        >
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">
@@ -252,7 +285,7 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <p className="mt-2 text-2xl sm:text-3xl font-bold text-slate-900">
-                  {(instagramIntegration ? 1 : 0) + (telegramBotInfo ? 1 : 0)}
+                  {integrationsCount}
                 </p>
               )}
             </div>
@@ -267,11 +300,11 @@ export default function DashboardPage() {
             </span>
             <span className="text-slate-500">{t("dashboard.allSystemsOperational")}</span>
           </div>
-        </div>
+        </Link>
 
         {/* Total Agents */}
         <Link
-          href="/dashboard/knowledge-base"
+          href="/dashboard/bots"
           className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-teal-primary/30 block"
         >
           <div className="flex items-center justify-between">
@@ -279,13 +312,13 @@ export default function DashboardPage() {
               <p className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">
                 Total Agents
               </p>
-              {loading ? (
+              {agentsCountLoading ? (
                 <div className="mt-2">
                   <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-slate-400" />
                 </div>
               ) : (
                 <p className="mt-2 text-2xl sm:text-3xl font-bold text-slate-900">
-                  {dashboardData?.workspace_summary?.total_agents ?? 0}
+                  {agentsCount}
                 </p>
               )}
             </div>

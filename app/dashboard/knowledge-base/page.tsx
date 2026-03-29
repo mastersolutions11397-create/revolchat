@@ -20,6 +20,7 @@ import {
   Maximize2,
   Minimize2,
 } from "lucide-react";
+import { toast } from "sonner";
 
 export type AgentRecord = {
   id: string;
@@ -142,14 +143,29 @@ export default function AgentsPage() {
 
   const handleDeleteAgent = useCallback(
     async (id: string) => {
-      if (!confirm("Remove this agent? This cannot be undone.")) return;
-      try {
-        await agentsAPI.delete(id);
-        setAgents((prev) => prev.filter((a) => a.id !== id));
-      } catch (err) {
-        console.error("Delete agent failed:", err);
-        alert(err instanceof Error ? err.message : "Failed to delete agent.");
-      }
+      toast.warning("Remove this agent?", {
+        description: "This action cannot be undone.",
+        duration: 10000,
+        action: {
+          label: "Remove",
+          onClick: async () => {
+            try {
+              await agentsAPI.delete(id);
+              setAgents((prev) => prev.filter((a) => a.id !== id));
+              toast.success("Agent removed");
+            } catch (err) {
+              console.error("Delete agent failed:", err);
+              toast.error(err instanceof Error ? err.message : "Failed to delete agent.");
+            }
+          },
+        },
+        cancel: {
+          label: "Cancel",
+          onClick: () => {
+            toast("Removal cancelled");
+          },
+        },
+      });
     },
     []
   );
