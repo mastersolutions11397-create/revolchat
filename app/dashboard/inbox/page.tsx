@@ -4,12 +4,13 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { type Conversation, type Message } from "@/lib/api/integrations";
-import { MessageSquare, Search, Info, ArrowLeft, Send, Bot, User, Zap, Image as ImageIcon, Video, File, Music, ChevronDown } from "lucide-react";
+import { MessageSquare, Search, Info, ArrowLeft, Send, Bot, User, Zap, Image as ImageIcon, Video, File, Music, ChevronDown, Trash2, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { ChatSession, ChatMessage, TriggerWord } from "@/lib/types/chat";
 import { chatSystemAPI } from "@/lib/api/chat-system";
 import { triggerWordsAPI } from "@/lib/api/trigger-words";
 import { agentsAPI, type Agent } from "@/lib/api/agents";
+import { toast } from "sonner";
 
 function getTriggerMediaIcon(type: string) {
   switch (type) {
@@ -165,6 +166,8 @@ export default function InboxPage() {
   const [showChatView, setShowChatView] = useState(false);
   const [messageInput, setMessageInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [deletingConversationId, setDeletingConversationId] = useState<string | null>(null);
+  const [deletingAll, setDeletingAll] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -215,7 +218,7 @@ export default function InboxPage() {
         console.log("Fetching sessions for channel:", selectedChannel, "bot:", selectedBot.id);
 
         // Fetch sessions directly from Supabase, filtered by bot_id
-        let query = supabase
+        const query = supabase
           .from("chat_sessions")
           .select("*")
           .eq("platform", selectedChannel)
@@ -677,6 +680,99 @@ export default function InboxPage() {
     }
   };
 
+  const handleDeleteConversation = async (conversation: Conversation) => {
+    if (deletingConversationId || deletingAll) return;
+
+    toast.warning(`Delete conversation with ${conversation.participant_name}?`, {
+      description: "This action cannot be undone.",
+      duration: 10000,
+      action: {
+        label: "Delete",
+        onClick: async () => {
+          setDeletingConversationId(conversation.id);
+
+          try {
+            await chatSystemAPI.deleteSession(conversation.id);
+
+            const nextConversations = conversations.filter((c) => c.id !== conversation.id);
+            setConversations(nextConversations);
+
+            if (selectedConversation?.id === conversation.id) {
+              const nextSelected = nextConversations[0] ?? null;
+              setSelectedConversation(nextSelected);
+              setMessages([]);
+              if (!nextSelected) {
+                setShowChatView(false);
+              }
+            }
+
+            toast.success("Conversation deleted");
+          } catch (error) {
+            console.error("Error deleting conversation:", error);
+            toast.error(
+              error instanceof Error ? error.message : "Failed to delete conversation."
+            );
+          } finally {
+            setDeletingConversationId(null);
+          }
+        },
+      },
+      cancel: {
+        label: "Cancel",
+        onClick: () => {
+          toast("Deletion cancelled");
+        },
+      },
+    });
+  };
+
+  const handleDeleteAllConversations = async () => {
+    if (!selectedBot || deletingAll || deletingConversationId) return;
+    if (conversations.length === 0) return;
+
+    toast.warning(`Delete all conversations for ${selectedBot.name}?`, {
+      description: `This will remove all ${selectedChannel} conversations and cannot be undone.`,
+      duration: 10000,
+      action: {
+        label: "Delete all",
+        onClick: async () => {
+          setDeletingAll(true);
+
+          try {
+            const deletedCount = await chatSystemAPI.deleteAllSessions({
+              platform: selectedChannel,
+              bot_id: selectedBot.id,
+            });
+
+            setConversations([]);
+            setSelectedConversation(null);
+            setMessages([]);
+            setShowChatView(false);
+
+            toast.success(
+              deletedCount === 1
+                ? "1 conversation deleted"
+                : `${deletedCount} conversations deleted`
+            );
+          } catch (error) {
+            console.error("Error deleting all conversations:", error);
+            toast.error(
+              error instanceof Error ? error.message : "Failed to delete conversations."
+            );
+          } finally {
+            setDeletingAll(false);
+          }
+        },
+      },
+      cancel: {
+        label: "Cancel",
+        onClick: () => {
+          toast("Bulk deletion cancelled");
+        },
+      },
+    });
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -698,9 +794,25 @@ export default function InboxPage() {
       >
         {/* Header */}
         <div className="p-3 sm:p-4 border-b border-dashboard-border bg-dashboard-card">
-          <h2 className="text-lg sm:text-xl font-bold text-slate-900 mb-3 sm:mb-4">
-            {t("inbox.chat")}
-          </h2>
+          <div className="mb-3 sm:mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+              {t("inbox.chat")}
+            </h2>
+            <button
+              type="button"
+              onClick={handleDeleteAllConversations}
+              disabled={!selectedBot || conversations.length === 0 || deletingAll || !!deletingConversationId}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-2.5 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+              title="Delete all conversations"
+            >
+              {deletingAll ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="h-3.5 w-3.5" />
+              )}
+              <span className="hidden sm:inline">Delete all</span>
+            </button>
+          </div>
 
           {/* Bot Selector Dropdown */}
           <div className="relative" data-bot-dropdown>
@@ -806,70 +918,90 @@ export default function InboxPage() {
           ) : (
             <div className="divide-y divide-slate-100">
               {conversations.map((conversation) => (
-                <button
+                <div
                   key={conversation.id}
-                  onClick={() => handleConversationSelect(conversation)}
-                  className={`w-full text-left p-3 sm:p-4 hover:bg-dashboard-card transition-all duration-200 ${
+                  className={`group w-full p-3 sm:p-4 hover:bg-dashboard-card transition-all duration-200 ${
                     selectedConversation?.id === conversation.id
                       ? "bg-dashboard-card border-l-4 border-teal-primary shadow-sm"
                       : "border-l-4 border-transparent"
                   }`}
                 >
                   <div className="flex items-start gap-2 sm:gap-3">
-                    <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 rounded-xl overflow-hidden bg-teal-primary/10 flex items-center justify-center shadow-sm">
-                      <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-teal-primary" />
-                      {/* Online indicator - green dot */}
-                      {conversation.is_online && (
-                        <div className="absolute top-0 right-0 h-3 w-3 sm:h-3.5 sm:w-3.5 bg-green-500 rounded-full border-2 border-white" />
-                      )}
-                      <div className="absolute bottom-0 right-0 h-3 w-3 sm:h-4 sm:w-4 bg-white rounded-full p-0.5">
-                        <Image
-                          src="/yetti/telegram_logo.png"
-                          alt="TG"
-                          width={12}
-                          height={12}
-                          className="w-full h-full"
-                        />
+                    <button
+                      type="button"
+                      onClick={() => handleConversationSelect(conversation)}
+                      className="flex min-w-0 flex-1 items-start gap-2 sm:gap-3 text-left"
+                    >
+                      <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 rounded-xl overflow-hidden bg-teal-primary/10 flex items-center justify-center shadow-sm">
+                        <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-teal-primary" />
+                        {/* Online indicator - green dot */}
+                        {conversation.is_online && (
+                          <div className="absolute top-0 right-0 h-3 w-3 sm:h-3.5 sm:w-3.5 bg-green-500 rounded-full border-2 border-white" />
+                        )}
+                        <div className="absolute bottom-0 right-0 h-3 w-3 sm:h-4 sm:w-4 bg-white rounded-full p-0.5">
+                          <Image
+                            src="/yetti/telegram_logo.png"
+                            alt="TG"
+                            width={12}
+                            height={12}
+                            className="w-full h-full"
+                          />
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-0.5 sm:mb-1">
-                        <h4
-                          className={`text-xs sm:text-sm font-semibold truncate ${
-                            selectedConversation?.id === conversation.id
-                              ? "text-teal-primary"
-                              : "text-slate-900"
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-0.5 sm:mb-1">
+                          <h4
+                            className={`text-xs sm:text-sm font-semibold truncate ${
+                              selectedConversation?.id === conversation.id
+                                ? "text-teal-primary"
+                                : "text-slate-900"
+                            }`}
+                          >
+                            {conversation.participant_name}
+                          </h4>
+                          {conversation.last_message_time && (
+                            <span className="text-[10px] sm:text-xs text-slate-400 flex-shrink-0 ml-2">
+                              {formatTime(conversation.last_message_time)}
+                            </span>
+                          )}
+                        </div>
+                        <p
+                          className={`text-xs sm:text-sm truncate ${
+                            conversation.unread_count &&
+                            conversation.unread_count > 0
+                              ? "text-slate-900 font-medium"
+                              : "text-slate-500"
                           }`}
                         >
-                          {conversation.participant_name}
-                        </h4>
-                        {conversation.last_message_time && (
-                          <span className="text-[10px] sm:text-xs text-slate-400 flex-shrink-0 ml-2">
-                            {formatTime(conversation.last_message_time)}
-                          </span>
-                        )}
+                          {conversation.last_message || t("inbox.noMessage")}
+                        </p>
                       </div>
-                      <p
-                        className={`text-xs sm:text-sm truncate ${
-                          conversation.unread_count &&
-                          conversation.unread_count > 0
-                            ? "text-slate-900 font-medium"
-                            : "text-slate-500"
-                        }`}
+                    </button>
+                    <div className="flex items-center gap-1 ml-1 sm:ml-2">
+                      {conversation.unread_count &&
+                        conversation.unread_count > 0 && (
+                          <div className="flex flex-col justify-center h-full">
+                            <span className="flex items-center justify-center h-4 sm:h-5 min-w-[1rem] sm:min-w-[1.25rem] px-1 sm:px-1.5 text-[10px] font-bold text-white bg-teal-primary rounded-full shadow-sm shadow-teal-primary/20">
+                              {conversation.unread_count}
+                            </span>
+                          </div>
+                        )}
+                      <button
+                        type="button"
+                        onClick={() => void handleDeleteConversation(conversation)}
+                        disabled={deletingAll || deletingConversationId === conversation.id}
+                        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50 md:opacity-0 md:group-hover:opacity-100"
+                        title="Delete conversation"
                       >
-                        {conversation.last_message || t("inbox.noMessage")}
-                      </p>
+                        {deletingConversationId === conversation.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </button>
                     </div>
-                    {conversation.unread_count &&
-                      conversation.unread_count > 0 && (
-                        <div className="flex flex-col justify-center h-full ml-1 sm:ml-2">
-                          <span className="flex items-center justify-center h-4 sm:h-5 min-w-[1rem] sm:min-w-[1.25rem] px-1 sm:px-1.5 text-[10px] font-bold text-white bg-teal-primary rounded-full shadow-sm shadow-teal-primary/20">
-                            {conversation.unread_count}
-                          </span>
-                        </div>
-                      )}
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           )}
@@ -931,6 +1063,19 @@ export default function InboxPage() {
               </div>
 
               <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={() => void handleDeleteConversation(selectedConversation)}
+                  disabled={deletingAll || deletingConversationId === selectedConversation.id}
+                  className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  title="Delete conversation"
+                >
+                  {deletingConversationId === selectedConversation.id ? (
+                    <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                  )}
+                </button>
                 {/* AI Mode Toggle */}
                 <button
                   onClick={handleToggleAI}

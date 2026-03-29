@@ -76,3 +76,65 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const platform = searchParams.get("platform");
+    const botId = searchParams.get("bot_id");
+
+    if (!platform || !botId) {
+      return NextResponse.json(
+        { error: "platform and bot_id are required" },
+        { status: 400 }
+      );
+    }
+
+    const { data: sessions, error: fetchError } = await supabase
+      .from("chat_sessions")
+      .select("id")
+      .eq("platform", platform)
+      .eq("bot_id", botId);
+
+    if (fetchError) {
+      console.error("Error fetching sessions for delete:", fetchError);
+      return NextResponse.json(
+        { error: "Failed to fetch sessions" },
+        { status: 500 }
+      );
+    }
+
+    if (!sessions?.length) {
+      return NextResponse.json({
+        success: true,
+        deleted_count: 0,
+      });
+    }
+
+    const sessionIds = sessions.map((session) => session.id);
+
+    const { error: deleteError } = await supabase
+      .from("chat_sessions")
+      .delete()
+      .in("id", sessionIds);
+
+    if (deleteError) {
+      console.error("Error deleting sessions:", deleteError);
+      return NextResponse.json(
+        { error: "Failed to delete sessions" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      deleted_count: sessionIds.length,
+    });
+  } catch (error) {
+    console.error("Error in delete sessions endpoint:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

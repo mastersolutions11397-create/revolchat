@@ -38,6 +38,16 @@ export interface ToggleAIModeResponse {
   session: ChatSession;
 }
 
+export interface DeleteSessionResponse {
+  success: boolean;
+  deleted_session_id: string;
+}
+
+export interface DeleteAllSessionsResponse {
+  success: boolean;
+  deleted_count: number;
+}
+
 class ChatSystemAPI {
   // Get all chat sessions (with online users)
   async getSessions(platform?: string): Promise<SessionWithLastMessage[]> {
@@ -91,6 +101,32 @@ class ChatSystemAPI {
       method: "POST",
       body: JSON.stringify({ session_id: sessionId }),
     });
+  }
+
+  // Delete a single chat session
+  async deleteSession(sessionId: string): Promise<string> {
+    const response = await apiRequest<DeleteSessionResponse>(
+      `/api/chat/sessions/${encodeURIComponent(sessionId)}`,
+      { method: "DELETE" }
+    );
+    return response.deleted_session_id;
+  }
+
+  // Delete all chat sessions for a specific bot and platform
+  async deleteAllSessions(payload: {
+    platform: string;
+    bot_id: string;
+  }): Promise<number> {
+    const params = new URLSearchParams({
+      platform: payload.platform,
+      bot_id: payload.bot_id,
+    });
+
+    const response = await apiRequest<DeleteAllSessionsResponse>(
+      `/api/chat/sessions?${params.toString()}`,
+      { method: "DELETE" }
+    );
+    return response.deleted_count;
   }
 }
 
