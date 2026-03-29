@@ -2,23 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   ApiError,
   authenticate,
-  getWorkspaceIdForUser,
 } from "../../helpers";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await authenticate(request);
-    const workspaceId = await getWorkspaceIdForUser(user.id);
-
-    if (!workspaceId) {
-      return NextResponse.json({ count: 0 });
-    }
+    await authenticate(request);
 
     const { count, error: countError } = await supabaseAdmin
       .from("chat_messages")
       .select("*", { count: "exact", head: true })
-      .eq("workspace_id", workspaceId);
+      .not("session_id", "is", null);
 
     if (countError) {
       console.error("Failed to fetch message count:", countError);

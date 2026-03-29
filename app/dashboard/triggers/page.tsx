@@ -243,15 +243,28 @@ export default function TriggersPage() {
 
   // Handle delete
   const handleDelete = useCallback(async (id: string) => {
-    if (!confirm("Delete this trigger? This cannot be undone.")) return;
-
-    try {
-      await triggerWordsAPI.deleteTriggerWord(id);
-      setTriggers((prev) => prev.filter((t) => t.id !== id));
-      toast.success("Trigger deleted");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete trigger");
-    }
+    toast.warning("Delete this trigger?", {
+      description: "This action cannot be undone.",
+      duration: 10000,
+      action: {
+        label: "Delete",
+        onClick: async () => {
+          try {
+            await triggerWordsAPI.deleteTriggerWord(id);
+            setTriggers((prev) => prev.filter((t) => t.id !== id));
+            toast.success("Trigger deleted");
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Failed to delete trigger");
+          }
+        },
+      },
+      cancel: {
+        label: "Cancel",
+        onClick: () => {
+          toast("Deletion cancelled");
+        },
+      },
+    });
   }, []);
 
   // Handle toggle active

@@ -21,6 +21,7 @@ import {
   Send,
 } from "lucide-react";
 import BotWizard from "@/components/bot-wizard/BotWizard";
+import { toast } from "sonner";
 
 export type BotRecord = {
   id: string;
@@ -90,14 +91,29 @@ export default function BotsPage() {
   }, [fetchBots]);
 
   const handleDeleteBot = useCallback(async (id: string) => {
-    if (!confirm("Delete this bot? This cannot be undone.")) return;
-    try {
-      await agentsAPI.delete(id);
-      setBots((prev) => prev.filter((b) => b.id !== id));
-    } catch (err) {
-      console.error("Delete bot failed:", err);
-      alert(err instanceof Error ? err.message : "Failed to delete bot.");
-    }
+    toast.warning("Delete this bot?", {
+      description: "This action cannot be undone.",
+      duration: 10000,
+      action: {
+        label: "Delete",
+        onClick: async () => {
+          try {
+            await agentsAPI.delete(id);
+            setBots((prev) => prev.filter((b) => b.id !== id));
+            toast.success("Bot deleted");
+          } catch (err) {
+            console.error("Delete bot failed:", err);
+            toast.error(err instanceof Error ? err.message : "Failed to delete bot.");
+          }
+        },
+      },
+      cancel: {
+        label: "Cancel",
+        onClick: () => {
+          toast("Deletion cancelled");
+        },
+      },
+    });
   }, []);
 
   return (
