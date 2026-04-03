@@ -53,6 +53,7 @@ export default function TriggersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedBotFilterId, setSelectedBotFilterId] = useState("");
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -78,7 +79,7 @@ export default function TriggersPage() {
     setError(null);
     try {
       const [triggerData, botsResponse] = await Promise.all([
-        triggerWordsAPI.getTriggerWords(),
+        triggerWordsAPI.getTriggerWords(selectedBotFilterId || undefined),
         agentsAPI.list(user.id),
       ]);
       const botData = botsResponse.agents.map((agent) => ({
@@ -95,7 +96,7 @@ export default function TriggersPage() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [selectedBotFilterId, user]);
 
   useEffect(() => {
     if (user) {
@@ -145,6 +146,9 @@ export default function TriggersPage() {
   // Open modal for new trigger
   const openAddModal = () => {
     resetForm();
+    if (selectedBotFilterId) {
+      setSelectedBotId(selectedBotFilterId);
+    }
     setModalOpen(true);
   };
 
@@ -336,21 +340,38 @@ export default function TriggersPage() {
                 </h3>
                 <p className="text-sm text-slate-600 mt-1">
                   {triggers.length === 0
-                    ? "No triggers yet"
+                    ? selectedBotFilterId
+                      ? "No triggers for this bot"
+                      : "No triggers yet"
                     : triggers.length === 1
                       ? "1 trigger"
                       : `${triggers.length} triggers`}
                 </p>
               </div>
-              <div className="relative w-full sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search triggers..."
-                  className="w-full pl-9 pr-4 py-2 bg-white border border-dashboard-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-primary/20 focus:border-teal-primary transition-all"
-                />
+              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+                <select
+                  value={selectedBotFilterId}
+                  onChange={(e) => setSelectedBotFilterId(e.target.value)}
+                  className="w-full sm:w-56 px-3 py-2 bg-white border border-dashboard-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-primary/20 focus:border-teal-primary transition-all"
+                >
+                  <option value="">All bots</option>
+                  {bots.map((bot) => (
+                    <option key={bot.id} value={bot.id}>
+                      {bot.name}
+                      {bot.telegram_username ? ` (@${bot.telegram_username})` : ""}
+                    </option>
+                  ))}
+                </select>
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search triggers..."
+                    className="w-full pl-9 pr-4 py-2 bg-white border border-dashboard-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-primary/20 focus:border-teal-primary transition-all"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -395,7 +416,9 @@ export default function TriggersPage() {
                   <p className="mt-1 text-xs text-gray-500">
                     {searchQuery
                       ? "Try a different search term"
-                      : "Use \"Add Trigger\" to create your first trigger."}
+                      : selectedBotFilterId
+                        ? "Try a different bot or add a trigger for this bot."
+                        : "Use \"Add Trigger\" to create your first trigger."}
                   </p>
                 </div>
               </div>

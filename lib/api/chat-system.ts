@@ -28,6 +28,16 @@ export interface SendMessageResponse {
   message: ChatMessage;
 }
 
+export interface UploadChatAttachmentResponse {
+  success: boolean;
+  url: string;
+  filename: string;
+  size: number;
+  mime_type: string;
+  message_type: MessageType;
+  path: string;
+}
+
 export interface ToggleAIModeRequest {
   session_id: string;
   ai_mode: boolean;
@@ -81,6 +91,24 @@ class ChatSystemAPI {
       body: JSON.stringify(payload),
     });
     return response.message;
+  }
+
+  async uploadAttachment(file: File): Promise<UploadChatAttachmentResponse> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch("/api/chat/upload", {
+      method: "POST",
+      credentials: "include",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Upload failed");
+    }
+
+    return response.json();
   }
 
   // Toggle AI mode for a session

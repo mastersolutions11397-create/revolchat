@@ -84,17 +84,52 @@ async function sendTelegramVideo(chatId: string, videoUrl: string, botToken: str
   }
 }
 
-async function sendTelegramDocument(chatId: string, documentUrl: string, botToken: string) {
+function getDocumentFilename(documentUrl: string, providedFilename?: string): string {
+  if (providedFilename?.trim()) {
+    return providedFilename.trim();
+  }
+
   try {
+    const pathname = new URL(documentUrl).pathname;
+    const lastSegment = pathname.split("/").pop();
+    return lastSegment || "document";
+  } catch {
+    return "document";
+  }
+}
+
+async function sendTelegramDocument(
+  chatId: string,
+  documentUrl: string,
+  botToken: string,
+  caption?: string,
+  filename?: string
+) {
+  try {
+    const fileResponse = await fetch(documentUrl);
+
+    if (!fileResponse.ok) {
+      throw new Error(`Failed to fetch document for Telegram upload: ${fileResponse.status}`);
+    }
+
+    const fileBlob = await fileResponse.blob();
+    const formData = new FormData();
+    formData.append("chat_id", chatId);
+    formData.append(
+      "document",
+      fileBlob,
+      getDocumentFilename(documentUrl, filename)
+    );
+
+    if (caption?.trim()) {
+      formData.append("caption", caption.trim());
+    }
+
     const response = await fetch(
       `https://api.telegram.org/bot${botToken}/sendDocument`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: chatId,
-          document: documentUrl,
-        }),
+        body: formData,
       }
     );
 
@@ -266,6 +301,7 @@ export async function POST(request: NextRequest) {
         let telegramResponse;
         const primaryAttachment = attachments[0];
         const attachmentUrl = primaryAttachment?.url;
+        const attachmentFilename = primaryAttachment?.filename;
 
         if (message_type === "image" && attachmentUrl) {
           telegramResponse = await sendTelegramPhoto(
@@ -289,7 +325,9 @@ export async function POST(request: NextRequest) {
           telegramResponse = await sendTelegramDocument(
             session.external_user_id,
             attachmentUrl,
-            botToken
+            botToken,
+            message_text,
+            attachmentFilename
           );
         } else if (isImageUrl(message_text)) {
           telegramResponse = await sendTelegramPhoto(

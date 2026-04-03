@@ -11,10 +11,83 @@ const languages = [
   { code: "pt" as Language, name: "Português", flag: "🇵🇹" },
 ];
 
+const BUTTON_SIZE = 56;
+const VIEWPORT_MARGIN = 24;
+const HOLD_TO_DRAG_MS = 180;
+const STORAGE_KEY = "language-selector-position";
+
+type Position = {
+  x: number;
+  y: number;
+};
+
+function clampPosition(position: Position): Position {
+  if (typeof window === "undefined") {
+    return position;
+  }
+
+  const maxX = Math.max(VIEWPORT_MARGIN, window.innerWidth - BUTTON_SIZE - VIEWPORT_MARGIN);
+  const maxY = Math.max(VIEWPORT_MARGIN, window.innerHeight - BUTTON_SIZE - VIEWPORT_MARGIN);
+
+  return {
+    x: Math.min(Math.max(position.x, VIEWPORT_MARGIN), maxX),
+    y: Math.min(Math.max(position.y, VIEWPORT_MARGIN), maxY),
+  };
+}
+
+function getDefaultPosition(): Position {
+  if (typeof window === "undefined") {
+    return { x: VIEWPORT_MARGIN, y: VIEWPORT_MARGIN };
+  }
+
+  return {
+    x: VIEWPORT_MARGIN,
+    y: window.innerHeight - BUTTON_SIZE - VIEWPORT_MARGIN,
+  };
+}
+
 export default function LanguageSelector() {
   const { language, setLanguage } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
+  const [position, setPosition] = useState<Position | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const dragOffsetRef = useRef({ x: 0, y: 0 });
+  const holdTimerRef = useRef<number | null>(null);
+  const dragStartedRef = useRef(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const savedPosition = window.localStorage.getItem(STORAGE_KEY);
+    if (savedPosition) {
+      try {
+        const parsed = JSON.parse(savedPosition) as Position;
+        setPosition(clampPosition(parsed));
+        return;
+      } catch {
+        window.localStorage.removeItem(STORAGE_KEY);
+      }
+    }
+
+    setPosition(getDefaultPosition());
+  }, []);
+
+  useEffect(() => {
+    if (!position || typeof window === "undefined") return;
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(position));
+  }, [position]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleResize = () => {
+      setPosition((current) => clampPosition(current ?? getDefaultPosition()));
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Handle clicks outside the dropdown
   useEffect(() => {
@@ -47,14 +120,81 @@ export default function LanguageSelector() {
     setIsOpen(false);
   };
 
+  const clearHoldTimer = () => {
+    if (holdTimerRef.current !== null) {
+      window.clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+  };
+
+  const stopDragging = () => {
+    clearHoldTimer();
+    setIsDragging(false);
+
+    window.removeEventListener("pointermove", handlePointerMove);
+    window.removeEventListener("pointerup", handlePointerUp);
+    window.removeEventListener("pointercancel", handlePointerUp);
+  };
+
+  const handlePointerMove = (event: PointerEvent) => {
+    if (!dragStartedRef.current) return;
+
+    setPosition(
+      clampPosition({
+        x: event.clientX - dragOffsetRef.current.x,
+        y: event.clientY - dragOffsetRef.current.y,
+      })
+    );
+  };
+
+  const handlePointerUp = () => {
+    window.setTimeout(() => {
+      dragStartedRef.current = false;
+    }, 0);
+    stopDragging();
+  };
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (!dropdownRef.current) return;
+
+    dragOffsetRef.current = {
+      x: event.clientX - dropdownRef.current.getBoundingClientRect().left,
+      y: event.clientY - dropdownRef.current.getBoundingClientRect().top,
+    };
+
+    dragStartedRef.current = false;
+    clearHoldTimer();
+
+    holdTimerRef.current = window.setTimeout(() => {
+      dragStartedRef.current = true;
+      setIsDragging(true);
+      setIsOpen(false);
+    }, HOLD_TO_DRAG_MS);
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerUp);
+  };
+
   const currentLanguage = languages.find((lang) => lang.code === language);
+  const resolvedPosition = position ?? { x: VIEWPORT_MARGIN, y: VIEWPORT_MARGIN };
+  const shouldOpenToLeft =
+    typeof window !== "undefined" && resolvedPosition.x > window.innerWidth - 260;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50" ref={dropdownRef}>
+    <div
+      className="fixed z-50"
+      ref={dropdownRef}
+      style={{
+        left: resolvedPosition.x,
+        top: resolvedPosition.y,
+      }}
+    >
       {/* Dropdown Menu */}
       {isOpen && (
         <div 
-          className="absolute bottom-16 right-0 w-56 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden mb-2 animate-in slide-in-from-bottom-2 z-50"
+          className="absolute bottom-16 w-56 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden mb-2 animate-in slide-in-from-bottom-2 z-50"
+          style={shouldOpenToLeft ? { right: 0 } : { left: 0 }}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="py-2">
@@ -101,12 +241,16 @@ export default function LanguageSelector() {
       {/* Globe Button */}
       <button
         type="button"
+        onPointerDown={handlePointerDown}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
+          if (dragStartedRef.current) {
+            return;
+          }
           setIsOpen(!isOpen);
         }}
-        className="w-14 h-14 rounded-full bg-sky-500 hover:bg-sky-500 text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center group relative cursor-pointer"
+        className={`w-14 h-14 rounded-full bg-sky-500 hover:bg-sky-500 text-white shadow-lg hover:shadow-xl transition-all flex items-center justify-center group relative ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
         aria-label="Change language"
       >
         <Globe className="w-6 h-6" />

@@ -7,7 +7,13 @@ import { useAuth } from "@/lib/auth-context";
 import { chatSystemAPI } from "@/lib/api/chat-system";
 import { triggerWordsAPI } from "@/lib/api/trigger-words";
 import { supabase } from "@/lib/supabase";
-import type { ChatMessage, SessionWithLastMessage, TriggerWord } from "@/lib/types/chat";
+import type {
+  Attachment,
+  ChatMessage,
+  MessageType,
+  SessionWithLastMessage,
+  TriggerWord,
+} from "@/lib/types/chat";
 import {
   MessageSquare,
   Send,
@@ -24,10 +30,13 @@ import {
   Video,
   File,
   Music,
+  Paperclip,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
-
 type ChannelType = "telegram" | "instagram";
+const MAX_MEDIA_SIZE_MB = 20;
+const MAX_DOCUMENT_SIZE_MB = 5;
 
 function getTriggerMediaIcon(type: string) {
   switch (type) {
@@ -129,7 +138,12 @@ export default function MessagesPage() {
   const [messageInput, setMessageInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const selectedSessionRef = useRef<SessionWithLastMessage | null>(null);
+  const [pendingAttachment, setPendingAttachment] = useState<{
+    file: File;
+    type: MessageType;
+  } | null>(null);
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -208,7 +222,7 @@ export default function MessagesPage() {
     };
 
     fetchSessions();
-  }, [user, selectedChannel]);
+  }, [user, selectedChannel, selectedSession]);
 
   // Fetch messages when session is selected
   useEffect(() => {
@@ -365,12 +379,14 @@ export default function MessagesPage() {
   };
 
   const handleSendMessage = async () => {
-    if (!messageInput.trim() || !selectedSession || sending) return;
+    if ((!messageInput.trim() && !pendingAttachment) || !selectedSession || sending) return;
 
     // Check if input matches a trigger word exactly
-    const exactTrigger = triggerWords.find(
-      (t) => t.trigger_word.toLowerCase() === messageInput.toLowerCase()
-    );
+    const exactTrigger = pendingAttachment
+      ? undefined
+      : triggerWords.find(
+          (t) => t.trigger_word.toLowerCase() === messageInput.toLowerCase()
+        );
 
     if (exactTrigger) {
       await handleSelectTrigger(exactTrigger);
@@ -379,13 +395,36 @@ export default function MessagesPage() {
 
     setSending(true);
     try {
+      let attachments: Attachment[] | undefined;
+      let messageType: MessageType | undefined;
+
+      if (pendingAttachment) {
+        const uploadResult = await chatSystemAPI.uploadAttachment(pendingAttachment.file);
+        messageType = uploadResult.message_type;
+        attachments = [
+          {
+            type: uploadResult.message_type,
+            url: uploadResult.url,
+            filename: uploadResult.filename,
+            size: uploadResult.size,
+            mime_type: uploadResult.mime_type,
+          },
+        ];
+      }
+
       await chatSystemAPI.sendMessage({
         session_id: selectedSession.id,
-        message_text: messageInput,
+        message_text: messageInput.trim(),
+        message_type: messageType,
+        attachments,
         sender_type: "admin",
       });
 
       setMessageInput("");
+      setPendingAttachment(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
       toast.success("Message sent");
     } catch (error) {
       console.error("Error sending message:", error);
@@ -418,6 +457,43 @@ export default function MessagesPage() {
       }
     } else if (e.key === "Enter") {
       handleSendMessage();
+    }
+  };
+
+  const handleSelectAttachment = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const nextType: MessageType = file.type.startsWith("image/")
+      ? "image"
+      : file.type.startsWith("video/")
+        ? "video"
+        : file.type.startsWith("audio/")
+          ? "audio"
+          : "file";
+
+    const maxSizeBytes =
+      nextType === "file"
+        ? MAX_DOCUMENT_SIZE_MB * 1024 * 1024
+        : MAX_MEDIA_SIZE_MB * 1024 * 1024;
+
+    if (file.size > maxSizeBytes) {
+      toast.error(
+        nextType === "file"
+          ? `Document size must be ${MAX_DOCUMENT_SIZE_MB} MB or less`
+          : `Media size must be ${MAX_MEDIA_SIZE_MB} MB or less`
+      );
+      e.target.value = "";
+      return;
+    }
+
+    setPendingAttachment({ file, type: nextType });
+  };
+
+  const clearPendingAttachment = () => {
+    setPendingAttachment(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -832,6 +908,35 @@ export default function MessagesPage() {
                 </div>
               )}
 
+              {pendingAttachment && (
+                <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-slate-500 shadow-sm">
+                      <File className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-slate-900">
+                        {pendingAttachment.file.name}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {(pendingAttachment.file.size / 1024 / 1024).toFixed(2)} MB
+                        {pendingAttachment.type === "file"
+                          ? ` / ${MAX_DOCUMENT_SIZE_MB} MB max`
+                          : ` / ${MAX_MEDIA_SIZE_MB} MB max`}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearPendingAttachment}
+                    className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-white hover:text-slate-600"
+                    title="Remove attachment"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
               <div className="relative flex gap-2 sm:gap-3">
                 {/* Trigger Suggestions Dropdown */}
                 {showTriggerSuggestions && filteredTriggers.length > 0 && (
@@ -895,6 +1000,22 @@ export default function MessagesPage() {
                 )}
 
                 <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleSelectAttachment}
+                  accept=".pdf,.doc,.docx,.txt,image/*,video/*,audio/*"
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={sending}
+                  className="px-3 py-3 border border-slate-200 bg-white text-slate-500 rounded-xl hover:bg-slate-50 hover:text-slate-700 transition-all disabled:opacity-50"
+                  title="Attach file"
+                >
+                  <Paperclip className="h-5 w-5" />
+                </button>
+                <input
                   ref={inputRef}
                   type="text"
                   value={messageInput}
@@ -906,7 +1027,7 @@ export default function MessagesPage() {
                 />
                 <button
                   onClick={handleSendMessage}
-                  disabled={!messageInput.trim() || sending}
+                  disabled={(!messageInput.trim() && !pendingAttachment) || sending}
                   className="px-6 py-3 bg-gradient-to-r from-sky-500 to-blue-500 text-white rounded-xl hover:from-sky-600 hover:to-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-sky-200"
                 >
                   {sending ? (

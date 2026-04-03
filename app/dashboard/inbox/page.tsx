@@ -4,9 +4,9 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { type Conversation, type Message } from "@/lib/api/integrations";
-import { MessageSquare, Search, Info, ArrowLeft, Send, Bot, User, Zap, Image as ImageIcon, Video, File, Music, ChevronDown, Trash2, Loader2 } from "lucide-react";
+import { MessageSquare, Search, Info, ArrowLeft, Send, Bot, User, Zap, Image as ImageIcon, Video, File, Music, ChevronDown, Trash2, Loader2, Paperclip, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import type { ChatSession, ChatMessage, TriggerWord } from "@/lib/types/chat";
+import type { Attachment, ChatSession, ChatMessage, MessageType, TriggerWord } from "@/lib/types/chat";
 import { chatSystemAPI } from "@/lib/api/chat-system";
 import { triggerWordsAPI } from "@/lib/api/trigger-words";
 import { agentsAPI, type Agent } from "@/lib/api/agents";
@@ -26,6 +26,8 @@ function getTriggerMediaIcon(type: string) {
 }
 
 type ChannelType = "telegram" | "instagram";
+const MAX_MEDIA_SIZE_MB = 20;
+const MAX_DOCUMENT_SIZE_MB = 5;
 
 interface SessionWithLastMessage extends ChatSession {
   last_message?: string;
@@ -79,6 +81,17 @@ const transformMessagesToMessages = (
     message_type: msg.message_type,
     attachments: msg.attachments,
   }));
+};
+
+const appendUniqueInboxMessage = (
+  currentMessages: InboxMessage[],
+  nextMessage: InboxMessage
+): InboxMessage[] => {
+  if (currentMessages.some((message) => message.id === nextMessage.id)) {
+    return currentMessages;
+  }
+
+  return [...currentMessages, nextMessage];
 };
 
 function renderInboxMessageContent(message: InboxMessage) {
@@ -169,7 +182,12 @@ export default function InboxPage() {
   const [deletingConversationId, setDeletingConversationId] = useState<string | null>(null);
   const [deletingAll, setDeletingAll] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [pendingAttachment, setPendingAttachment] = useState<{
+    file: File;
+    type: MessageType;
+  } | null>(null);
 
   // Scroll to bottom of messages
   const scrollToBottom = () => {
@@ -388,12 +406,10 @@ export default function InboxPage() {
         },
         (payload) => {
           const newMessage = payload.new as ChatMessage;
-          // Avoid duplicates - check if message already exists
-          setMessages((prev) => {
-            if (prev.some(m => m.id === newMessage.id)) return prev;
-            const formattedMessage = transformMessagesToMessages([newMessage])[0];
-            return [...prev, formattedMessage];
-          });
+          const formattedMessage = transformMessagesToMessages([newMessage])[0];
+          setMessages((prev) =>
+            appendUniqueInboxMessage(prev, formattedMessage)
+          );
 
           // Update conversation list with new last message (without full reload)
           setConversations((prev) =>
@@ -567,7 +583,7 @@ export default function InboxPage() {
       });
 
       const formattedMessage = transformMessagesToMessages([newMessage])[0];
-      setMessages((prev) => [...prev, formattedMessage]);
+      setMessages((prev) => appendUniqueInboxMessage(prev, formattedMessage));
 
       // Increment usage count
       try {
@@ -584,14 +600,53 @@ export default function InboxPage() {
     }
   };
 
+  const handleSelectAttachment = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const nextType: MessageType = file.type.startsWith("image/")
+      ? "image"
+      : file.type.startsWith("video/")
+        ? "video"
+        : file.type.startsWith("audio/")
+          ? "audio"
+          : "file";
+
+    const maxSizeBytes =
+      nextType === "file"
+        ? MAX_DOCUMENT_SIZE_MB * 1024 * 1024
+        : MAX_MEDIA_SIZE_MB * 1024 * 1024;
+
+    if (file.size > maxSizeBytes) {
+      toast.error(
+        nextType === "file"
+          ? `Document size must be ${MAX_DOCUMENT_SIZE_MB} MB or less`
+          : `Media size must be ${MAX_MEDIA_SIZE_MB} MB or less`
+      );
+      e.target.value = "";
+      return;
+    }
+
+    setPendingAttachment({ file, type: nextType });
+  };
+
+  const clearPendingAttachment = () => {
+    setPendingAttachment(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   // Send manual message as admin
   const handleSendMessage = async () => {
-    if (!messageInput.trim() || !selectedConversation || sending) return;
+    if ((!messageInput.trim() && !pendingAttachment) || !selectedConversation || sending) return;
 
     // Check if input matches a trigger word exactly
-    const exactTrigger = triggerWords.find(
-      (t) => t.trigger_word.toLowerCase() === messageInput.toLowerCase()
-    );
+    const exactTrigger = pendingAttachment
+      ? undefined
+      : triggerWords.find(
+          (t) => t.trigger_word.toLowerCase() === messageInput.toLowerCase()
+        );
 
     if (exactTrigger) {
       await handleSelectTrigger(exactTrigger);
@@ -600,41 +655,40 @@ export default function InboxPage() {
 
     setSending(true);
     try {
-      // Save message to database
-      const { data: newMessage, error } = await supabase
-        .from("chat_messages")
-        .insert({
-          session_id: selectedConversation.id,
-          message_text: messageInput,
-          sender_type: "admin",
-          is_read: true,
-        })
-        .select()
-        .single();
+      let attachments: Attachment[] | undefined;
+      let messageType: MessageType | undefined;
 
-      if (error) {
-        console.error("Error sending message:", error);
-        return;
+      if (pendingAttachment) {
+        const uploadResult = await chatSystemAPI.uploadAttachment(pendingAttachment.file);
+        messageType = uploadResult.message_type;
+        attachments = [
+          {
+            type: uploadResult.message_type,
+            url: uploadResult.url,
+            filename: uploadResult.filename,
+            size: uploadResult.size,
+            mime_type: uploadResult.mime_type,
+          },
+        ];
       }
 
-      // Add message to UI
-      const formattedMessage = transformMessagesToMessages([newMessage])[0];
-      setMessages((prev) => [...prev, formattedMessage]);
-
-      // Send to Telegram via API
-      await fetch("/api/chat/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          session_id: selectedConversation.id,
-          message_text: messageInput,
-          sender_type: "admin",
-        }),
+      const newMessage = await chatSystemAPI.sendMessage({
+        session_id: selectedConversation.id,
+        message_text: messageInput.trim(),
+        message_type: messageType,
+        attachments,
+        sender_type: "admin",
       });
 
+      const formattedMessage = transformMessagesToMessages([newMessage])[0];
+      setMessages((prev) => appendUniqueInboxMessage(prev, formattedMessage));
+
       setMessageInput("");
+      clearPendingAttachment();
+      toast.success("Message sent");
     } catch (error) {
       console.error("Error sending message:", error);
+      toast.error("Failed to send message");
     } finally {
       setSending(false);
     }
@@ -1206,6 +1260,35 @@ export default function InboxPage() {
                 </div>
               )}
 
+              {pendingAttachment && (
+                <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-slate-500 shadow-sm">
+                      <File className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-slate-900">
+                        {pendingAttachment.file.name}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {(pendingAttachment.file.size / 1024 / 1024).toFixed(2)} MB
+                        {pendingAttachment.type === "file"
+                          ? ` / ${MAX_DOCUMENT_SIZE_MB} MB max`
+                          : ` / ${MAX_MEDIA_SIZE_MB} MB max`}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearPendingAttachment}
+                    className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-white hover:text-slate-600"
+                    title="Remove attachment"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+
               <div className="flex items-end gap-3 relative">
                 {/* Trigger Suggestions Dropdown */}
                 {showTriggerSuggestions && filteredTriggers.length > 0 && (
@@ -1268,6 +1351,22 @@ export default function InboxPage() {
                   </div>
                 )}
 
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleSelectAttachment}
+                  accept=".pdf,.doc,.docx,.txt,image/*,video/*,audio/*"
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={selectedConversation.ai_mode || sending}
+                  className="p-3 border border-dashboard-border bg-dashboard-bg text-slate-500 rounded-xl hover:bg-slate-50 hover:text-slate-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  title="Attach file"
+                >
+                  <Paperclip className="h-5 w-5" />
+                </button>
                 <div className="flex-1">
                   <textarea
                     ref={inputRef}
@@ -1312,7 +1411,7 @@ export default function InboxPage() {
                 </div>
                 <button
                   onClick={handleSendMessage}
-                  disabled={!messageInput.trim() || sending || selectedConversation.ai_mode}
+                  disabled={(!messageInput.trim() && !pendingAttachment) || sending || selectedConversation.ai_mode}
                   className="p-3 bg-teal-primary text-white rounded-xl hover:bg-teal-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
                   {sending ? (
