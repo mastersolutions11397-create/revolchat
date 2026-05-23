@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import {
   Bot,
   X,
@@ -11,6 +11,7 @@ import {
   Send,
   ImagePlus,
   AlertCircle,
+  Globe,
 } from "lucide-react";
 import Image from "next/image";
 import {
@@ -21,6 +22,7 @@ import {
 } from "@/lib/api/agents";
 
 type WizardStep = "knowledge" | "platform" | "telegram" | "profile" | "review";
+type DeployPlatform = "telegram" | "web";
 
 const STEPS: { id: WizardStep; label: string }[] = [
   { id: "knowledge", label: "Knowledge Base" },
@@ -70,7 +72,7 @@ export default function BotWizard({
   const [apiKey, setApiKey] = useState("");
 
   // Platform state
-  const [selectedPlatform, setSelectedPlatform] = useState<"telegram" | null>(
+  const [selectedPlatform, setSelectedPlatform] = useState<DeployPlatform | null>(
     "telegram"
   );
 
@@ -111,8 +113,17 @@ export default function BotWizard({
     onClose();
   }, [resetForm, onClose]);
 
-  const getCurrentStepIndex = () =>
-    STEPS.findIndex((s) => s.id === currentStep);
+  const visibleSteps = useMemo(() =>
+    selectedPlatform === "web"
+      ? STEPS.filter((step) => step.id !== "telegram")
+      : STEPS,
+    [selectedPlatform]
+  );
+
+  const getCurrentStepIndex = useCallback(
+    () => visibleSteps.findIndex((s) => s.id === currentStep),
+    [currentStep, visibleSteps]
+  );
 
   const canGoNext = useCallback(() => {
     switch (currentStep) {
@@ -121,7 +132,7 @@ export default function BotWizard({
       case "platform":
         return selectedPlatform !== null;
       case "telegram":
-        return telegramBotInfo !== null;
+        return selectedPlatform === "web" || telegramBotInfo !== null;
       case "profile":
         return true; // Profile picture is optional
       case "review":
@@ -133,17 +144,17 @@ export default function BotWizard({
 
   const goToNextStep = useCallback(() => {
     const idx = getCurrentStepIndex();
-    if (idx < STEPS.length - 1) {
-      setCurrentStep(STEPS[idx + 1].id);
+    if (idx < visibleSteps.length - 1) {
+      setCurrentStep(visibleSteps[idx + 1].id);
     }
-  }, [currentStep]);
+  }, [getCurrentStepIndex, visibleSteps]);
 
   const goToPreviousStep = useCallback(() => {
     const idx = getCurrentStepIndex();
     if (idx > 0) {
-      setCurrentStep(STEPS[idx - 1].id);
+      setCurrentStep(visibleSteps[idx - 1].id);
     }
-  }, [currentStep]);
+  }, [getCurrentStepIndex, visibleSteps]);
 
   const validateTelegramToken = useCallback(async () => {
     if (!telegramToken.trim()) {
@@ -202,9 +213,12 @@ export default function BotWizard({
         model_id: modelId || null,
         system_prompt: systemPrompt.trim(),
         api_key: apiKey.trim(),
-        telegram_bot_token: telegramToken.trim() || undefined,
-        telegram_username: telegramBotInfo?.username || undefined,
-        telegram_first_name: telegramBotInfo?.first_name || undefined,
+        telegram_bot_token:
+          selectedPlatform === "telegram" ? telegramToken.trim() || undefined : undefined,
+        telegram_username:
+          selectedPlatform === "telegram" ? telegramBotInfo?.username || undefined : undefined,
+        telegram_first_name:
+          selectedPlatform === "telegram" ? telegramBotInfo?.first_name || undefined : undefined,
         user_id: userId,
         workspace_id: workspaceId,
       };
@@ -239,6 +253,7 @@ export default function BotWizard({
     apiKey,
     telegramToken,
     telegramBotInfo,
+    selectedPlatform,
     profilePictureFile,
     userId,
     workspaceId,
@@ -262,8 +277,8 @@ export default function BotWizard({
             <div>
               <h3 className="text-lg font-bold text-slate-900">Create Bot</h3>
               <p className="text-xs text-slate-500">
-                Step {stepIndex + 1} of {STEPS.length}:{" "}
-                {STEPS[stepIndex]?.label}
+                Step {stepIndex + 1} of {visibleSteps.length}:{" "}
+                {visibleSteps[stepIndex]?.label}
               </p>
             </div>
           </div>
@@ -278,7 +293,7 @@ export default function BotWizard({
 
         {/* Progress bar */}
         <div className="flex gap-1 px-6 py-3 bg-slate-50">
-          {STEPS.map((step, idx) => (
+          {visibleSteps.map((step, idx) => (
             <div
               key={step.id}
               className={`h-1.5 flex-1 rounded-full transition-colors ${
@@ -421,6 +436,34 @@ export default function BotWizard({
                 )}
               </button>
 
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedPlatform("web");
+                  setTelegramToken("");
+                  setTelegramBotInfo(null);
+                  setTelegramError(null);
+                }}
+                className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${
+                  selectedPlatform === "web"
+                    ? "border-teal-primary bg-teal-primary/5"
+                    : "border-dashboard-border hover:border-teal-primary/50"
+                }`}
+              >
+                <div className="h-12 w-12 rounded-xl bg-teal-primary/10 flex items-center justify-center">
+                  <Globe className="h-7 w-7 text-teal-primary" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="font-semibold text-slate-900">Web Embed</p>
+                  <p className="text-sm text-slate-500">
+                    Create a shareable chat page for any website
+                  </p>
+                </div>
+                {selectedPlatform === "web" && (
+                  <Check className="h-5 w-5 text-teal-primary" />
+                )}
+              </button>
+
               {/* Coming soon platforms */}
               <div className="opacity-50 pointer-events-none">
                 <div className="w-full flex items-center gap-4 p-4 rounded-xl border-2 border-dashboard-border">
@@ -532,8 +575,10 @@ export default function BotWizard({
           {currentStep === "profile" && (
             <div className="space-y-5">
               <p className="text-sm text-slate-600">
-                Upload a profile picture for your bot. This will be synced to
-                Telegram automatically.
+                Upload a profile picture for your bot.
+                {selectedPlatform === "telegram"
+                  ? " This will be synced to Telegram automatically."
+                  : " This will be shown on the embedded web chat page."}
               </p>
 
               <div className="flex flex-col items-center gap-4">
@@ -616,6 +661,11 @@ export default function BotWizard({
                           @{telegramBotInfo.username}
                         </p>
                       )}
+                      {selectedPlatform === "web" && (
+                        <p className="text-sm text-teal-primary font-medium">
+                          Web embed chat page
+                        </p>
+                      )}
                       <p className="text-xs text-slate-500 mt-1">
                         {MODEL_LABELS[modelId] ?? modelId ?? modelProvider}
                       </p>
@@ -640,8 +690,17 @@ export default function BotWizard({
                       Platform
                     </span>
                     <span className="text-sm text-slate-900 flex items-center gap-2">
-                      <Send className="h-4 w-4 text-[#0088cc]" />
-                      Telegram
+                      {selectedPlatform === "web" ? (
+                        <>
+                          <Globe className="h-4 w-4 text-teal-primary" />
+                          Web Embed
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-4 w-4 text-[#0088cc]" />
+                          Telegram
+                        </>
+                      )}
                     </span>
                   </div>
 

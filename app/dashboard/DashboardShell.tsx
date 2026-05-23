@@ -419,7 +419,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page Content */}
-        <main className="min-w-0 w-full p-3 sm:p-4 md:p-6 lg:p-8 animate-fade-in-up">{children}</main>
+        <main
+          key={activeWorkspace?.id ?? "no-workspace"}
+          className="min-w-0 w-full p-3 sm:p-4 md:p-6 lg:p-8 animate-fade-in-up"
+        >
+          {children}
+        </main>
 
       </div>
 

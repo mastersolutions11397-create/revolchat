@@ -20,6 +20,8 @@ import {
   Minimize2,
   Edit3,
   Send,
+  Copy,
+  Globe,
 } from "lucide-react";
 import BotWizard from "@/components/bot-wizard/BotWizard";
 import { toast } from "sonner";
@@ -72,6 +74,14 @@ export default function BotsPage() {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [chatExpanded, setChatExpanded] = useState(false);
   const [editingBot, setEditingBot] = useState<BotRecord | null>(null);
+  const [embedBot, setEmbedBot] = useState<BotRecord | null>(null);
+
+  const getEmbedUrl = useCallback((botId: string) => {
+    if (typeof window !== "undefined") {
+      return `${window.location.origin}/embed/${botId}`;
+    }
+    return `/embed/${botId}`;
+  }, []);
 
   const fetchBots = useCallback(async () => {
     setBotsLoading(true);
@@ -89,7 +99,7 @@ export default function BotsPage() {
     } finally {
       setBotsLoading(false);
     }
-  }, []);
+  }, [activeWorkspace]);
 
   useEffect(() => {
     fetchBots();
@@ -119,7 +129,7 @@ export default function BotsPage() {
         },
       },
     });
-  }, [activeWorkspace]);
+  }, []);
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6 w-full max-w-7xl mx-auto lg:min-h-[calc(100vh-8rem)]">
@@ -258,6 +268,22 @@ export default function BotsPage() {
                         {bot.systemPrompt.slice(0, 80)}
                         {bot.systemPrompt.length > 80 ? "..." : ""}
                       </p>
+                      <div className="mt-2 flex min-w-0 items-center gap-2 rounded-lg border border-teal-primary/15 bg-teal-primary/5 px-2 py-1.5 text-xs text-slate-600">
+                        <Globe className="h-3.5 w-3.5 flex-shrink-0 text-teal-primary" />
+                        <span className="font-medium text-teal-primary">Web Embed</span>
+                        <span className="min-w-0 flex-1 truncate text-slate-500">
+                          {getEmbedUrl(bot.id)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setEmbedBot(bot)}
+                          className="inline-flex flex-shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-teal-primary transition hover:bg-white"
+                          title="Get embed code"
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                          Code
+                        </button>
+                      </div>
                     </div>
 
                     {/* Actions */}
@@ -323,6 +349,115 @@ export default function BotsPage() {
           setEditingBot(null);
         }}
       />
+      <EmbedCodeModal
+        bot={embedBot}
+        embedUrl={embedBot ? getEmbedUrl(embedBot.id) : ""}
+        onClose={() => setEmbedBot(null)}
+      />
+    </div>
+  );
+}
+
+function EmbedCodeModal({
+  bot,
+  embedUrl,
+  onClose,
+}: {
+  bot: BotRecord | null;
+  embedUrl: string;
+  onClose: () => void;
+}) {
+  const [mode, setMode] = useState<"iframe" | "floating">("iframe");
+
+  if (!bot) return null;
+
+  const iframeCode = `<iframe
+  src="${embedUrl}"
+  style="width: 400px; height: 650px; border: 0; border-radius: 16px;"
+  allow="clipboard-write"
+></iframe>`;
+
+  const floatingCode = `<div style="position: fixed; right: 24px; bottom: 24px; z-index: 9999;">
+  <iframe
+    src="${embedUrl}"
+    style="width: 380px; height: 620px; border: 0; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.18);"
+    allow="clipboard-write"
+  ></iframe>
+</div>`;
+
+  const code = mode === "iframe" ? iframeCode : floatingCode;
+
+  const copyCode = async () => {
+    await navigator.clipboard.writeText(code);
+    toast.success("Embed code copied");
+  };
+
+  return (
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+          <div>
+            <h3 className="text-base font-bold text-slate-950">Web Embed Code</h3>
+            <p className="text-sm text-slate-500">{bot.name}</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="space-y-4 p-5">
+          <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
+            <button
+              type="button"
+              onClick={() => setMode("iframe")}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                mode === "iframe"
+                  ? "bg-white text-slate-950 shadow-sm"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              Iframe
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("floating")}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                mode === "floating"
+                  ? "bg-white text-slate-950 shadow-sm"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              Floating Widget
+            </button>
+          </div>
+
+          <textarea
+            readOnly
+            value={code}
+            rows={mode === "iframe" ? 6 : 9}
+            className="w-full resize-none rounded-xl border border-slate-200 bg-slate-950 p-4 font-mono text-xs leading-relaxed text-slate-100 outline-none"
+          />
+
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs text-slate-500">
+              Use your deployed domain instead of localhost for external websites.
+            </p>
+            <button
+              type="button"
+              onClick={copyCode}
+              className="inline-flex items-center gap-2 rounded-xl bg-teal-primary px-4 py-2 text-sm font-bold text-white transition hover:bg-teal-primary/90"
+            >
+              <Copy className="h-4 w-4" />
+              Copy Code
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

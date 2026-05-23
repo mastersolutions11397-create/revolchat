@@ -1,6 +1,6 @@
 // Chat System Types
 
-export type Platform = 'telegram' | 'instagram' | 'whatsapp';
+export type Platform = 'telegram' | 'instagram' | 'whatsapp' | 'web';
 export type SessionStatus = 'active' | 'idle' | 'closed';
 export type MessageType = 'text' | 'image' | 'file' | 'audio' | 'video' | 'location' | 'sticker';
 export type SenderType = 'user' | 'admin' | 'ai';

@@ -35,7 +35,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-type ChannelType = "telegram" | "instagram";
+type ChannelType = "telegram" | "instagram" | "web";
 const MAX_MEDIA_SIZE_MB = 20;
 const MAX_DOCUMENT_SIZE_MB = 5;
 
@@ -311,7 +311,8 @@ export default function MessagesPage() {
 
           // Refresh sessions list
           try {
-            const data = await chatSystemAPI.getSessions(selectedChannel);
+            if (!activeWorkspace) return;
+            const data = await chatSystemAPI.getSessions(selectedChannel, activeWorkspace.id);
             setSessions(data);
 
             // Also update selectedSession if it exists in the new data
@@ -331,7 +332,7 @@ export default function MessagesPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, selectedChannel]);
+  }, [user, activeWorkspace, selectedChannel]);
 
   const handleSelectSession = (session: SessionWithLastMessage) => {
     setSelectedSession(session);
@@ -633,6 +634,20 @@ export default function MessagesPage() {
                 />
               </div>
               Telegram
+            </button>
+            <button
+              onClick={() => {
+                setSelectedChannel("web");
+                setSelectedSession(null);
+              }}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-all ${
+                selectedChannel === "web"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              <Bot className="h-5 w-5 text-teal-primary" />
+              Web
             </button>
           </div>
         </div>
