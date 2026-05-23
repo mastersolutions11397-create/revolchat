@@ -60,9 +60,10 @@ export interface DeleteAllSessionsResponse {
 
 class ChatSystemAPI {
   // Get all chat sessions (with online users)
-  async getSessions(platform?: string): Promise<SessionWithLastMessage[]> {
+  async getSessions(platform?: string, workspaceId?: string): Promise<SessionWithLastMessage[]> {
     const params = new URLSearchParams();
     if (platform) params.append("platform", platform);
+    if (workspaceId) params.append("workspace_id", workspaceId);
 
     const queryString = params.toString();
     const url = queryString

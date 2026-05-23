@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getAuthenticatedUser, jsonError, requireWorkspaceRole } from "@/lib/api-auth";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -12,7 +13,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 });
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -24,6 +25,19 @@ export async function DELETE(
         { status: 400 }
       );
     }
+
+    const user = await getAuthenticatedUser(request);
+    const { data: session, error: sessionError } = await supabase
+      .from("chat_sessions")
+      .select("workspace_id")
+      .eq("id", id)
+      .single();
+
+    if (sessionError || !session?.workspace_id) {
+      return NextResponse.json({ error: "Session not found" }, { status: 404 });
+    }
+
+    await requireWorkspaceRole(session.workspace_id, user.id, ["owner", "admin"]);
 
     const { error } = await supabase.from("chat_sessions").delete().eq("id", id);
 
@@ -41,9 +55,6 @@ export async function DELETE(
     });
   } catch (error) {
     console.error("Error in delete session endpoint:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return jsonError(error);
   }
 }

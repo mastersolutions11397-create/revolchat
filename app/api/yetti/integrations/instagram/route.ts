@@ -5,11 +5,14 @@ import {
   getWorkspaceIdForUser,
 } from "../../helpers";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { requireWorkspaceRole } from "@/lib/api-auth";
 
 export async function GET(request: NextRequest) {
   try {
     const user = await authenticate(request);
-    const workspaceId = await getWorkspaceIdForUser(user.id);
+    const { searchParams } = new URL(request.url);
+    const workspaceId =
+      searchParams.get("workspace_id") || (await getWorkspaceIdForUser(user.id));
 
     if (!workspaceId) {
       return NextResponse.json({
@@ -17,6 +20,7 @@ export async function GET(request: NextRequest) {
         data: null,
       });
     }
+    await requireWorkspaceRole(workspaceId, user.id, ["owner", "admin", "member"]);
 
     // Check if there's an active Instagram session in chat_sessions
     const { data: session } = await supabaseAdmin
@@ -45,6 +49,12 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     if (error instanceof ApiError) {
       return NextResponse.json({ message: error.message }, { status: error.status });
+    }
+    if (error instanceof Error && "status" in error) {
+      return NextResponse.json(
+        { message: error.message },
+        { status: Number((error as Error & { status?: number }).status) || 500 }
+      );
     }
     console.error("Instagram integration GET failed:", error);
     return NextResponse.json(

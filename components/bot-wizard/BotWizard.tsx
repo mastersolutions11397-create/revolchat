@@ -48,6 +48,7 @@ interface BotWizardProps {
   onClose: () => void;
   onCreated: () => void;
   userId?: string;
+  workspaceId?: string;
 }
 
 export default function BotWizard({
@@ -55,6 +56,7 @@ export default function BotWizard({
   onClose,
   onCreated,
   userId,
+  workspaceId,
 }: BotWizardProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>("knowledge");
   const [isCreating, setIsCreating] = useState(false);
@@ -204,6 +206,7 @@ export default function BotWizard({
         telegram_username: telegramBotInfo?.username || undefined,
         telegram_first_name: telegramBotInfo?.first_name || undefined,
         user_id: userId,
+        workspace_id: workspaceId,
       };
 
       const createdAgent = await agentsAPI.create(body);
@@ -238,6 +241,7 @@ export default function BotWizard({
     telegramBotInfo,
     profilePictureFile,
     userId,
+    workspaceId,
     onCreated,
     handleClose,
   ]);

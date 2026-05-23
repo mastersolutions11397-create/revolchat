@@ -5,10 +5,10 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useWorkspace } from "@/lib/workspace-context";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import {
   LayoutDashboard,
-  BookOpen,
   Link2,
   Settings,
   Bell,
@@ -17,9 +17,11 @@ import {
   MessageSquare,
   Menu,
   X,
-  Gift,
   Zap,
   Bot,
+  Building2,
+  Users,
+  ChevronDown,
 } from "lucide-react";
 
 function WorkspaceSelector() {
@@ -30,10 +32,22 @@ function WorkspaceSelector() {
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
+  const {
+    workspaces,
+    activeWorkspace,
+    loading: workspaceLoading,
+    onboardingOpen,
+    setOnboardingOpen,
+    setActiveWorkspaceId,
+    createWorkspace,
+  } = useWorkspace();
   const { t } = useLanguage();
   const pathname = usePathname();
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
+  const [newWorkspaceName, setNewWorkspaceName] = useState("");
+  const [creatingWorkspace, setCreatingWorkspace] = useState(false);
 
   // Close mobile sidebar when route changes
   useEffect(() => {
@@ -63,6 +77,20 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   };
 
   const buildLink = (path: string) => path;
+
+  const handleCreateWorkspace = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const name = newWorkspaceName.trim();
+    if (!name) return;
+    setCreatingWorkspace(true);
+    try {
+      await createWorkspace(name);
+      setNewWorkspaceName("");
+      setWorkspaceMenuOpen(false);
+    } finally {
+      setCreatingWorkspace(false);
+    }
+  };
 
   return (
     <div className="min-h-screen min-h-[100dvh] w-full max-w-[100vw] overflow-x-hidden bg-dashboard-bg">
@@ -205,6 +233,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 label: t("dashboard.sidebar.settings"),
                 tourId: "settings-nav",
               },
+              {
+                href: "/dashboard/workspaces",
+                icon: Users,
+                label: "Workspaces",
+                tourId: null,
+              },
             ].map((item) => {
               const active = isActive(item.href);
               return (
@@ -313,6 +347,64 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
               <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
             </button>
 
+            <div className="relative min-w-0">
+              <button
+                type="button"
+                onClick={() => setWorkspaceMenuOpen((value) => !value)}
+                className="flex max-w-[220px] items-center gap-2 rounded-xl border border-dashboard-border bg-white px-3 py-2 text-left text-sm shadow-sm transition hover:border-teal-primary/40"
+              >
+                <Building2 className="h-4 w-4 shrink-0 text-teal-primary" />
+                <span className="truncate font-semibold text-slate-800">
+                  {workspaceLoading
+                    ? "Loading..."
+                    : activeWorkspace?.name ?? "No workspace"}
+                </span>
+                <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" />
+              </button>
+
+              {workspaceMenuOpen && (
+                <div className="absolute left-0 top-full z-50 mt-2 w-72 rounded-xl border border-dashboard-border bg-white p-2 shadow-xl">
+                  <div className="max-h-60 overflow-y-auto">
+                    {workspaces.map((workspace) => (
+                      <button
+                        key={workspace.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveWorkspaceId(workspace.id);
+                          setWorkspaceMenuOpen(false);
+                        }}
+                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm ${
+                          activeWorkspace?.id === workspace.id
+                            ? "bg-teal-primary/10 text-teal-primary"
+                            : "text-slate-700 hover:bg-slate-50"
+                        }`}
+                      >
+                        <span className="truncate font-medium">{workspace.name}</span>
+                        <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-[11px] uppercase text-slate-500">
+                          {workspace.role}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <form onSubmit={handleCreateWorkspace} className="mt-2 border-t border-dashboard-border pt-2">
+                    <input
+                      value={newWorkspaceName}
+                      onChange={(event) => setNewWorkspaceName(event.target.value)}
+                      placeholder="New workspace name"
+                      className="mb-2 w-full rounded-lg border border-dashboard-border px-3 py-2 text-sm outline-none focus:border-teal-primary"
+                    />
+                    <button
+                      type="submit"
+                      disabled={creatingWorkspace || !newWorkspaceName.trim()}
+                      className="w-full rounded-lg bg-teal-primary px-3 py-2 text-sm font-bold text-white disabled:opacity-60"
+                    >
+                      {creatingWorkspace ? "Creating..." : "Create workspace"}
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
+
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 shrink-0">
@@ -330,6 +422,45 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         <main className="min-w-0 w-full p-3 sm:p-4 md:p-6 lg:p-8 animate-fade-in-up">{children}</main>
 
       </div>
+
+      {onboardingOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-teal-primary/10 text-teal-primary">
+              <Building2 className="h-6 w-6" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900">Name your workspace</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              This is where your bots, members, integrations, and inbox will live.
+            </p>
+            <form onSubmit={handleCreateWorkspace} className="mt-5 space-y-4">
+              <input
+                autoFocus
+                value={newWorkspaceName}
+                onChange={(event) => setNewWorkspaceName(event.target.value)}
+                placeholder="Acme Support"
+                className="w-full rounded-xl border border-dashboard-border bg-dashboard-bg px-4 py-3 text-sm outline-none focus:border-teal-primary focus:ring-2 focus:ring-teal-primary/20"
+              />
+              <button
+                type="submit"
+                disabled={creatingWorkspace || !newWorkspaceName.trim()}
+                className="w-full rounded-xl bg-teal-primary px-4 py-3 text-sm font-bold text-white hover:bg-teal-accent disabled:opacity-60"
+              >
+                {creatingWorkspace ? "Creating..." : "Create workspace"}
+              </button>
+            </form>
+            {workspaces.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setOnboardingOpen(false)}
+                className="mt-3 w-full rounded-lg px-4 py-2 text-sm font-medium text-slate-500 hover:bg-slate-50"
+              >
+                Do this later
+              </button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

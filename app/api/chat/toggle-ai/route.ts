@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getAuthenticatedUser, jsonError, requireWorkspaceRole } from "@/lib/api-auth";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -22,6 +23,19 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const user = await getAuthenticatedUser(request);
+    const { data: existingSession, error: sessionError } = await supabase
+      .from("chat_sessions")
+      .select("workspace_id")
+      .eq("id", session_id)
+      .single();
+
+    if (sessionError || !existingSession?.workspace_id) {
+      return NextResponse.json({ error: "Session not found" }, { status: 404 });
+    }
+
+    await requireWorkspaceRole(existingSession.workspace_id, user.id, ["owner", "admin"]);
 
     // Update session AI mode
     const { data: session, error } = await supabase
@@ -55,9 +69,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error in toggle AI endpoint:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return jsonError(error);
   }
 }

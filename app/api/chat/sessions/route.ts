@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getAuthenticatedUser, jsonError, requireWorkspaceRole } from "@/lib/api-auth";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -15,15 +16,38 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const platform = searchParams.get("platform");
+    const workspaceId = searchParams.get("workspace_id");
+
+    if (!workspaceId) {
+      return NextResponse.json(
+        { error: "workspace_id is required" },
+        { status: 400 }
+      );
+    }
+
+    const user = await getAuthenticatedUser(request);
+    const membership = await requireWorkspaceRole(workspaceId, user.id, [
+      "owner",
+      "admin",
+      "member",
+    ]);
 
     // Build query
     let query = supabase
       .from("chat_sessions")
       .select("*")
+      .eq("workspace_id", workspaceId)
       .order("last_activity_at", { ascending: false });
 
     if (platform) {
       query = query.eq("platform", platform);
+    }
+    if (membership.role === "member") {
+      const allowedIds = membership.allowed_bot_ids ?? [];
+      if (!allowedIds.length) {
+        return NextResponse.json({ sessions: [] });
+      }
+      query = query.in("bot_id", allowedIds);
     }
 
     const { data: sessions, error } = await query;
@@ -70,10 +94,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error in sessions endpoint:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return jsonError(error);
   }
 }
 
@@ -90,9 +111,23 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    const user = await getAuthenticatedUser(request);
+    const { data: bot, error: botError } = await supabase
+      .from("agents")
+      .select("workspace_id")
+      .eq("id", botId)
+      .single();
+
+    if (botError || !bot?.workspace_id) {
+      return NextResponse.json({ error: "Bot not found" }, { status: 404 });
+    }
+
+    await requireWorkspaceRole(bot.workspace_id, user.id, ["owner", "admin"]);
+
     const { data: sessions, error: fetchError } = await supabase
       .from("chat_sessions")
       .select("id")
+      .eq("workspace_id", bot.workspace_id)
       .eq("platform", platform)
       .eq("bot_id", botId);
 
@@ -132,9 +167,6 @@ export async function DELETE(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error in delete sessions endpoint:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return jsonError(error);
   }
 }

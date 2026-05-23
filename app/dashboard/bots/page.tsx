@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth, type AppUser } from "@/lib/auth-context";
+import { useWorkspace } from "@/lib/workspace-context";
 import { agentsAPI, type Agent, type AgentModel } from "@/lib/api/agents";
 import { agentChatAPI } from "@/lib/api/agent-chat";
 import ReactMarkdown from "react-markdown";
@@ -64,6 +65,7 @@ function botFromAPI(a: Agent): BotRecord {
 
 export default function BotsPage() {
   const { user } = useAuth();
+  const { activeWorkspace } = useWorkspace();
   const [bots, setBots] = useState<BotRecord[]>([]);
   const [botsLoading, setBotsLoading] = useState(true);
   const [botsError, setBotsError] = useState<string | null>(null);
@@ -75,8 +77,11 @@ export default function BotsPage() {
     setBotsLoading(true);
     setBotsError(null);
     try {
-      // Fetch all bots (no user_id filter for admin view)
-      const { agents: list } = await agentsAPI.list();
+      if (!activeWorkspace) {
+        setBots([]);
+        return;
+      }
+      const { agents: list } = await agentsAPI.list(activeWorkspace.id);
       setBots(list.map(botFromAPI));
     } catch (err) {
       setBotsError(err instanceof Error ? err.message : "Failed to load bots.");
@@ -114,7 +119,7 @@ export default function BotsPage() {
         },
       },
     });
-  }, []);
+  }, [activeWorkspace]);
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6 w-full max-w-7xl mx-auto lg:min-h-[calc(100vh-8rem)]">
@@ -306,6 +311,7 @@ export default function BotsPage() {
         onClose={() => setWizardOpen(false)}
         onCreated={fetchBots}
         userId={user?.id}
+        workspaceId={activeWorkspace?.id}
       />
       <EditBotModal
         bot={editingBot}

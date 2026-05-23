@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth, type AppUser } from "@/lib/auth-context";
+import { useWorkspace } from "@/lib/workspace-context";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { agentsAPI, type Agent, type AgentModel } from "@/lib/api/agents";
 import { agentChatAPI } from "@/lib/api/agent-chat";
@@ -62,6 +63,7 @@ function maskApiKey(key: string): string {
 
 export default function AgentsPage() {
   const { user } = useAuth();
+  const { activeWorkspace } = useWorkspace();
   const { t } = useLanguage();
   const [agents, setAgents] = useState<AgentRecord[]>([]);
   const [agentsLoading, setAgentsLoading] = useState(true);
@@ -80,7 +82,11 @@ export default function AgentsPage() {
     setAgentsLoading(true);
     setAgentsError(null);
     try {
-      const { agents: list } = await agentsAPI.list();
+      if (!activeWorkspace) {
+        setAgents([]);
+        return;
+      }
+      const { agents: list } = await agentsAPI.list(activeWorkspace.id);
       setAgents(list.map(agentFromAPI));
     } catch (err) {
       setAgentsError(err instanceof Error ? err.message : "Failed to load agents.");
@@ -88,7 +94,7 @@ export default function AgentsPage() {
     } finally {
       setAgentsLoading(false);
     }
-  }, []);
+  }, [activeWorkspace]);
 
   useEffect(() => {
     fetchAgents();

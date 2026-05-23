@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getAuthenticatedUser, jsonError, requireWorkspaceRole } from "@/lib/api-auth";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -74,6 +75,43 @@ function maskSensitiveFields(data: Record<string, unknown>) {
   return out;
 }
 
+async function requireBotAccess(request: NextRequest, botId: string) {
+  const user = await getAuthenticatedUser(request);
+  const supabase = getSupabase();
+  const { data: bot, error } = await supabase
+    .from("agents")
+    .select("*")
+    .eq("id", botId)
+    .single();
+
+  if (error || !bot) {
+    const err = new Error("Bot not found");
+    (err as Error & { status?: number }).status = 404;
+    throw err;
+  }
+  if (!bot.workspace_id) {
+    const err = new Error("Bot is not assigned to a workspace");
+    (err as Error & { status?: number }).status = 403;
+    throw err;
+  }
+
+  const membership = await requireWorkspaceRole(bot.workspace_id, user.id, [
+    "owner",
+    "admin",
+    "member",
+  ]);
+  if (membership.role === "member") {
+    const allowedIds = membership.allowed_bot_ids ?? [];
+    if (!allowedIds.includes(bot.id)) {
+      const err = new Error("You do not have access to this bot");
+      (err as Error & { status?: number }).status = 403;
+      throw err;
+    }
+  }
+
+  return bot;
+}
+
 // GET /api/bots/[id] - Get a single bot
 export async function GET(
   request: NextRequest,
@@ -81,28 +119,12 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const supabase = getSupabase();
-
-    const { data, error } = await supabase
-      .from("agents")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error) {
-      if (error.code === "PGRST116") {
-        return NextResponse.json({ error: "Bot not found" }, { status: 404 });
-      }
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    const data = await requireBotAccess(request, id);
 
     return NextResponse.json(maskSensitiveFields(data));
   } catch (err) {
     console.error("Error getting bot:", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to get bot" },
-      { status: 500 }
-    );
+    return jsonError(err);
   }
 }
 
@@ -114,6 +136,7 @@ export async function PATCH(
   try {
     const { id } = await params;
     const supabase = getSupabase();
+    await requireBotAccess(request, id);
     const body = await request.json();
 
     if (
@@ -173,10 +196,7 @@ export async function PATCH(
     return NextResponse.json({ ...maskSensitiveFields(data), webhook_registered: webhookRegistered });
   } catch (err) {
     console.error("Error updating bot:", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to update bot" },
-      { status: 500 }
-    );
+    return jsonError(err);
   }
 }
 
@@ -188,6 +208,7 @@ export async function DELETE(
   try {
     const { id } = await params;
     const supabase = getSupabase();
+    await requireBotAccess(request, id);
 
     // Get the bot first to remove webhook
     const { data: existingBot } = await supabase
@@ -239,9 +260,6 @@ export async function DELETE(
     return NextResponse.json({ message: "Bot deleted", id });
   } catch (err) {
     console.error("Error deleting bot:", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to delete bot" },
-      { status: 500 }
-    );
+    return jsonError(err);
   }
 }

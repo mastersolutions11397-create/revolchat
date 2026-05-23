@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useWorkspace } from "@/lib/workspace-context";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import {
   dashboardAPI,
@@ -16,8 +17,6 @@ import { formatNumberInK } from "@/lib/utils";
 import {
   MessageSquare,
   Link2,
-  Zap,
-  CheckCircle2,
   Loader2,
   ArrowUpRight,
   Activity,
@@ -26,6 +25,9 @@ import {
 } from "lucide-react";
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { activeWorkspace } = useWorkspace();
+  const activeWorkspaceId = activeWorkspace?.id;
+  const userId = user?.id;
   const { t } = useLanguage();
   const [dashboardData, setDashboardData] = useState<DashboardResponse | null>(
     null
@@ -52,7 +54,7 @@ export default function DashboardPage() {
     const fetchDashboard = async () => {
       try {
         setLoading(true);
-        const data = await dashboardAPI.getDashboard();
+        const data = await dashboardAPI.getDashboard(activeWorkspaceId);
         setDashboardData(data);
         setError(null);
       } catch (err: unknown) {
@@ -90,14 +92,14 @@ export default function DashboardPage() {
     if (user) {
       fetchDashboard();
     }
-  }, [user]);
+  }, [user, activeWorkspaceId]);
 
   // Fetch integration status
   useEffect(() => {
     let cancelled = false;
 
     async function checkIntegrations() {
-      if (!user) {
+      if (!userId || !activeWorkspaceId) {
         setInstagramIntegration(null);
         setTelegramBotInfo(null);
         return;
@@ -105,9 +107,9 @@ export default function DashboardPage() {
       setIntegrationsLoading(true);
       try {
         const instagramData =
-          await integrationsAPI.getInstagramIntegration();
+          await integrationsAPI.getInstagramIntegration(activeWorkspaceId);
         if (!cancelled) setInstagramIntegration(instagramData);
-        const telegramData = await integrationsAPI.getTelegramBotInfo();
+        const telegramData = await integrationsAPI.getTelegramBotInfo(activeWorkspaceId);
         if (!cancelled) setTelegramBotInfo(telegramData);
       } catch (error) {
         if (!cancelled) console.error("Error checking integrations:", error);
@@ -119,18 +121,18 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [user?.id]);
+  }, [userId, activeWorkspaceId]);
 
   // Fetch agents count
   useEffect(() => {
     let cancelled = false;
-    if (!user) {
+    if (!userId || !activeWorkspaceId) {
       setAgentsCount(0);
       return;
     }
     setAgentsCountLoading(true);
     agentsAPI
-      .list()
+      .list(activeWorkspaceId)
       .then((response) => {
         if (!cancelled) setAgentsCount(response.count ?? response.agents.length);
       })
@@ -143,7 +145,7 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [user?.id]);
+  }, [userId, activeWorkspaceId]);
 
   const integrationsCount =
     (instagramIntegration ? 1 : 0) + (telegramBotInfo ? 1 : 0);
@@ -151,13 +153,13 @@ export default function DashboardPage() {
   // Fetch message count
   useEffect(() => {
     let cancelled = false;
-    if (!user) {
+    if (!userId || !activeWorkspaceId) {
       setMessageCount(0);
       return;
     }
     setMessageCountLoading(true);
     chatAPI
-      .getMessageCount()
+      .getMessageCount(activeWorkspaceId)
       .then((count) => {
         if (!cancelled) setMessageCount(count);
       })
@@ -170,7 +172,7 @@ export default function DashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [user?.id]);
+  }, [userId, activeWorkspaceId]);
 
   const getUserName = () => {
     if (dashboardData?.user_profile?.first_name) {

@@ -29,8 +29,9 @@ export interface DashboardResponse {
 }
 
 class DashboardAPI {
-  async getDashboard(): Promise<DashboardResponse> {
-    return apiRequest<DashboardResponse>("/api/yetti/dashboard", {
+  async getDashboard(workspaceId?: string): Promise<DashboardResponse> {
+    const query = workspaceId ? `?workspace_id=${encodeURIComponent(workspaceId)}` : "";
+    return apiRequest<DashboardResponse>(`/api/yetti/dashboard${query}`, {
       method: "GET",
     });
   }

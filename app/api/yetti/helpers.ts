@@ -46,7 +46,7 @@ export async function getWorkspaceIdForUser(userId: string): Promise<string | nu
   const { data: byOwner, error: e1 } = await supabaseAdmin
     .from("workspaces")
     .select("id")
-    .eq("owner_id", userId)
+    .or(`owner_id.eq.${userId},user_id.eq.${userId}`)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();

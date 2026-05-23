@@ -7,6 +7,7 @@ import {
   useState,
   useCallback,
 } from "react";
+import { supabase } from "@/lib/supabase";
 
 export interface AppUser {
   id: string;
@@ -35,10 +36,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const refreshSession = useCallback(async () => {
-    const res = await fetch("/api/auth/admin-session");
-    const json = await res.json().catch(() => ({}));
-    if (json?.admin && typeof json.admin.id === "string" && typeof json.admin.email === "string") {
-      setUser({ id: json.admin.id, email: json.admin.email, user_metadata: {} });
+    const {
+      data: { user: supabaseUser },
+    } = await supabase.auth.getUser();
+    if (supabaseUser?.email) {
+      setUser({
+        id: supabaseUser.id,
+        email: supabaseUser.email,
+        user_metadata: supabaseUser.user_metadata ?? {},
+      });
     } else {
       setUser(null);
     }
@@ -47,9 +53,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     refreshSession();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const sessionUser = session?.user;
+      if (sessionUser?.email) {
+        setUser({
+          id: sessionUser.id,
+          email: sessionUser.email,
+          user_metadata: sessionUser.user_metadata ?? {},
+        });
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+    return () => subscription.unsubscribe();
   }, [refreshSession]);
 
   const signOut = async () => {
+    await supabase.auth.signOut();
     await fetch("/api/auth/admin-logout", { method: "POST" });
     setUser(null);
   };

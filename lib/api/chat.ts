@@ -34,9 +34,10 @@ class ChatAPI {
     });
   }
 
-  async getMessageCount(): Promise<number> {
+  async getMessageCount(workspaceId?: string): Promise<number> {
+    const query = workspaceId ? `?workspace_id=${encodeURIComponent(workspaceId)}` : "";
     const response = await apiRequest<ChatHistoryCountResponse>(
-      "/api/yetti/chat-history/count",
+      `/api/yetti/chat-history/count${query}`,
       { method: "GET" }
     );
     return response.count;

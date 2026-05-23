@@ -5,11 +5,14 @@ import {
   getWorkspaceIdForUser,
 } from "../helpers";
 import { supabaseAdmin } from "@/lib/supabase-admin";
+import { requireWorkspaceRole } from "@/lib/api-auth";
 
 export async function GET(request: NextRequest) {
   try {
     const user = await authenticate(request);
-    const workspaceId = await getWorkspaceIdForUser(user.id);
+    const { searchParams } = new URL(request.url);
+    const workspaceId =
+      searchParams.get("workspace_id") || (await getWorkspaceIdForUser(user.id));
 
     // Get user profile from metadata
     const userProfile = {
@@ -39,18 +42,19 @@ export async function GET(request: NextRequest) {
         },
       });
     }
+    await requireWorkspaceRole(workspaceId, user.id, ["owner", "admin", "member"]);
 
-    // Fetch total agents count for this user
+    // Fetch total agents count for this workspace
     const { count: totalAgents } = await supabaseAdmin
       .from("agents")
       .select("*", { count: "exact", head: true })
-      .eq("user_id", user.id);
+      .eq("workspace_id", workspaceId);
 
-    // Count active agents (agents with telegram_bot_token set)
+    // Count active agents (agents with telegram_bot_token set) for this workspace
     const { count: activeAgents } = await supabaseAdmin
       .from("agents")
       .select("*", { count: "exact", head: true })
-      .eq("user_id", user.id)
+      .eq("workspace_id", workspaceId)
       .not("telegram_bot_token", "is", null);
 
     // Get today's date boundaries in UTC
@@ -145,6 +149,12 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     if (error instanceof ApiError) {
       return NextResponse.json({ message: error.message }, { status: error.status });
+    }
+    if (error instanceof Error && "status" in error) {
+      return NextResponse.json(
+        { message: error.message },
+        { status: Number((error as Error & { status?: number }).status) || 500 }
+      );
     }
     console.error("Dashboard GET failed:", error);
     return NextResponse.json(

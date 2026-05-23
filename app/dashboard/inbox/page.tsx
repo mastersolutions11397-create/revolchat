@@ -10,6 +10,7 @@ import type { Attachment, ChatSession, ChatMessage, MessageType, TriggerWord } f
 import { chatSystemAPI } from "@/lib/api/chat-system";
 import { triggerWordsAPI } from "@/lib/api/trigger-words";
 import { agentsAPI, type Agent } from "@/lib/api/agents";
+import { useWorkspace } from "@/lib/workspace-context";
 import { toast } from "sonner";
 
 function getTriggerMediaIcon(type: string) {
@@ -168,6 +169,7 @@ function renderInboxMessageContent(message: InboxMessage) {
 
 export default function InboxPage() {
   const { t } = useLanguage();
+  const { activeWorkspace } = useWorkspace();
 
   const [selectedChannel, setSelectedChannel] =
     useState<ChannelType>("telegram");
@@ -208,7 +210,12 @@ export default function InboxPage() {
   useEffect(() => {
     const fetchBots = async () => {
       try {
-        const response = await agentsAPI.list();
+        if (!activeWorkspace) {
+          setBots([]);
+          setSelectedBot(null);
+          return;
+        }
+        const response = await agentsAPI.list(activeWorkspace.id);
         // Filter to only bots with telegram tokens
         const telegramBots = response.agents.filter(bot => bot.telegram_username);
         setBots(telegramBots);
@@ -222,7 +229,7 @@ export default function InboxPage() {
     };
 
     fetchBots();
-  }, []);
+  }, [activeWorkspace, selectedBot]);
 
   // Function to load conversations (extracted so it can be called from multiple places)
   const loadConversations = async () => {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { headers } from "next/headers";
+import { getAuthenticatedUser, jsonError, requireWorkspaceRole } from "@/lib/api-auth";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -76,11 +77,26 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = getSupabase();
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("user_id");
+    const user = await getAuthenticatedUser(request);
+    const workspaceId = searchParams.get("workspace_id");
 
-    let query = supabase.from("agents").select("*");
-    if (userId) {
-      query = query.eq("user_id", userId);
+    if (!workspaceId) {
+      return NextResponse.json({ agents: [], count: 0 });
+    }
+
+    const membership = await requireWorkspaceRole(workspaceId, user.id, [
+      "owner",
+      "admin",
+      "member",
+    ]);
+
+    let query = supabase.from("agents").select("*").eq("workspace_id", workspaceId);
+    if (membership.role === "member") {
+      const allowedIds = membership.allowed_bot_ids ?? [];
+      if (!allowedIds.length) {
+        return NextResponse.json({ agents: [], count: 0 });
+      }
+      query = query.in("id", allowedIds);
     }
 
     const { data, error } = await query.order("created_at", { ascending: false });
@@ -100,6 +116,7 @@ export async function GET(request: NextRequest) {
       telegram_first_name: agent.telegram_first_name || null,
       profile_picture_url: agent.profile_picture_url || null,
       user_id: agent.user_id || null,
+      workspace_id: agent.workspace_id || null,
       created_at: agent.created_at,
       updated_at: agent.updated_at,
     }));
@@ -107,10 +124,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ agents, count: agents.length });
   } catch (err) {
     console.error("Error listing bots:", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to list bots" },
-      { status: 500 }
-    );
+    return jsonError(err);
   }
 }
 
@@ -118,6 +132,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = getSupabase();
+    const user = await getAuthenticatedUser(request);
     const body = await request.json();
 
     // Validate required fields
@@ -130,6 +145,11 @@ export async function POST(request: NextRequest) {
     if (!body.api_key || body.api_key.trim().length === 0) {
       return NextResponse.json({ error: "API key is required" }, { status: 400 });
     }
+    const workspaceId = typeof body.workspace_id === "string" ? body.workspace_id : "";
+    if (!workspaceId) {
+      return NextResponse.json({ error: "workspace_id is required" }, { status: 400 });
+    }
+    await requireWorkspaceRole(workspaceId, user.id, ["owner", "admin"]);
 
     const row = {
       name: body.name.trim(),
@@ -141,7 +161,8 @@ export async function POST(request: NextRequest) {
       telegram_username: body.telegram_username?.trim() || null,
       telegram_first_name: body.telegram_first_name?.trim() || null,
       profile_picture_url: body.profile_picture_url || null,
-      user_id: body.user_id || null,
+      user_id: user.id,
+      workspace_id: workspaceId,
     };
 
     const { data, error } = await supabase
@@ -170,9 +191,6 @@ export async function POST(request: NextRequest) {
     );
   } catch (err) {
     console.error("Error creating bot:", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to create bot" },
-      { status: 500 }
-    );
+    return jsonError(err);
   }
 }

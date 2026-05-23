@@ -10,10 +10,11 @@ type InstagramIntegrationResponse = {
   data?: InstagramIntegrationData | null;
 };
 
-async function getInstagramIntegration() {
+async function getInstagramIntegration(workspaceId?: string) {
   try {
+    const query = workspaceId ? `?workspace_id=${encodeURIComponent(workspaceId)}` : "";
     const response = await apiRequest<InstagramIntegrationResponse>(
-      "/api/yetti/integrations/instagram",
+      `/api/yetti/integrations/instagram${query}`,
       { method: "GET" }
     );
     if (response.success && response.data) return response.data;
@@ -187,13 +188,14 @@ type TelegramBotInfo = {
   };
 };
 
-async function getTelegramBotInfo(): Promise<{
+async function getTelegramBotInfo(workspaceId?: string): Promise<{
   username: string;
   first_name: string;
 } | null> {
   try {
+    const query = workspaceId ? `?workspace_id=${encodeURIComponent(workspaceId)}` : "";
     const response = await apiRequest<TelegramBotInfo>(
-      "/api/yetti/integrations/telegram/token",
+      `/api/yetti/integrations/telegram/token${query}`,
       { method: "GET" }
     );
     const username =

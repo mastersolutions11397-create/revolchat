@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getAuthenticatedUser, jsonError, requireWorkspaceRole } from "@/lib/api-auth";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -23,6 +24,32 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const user = await getAuthenticatedUser(request);
+    const { data: session, error: sessionError } = await supabase
+      .from("chat_sessions")
+      .select("workspace_id, bot_id")
+      .eq("id", sessionId)
+      .single();
+
+    if (sessionError || !session?.workspace_id) {
+      return NextResponse.json({ error: "Session not found" }, { status: 404 });
+    }
+
+    const membership = await requireWorkspaceRole(session.workspace_id, user.id, [
+      "owner",
+      "admin",
+      "member",
+    ]);
+    if (membership.role === "member") {
+      const allowedIds = membership.allowed_bot_ids ?? [];
+      if (!session.bot_id || !allowedIds.includes(session.bot_id)) {
+        return NextResponse.json(
+          { error: "You do not have access to this session" },
+          { status: 403 }
+        );
+      }
+    }
+
     const { data: messages, error } = await supabase
       .from("chat_messages")
       .select("*")
@@ -42,9 +69,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error in messages endpoint:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return jsonError(error);
   }
 }

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { useAuth } from "@/lib/auth-context";
+import { useWorkspace } from "@/lib/workspace-context";
 import { chatSystemAPI } from "@/lib/api/chat-system";
 import { triggerWordsAPI } from "@/lib/api/trigger-words";
 import { supabase } from "@/lib/supabase";
@@ -126,6 +127,7 @@ function renderMessageContent(message: ChatMessage) {
 export default function MessagesPage() {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { activeWorkspace } = useWorkspace();
 
   const [selectedChannel, setSelectedChannel] = useState<ChannelType>("telegram");
   const [sessions, setSessions] = useState<SessionWithLastMessage[]>([]);
@@ -201,12 +203,12 @@ export default function MessagesPage() {
 
   // Fetch sessions when channel changes
   useEffect(() => {
-    if (!user) return;
+    if (!user || !activeWorkspace) return;
 
     const fetchSessions = async () => {
       setLoading(true);
       try {
-        const data = await chatSystemAPI.getSessions(selectedChannel);
+        const data = await chatSystemAPI.getSessions(selectedChannel, activeWorkspace.id);
         setSessions(data);
 
         // Auto-select first session if available
@@ -222,7 +224,7 @@ export default function MessagesPage() {
     };
 
     fetchSessions();
-  }, [user, selectedChannel, selectedSession]);
+  }, [user, activeWorkspace, selectedChannel, selectedSession]);
 
   // Fetch messages when session is selected
   useEffect(() => {

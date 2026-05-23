@@ -243,6 +243,15 @@ export default function LoginPage() {
                 )}
               </button>
             </form>
+            <p className="mt-5 text-center text-sm text-slate-600">
+              New here?{" "}
+              <Link
+                href="/auth/signup"
+                className="font-semibold text-teal-primary hover:underline"
+              >
+                Create an account
+              </Link>
+            </p>
           </div>
         </div>
 

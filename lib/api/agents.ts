@@ -17,6 +17,7 @@ export type Agent = {
   telegram_first_name?: string | null;
   profile_picture_url?: string | null;
   user_id?: string | null;
+  workspace_id?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -37,6 +38,7 @@ export type CreateAgentBody = {
   telegram_first_name?: string;
   profile_picture_url?: string;
   user_id?: string;
+  workspace_id?: string;
 };
 
 export type UpdateAgentBody = Partial<{
@@ -77,10 +79,18 @@ async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
+  const {
+    data: { session },
+  } = await import("@/lib/supabase").then(({ supabase }) =>
+    supabase.auth.getSession()
+  );
   const res = await fetch(path, {
     ...options,
     headers: {
       "Content-Type": "application/json",
+      ...(session?.access_token
+        ? { Authorization: `Bearer ${session.access_token}` }
+        : {}),
       ...options.headers,
     },
   });
@@ -116,9 +126,19 @@ async function apiFetchFormData<T>(
   path: string,
   formData: FormData
 ): Promise<T> {
+  const {
+    data: { session },
+  } = await import("@/lib/supabase").then(({ supabase }) =>
+    supabase.auth.getSession()
+  );
   const res = await fetch(path, {
     method: "POST",
     body: formData,
+    headers: {
+      ...(session?.access_token
+        ? { Authorization: `Bearer ${session.access_token}` }
+        : {}),
+    },
   });
 
   if (!res.ok) {
@@ -139,8 +159,8 @@ async function apiFetchFormData<T>(
 
 export const agentsAPI = {
   /** GET /api/bots – list all agents/bots */
-  async list(userId?: string): Promise<AgentsListResponse> {
-    const params = userId ? `?user_id=${encodeURIComponent(userId)}` : "";
+  async list(workspaceId?: string): Promise<AgentsListResponse> {
+    const params = workspaceId ? `?workspace_id=${encodeURIComponent(workspaceId)}` : "";
     return apiFetch<AgentsListResponse>(`/api/bots${params}`);
   },
 
@@ -164,6 +184,7 @@ export const agentsAPI = {
         telegram_first_name: body.telegram_first_name ?? null,
         profile_picture_url: body.profile_picture_url ?? null,
         user_id: body.user_id ?? null,
+        workspace_id: body.workspace_id ?? null,
       }),
     });
   },

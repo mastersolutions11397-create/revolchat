@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { useAuth } from "@/lib/auth-context";
+import { useWorkspace } from "@/lib/workspace-context";
 import { triggerWordsAPI } from "@/lib/api/trigger-words";
 import { agentsAPI } from "@/lib/api/agents";
 import type { TriggerWord, TriggerMediaType } from "@/lib/types/chat";
@@ -47,6 +48,7 @@ type BotOption = {
 
 export default function TriggersPage() {
   const { user } = useAuth();
+  const { activeWorkspace } = useWorkspace();
 
   const [triggers, setTriggers] = useState<TriggerWord[]>([]);
   const [bots, setBots] = useState<BotOption[]>([]);
@@ -78,9 +80,14 @@ export default function TriggersPage() {
     setLoading(true);
     setError(null);
     try {
+      if (!activeWorkspace) {
+        setTriggers([]);
+        setBots([]);
+        return;
+      }
       const [triggerData, botsResponse] = await Promise.all([
         triggerWordsAPI.getTriggerWords(selectedBotFilterId || undefined),
-        agentsAPI.list(user.id),
+        agentsAPI.list(activeWorkspace.id),
       ]);
       const botData = botsResponse.agents.map((agent) => ({
         id: agent.id,
@@ -96,7 +103,7 @@ export default function TriggersPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedBotFilterId, user]);
+  }, [selectedBotFilterId, user, activeWorkspace]);
 
   useEffect(() => {
     if (user) {
