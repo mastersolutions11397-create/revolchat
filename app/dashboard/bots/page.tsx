@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import BotWizard from "@/components/bot-wizard/BotWizard";
 import { toast } from "sonner";
+import { getAppUrl } from "@/lib/app-url";
 
 export type BotRecord = {
   id: string;
@@ -77,10 +78,7 @@ export default function BotsPage() {
   const [embedBot, setEmbedBot] = useState<BotRecord | null>(null);
 
   const getEmbedUrl = useCallback((botId: string) => {
-    if (typeof window !== "undefined") {
-      return `${window.location.origin}/embed/${botId}`;
-    }
-    return `/embed/${botId}`;
+    return `${getAppUrl()}/embed/${botId}`;
   }, []);
 
   const fetchBots = useCallback(async () => {
@@ -445,7 +443,7 @@ function EmbedCodeModal({
 
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs text-slate-500">
-              Use your deployed domain instead of localhost for external websites.
+              Embed links use your deployed webchat domain.
             </p>
             <button
               type="button"
