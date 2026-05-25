@@ -375,10 +375,11 @@ function EmbedCodeModal({
   allow="clipboard-write"
 ></iframe>`;
 
-  const floatingCode = `<div style="position: fixed; right: 24px; bottom: 24px; z-index: 9999;">
+const floatingCode = `<div style="position: fixed; right: 24px; bottom: 24px; z-index: 9999;">
   <iframe
     src="${embedUrl}"
-    style="width: 380px; height: 620px; border: 0; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,.18);"
+    title="${bot.name} chat"
+    style="width: 380px; height: 620px; border: 0; border-radius: 16px; display: block; box-shadow: 0 20px 60px rgba(0,0,0,.18);"
     allow="clipboard-write"
   ></iframe>
 </div>`;

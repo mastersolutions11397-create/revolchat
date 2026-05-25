@@ -5,11 +5,12 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import {
   Bot,
-  ChevronLeft,
+  CheckCircle2,
   Loader2,
   LogIn,
   Plus,
   SendHorizontal,
+  ShieldCheck,
 } from "lucide-react";
 import type { ChatMessage } from "@/lib/types/chat";
 
@@ -196,13 +197,90 @@ export default function EmbedChatPage() {
 
   return (
     <main className="h-screen w-screen overflow-hidden bg-[#0d0f11] text-white">
-      <section className="grid h-full w-full grid-cols-1 overflow-hidden bg-[#0d0f11] xl:grid-cols-[minmax(460px,1fr)_320px] 2xl:grid-cols-[minmax(560px,1fr)_360px]">
+      <section className="grid h-full w-full grid-cols-1 overflow-hidden bg-[#0d0f11] lg:grid-cols-[280px_minmax(420px,1fr)] xl:grid-cols-[300px_minmax(460px,1fr)_320px] 2xl:grid-cols-[320px_minmax(560px,1fr)_360px]">
+        <aside className="hidden min-h-0 border-r border-white/10 bg-[#0f1214] px-5 py-5 lg:block">
+          <div className="rounded-3xl bg-[#191d21] p-4 ring-1 ring-white/10">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#242930] text-amber-400">
+                {bot?.profile_picture_url ? (
+                  <Image
+                    src={bot.profile_picture_url}
+                    alt={title}
+                    width={48}
+                    height={48}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <Bot className="h-6 w-6" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <h2 className="truncate text-lg font-black text-white">{title}</h2>
+                <div className="mt-1 flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                  Online now
+                </div>
+              </div>
+            </div>
+            <p className="mt-4 text-sm leading-relaxed text-zinc-400">
+              Start a conversation and get an instant response from this assistant.
+            </p>
+          </div>
+
+          <div className="mt-4 space-y-3">
+            <div className="rounded-2xl bg-[#191d21] p-4 ring-1 ring-white/10">
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="h-5 w-5 text-amber-400" />
+                <div>
+                  <p className="text-sm font-black text-white">Fast replies</p>
+                  <p className="text-xs text-zinc-500">Responses are generated in chat.</p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl bg-[#191d21] p-4 ring-1 ring-white/10">
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="h-5 w-5 text-amber-400" />
+                <div>
+                  <p className="text-sm font-black text-white">Private session</p>
+                  <p className="text-xs text-zinc-500">Google sign-in keeps chats separate.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-3xl bg-[#191d21] p-4 ring-1 ring-white/10">
+            <p className="text-xs font-bold uppercase tracking-wide text-zinc-500">
+              Conversation tips
+            </p>
+            <div className="mt-3 space-y-2 text-sm text-zinc-300">
+              <p className="rounded-xl bg-[#22272e] px-3 py-2">Ask about products or services</p>
+              <p className="rounded-xl bg-[#22272e] px-3 py-2">Request help with next steps</p>
+              <p className="rounded-xl bg-[#22272e] px-3 py-2">Continue anytime after login</p>
+            </div>
+          </div>
+        </aside>
+
         <div className="flex min-h-0 flex-col bg-[#0d0f11] px-3 py-3 sm:px-5 sm:py-5">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <button className="flex items-center gap-2 rounded-xl bg-[#20242a] px-4 py-3 text-sm font-black text-white">
-              <ChevronLeft className="h-5 w-5" />
-              All Chats
-            </button>
+            <div className="flex min-w-0 items-center gap-3 rounded-2xl bg-[#20242a] px-4 py-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#30363f] text-amber-400">
+                {bot?.profile_picture_url ? (
+                  <Image
+                    src={bot.profile_picture_url}
+                    alt={title}
+                    width={36}
+                    height={36}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <Bot className="h-5 w-5" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-black text-white">{title}</p>
+                <p className="text-xs font-semibold text-emerald-400">Online</p>
+              </div>
+            </div>
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl bg-[#191d21] ring-1 ring-white/5">
