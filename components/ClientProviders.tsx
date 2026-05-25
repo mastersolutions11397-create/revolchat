@@ -13,8 +13,9 @@ export default function ClientProviders({
 }) {
   const pathname = usePathname();
   const isEmbedRoute = pathname?.startsWith("/embed/");
+  const isEmbedAuthRoute = pathname === "/auth/embed-login";
 
-  if (isEmbedRoute) {
+  if (isEmbedRoute || isEmbedAuthRoute) {
     return <>{children}</>;
   }
 
