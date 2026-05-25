@@ -5,23 +5,11 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import {
   Bot,
-  Camera,
   ChevronLeft,
-  Crown,
-  Heart,
-  HelpCircle,
-  ImageIcon,
-  LayoutDashboard,
   Loader2,
   LogIn,
-  MessageCircle,
   Plus,
-  RotateCcw,
   SendHorizontal,
-  Share2,
-  Sparkles,
-  UserCircle,
-  Users,
 } from "lucide-react";
 import type { ChatMessage } from "@/lib/types/chat";
 
@@ -208,79 +196,13 @@ export default function EmbedChatPage() {
 
   return (
     <main className="h-screen w-screen overflow-hidden bg-[#0d0f11] text-white">
-      <section className="grid h-full w-full grid-cols-1 overflow-hidden bg-[#0d0f11] lg:grid-cols-[236px_minmax(360px,1fr)] xl:grid-cols-[250px_minmax(460px,1fr)_300px] 2xl:grid-cols-[280px_minmax(520px,1fr)_340px]">
-        <aside className="hidden min-h-0 border-r border-white/10 bg-[#0f1214] px-4 py-5 lg:flex lg:flex-col">
-          <div className="mb-7 flex items-center gap-3 px-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-400/10 text-amber-400">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <p className="text-2xl font-black tracking-normal text-white">
-              Yetti <span className="text-amber-400">AI</span>
-            </p>
-          </div>
-
-          <nav className="space-y-2 text-sm font-bold text-zinc-400">
-            {[
-              { icon: LayoutDashboard, label: "Explore" },
-              { icon: Users, label: "AI Chat" },
-              { icon: MessageCircle, label: "Chats", active: true },
-              { icon: Bot, label: "AI Agents" },
-              { icon: Camera, label: "Generate Photo" },
-              { icon: ImageIcon, label: "Gallery" },
-              { icon: UserCircle, label: "Manage Account" },
-              { icon: HelpCircle, label: "Support" },
-            ].map((item) => {
-              const Icon = item.icon;
-              return (
-                <div
-                  key={item.label}
-                  className={`flex items-center gap-3 rounded-xl px-4 py-3 ${
-                    item.active
-                      ? "bg-white/7 text-amber-400"
-                      : "text-zinc-400"
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span>{item.label}</span>
-                </div>
-              );
-            })}
-          </nav>
-
-          <div className="mt-auto space-y-3">
-            <div className="rounded-2xl border border-amber-400 bg-amber-400/5 p-4">
-              <div className="flex items-center gap-3 text-sm font-bold text-white">
-                <UserCircle className="h-5 w-5 text-amber-400" />
-                Create Unique Digital Persona
-              </div>
-            </div>
-            <div className="rounded-2xl border border-amber-400 bg-[#201b13] p-4">
-              <div className="mb-3 flex items-center gap-2 text-xl font-black">
-                Join <Crown className="h-5 w-5 text-amber-400" /> Premium
-              </div>
-              <div className="space-y-2 text-xs font-semibold text-zinc-200">
-                <p>Unlock unlimited messages</p>
-                <p>Priority AI responses</p>
-                <p>Custom AI characters</p>
-              </div>
-              <button className="mt-4 w-full rounded-xl bg-gradient-to-b from-white to-amber-300 px-4 py-2 text-sm font-black text-zinc-950">
-                Subscribe
-              </button>
-            </div>
-          </div>
-        </aside>
-
+      <section className="grid h-full w-full grid-cols-1 overflow-hidden bg-[#0d0f11] xl:grid-cols-[minmax(460px,1fr)_320px] 2xl:grid-cols-[minmax(560px,1fr)_360px]">
         <div className="flex min-h-0 flex-col bg-[#0d0f11] px-3 py-3 sm:px-5 sm:py-5">
           <div className="mb-3 flex items-center justify-between gap-3">
             <button className="flex items-center gap-2 rounded-xl bg-[#20242a] px-4 py-3 text-sm font-black text-white">
               <ChevronLeft className="h-5 w-5" />
               All Chats
             </button>
-            <div className="flex items-center gap-2 lg:hidden">
-              <div className="rounded-xl bg-[#20242a] px-3 py-2 text-sm font-black">
-                Yetti <span className="text-amber-400">AI</span>
-              </div>
-            </div>
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl bg-[#191d21] ring-1 ring-white/5">
@@ -403,16 +325,6 @@ export default function EmbedChatPage() {
         </div>
 
         <aside className="hidden min-h-0 overflow-y-auto border-l border-white/10 bg-[#0f1214] px-5 py-5 xl:block">
-          <div className="mb-4 flex items-center justify-end gap-3">
-            <button className="rounded-xl bg-amber-400 px-4 py-2 text-sm font-black text-zinc-950">
-              Sign Up / Sign In
-            </button>
-            <div className="flex items-center gap-2 rounded-xl bg-[#191d21] px-3 py-2 font-black">
-              <Heart className="h-4 w-4 fill-amber-400 text-amber-400" />
-              120
-            </div>
-          </div>
-
           <div className="overflow-hidden rounded-3xl bg-[#191d21] ring-1 ring-white/10">
             <div className="relative aspect-[1.15] bg-[#242930]">
               {bot?.profile_picture_url ? (
@@ -433,43 +345,8 @@ export default function EmbedChatPage() {
           <div className="mt-5">
             <h2 className="text-2xl font-black text-white">{title}</h2>
             <p className="mt-2 text-sm leading-relaxed text-zinc-400">
-              Your Yetti AI assistant is ready to answer questions and guide visitors through the conversation.
+              This assistant is ready to answer questions and guide visitors through the conversation.
             </p>
-          </div>
-
-          <div className="mt-4 flex gap-2">
-            <button className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-amber-400 px-3 py-3 text-sm font-black text-amber-300">
-              <Share2 className="h-4 w-4" />
-              Share
-            </button>
-            <button className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#20242a] px-3 py-3 text-sm font-black text-white">
-              <RotateCcw className="h-4 w-4" />
-              Reset
-            </button>
-          </div>
-
-          <div className="mt-5 grid grid-cols-2 gap-2 rounded-2xl bg-[#191d21] p-2 ring-1 ring-white/10">
-            <button className="rounded-xl border border-amber-400 px-3 py-2 text-sm font-black text-white">
-              Details
-            </button>
-            <button className="rounded-xl px-3 py-2 text-sm font-black text-zinc-300">
-              Profile
-            </button>
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            {[0, 1, 2, 3].map((item) => (
-              <div
-                key={item}
-                className="aspect-[0.82] overflow-hidden rounded-xl bg-[#242930] ring-1 ring-white/10"
-              >
-                <div className="flex h-full items-end bg-gradient-to-br from-zinc-700 via-zinc-800 to-zinc-950 p-2">
-                  <span className="rounded-full bg-black/50 px-2 py-1 text-[10px] font-bold text-zinc-200">
-                    Yetti AI
-                  </span>
-                </div>
-              </div>
-            ))}
           </div>
         </aside>
       </section>
