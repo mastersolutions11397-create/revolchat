@@ -2,12 +2,54 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { cookies } from "next/headers";
 
+function safeNextPath(next: string | null) {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return "/dashboard";
+  return next;
+}
+
+function embedAuthResponse(request: NextRequest, next: string, accessToken: string, refreshToken: string) {
+  const origin = new URL(request.url).origin;
+  const fallbackUrl = new URL(next, request.url).toString();
+  const html = `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Authentication complete</title>
+  </head>
+  <body>
+    <script>
+      (function () {
+        var message = {
+          type: "yetti:embed-auth",
+          access_token: ${JSON.stringify(accessToken)},
+          refresh_token: ${JSON.stringify(refreshToken)}
+        };
+        if (window.opener && !window.opener.closed) {
+          window.opener.postMessage(message, ${JSON.stringify(origin)});
+          window.close();
+          return;
+        }
+        window.location.replace(${JSON.stringify(fallbackUrl)});
+      })();
+    </script>
+  </body>
+</html>`;
+
+  return new NextResponse(html, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const error = requestUrl.searchParams.get("error");
   const errorDescription = requestUrl.searchParams.get("error_description");
-  const next = requestUrl.searchParams.get("next") ?? "/dashboard";
+  const next = safeNextPath(requestUrl.searchParams.get("next"));
+  const isEmbedOAuth = requestUrl.searchParams.get("embed_oauth") === "1";
 
   // Validate environment variables
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -45,7 +87,7 @@ export async function GET(request: NextRequest) {
           set(name: string, value: string, options: CookieOptions) {
             try {
               cookieStore.set({ name, value, ...options });
-            } catch (error) {
+            } catch {
               // The `set` method was called from a Server Component.
               // This can be ignored if you have middleware refreshing
               // user sessions.
@@ -54,7 +96,7 @@ export async function GET(request: NextRequest) {
           remove(name: string, options: CookieOptions) {
             try {
               cookieStore.set({ name, value: "", ...options });
-            } catch (error) {
+            } catch {
               // The `delete` method was called from a Server Component.
               // This can be ignored if you have middleware refreshing
               // user sessions.
@@ -67,6 +109,15 @@ export async function GET(request: NextRequest) {
         await supabase.auth.exchangeCodeForSession(code);
 
       if (!exchangeError && data.session) {
+        if (isEmbedOAuth && next.startsWith("/embed/")) {
+          return embedAuthResponse(
+            request,
+            next,
+            data.session.access_token,
+            data.session.refresh_token
+          );
+        }
+
         // Successfully authenticated (OAuth or email confirmation)
         // User is now logged in, redirect to workspace
         return NextResponse.redirect(new URL(next, request.url));

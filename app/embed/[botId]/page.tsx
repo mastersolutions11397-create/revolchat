@@ -19,6 +19,12 @@ type EmbedResponse = {
   messages: ChatMessage[];
 };
 
+type EmbedAuthMessage = {
+  type: "yetti:embed-auth";
+  access_token: string;
+  refresh_token: string;
+};
+
 async function authHeaders() {
   const {
     data: { session },
@@ -39,6 +45,7 @@ export default function EmbedChatPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [authenticating, setAuthenticating] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -90,15 +97,61 @@ export default function EmbedChatPage() {
     };
   }, [botId]);
 
+  useEffect(() => {
+    async function handleEmbedAuth(event: MessageEvent<EmbedAuthMessage>) {
+      if (event.origin !== window.location.origin) return;
+      if (event.data?.type !== "yetti:embed-auth") return;
+
+      setAuthenticating(true);
+      setError(null);
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: event.data.access_token,
+        refresh_token: event.data.refresh_token,
+      });
+      if (sessionError) {
+        setError(sessionError.message);
+      }
+      setAuthenticating(false);
+    }
+
+    window.addEventListener("message", handleEmbedAuth);
+    return () => window.removeEventListener("message", handleEmbedAuth);
+  }, []);
+
   const signInWithGoogle = async () => {
     const redirectTo =
       typeof window !== "undefined"
-        ? `${window.location.origin}/auth/callback?next=/embed/${encodeURIComponent(botId)}`
+        ? `${window.location.origin}/auth/callback?next=/embed/${encodeURIComponent(botId)}&embed_oauth=1`
         : undefined;
-    await supabase.auth.signInWithOAuth({
+    setAuthenticating(true);
+    setError(null);
+    const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo },
+      options: { redirectTo, skipBrowserRedirect: true },
     });
+    if (oauthError) {
+      setError(oauthError.message);
+      setAuthenticating(false);
+      return;
+    }
+    if (!data.url) {
+      setError("Could not start Google sign in.");
+      setAuthenticating(false);
+      return;
+    }
+
+    const popup = window.open(data.url, "yetti-google-auth", "width=520,height=720");
+    if (!popup) {
+      setError("Please allow popups to sign in with Google.");
+      setAuthenticating(false);
+      return;
+    }
+    const popupCheck = window.setInterval(() => {
+      if (popup.closed) {
+        window.clearInterval(popupCheck);
+        setAuthenticating(false);
+      }
+    }, 500);
   };
 
   const sendMessage = async () => {
@@ -185,9 +238,10 @@ export default function EmbedChatPage() {
               <button
                 type="button"
                 onClick={signInWithGoogle}
+                disabled={authenticating}
                 className="mt-5 w-full rounded-xl bg-teal-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-teal-primary/90"
               >
-                Continue with Google
+                {authenticating ? "Opening Google..." : "Continue with Google"}
               </button>
             </div>
           </div>
