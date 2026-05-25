@@ -366,6 +366,7 @@ function EmbedCodeModal({
   onClose: () => void;
 }) {
   const [mode, setMode] = useState<"iframe" | "floating">("iframe");
+  const [installGuide, setInstallGuide] = useState<"website" | "shopify">("website");
 
   if (!bot) return null;
 
@@ -393,7 +394,7 @@ const floatingCode = `<div style="position: fixed; right: 24px; bottom: 24px; z-
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+      <div className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
           <div>
             <h3 className="text-base font-bold text-slate-950">Web Embed Code</h3>
@@ -409,7 +410,7 @@ const floatingCode = `<div style="position: fixed; right: 24px; bottom: 24px; z-
           </button>
         </div>
 
-        <div className="space-y-4 p-5">
+        <div className="space-y-4 overflow-y-auto p-5">
           <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
             <button
               type="button"
@@ -441,6 +442,65 @@ const floatingCode = `<div style="position: fixed; right: 24px; bottom: 24px; z-
             rows={mode === "iframe" ? 6 : 9}
             className="w-full resize-none rounded-xl border border-slate-200 bg-slate-950 p-4 font-mono text-xs leading-relaxed text-slate-100 outline-none"
           />
+
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <div className="mb-3 grid grid-cols-2 gap-2 rounded-lg bg-white p-1">
+              <button
+                type="button"
+                onClick={() => setInstallGuide("website")}
+                className={`rounded-md px-3 py-2 text-xs font-bold transition ${
+                  installGuide === "website"
+                    ? "bg-teal-primary text-white"
+                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                }`}
+              >
+                Website
+              </button>
+              <button
+                type="button"
+                onClick={() => setInstallGuide("shopify")}
+                className={`rounded-md px-3 py-2 text-xs font-bold transition ${
+                  installGuide === "shopify"
+                    ? "bg-teal-primary text-white"
+                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                }`}
+              >
+                Shopify
+              </button>
+            </div>
+
+            {installGuide === "website" ? (
+              <div className="space-y-3 text-sm text-slate-700">
+                <div>
+                  <p className="font-bold text-slate-950">Install on a code-based website</p>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                    Use Iframe for a full chat page. Use Floating Widget for a chat button/panel that stays in the corner.
+                  </p>
+                </div>
+                <ol className="list-decimal space-y-2 pl-5 text-xs leading-relaxed">
+                  <li>Copy the embed code above.</li>
+                  <li>Paste it before the closing <code className="rounded bg-white px-1 py-0.5 font-mono">&lt;/body&gt;</code> tag in plain HTML sites.</li>
+                  <li>For React or Next.js, place it in your layout component or a client component rendered on pages where chat should appear.</li>
+                  <li>Deploy the site, then open it in a private browser window to test Google sign-in and file/image sending.</li>
+                </ol>
+              </div>
+            ) : (
+              <div className="space-y-3 text-sm text-slate-700">
+                <div>
+                  <p className="font-bold text-slate-950">Install on Shopify</p>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                    The Floating Widget is usually best for Shopify stores because it appears across product, cart, and checkout-adjacent pages.
+                  </p>
+                </div>
+                <ol className="list-decimal space-y-2 pl-5 text-xs leading-relaxed">
+                  <li>In Shopify admin, go to <span className="font-semibold">Online Store</span> then <span className="font-semibold">Themes</span>.</li>
+                  <li>Open the current theme menu, choose <span className="font-semibold">Edit code</span>, then open <code className="rounded bg-white px-1 py-0.5 font-mono">layout/theme.liquid</code>.</li>
+                  <li>Paste the Floating Widget code above before the closing <code className="rounded bg-white px-1 py-0.5 font-mono">&lt;/body&gt;</code> tag.</li>
+                  <li>Save the theme, visit the storefront, and test the widget on desktop and mobile.</li>
+                </ol>
+              </div>
+            )}
+          </div>
 
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs text-slate-500">
