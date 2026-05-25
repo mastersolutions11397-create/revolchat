@@ -371,7 +371,7 @@ function EmbedCodeModal({
 
   const iframeCode = `<iframe
   src="${embedUrl}"
-  style="width: 400px; height: 650px; border: 0; border-radius: 16px;"
+  style="width: 100vw; height: 100vh; border: 0; display: block;"
   allow="clipboard-write"
 ></iframe>`;
 
