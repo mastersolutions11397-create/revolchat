@@ -1,10 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { Bot, Loader2, LogIn, SendHorizontal } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 import type { ChatMessage } from "@/lib/types/chat";
 
 type EmbedBot = {
@@ -25,15 +24,10 @@ type EmbedAuthMessage = {
   refresh_token: string;
 };
 
-async function authHeaders() {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+function authHeaders(accessToken?: string | null): Record<string, string> {
   return {
     "Content-Type": "application/json",
-    ...(session?.access_token
-      ? { Authorization: `Bearer ${session.access_token}` }
-      : {}),
+    ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
   };
 }
 
@@ -48,20 +42,19 @@ export default function EmbedChatPage() {
   const [authenticating, setAuthenticating] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const accessTokenRef = useRef<string | null>(null);
 
   const title = useMemo(() => bot?.name ?? "Yetti Chat", [bot?.name]);
 
-  const loadChat = useCallback(async () => {
+  const loadChat = useCallback(async (accessToken?: string | null) => {
     setLoading(true);
     setError(null);
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setSignedIn(Boolean(session));
+      const token = accessToken ?? accessTokenRef.current;
+      setSignedIn(Boolean(token));
 
       const response = await fetch(`/api/embed/${encodeURIComponent(botId)}`, {
-        headers: await authHeaders(),
+        headers: authHeaders(token),
       });
       const data = (await response.json()) as EmbedResponse | { error?: string };
       if (!response.ok) {
@@ -81,14 +74,6 @@ export default function EmbedChatPage() {
 
   useEffect(() => {
     loadChat();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => loadChat());
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, [loadChat]);
 
   useEffect(() => {
@@ -98,15 +83,9 @@ export default function EmbedChatPage() {
 
       setAuthenticating(true);
       setError(null);
-      const { error: sessionError } = await supabase.auth.setSession({
-        access_token: event.data.access_token,
-        refresh_token: event.data.refresh_token,
-      });
-      if (sessionError) {
-        setError(sessionError.message);
-      } else {
-        await loadChat();
-      }
+      accessTokenRef.current = event.data.access_token;
+      setSignedIn(true);
+      await loadChat(event.data.access_token);
       setAuthenticating(false);
     }
 
@@ -167,7 +146,7 @@ export default function EmbedChatPage() {
     try {
       const response = await fetch(`/api/embed/${encodeURIComponent(botId)}`, {
         method: "POST",
-        headers: await authHeaders(),
+        headers: authHeaders(accessTokenRef.current),
         body: JSON.stringify({ message: text }),
       });
       const data = (await response.json()) as { messages?: ChatMessage[]; error?: string };
