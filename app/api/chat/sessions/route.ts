@@ -12,21 +12,59 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   }
 });
 
+function isValidUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    value
+  );
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const platform = searchParams.get("platform");
     const workspaceId = searchParams.get("workspace_id");
+    const rawBotId = searchParams.get("bot_id");
+    const botId = rawBotId && rawBotId !== "undefined" && isValidUuid(rawBotId)
+      ? rawBotId
+      : null;
 
-    if (!workspaceId) {
+    const user = await getAuthenticatedUser(request);
+    let resolvedWorkspaceId =
+      workspaceId && workspaceId !== "undefined" && isValidUuid(workspaceId)
+        ? workspaceId
+        : null;
+
+    if (!resolvedWorkspaceId && rawBotId && !botId) {
       return NextResponse.json(
-        { error: "workspace_id is required" },
+        { error: "A valid bot_id is required" },
         { status: 400 }
       );
     }
 
-    const user = await getAuthenticatedUser(request);
-    const membership = await requireWorkspaceRole(workspaceId, user.id, [
+    if (botId) {
+      const { data: bot, error: botError } = await supabase
+        .from("agents")
+        .select("workspace_id")
+        .eq("id", botId)
+        .single();
+
+      if (botError || !bot?.workspace_id || !isValidUuid(bot.workspace_id)) {
+        return NextResponse.json(
+          { error: "A valid workspace_id is required" },
+          { status: 400 }
+        );
+      }
+      resolvedWorkspaceId = bot.workspace_id;
+    }
+
+    if (!resolvedWorkspaceId) {
+      return NextResponse.json(
+        { error: "A valid workspace_id is required" },
+        { status: 400 }
+      );
+    }
+
+    const membership = await requireWorkspaceRole(resolvedWorkspaceId, user.id, [
       "owner",
       "admin",
       "member",
@@ -36,11 +74,25 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from("chat_sessions")
       .select("*")
-      .eq("workspace_id", workspaceId)
       .order("last_activity_at", { ascending: false });
 
     if (platform) {
       query = query.eq("platform", platform);
+    }
+    if (botId) {
+      query = query.eq("bot_id", botId);
+    } else if (resolvedWorkspaceId) {
+      const { data: workspaceBots, error: botsError } = await supabase
+        .from("agents")
+        .select("id")
+        .eq("workspace_id", resolvedWorkspaceId);
+
+      if (botsError) throw botsError;
+      const botIds = (workspaceBots ?? []).map((bot) => bot.id);
+      if (!botIds.length) {
+        return NextResponse.json({ sessions: [] });
+      }
+      query = query.in("bot_id", botIds);
     }
     if (membership.role === "member") {
       const allowedIds = membership.allowed_bot_ids ?? [];
@@ -55,7 +107,7 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error("Error fetching sessions:", error);
       return NextResponse.json(
-        { error: "Failed to fetch sessions" },
+        { error: error.message || "Failed to fetch sessions" },
         { status: 500 }
       );
     }
@@ -102,34 +154,80 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const platform = searchParams.get("platform");
-    const botId = searchParams.get("bot_id");
+    const workspaceId = searchParams.get("workspace_id");
+    const rawBotId = searchParams.get("bot_id");
+    const botId = rawBotId && rawBotId !== "undefined" && isValidUuid(rawBotId)
+      ? rawBotId
+      : null;
 
-    if (!platform || !botId) {
+    if (!platform) {
       return NextResponse.json(
-        { error: "platform and bot_id are required" },
+        { error: "platform is required" },
         { status: 400 }
       );
     }
 
     const user = await getAuthenticatedUser(request);
-    const { data: bot, error: botError } = await supabase
-      .from("agents")
-      .select("workspace_id")
-      .eq("id", botId)
-      .single();
+    let resolvedWorkspaceId =
+      workspaceId && workspaceId !== "undefined" && isValidUuid(workspaceId)
+        ? workspaceId
+        : null;
 
-    if (botError || !bot?.workspace_id) {
-      return NextResponse.json({ error: "Bot not found" }, { status: 404 });
+    if (!resolvedWorkspaceId && rawBotId && !botId) {
+      return NextResponse.json(
+        { error: "A valid bot_id is required" },
+        { status: 400 }
+      );
     }
 
-    await requireWorkspaceRole(bot.workspace_id, user.id, ["owner", "admin"]);
+    if (botId) {
+      const { data: bot, error: botError } = await supabase
+        .from("agents")
+        .select("workspace_id")
+        .eq("id", botId)
+        .single();
 
-    const { data: sessions, error: fetchError } = await supabase
+      if (botError || !bot?.workspace_id || !isValidUuid(bot.workspace_id)) {
+        return NextResponse.json(
+          { error: "A valid workspace_id is required" },
+          { status: 400 }
+        );
+      }
+
+      resolvedWorkspaceId = bot.workspace_id;
+    }
+
+    if (!resolvedWorkspaceId) {
+      return NextResponse.json(
+        { error: "A valid workspace_id is required" },
+        { status: 400 }
+      );
+    }
+
+    await requireWorkspaceRole(resolvedWorkspaceId, user.id, ["owner", "admin"]);
+
+    let sessionsQuery = supabase
       .from("chat_sessions")
       .select("id")
-      .eq("workspace_id", bot.workspace_id)
-      .eq("platform", platform)
-      .eq("bot_id", botId);
+      .eq("platform", platform);
+
+    if (botId) {
+      sessionsQuery = sessionsQuery.eq("bot_id", botId);
+    } else if (resolvedWorkspaceId) {
+      const { data: workspaceBots, error: botsError } = await supabase
+        .from("agents")
+        .select("id")
+        .eq("workspace_id", resolvedWorkspaceId);
+
+      if (botsError) throw botsError;
+      const botIds = (workspaceBots ?? []).map((bot) => bot.id);
+      if (!botIds.length) {
+        return NextResponse.json({ success: true, deleted_count: 0 });
+      }
+      sessionsQuery = sessionsQuery.in("bot_id", botIds);
+    }
+
+    const { data: sessions, error: fetchError } = await sessionsQuery;
 
     if (fetchError) {
       console.error("Error fetching sessions for delete:", fetchError);

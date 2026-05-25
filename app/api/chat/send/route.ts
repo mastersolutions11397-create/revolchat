@@ -13,6 +13,12 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   }
 });
 
+function isValidUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    value
+  );
+}
+
 // Helper function to check if a string is an image URL
 function isImageUrl(text: string): boolean {
   const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
@@ -220,9 +226,16 @@ export async function POST(request: NextRequest) {
       sender_type?: "admin";
     } = body;
 
-    if (!session_id || (!message_text && attachments.length === 0)) {
+    if (!session_id || session_id === "undefined" || !isValidUuid(session_id)) {
       return NextResponse.json(
-        { error: "session_id and either message_text or attachments are required" },
+        { error: "A valid session_id is required" },
+        { status: 400 }
+      );
+    }
+
+    if (!message_text && attachments.length === 0) {
+      return NextResponse.json(
+        { error: "Either message_text or attachments are required" },
         { status: 400 }
       );
     }
@@ -242,8 +255,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const { data: bot, error: botLookupError } = session.bot_id
+      ? await supabase
+          .from("agents")
+          .select("workspace_id")
+          .eq("id", session.bot_id)
+          .single()
+      : { data: null, error: null };
+
+    const workspaceId =
+      typeof session.workspace_id === "string" && isValidUuid(session.workspace_id)
+        ? session.workspace_id
+        : typeof bot?.workspace_id === "string" && isValidUuid(bot.workspace_id)
+          ? bot.workspace_id
+          : null;
+
+    if (!workspaceId) {
+      console.error("Unable to resolve workspace for session:", {
+        session_id,
+        bot_id: session.bot_id,
+        botLookupError,
+      });
+      return NextResponse.json(
+        { error: "Conversation is missing a valid workspace_id" },
+        { status: 400 }
+      );
+    }
+
     const user = await getAuthenticatedUser(request);
-    await requireWorkspaceRole(session.workspace_id, user.id, ["owner", "admin"]);
+    if (!isValidUuid(user.id)) {
+      return NextResponse.json(
+        { error: "Authenticated user id is not a valid UUID" },
+        { status: 401 }
+      );
+    }
+
+    await requireWorkspaceRole(workspaceId, user.id, ["owner", "admin"]);
 
     // Web embed conversations are delivered through the database and picked up
     // by the visitor's embed page, so they do not need a platform token.
@@ -277,25 +324,51 @@ export async function POST(request: NextRequest) {
     }
 
     // Save message to database first
-    const { data: message, error: messageError } = await supabase
+    const messageInsert = {
+      session_id: session_id,
+      workspace_id: workspaceId,
+      message_text: message_text,
+      message_type: message_type || "text",
+      attachments: attachments ?? [],
+      sender_type: sender_type,
+      sender_id: session.platform === "web" ? null : user.id,
+      sender_name: "Support Team",
+      is_read: true, // Admin messages are marked as read by default
+      metadata: { source: session.platform === "web" ? "web_inbox" : "dashboard_inbox" },
+    };
+
+    let { data: message, error: messageError } = await supabase
       .from("chat_messages")
-      .insert({
-        session_id: session_id,
-        message_text: message_text,
-        message_type,
-        attachments,
-        sender_type: sender_type,
-        sender_id: "admin", // TODO: Get actual admin user ID from auth
-        sender_name: "Support Team",
-        is_read: true, // Admin messages are marked as read by default
-      })
+      .insert(messageInsert)
       .select()
       .single();
+
+    if (messageError?.code === "PGRST204" && messageError.message?.includes("workspace_id")) {
+      const legacyMessageInsert = { ...messageInsert };
+      delete (legacyMessageInsert as Partial<typeof messageInsert>).workspace_id;
+      const legacyResult = await supabase
+        .from("chat_messages")
+        .insert(legacyMessageInsert)
+        .select()
+        .single();
+      message = legacyResult.data;
+      messageError = legacyResult.error;
+    }
 
     if (messageError) {
       console.error("Error saving message:", messageError);
       return NextResponse.json(
-        { error: "Failed to save message" },
+        {
+          error: messageError.message || "Failed to save message",
+          details: {
+            code: messageError.code,
+            hint: messageError.hint,
+            session_id,
+            workspace_id: workspaceId,
+            sender_id: session.platform === "web" ? null : user.id,
+            platform: session.platform,
+          },
+        },
         { status: 500 }
       );
     }

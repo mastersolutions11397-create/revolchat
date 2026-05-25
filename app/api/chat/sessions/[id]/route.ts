@@ -29,15 +29,25 @@ export async function DELETE(
     const user = await getAuthenticatedUser(request);
     const { data: session, error: sessionError } = await supabase
       .from("chat_sessions")
-      .select("workspace_id")
+      .select("bot_id")
       .eq("id", id)
       .single();
 
-    if (sessionError || !session?.workspace_id) {
+    if (sessionError || !session?.bot_id) {
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
 
-    await requireWorkspaceRole(session.workspace_id, user.id, ["owner", "admin"]);
+    const { data: bot, error: botError } = await supabase
+      .from("agents")
+      .select("workspace_id")
+      .eq("id", session.bot_id)
+      .single();
+
+    if (botError || !bot?.workspace_id) {
+      return NextResponse.json({ error: "Bot not found for this session" }, { status: 404 });
+    }
+
+    await requireWorkspaceRole(bot.workspace_id, user.id, ["owner", "admin"]);
 
     const { error } = await supabase.from("chat_sessions").delete().eq("id", id);
 

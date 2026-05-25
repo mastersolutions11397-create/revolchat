@@ -27,15 +27,25 @@ export async function POST(request: NextRequest) {
     const user = await getAuthenticatedUser(request);
     const { data: session, error: sessionError } = await supabase
       .from("chat_sessions")
-      .select("workspace_id, bot_id")
+      .select("bot_id")
       .eq("id", session_id)
       .single();
 
-    if (sessionError || !session?.workspace_id) {
+    if (sessionError || !session?.bot_id) {
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
 
-    const membership = await requireWorkspaceRole(session.workspace_id, user.id, [
+    const { data: bot, error: botError } = await supabase
+      .from("agents")
+      .select("workspace_id")
+      .eq("id", session.bot_id)
+      .single();
+
+    if (botError || !bot?.workspace_id) {
+      return NextResponse.json({ error: "Bot not found for this session" }, { status: 404 });
+    }
+
+    const membership = await requireWorkspaceRole(bot.workspace_id, user.id, [
       "owner",
       "admin",
       "member",

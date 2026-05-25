@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Image from "next/image";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { type Conversation, type Message } from "@/lib/api/integrations";
@@ -47,6 +47,16 @@ function getChannelLabel(channel: ChannelType) {
   return CHANNELS.find((item) => item.id === channel)?.label ?? channel;
 }
 
+function isValidUuid(value?: string) {
+  return Boolean(
+    value &&
+      value !== "undefined" &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        value
+      )
+  );
+}
+
 function ChannelIcon({
   channel,
   className = "h-4 w-4",
@@ -86,7 +96,7 @@ const isUserOnline = (lastSeenAt?: string): boolean => {
 const transformSessionsToConversations = (
   sessions: SessionWithLastMessage[]
 ): Conversation[] => {
-  return sessions.map((session) => ({
+  return sessions.filter((session) => isValidUuid(session.id)).map((session) => ({
     id: session.id,
     participant_id: session.external_user_id,
     participant_name:
@@ -251,10 +261,21 @@ export default function InboxPage() {
           return;
         }
         const response = await agentsAPI.list(activeWorkspace.id);
-        setBots(response.agents);
-        // Auto-select first bot if available
-        if (response.agents.length > 0 && !selectedBot) {
-          setSelectedBot(response.agents[0]);
+        const validAgents = response.agents.filter((agent) =>
+          isValidUuid(agent.id)
+        );
+        setBots(validAgents);
+
+        if (validAgents.length === 0) {
+          setSelectedBot(null);
+          return;
+        }
+
+        if (
+          !selectedBot ||
+          !validAgents.some((agent) => agent.id === selectedBot.id)
+        ) {
+          setSelectedBot(validAgents[0]);
         }
       } catch (error) {
         console.error("Error fetching bots:", error);
@@ -265,84 +286,64 @@ export default function InboxPage() {
   }, [activeWorkspace, selectedBot]);
 
   // Function to load conversations (extracted so it can be called from multiple places)
-  const loadConversations = async () => {
-      if (!selectedBot) {
+  const loadConversations = useCallback(async () => {
+      if (!selectedBot || !activeWorkspace) {
         setConversations([]);
+        setSelectedConversation(null);
+        return;
+      }
+
+      const workspaceId = isValidUuid(activeWorkspace.id)
+        ? activeWorkspace.id
+        : isValidUuid(selectedBot?.workspace_id ?? undefined)
+          ? selectedBot?.workspace_id ?? undefined
+          : undefined;
+
+      if (!workspaceId) {
+        setConversations([]);
+        setSelectedConversation(null);
+        toast.error("A valid workspace is required.");
+        return;
+      }
+
+      if (!isValidUuid(selectedBot.id)) {
+        setConversations([]);
+        setSelectedConversation(null);
+        toast.error("Please select a valid bot.");
         return;
       }
 
       setLoading(true);
       try {
-        console.log("Fetching sessions for channel:", selectedChannel, "bot:", selectedBot.id);
+        console.log("Fetching sessions for channel:", selectedChannel, "workspace:", workspaceId, "bot:", selectedBot.id);
 
-        // Fetch sessions directly from Supabase, filtered by bot_id
-        const query = supabase
-          .from("chat_sessions")
-          .select("*")
-          .eq("platform", selectedChannel)
-          .eq("bot_id", selectedBot.id)
-          .order("last_activity_at", { ascending: false });
-
-        const { data: sessions, error } = await query;
-
-        if (error) {
-          console.error("Error fetching sessions:", error);
-          setConversations([]);
-          return;
-        }
-
-        console.log("Received sessions from Supabase:", sessions);
-
-        // For each session, get last message and unread count
-        const sessionsWithMessages = await Promise.all(
-          (sessions || []).map(async (session) => {
-            // Get last message
-            const { data: lastMessage } = await supabase
-              .from("chat_messages")
-              .select("message_text, created_at")
-              .eq("session_id", session.id)
-              .order("created_at", { ascending: false })
-              .limit(1)
-              .single();
-
-            // Get unread count
-            const { count: unreadCount } = await supabase
-              .from("chat_messages")
-              .select("*", { count: "exact", head: true })
-              .eq("session_id", session.id)
-              .eq("is_read", false)
-              .eq("sender_type", "user");
-
-            return {
-              ...session,
-              last_message: lastMessage?.message_text,
-              last_message_time: lastMessage?.created_at,
-              unread_count: unreadCount || 0,
-            };
-          })
+        const sessions = await chatSystemAPI.getSessions(
+          selectedChannel,
+          workspaceId,
+          selectedBot.id
         );
-
-        console.log("Sessions with messages:", sessionsWithMessages);
-        const data = transformSessionsToConversations(sessionsWithMessages);
+        const data = transformSessionsToConversations(sessions);
         console.log("Transformed conversations:", data);
         setConversations(data);
-
-        // Auto-select first conversation if available
-        if (data.length > 0 && !selectedConversation) {
-          setSelectedConversation(data[0]);
-        }
+        setSelectedConversation((current) =>
+          current && data.some((conversation) => conversation.id === current.id)
+            ? current
+            : data[0] ?? null
+        );
       } catch (err: unknown) {
         console.error("Error loading conversations:", err);
+        toast.error(err instanceof Error ? err.message : "Failed to load conversations");
         setConversations([]);
+        setSelectedConversation(null);
       } finally {
         setLoading(false);
       }
-  };
+  }, [activeWorkspace, selectedBot, selectedChannel]);
 
   // Fetch trigger words for selected bot
   useEffect(() => {
     const fetchTriggers = async () => {
-      if (!selectedBot) {
+      if (!selectedBot || !isValidUuid(selectedBot.id)) {
         setTriggerWords([]);
         return;
       }
@@ -378,10 +379,11 @@ export default function InboxPage() {
 
   // Load conversations when channel or bot changes
   useEffect(() => {
-    loadConversations();
     // Clear selected conversation when switching bots
     setSelectedConversation(null);
-  }, [selectedChannel, selectedBot]);
+    setMessages([]);
+    loadConversations();
+  }, [loadConversations]);
 
   // Load messages when conversation is selected
   useEffect(() => {
@@ -391,34 +393,21 @@ export default function InboxPage() {
     }
 
     const loadMessages = async () => {
+      if (!isValidUuid(selectedConversation.id)) {
+        setMessages([]);
+        return;
+      }
+
       setLoading(true);
       try {
-        // Fetch messages directly from Supabase
-        const { data: chatMessages, error } = await supabase
-          .from("chat_messages")
-          .select("*")
-          .eq("session_id", selectedConversation.id)
-          .order("created_at", { ascending: true });
-
-        if (error) {
-          console.error("Error fetching messages:", error);
-          setMessages([]);
-          return;
-        }
-
-        const data = transformMessagesToMessages(chatMessages || []);
+        const chatMessages = await chatSystemAPI.getMessages(selectedConversation.id);
+        const data = transformMessagesToMessages(chatMessages);
         setMessages(data);
 
         // Scroll to bottom after messages load
         setTimeout(() => scrollToBottom(), 100);
 
-        // Mark messages as read
-        await supabase
-          .from("chat_messages")
-          .update({ is_read: true })
-          .eq("session_id", selectedConversation.id)
-          .eq("sender_type", "user")
-          .eq("is_read", false);
+        await chatSystemAPI.markMessagesAsRead(selectedConversation.id);
       } catch (err: unknown) {
         console.error("Error loading messages:", err);
         setMessages([]);
@@ -428,7 +417,7 @@ export default function InboxPage() {
     };
 
     loadMessages();
-  }, [selectedConversation]);
+  }, [selectedConversation, loadConversations]);
 
   // Real-time subscription for new messages in selected conversation
   useEffect(() => {
@@ -482,7 +471,7 @@ export default function InboxPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [selectedConversation]);
+  }, [selectedConversation, loadConversations]);
 
   // Real-time subscription for ALL new messages (to update sidebar)
   useEffect(() => {
@@ -529,14 +518,14 @@ export default function InboxPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [selectedConversation]);
+  }, [selectedConversation, loadConversations]);
 
   // Real-time subscription for new sessions and presence updates
   useEffect(() => {
-    if (!selectedBot) return;
+    if (!selectedBot || !isValidUuid(selectedBot.id)) return;
 
     const channel = supabase
-      .channel(`inbox_sessions:${selectedBot.id}`)
+      .channel(`inbox_sessions:${selectedBot.id}:${selectedChannel}`)
       .on(
         "postgres_changes",
         {
@@ -546,7 +535,6 @@ export default function InboxPage() {
           filter: `platform=eq.${selectedChannel}`,
         },
         (payload) => {
-          // Only reload if the changed session belongs to the selected bot.
           const newSession = payload.new as { bot_id?: string };
           if (newSession.bot_id === selectedBot.id) {
             loadConversations();
@@ -558,7 +546,7 @@ export default function InboxPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [selectedChannel, selectedBot]);
+  }, [selectedChannel, selectedBot, loadConversations]);
 
   // Toggle AI mode for a session
   const handleToggleAI = async () => {
@@ -680,6 +668,12 @@ export default function InboxPage() {
   // Send manual message as admin
   const handleSendMessage = async () => {
     if ((!messageInput.trim() && !pendingAttachment) || !selectedConversation || sending) return;
+    if (!isValidUuid(selectedConversation.id)) {
+      toast.error("Please select the web conversation again.");
+      setSelectedConversation(null);
+      setShowChatView(false);
+      return;
+    }
 
     // Check if input matches a trigger word exactly
     const exactTrigger = pendingAttachment
@@ -728,7 +722,7 @@ export default function InboxPage() {
       toast.success("Message sent");
     } catch (error) {
       console.error("Error sending message:", error);
-      toast.error("Failed to send message");
+      toast.error(error instanceof Error ? error.message : "Failed to send message");
     } finally {
       setSending(false);
     }
@@ -825,7 +819,7 @@ export default function InboxPage() {
     if (conversations.length === 0) return;
 
     toast.warning(`Delete all conversations for ${selectedBot.name}?`, {
-      description: `This will remove all ${getChannelLabel(selectedChannel)} conversations and cannot be undone.`,
+      description: `This will remove all ${getChannelLabel(selectedChannel)} conversations for this bot and cannot be undone.`,
       duration: 10000,
       action: {
         label: "Delete all",
@@ -1079,8 +1073,7 @@ export default function InboxPage() {
                       </div>
                     </button>
                     <div className="flex items-center gap-1 ml-1 sm:ml-2">
-                      {conversation.unread_count &&
-                        conversation.unread_count > 0 && (
+                      {(conversation.unread_count ?? 0) > 0 && (
                           <div className="flex flex-col justify-center h-full">
                             <span className="flex items-center justify-center h-4 sm:h-5 min-w-[1rem] sm:min-w-[1.25rem] px-1 sm:px-1.5 text-[10px] font-bold text-white bg-teal-primary rounded-full shadow-sm shadow-teal-primary/20">
                               {conversation.unread_count}
@@ -1300,12 +1293,12 @@ export default function InboxPage() {
             {/* Message Input Area */}
             <div className="border-t border-dashboard-border bg-dashboard-card/80 backdrop-blur-sm p-4">
               {/* Trigger Words Hint */}
-              {triggerWords.length > 0 && !messageInput && !selectedConversation.ai_mode && (
+              {triggerWords.length > 0 && !messageInput && !selectedConversation.ai_mode ? (
                 <div className="mb-2 flex items-center gap-2 text-xs text-slate-500">
                   <Zap className="h-3 w-3" />
                   <span>Type / to see available triggers</span>
                 </div>
-              )}
+              ) : null}
 
               {pendingAttachment && (
                 <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
@@ -1338,7 +1331,7 @@ export default function InboxPage() {
 
               <div className="flex items-end gap-3 relative">
                 {/* Trigger Suggestions Dropdown */}
-                {showTriggerSuggestions && filteredTriggers.length > 0 && (
+                {showTriggerSuggestions && filteredTriggers.length > 0 ? (
                   <div className="absolute bottom-full left-0 right-16 mb-2 bg-white border border-dashboard-border rounded-xl shadow-lg overflow-hidden z-10 max-h-64 overflow-y-auto">
                     <div className="p-2 border-b border-slate-100 bg-slate-50">
                       <div className="flex items-center gap-2 text-xs text-slate-500">
@@ -1396,7 +1389,7 @@ export default function InboxPage() {
                       </p>
                     </div>
                   </div>
-                )}
+                ) : null}
 
                 <input
                   ref={fileInputRef}

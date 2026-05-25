@@ -7,6 +7,16 @@ import type {
   MessageType,
 } from "@/lib/types/chat";
 
+function isValidUuid(value?: string): value is string {
+  return (
+    typeof value === "string" &&
+      value !== "undefined" &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        value
+      )
+  );
+}
+
 export interface GetSessionsResponse {
   sessions: SessionWithLastMessage[];
 }
@@ -60,10 +70,15 @@ export interface DeleteAllSessionsResponse {
 
 class ChatSystemAPI {
   // Get all chat sessions (with online users)
-  async getSessions(platform?: string, workspaceId?: string): Promise<SessionWithLastMessage[]> {
+  async getSessions(
+    platform?: string,
+    workspaceId?: string,
+    botId?: string
+  ): Promise<SessionWithLastMessage[]> {
     const params = new URLSearchParams();
     if (platform) params.append("platform", platform);
-    if (workspaceId) params.append("workspace_id", workspaceId);
+    if (isValidUuid(workspaceId)) params.append("workspace_id", workspaceId);
+    if (isValidUuid(botId)) params.append("bot_id", botId);
 
     const queryString = params.toString();
     const url = queryString
@@ -87,9 +102,21 @@ class ChatSystemAPI {
 
   // Send a message as admin
   async sendMessage(payload: SendMessageRequest): Promise<ChatMessage> {
+    if (
+      !isValidUuid(payload.session_id)
+    ) {
+      throw new Error("Please select a valid conversation before sending.");
+    }
+
     const response = await apiRequest<SendMessageResponse>(`/api/chat/send`, {
       method: "POST",
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        session_id: payload.session_id,
+        message_text: payload.message_text,
+        ...(payload.message_type ? { message_type: payload.message_type } : {}),
+        ...(payload.attachments ? { attachments: payload.attachments } : {}),
+        sender_type: payload.sender_type,
+      }),
     });
     return response.message;
   }
@@ -141,15 +168,19 @@ class ChatSystemAPI {
     return response.deleted_session_id;
   }
 
-  // Delete all chat sessions for a specific bot and platform
+  // Delete all chat sessions for a workspace/channel, optionally scoped to one bot.
   async deleteAllSessions(payload: {
     platform: string;
-    bot_id: string;
+    workspace_id?: string;
+    bot_id?: string;
   }): Promise<number> {
-    const params = new URLSearchParams({
-      platform: payload.platform,
-      bot_id: payload.bot_id,
-    });
+    const params = new URLSearchParams({ platform: payload.platform });
+    if (isValidUuid(payload.workspace_id)) {
+      params.append("workspace_id", payload.workspace_id);
+    }
+    if (isValidUuid(payload.bot_id)) {
+      params.append("bot_id", payload.bot_id);
+    }
 
     const response = await apiRequest<DeleteAllSessionsResponse>(
       `/api/chat/sessions?${params.toString()}`,
