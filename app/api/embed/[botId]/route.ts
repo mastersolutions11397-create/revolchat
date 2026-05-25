@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { getAuthenticatedUser, jsonError } from "@/lib/api-auth";
+import { getAuthenticatedUser, jsonError, type AuthenticatedUser } from "@/lib/api-auth";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -32,7 +32,9 @@ async function getBot(botId: string) {
 async function findOrCreateWebSession(bot: {
   id: string;
   workspace_id: string;
-}, user: { id: string; email: string | null }) {
+}, user: AuthenticatedUser) {
+  const displayName = user.name || user.email?.split("@")[0] || "Website visitor";
+
   const { data: existing } = await supabase
     .from("chat_sessions")
     .select("*")
@@ -45,6 +47,8 @@ async function findOrCreateWebSession(bot: {
     const { data: updated, error } = await supabase
       .from("chat_sessions")
       .update({
+        external_username: user.email,
+        external_first_name: displayName,
         is_online: true,
         last_activity_at: new Date().toISOString(),
         last_seen_at: new Date().toISOString(),
@@ -62,7 +66,7 @@ async function findOrCreateWebSession(bot: {
       user_id: user.id,
       external_user_id: user.id,
       external_username: user.email,
-      external_first_name: user.email?.split("@")[0] ?? "Website visitor",
+      external_first_name: displayName,
       platform: "web",
       bot_id: bot.id,
       ai_mode: true,
@@ -125,10 +129,16 @@ export async function GET(
 
     let session = null;
     let messages: unknown[] = [];
+    let visitor = null;
     try {
       const user = await getAuthenticatedUser(request);
       session = await findOrCreateWebSession(bot, user);
       messages = await getMessages(session.id);
+      visitor = {
+        name: user.name || user.email?.split("@")[0] || "Website visitor",
+        email: user.email,
+        avatarUrl: user.avatarUrl ?? null,
+      };
     } catch {
       // Public bot metadata is still available before sign-in.
     }
@@ -139,6 +149,7 @@ export async function GET(
         name: bot.name,
         profile_picture_url: bot.profile_picture_url,
       },
+      visitor,
       session,
       messages,
     });
@@ -172,7 +183,7 @@ export async function POST(
         message_type: "text",
         sender_type: "user",
         sender_id: user.id,
-        sender_name: user.email ?? "Website visitor",
+        sender_name: user.name || user.email || "Website visitor",
         is_read: false,
         metadata: { source: "web_embed" },
       })

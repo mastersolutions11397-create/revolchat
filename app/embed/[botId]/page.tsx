@@ -4,18 +4,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import {
-  ArrowRight,
   Bot,
   CheckCircle2,
   Clock3,
-  Home,
   Loader2,
   LogIn,
-  MessageCircle,
   Paperclip,
-  Plus,
   SendHorizontal,
-  Settings,
   ShieldCheck,
 } from "lucide-react";
 import type { ChatMessage } from "@/lib/types/chat";
@@ -28,6 +23,11 @@ type EmbedBot = {
 
 type EmbedResponse = {
   bot: EmbedBot;
+  visitor: {
+    name: string;
+    email: string | null;
+    avatarUrl: string | null;
+  } | null;
   session: unknown | null;
   messages: ChatMessage[];
 };
@@ -68,6 +68,19 @@ function GoogleIcon() {
   );
 }
 
+function getInitials(name?: string | null, email?: string | null) {
+  const source = (name || email || "Website visitor").trim();
+  const words = source.includes("@")
+    ? [source.split("@")[0]]
+    : source.split(/\s+/).filter(Boolean);
+
+  return words
+    .slice(0, 2)
+    .map((word) => word[0])
+    .join("")
+    .toUpperCase() || "WV";
+}
+
 export default function EmbedChatPage() {
   const params = useParams<{ botId: string }>();
   const botId = params.botId;
@@ -78,6 +91,7 @@ export default function EmbedChatPage() {
   const [sending, setSending] = useState(false);
   const [authenticating, setAuthenticating] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
+  const [visitor, setVisitor] = useState<EmbedResponse["visitor"]>(null);
   const [error, setError] = useState<string | null>(null);
   const accessTokenRef = useRef<string | null>(null);
 
@@ -101,6 +115,7 @@ export default function EmbedChatPage() {
         throw new Error("Failed to load chat");
       }
       setBot(data.bot);
+      setVisitor(data.visitor ?? null);
       setMessages(data.messages ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load chat");
@@ -207,77 +222,31 @@ export default function EmbedChatPage() {
         <aside className="hidden min-h-0 border-r border-slate-200 bg-white px-5 py-6 lg:flex lg:flex-col">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-200 bg-amber-50 text-amber-500">
-              <Plus className="h-5 w-5" />
+              {bot?.profile_picture_url ? (
+                <Image
+                  src={bot.profile_picture_url}
+                  alt={title}
+                  width={36}
+                  height={36}
+                  className="h-full w-full rounded-xl object-cover"
+                />
+              ) : (
+                <Bot className="h-5 w-5" />
+              )}
             </div>
             <p className="truncate text-2xl font-black tracking-normal text-slate-950">
               {title}
             </p>
           </div>
 
-          <button
-            type="button"
-            className="mt-8 flex items-center gap-3 rounded-xl bg-slate-950 px-4 py-4 text-sm font-black text-white shadow-lg shadow-slate-200"
-          >
-            <Plus className="h-5 w-5" />
-            New conversation
-          </button>
-
-          <nav className="mt-6 space-y-2 text-sm font-semibold text-slate-700">
-            <div className="flex items-center gap-3 rounded-xl bg-slate-100 px-4 py-3">
-              <Home className="h-5 w-5" />
-              Home
-            </div>
-            <div className="flex items-center gap-3 rounded-xl px-4 py-3">
-              <MessageCircle className="h-5 w-5" />
-              Conversations
-            </div>
-            <div className="flex items-center gap-3 rounded-xl px-4 py-3">
-              <Settings className="h-5 w-5" />
-              Settings
-            </div>
-          </nav>
-
-          <div className="my-6 border-t border-slate-200" />
-
-          <div className="rounded-2xl border border-amber-100 bg-amber-50/40 p-5">
-            <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-xl bg-white text-amber-500 shadow-sm">
-              <CheckCircle2 className="h-5 w-5" />
-            </div>
-            <p className="text-sm font-black text-slate-950">Get the best answers</p>
-            <p className="mt-2 text-sm leading-relaxed text-slate-500">
-              Be clear and specific with your questions for better results.
-            </p>
-          </div>
-
-          <div className="mt-6">
-            <p className="mb-3 text-sm font-black text-slate-950">Quick examples</p>
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-              {[
-                "How does the product work?",
-                "What are your pricing plans?",
-                "Can you help me get started?",
-              ].map((example) => (
-                <button
-                  key={example}
-                  type="button"
-                  onClick={() => setInput(example)}
-                  className="flex w-full items-center justify-between gap-3 border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-700 last:border-b-0 hover:bg-slate-50"
-                >
-                  <span>{example}</span>
-                  <ArrowRight className="h-4 w-4 text-slate-400" />
-                </button>
-              ))}
-            </div>
-          </div>
-
           <div className="mt-auto rounded-2xl border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-amber-100 text-sm font-black text-amber-700">
-                U
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-amber-100 text-sm font-black text-amber-700">
+                {getInitials(visitor?.name, visitor?.email)}
               </div>
               <div className="min-w-0">
                 <p className="truncate text-sm font-black text-slate-950">
-                  Website visitor
+                  {visitor?.name ?? "Website visitor"}
                 </p>
                 <p className="truncate text-xs text-slate-500">
                   {signedIn ? "Signed in" : "Guest session"}

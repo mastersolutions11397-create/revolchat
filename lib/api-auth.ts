@@ -5,6 +5,8 @@ import { ADMIN_COOKIE_NAME, verifySignedCookie } from "@/lib/admin-auth";
 export type AuthenticatedUser = {
   id: string;
   email: string | null;
+  name?: string | null;
+  avatarUrl?: string | null;
 };
 
 export class RouteAuthError extends Error {
@@ -20,7 +22,26 @@ export async function getAuthenticatedUser(
     if (token) {
       const { data, error } = await supabaseAdmin.auth.getUser(token);
       if (!error && data.user) {
-        return { id: data.user.id, email: data.user.email ?? null };
+        const metadata = data.user.user_metadata;
+        const name =
+          typeof metadata?.full_name === "string"
+            ? metadata.full_name
+            : typeof metadata?.name === "string"
+              ? metadata.name
+              : null;
+        const avatarUrl =
+          typeof metadata?.avatar_url === "string"
+            ? metadata.avatar_url
+            : typeof metadata?.picture === "string"
+              ? metadata.picture
+              : null;
+
+        return {
+          id: data.user.id,
+          email: data.user.email ?? null,
+          name,
+          avatarUrl,
+        };
       }
     }
   }
@@ -28,7 +49,7 @@ export async function getAuthenticatedUser(
   const adminCookie = request.cookies.get(ADMIN_COOKIE_NAME);
   if (adminCookie?.value) {
     const admin = verifySignedCookie(adminCookie.value);
-    if (admin) return { id: admin.id, email: admin.email };
+    if (admin) return { id: admin.id, email: admin.email, name: admin.email };
   }
 
   throw new RouteAuthError("Unauthorized");
