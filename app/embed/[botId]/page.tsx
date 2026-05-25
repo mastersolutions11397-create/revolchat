@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { Bot, Loader2, LogIn, SendHorizontal } from "lucide-react";
+import { Bot, Loader2, LogIn, Plus, SendHorizontal, Sparkles } from "lucide-react";
 import type { ChatMessage } from "@/lib/types/chat";
 
 type EmbedBot = {
@@ -165,47 +165,68 @@ export default function EmbedChatPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-100 p-0 sm:p-6">
-      <section className="mx-auto flex min-h-screen max-w-2xl flex-col overflow-hidden bg-white shadow-sm sm:min-h-[720px] sm:rounded-2xl sm:border sm:border-slate-200">
-        <header className="flex items-center gap-3 border-b border-slate-200 px-4 py-4">
-          <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-teal-primary/10 text-teal-primary">
-            {bot?.profile_picture_url ? (
-              <Image
-                src={bot.profile_picture_url}
-                alt={title}
-                width={44}
-                height={44}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <Bot className="h-5 w-5" />
-            )}
+    <main className="min-h-screen bg-[#0d0f11] p-0 text-white">
+      <section className="mx-auto flex min-h-screen max-w-2xl flex-col overflow-hidden bg-[#111417] sm:min-h-[720px] sm:rounded-2xl sm:border sm:border-white/10">
+        <header className="border-b border-white/10 bg-[#0f1214] px-4 py-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-amber-400/50 bg-amber-400/10 text-amber-400">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-base font-bold tracking-normal text-white">
+                  Yetti <span className="text-amber-400">AI</span>
+                </p>
+                <p className="truncate text-xs font-medium text-zinc-400">{title} web chat</p>
+              </div>
+            </div>
+            <div className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs font-semibold text-amber-300">
+              Live
+            </div>
           </div>
-          <div className="min-w-0">
-            <h1 className="truncate text-base font-semibold text-slate-950">{title}</h1>
-            <p className="text-xs text-slate-500">Web chat</p>
+
+          <div className="mt-4 flex items-center gap-3 rounded-2xl bg-[#191d21] p-3 ring-1 ring-white/10">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-zinc-800 text-amber-400">
+              {bot?.profile_picture_url ? (
+                <Image
+                  src={bot.profile_picture_url}
+                  alt={title}
+                  width={56}
+                  height={56}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <Bot className="h-6 w-6" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-bold text-white">{title}</h1>
+              <p className="line-clamp-2 text-sm leading-snug text-zinc-400">
+                Ask questions, get help, and continue your conversation here.
+              </p>
+            </div>
           </div>
         </header>
 
         {loading ? (
-          <div className="flex flex-1 items-center justify-center text-slate-500">
-            <Loader2 className="h-6 w-6 animate-spin" />
+          <div className="flex flex-1 items-center justify-center bg-[#15191d] text-zinc-500">
+            <Loader2 className="h-7 w-7 animate-spin text-amber-400" />
           </div>
         ) : !signedIn ? (
-          <div className="flex flex-1 items-center justify-center px-6">
-            <div className="w-full max-w-sm text-center">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
-                <LogIn className="h-6 w-6 text-slate-600" />
+          <div className="flex flex-1 items-center justify-center bg-[#15191d] px-6">
+            <div className="w-full max-w-sm rounded-2xl bg-[#1a1e22] p-5 text-center ring-1 ring-white/10">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-400/10 text-amber-400">
+                <LogIn className="h-6 w-6" />
               </div>
-              <h2 className="text-lg font-semibold text-slate-950">Sign in to chat</h2>
-              <p className="mt-2 text-sm text-slate-500">
+              <h2 className="text-lg font-bold text-white">Sign in to chat</h2>
+              <p className="mt-2 text-sm leading-relaxed text-zinc-400">
                 Sign in with Google so this bot can keep your conversation separate.
               </p>
               <button
                 type="button"
                 onClick={signInWithGoogle}
                 disabled={authenticating}
-                className="mt-5 w-full rounded-xl bg-teal-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-teal-primary/90"
+                className="mt-5 w-full rounded-xl bg-amber-400 px-4 py-3 text-sm font-bold text-zinc-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {authenticating ? "Opening Google..." : "Continue with Google"}
               </button>
@@ -213,10 +234,13 @@ export default function EmbedChatPage() {
           </div>
         ) : (
           <>
-            <div className="flex-1 space-y-3 overflow-y-auto bg-slate-50 px-4 py-5">
+            <div className="flex-1 space-y-4 overflow-y-auto bg-[#15191d] px-4 py-5">
+              <div className="mx-auto w-fit rounded-full bg-[#2a2f36] px-3 py-1 text-xs font-bold text-white">
+                Today
+              </div>
               {messages.length === 0 ? (
-                <div className="rounded-2xl bg-white p-4 text-sm text-slate-500 shadow-sm">
-                  Send a message to start your conversation.
+                <div className="rounded-2xl bg-[#1c2126] p-4 text-sm leading-relaxed text-zinc-400 ring-1 ring-white/10">
+                  Send a message to start your conversation with {title}.
                 </div>
               ) : (
                 messages.map((message) => {
@@ -227,10 +251,10 @@ export default function EmbedChatPage() {
                       className={`flex ${isUser ? "justify-end" : "justify-start"}`}
                     >
                       <div
-                        className={`max-w-[82%] rounded-2xl px-4 py-2 text-sm leading-relaxed ${
+                        className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                           isUser
-                            ? "bg-teal-primary text-white"
-                            : "bg-white text-slate-800 shadow-sm"
+                            ? "bg-amber-400 text-zinc-950"
+                            : "bg-[#22272d] text-zinc-100 ring-1 ring-white/10"
                         }`}
                       >
                         {message.message_text}
@@ -241,7 +265,7 @@ export default function EmbedChatPage() {
               )}
               {sending ? (
                 <div className="flex justify-start">
-                  <div className="rounded-2xl bg-white px-4 py-2 text-sm text-slate-500 shadow-sm">
+                  <div className="rounded-2xl bg-[#22272d] px-4 py-3 text-sm text-zinc-400 ring-1 ring-white/10">
                     Typing...
                   </div>
                 </div>
@@ -249,28 +273,35 @@ export default function EmbedChatPage() {
             </div>
 
             {error ? (
-              <div className="border-t border-red-100 bg-red-50 px-4 py-2 text-sm text-red-700">
+              <div className="border-t border-red-500/20 bg-red-500/10 px-4 py-2 text-sm text-red-200">
                 {error}
               </div>
             ) : null}
 
             <form
-              className="flex gap-2 border-t border-slate-200 bg-white p-3"
+              className="flex items-center gap-2 border-t border-white/10 bg-[#101316] p-3"
               onSubmit={(event) => {
                 event.preventDefault();
                 sendMessage();
               }}
             >
+              <button
+                type="button"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-zinc-400 transition hover:bg-white/5 hover:text-amber-400"
+                aria-label="Add attachment"
+              >
+                <Plus className="h-5 w-5" />
+              </button>
               <input
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
-                placeholder="Type your message..."
-                className="min-w-0 flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-teal-primary focus:ring-2 focus:ring-teal-primary/15"
+                placeholder={`Message ${title}`}
+                className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#1b2025] px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-500 focus:border-amber-400/70 focus:ring-2 focus:ring-amber-400/15"
               />
               <button
                 type="submit"
                 disabled={sending || !input.trim()}
-                className="flex h-11 w-11 items-center justify-center rounded-xl bg-teal-primary text-white transition hover:bg-teal-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-400 text-zinc-950 transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-50"
                 aria-label="Send message"
               >
                 {sending ? (
