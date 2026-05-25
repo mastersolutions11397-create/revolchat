@@ -4,12 +4,18 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import {
+  ArrowRight,
   Bot,
   CheckCircle2,
+  Clock3,
+  Home,
   Loader2,
   LogIn,
+  MessageCircle,
+  Paperclip,
   Plus,
   SendHorizontal,
+  Settings,
   ShieldCheck,
 } from "lucide-react";
 import type { ChatMessage } from "@/lib/types/chat";
@@ -75,7 +81,7 @@ export default function EmbedChatPage() {
   const [error, setError] = useState<string | null>(null);
   const accessTokenRef = useRef<string | null>(null);
 
-  const title = useMemo(() => bot?.name ?? "Yetti Chat", [bot?.name]);
+  const title = useMemo(() => bot?.name ?? "AI Assistant", [bot?.name]);
 
   const loadChat = useCallback(async (accessToken?: string | null) => {
     setLoading(true);
@@ -196,117 +202,136 @@ export default function EmbedChatPage() {
   };
 
   return (
-    <main className="h-screen w-screen overflow-hidden bg-[#0d0f11] text-white">
-      <section className="grid h-full w-full grid-cols-1 overflow-hidden bg-[#0d0f11] lg:grid-cols-[280px_minmax(420px,1fr)] xl:grid-cols-[300px_minmax(460px,1fr)_320px] 2xl:grid-cols-[320px_minmax(560px,1fr)_360px]">
-        <aside className="hidden min-h-0 border-r border-white/10 bg-[#0f1214] px-5 py-5 lg:block">
-          <div className="rounded-3xl bg-[#191d21] p-4 ring-1 ring-white/10">
+    <main className="h-screen w-screen overflow-hidden bg-[#f6f3ee] p-2 text-slate-950">
+      <section className="grid h-full w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/70 lg:grid-cols-[290px_minmax(420px,1fr)] xl:grid-cols-[310px_minmax(520px,1fr)_330px]">
+        <aside className="hidden min-h-0 border-r border-slate-200 bg-white px-5 py-6 lg:flex lg:flex-col">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-200 bg-amber-50 text-amber-500">
+              <Plus className="h-5 w-5" />
+            </div>
+            <p className="truncate text-2xl font-black tracking-normal text-slate-950">
+              {title}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            className="mt-8 flex items-center gap-3 rounded-xl bg-slate-950 px-4 py-4 text-sm font-black text-white shadow-lg shadow-slate-200"
+          >
+            <Plus className="h-5 w-5" />
+            New conversation
+          </button>
+
+          <nav className="mt-6 space-y-2 text-sm font-semibold text-slate-700">
+            <div className="flex items-center gap-3 rounded-xl bg-slate-100 px-4 py-3">
+              <Home className="h-5 w-5" />
+              Home
+            </div>
+            <div className="flex items-center gap-3 rounded-xl px-4 py-3">
+              <MessageCircle className="h-5 w-5" />
+              Conversations
+            </div>
+            <div className="flex items-center gap-3 rounded-xl px-4 py-3">
+              <Settings className="h-5 w-5" />
+              Settings
+            </div>
+          </nav>
+
+          <div className="my-6 border-t border-slate-200" />
+
+          <div className="rounded-2xl border border-amber-100 bg-amber-50/40 p-5">
+            <div className="mb-4 flex h-9 w-9 items-center justify-center rounded-xl bg-white text-amber-500 shadow-sm">
+              <CheckCircle2 className="h-5 w-5" />
+            </div>
+            <p className="text-sm font-black text-slate-950">Get the best answers</p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-500">
+              Be clear and specific with your questions for better results.
+            </p>
+          </div>
+
+          <div className="mt-6">
+            <p className="mb-3 text-sm font-black text-slate-950">Quick examples</p>
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+              {[
+                "How does the product work?",
+                "What are your pricing plans?",
+                "Can you help me get started?",
+              ].map((example) => (
+                <button
+                  key={example}
+                  type="button"
+                  onClick={() => setInput(example)}
+                  className="flex w-full items-center justify-between gap-3 border-b border-slate-100 px-4 py-4 text-left text-sm font-medium text-slate-700 last:border-b-0 hover:bg-slate-50"
+                >
+                  <span>{example}</span>
+                  <ArrowRight className="h-4 w-4 text-slate-400" />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-auto rounded-2xl border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[#242930] text-amber-400">
-                {bot?.profile_picture_url ? (
-                  <Image
-                    src={bot.profile_picture_url}
-                    alt={title}
-                    width={48}
-                    height={48}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <Bot className="h-6 w-6" />
-                )}
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-amber-100 text-sm font-black text-amber-700">
+                U
               </div>
               <div className="min-w-0">
-                <h2 className="truncate text-lg font-black text-white">{title}</h2>
-                <div className="mt-1 flex items-center gap-1.5 text-xs font-bold text-emerald-400">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                  Online now
-                </div>
+                <p className="truncate text-sm font-black text-slate-950">
+                  Website visitor
+                </p>
+                <p className="truncate text-xs text-slate-500">
+                  {signedIn ? "Signed in" : "Guest session"}
+                </p>
               </div>
-            </div>
-            <p className="mt-4 text-sm leading-relaxed text-zinc-400">
-              Start a conversation and get an instant response from this assistant.
-            </p>
-          </div>
-
-          <div className="mt-4 space-y-3">
-            <div className="rounded-2xl bg-[#191d21] p-4 ring-1 ring-white/10">
-              <div className="flex items-center gap-3">
-                <CheckCircle2 className="h-5 w-5 text-amber-400" />
-                <div>
-                  <p className="text-sm font-black text-white">Fast replies</p>
-                  <p className="text-xs text-zinc-500">Responses are generated in chat.</p>
-                </div>
-              </div>
-            </div>
-            <div className="rounded-2xl bg-[#191d21] p-4 ring-1 ring-white/10">
-              <div className="flex items-center gap-3">
-                <ShieldCheck className="h-5 w-5 text-amber-400" />
-                <div>
-                  <p className="text-sm font-black text-white">Private session</p>
-                  <p className="text-xs text-zinc-500">Google sign-in keeps chats separate.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 rounded-3xl bg-[#191d21] p-4 ring-1 ring-white/10">
-            <p className="text-xs font-bold uppercase tracking-wide text-zinc-500">
-              Conversation tips
-            </p>
-            <div className="mt-3 space-y-2 text-sm text-zinc-300">
-              <p className="rounded-xl bg-[#22272e] px-3 py-2">Ask about products or services</p>
-              <p className="rounded-xl bg-[#22272e] px-3 py-2">Request help with next steps</p>
-              <p className="rounded-xl bg-[#22272e] px-3 py-2">Continue anytime after login</p>
             </div>
           </div>
         </aside>
 
-        <div className="flex min-h-0 flex-col bg-[#0d0f11] px-3 py-3 sm:px-5 sm:py-5">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-3 rounded-2xl bg-[#20242a] px-4 py-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#30363f] text-amber-400">
-                {bot?.profile_picture_url ? (
-                  <Image
-                    src={bot.profile_picture_url}
-                    alt={title}
-                    width={36}
-                    height={36}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <Bot className="h-5 w-5" />
-                )}
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-black text-white">{title}</p>
-                <p className="text-xs font-semibold text-emerald-400">Online</p>
-              </div>
+        <div className="flex min-h-0 flex-col bg-white">
+          <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3 lg:hidden">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 text-amber-500">
+              {bot?.profile_picture_url ? (
+                <Image
+                  src={bot.profile_picture_url}
+                  alt={title}
+                  width={36}
+                  height={36}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <Bot className="h-5 w-5" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-black text-slate-950">{title}</p>
+              <p className="text-xs text-emerald-600">Online</p>
             </div>
           </div>
 
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-3xl bg-[#191d21] ring-1 ring-white/5">
+          <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-[radial-gradient(circle_at_center,_rgba(251,191,36,0.08),_transparent_32%),radial-gradient(circle_at_70%_20%,_rgba(236,72,153,0.08),_transparent_26%),#fffdfb]">
             {loading ? (
-              <div className="flex min-h-0 flex-1 items-center justify-center text-zinc-500">
-                <Loader2 className="h-7 w-7 animate-spin text-amber-400" />
+              <div className="flex min-h-0 flex-1 items-center justify-center text-slate-400">
+                <Loader2 className="h-7 w-7 animate-spin text-amber-500" />
               </div>
             ) : !signedIn ? (
               <div className="flex min-h-0 flex-1 items-center justify-center px-6">
-                <div className="w-full max-w-sm rounded-2xl bg-[#20252b] p-5 text-center ring-1 ring-white/10">
-                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-400/10 text-amber-400">
+                <div className="w-full max-w-sm rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-xl shadow-slate-200/60">
+                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-amber-500">
                     <LogIn className="h-6 w-6" />
                   </div>
-                  <h2 className="text-lg font-bold text-white">Sign in to chat</h2>
-                  <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+                  <h2 className="text-xl font-black text-slate-950">Sign in to chat</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-500">
                     Sign in with Google so this bot can keep your conversation separate.
                   </p>
                   <button
                     type="button"
-                  onClick={signInWithGoogle}
-                  disabled={authenticating}
-                    className="mt-5 flex w-full items-center justify-center gap-3 rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm font-bold text-zinc-900 shadow-sm transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60"
-                >
+                    onClick={signInWithGoogle}
+                    disabled={authenticating}
+                    className="mt-5 flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
                     {authenticating ? (
                       <>
-                        <Loader2 className="h-5 w-5 animate-spin text-zinc-700" />
+                        <Loader2 className="h-5 w-5 animate-spin text-slate-700" />
                         Opening Google...
                       </>
                     ) : (
@@ -320,91 +345,123 @@ export default function EmbedChatPage() {
               </div>
             ) : (
               <>
-                <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-5">
-                  <div className="mx-auto w-fit rounded-full bg-[#333842] px-3 py-1 text-xs font-black text-white">
-                    Today
-                  </div>
+                <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6">
                   {messages.length === 0 ? (
-                    <div className="mx-auto max-w-md rounded-2xl bg-[#20252b] p-4 text-center text-sm leading-relaxed text-zinc-400 ring-1 ring-white/10">
-                      Send a message to start your conversation with {title}.
+                    <div className="mx-auto flex h-full max-w-3xl flex-col items-center justify-center text-center">
+                      <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-sm font-black text-amber-600">
+                        HI
+                      </div>
+                      <h1 className="text-3xl font-black tracking-tight text-slate-950">
+                        Hi there! I am {title}.
+                      </h1>
+                      <p className="mt-3 max-w-md text-base leading-relaxed text-slate-500">
+                        I am here to help you find answers and guide you through anything you need.
+                      </p>
                     </div>
                   ) : (
-                    messages.map((message) => {
-                      const isUser = message.sender_type === "user";
-                      return (
-                        <div
-                          key={message.id}
-                          className={`flex ${isUser ? "justify-end" : "justify-start"}`}
-                        >
+                    <div className="mx-auto max-w-3xl space-y-4">
+                      <div className="mx-auto w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
+                        Today
+                      </div>
+                      {messages.map((message) => {
+                        const isUser = message.sender_type === "user";
+                        return (
                           <div
-                            className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                              isUser
-                                ? "bg-amber-400 text-zinc-950"
-                                : "bg-[#242930] text-zinc-100 ring-1 ring-white/10"
-                            }`}
+                            key={message.id}
+                            className={`flex ${isUser ? "justify-end" : "justify-start"}`}
                           >
-                            {message.message_text}
+                            <div
+                              className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
+                                isUser
+                                  ? "bg-slate-950 text-white"
+                                  : "border border-slate-200 bg-white text-slate-800"
+                              }`}
+                            >
+                              {message.message_text}
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {sending ? (
+                        <div className="flex justify-start">
+                          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500 shadow-sm">
+                            Typing...
                           </div>
                         </div>
-                      );
-                    })
-                  )}
-                  {sending ? (
-                    <div className="flex justify-start">
-                      <div className="rounded-2xl bg-[#242930] px-4 py-3 text-sm text-zinc-400 ring-1 ring-white/10">
-                        Typing...
-                      </div>
+                      ) : null}
                     </div>
-                  ) : null}
+                  )}
                 </div>
 
                 {error ? (
-                  <div className="border-t border-red-500/20 bg-red-500/10 px-4 py-2 text-sm text-red-200">
+                  <div className="border-t border-red-100 bg-red-50 px-4 py-2 text-sm text-red-700">
                     {error}
                   </div>
                 ) : null}
 
                 <form
-                  className="flex items-center gap-2 p-3"
+                  className="mx-auto w-full max-w-3xl px-4 pb-6"
                   onSubmit={(event) => {
                     event.preventDefault();
                     sendMessage();
                   }}
                 >
-                  <button
-                    type="button"
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-zinc-400 transition hover:bg-white/5 hover:text-amber-400"
-                    aria-label="Add attachment"
-                  >
-                    <Plus className="h-5 w-5" />
-                  </button>
-                  <input
-                    value={input}
-                    onChange={(event) => setInput(event.target.value)}
-                    placeholder={`Message ${title}`}
-                    className="min-w-0 flex-1 rounded-xl border border-white/10 bg-[#20252b] px-4 py-3 text-sm text-white outline-none transition placeholder:text-zinc-500 focus:border-amber-400/70 focus:ring-2 focus:ring-amber-400/15"
-                  />
-                  <button
-                    type="submit"
-                    disabled={sending || !input.trim()}
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-zinc-500 transition hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
-                    aria-label="Send message"
-                  >
-                    {sending ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <SendHorizontal className="h-5 w-5" />
-                    )}
-                  </button>
+                  <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-200/70">
+                    <input
+                      value={input}
+                      onChange={(event) => setInput(event.target.value)}
+                      placeholder="Ask me anything..."
+                      className="h-12 w-full min-w-0 bg-transparent px-1 text-base text-slate-950 outline-none placeholder:text-slate-400"
+                    />
+                    <div className="mt-3 flex items-center justify-between gap-3">
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                      >
+                        <Paperclip className="h-4 w-4" />
+                        Attach file
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={sending || !input.trim()}
+                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label="Send message"
+                      >
+                        {sending ? (
+                          <Loader2 className="h-5 w-5 animate-spin" />
+                        ) : (
+                          <SendHorizontal className="h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                  {messages.length === 0 ? (
+                    <div className="mt-4 flex flex-wrap justify-center gap-2">
+                      {[
+                        "Tell me about your services",
+                        "How can I get started?",
+                        "What makes you different?",
+                      ].map((example) => (
+                        <button
+                          key={example}
+                          type="button"
+                          onClick={() => setInput(example)}
+                          className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                        >
+                          {example}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
                 </form>
               </>
             )}
           </div>
         </div>
 
-        <aside className="hidden min-h-0 overflow-y-auto border-l border-white/10 bg-[#0f1214] px-5 py-5 xl:block">
-          <div className="overflow-hidden rounded-3xl bg-[#191d21] ring-1 ring-white/10">
-            <div className="relative aspect-[1.15] bg-[#242930]">
+        <aside className="hidden min-h-0 overflow-y-auto border-l border-slate-200 bg-white px-5 py-6 xl:block">
+          <div className="overflow-hidden rounded-3xl bg-slate-100">
+            <div className="relative aspect-[1.05] bg-gradient-to-br from-amber-100 via-pink-100 to-violet-100">
               {bot?.profile_picture_url ? (
                 <Image
                   src={bot.profile_picture_url}
@@ -413,18 +470,52 @@ export default function EmbedChatPage() {
                   className="object-cover"
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-amber-400">
+                <div className="flex h-full w-full items-center justify-center text-amber-500">
                   <Bot className="h-16 w-16" />
                 </div>
               )}
             </div>
           </div>
 
-          <div className="mt-5">
-            <h2 className="text-2xl font-black text-white">{title}</h2>
-            <p className="mt-2 text-sm leading-relaxed text-zinc-400">
-              This assistant is ready to answer questions and guide visitors through the conversation.
-            </p>
+          <div className="mt-7 flex items-center justify-between gap-3">
+            <h2 className="min-w-0 truncate text-2xl font-black text-slate-950">{title}</h2>
+            <div className="flex shrink-0 items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-slate-700">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              Online
+            </div>
+          </div>
+          <p className="mt-4 text-base leading-relaxed text-slate-700">
+            I am your AI assistant. Ask me anything or explore examples to get started.
+          </p>
+
+          <div className="mt-10 space-y-7">
+            <div className="flex items-start gap-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-500">
+                <CheckCircle2 className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-black text-slate-950">Fast answers</p>
+                <p className="mt-1 text-sm text-slate-500">Get replies in seconds</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-500">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-black text-slate-950">Private and secure</p>
+                <p className="mt-1 text-sm text-slate-500">Your chat stays separate</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-500">
+                <Clock3 className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-black text-slate-950">Always here</p>
+                <p className="mt-1 text-sm text-slate-500">Available whenever visitors need help</p>
+              </div>
+            </div>
           </div>
         </aside>
       </section>
