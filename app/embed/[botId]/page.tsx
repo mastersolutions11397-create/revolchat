@@ -119,28 +119,19 @@ export default function EmbedChatPage() {
   }, []);
 
   const signInWithGoogle = async () => {
-    const redirectTo =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/auth/callback?next=/embed/${encodeURIComponent(botId)}&embed_oauth=1`
-        : undefined;
     setAuthenticating(true);
     setError(null);
-    const { data, error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo, skipBrowserRedirect: true },
-    });
-    if (oauthError) {
-      setError(oauthError.message);
-      setAuthenticating(false);
-      return;
-    }
-    if (!data.url) {
-      setError("Could not start Google sign in.");
+
+    if (typeof window === "undefined") {
       setAuthenticating(false);
       return;
     }
 
-    const popup = window.open(data.url, "yetti-google-auth", "width=520,height=720");
+    const popup = window.open(
+      `/auth/embed-login?botId=${encodeURIComponent(botId)}`,
+      "yetti-google-auth",
+      "width=520,height=720"
+    );
     if (!popup) {
       setError("Please allow popups to sign in with Google.");
       setAuthenticating(false);
