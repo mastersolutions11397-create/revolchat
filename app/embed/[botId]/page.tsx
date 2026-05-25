@@ -30,7 +30,7 @@ type EmbedResponse = {
     email: string | null;
     avatarUrl: string | null;
   } | null;
-  session: unknown | null;
+  session: { id: string } | null;
   messages: ChatMessage[];
 };
 
@@ -166,6 +166,17 @@ function renderMessageContent(message: ChatMessage) {
   return <>{message.message_text}</>;
 }
 
+function appendUniqueMessages(
+  currentMessages: ChatMessage[],
+  nextMessages: ChatMessage[]
+) {
+  const existingIds = new Set(currentMessages.map((message) => message.id));
+  const uniqueNextMessages = nextMessages.filter(
+    (message) => !existingIds.has(message.id)
+  );
+  return [...currentMessages, ...uniqueNextMessages];
+}
+
 export default function EmbedChatPage() {
   const params = useParams<{ botId: string }>();
   const botId = params.botId;
@@ -181,14 +192,15 @@ export default function EmbedChatPage() {
   const [authenticating, setAuthenticating] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [visitor, setVisitor] = useState<EmbedResponse["visitor"]>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const accessTokenRef = useRef<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const title = useMemo(() => bot?.name ?? "AI Assistant", [bot?.name]);
 
-  const loadChat = useCallback(async (accessToken?: string | null) => {
-    setLoading(true);
+  const loadChat = useCallback(async (accessToken?: string | null, showLoading = true) => {
+    if (showLoading) setLoading(true);
     setError(null);
     try {
       const token = accessToken ?? accessTokenRef.current;
@@ -206,11 +218,14 @@ export default function EmbedChatPage() {
       }
       setBot(data.bot);
       setVisitor(data.visitor ?? null);
-      setMessages(data.messages ?? []);
+      setSessionId(data.session?.id ?? null);
+      setMessages((prev) =>
+        showLoading ? data.messages ?? [] : appendUniqueMessages(prev, data.messages ?? [])
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load chat");
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   }, [botId]);
 
@@ -234,6 +249,16 @@ export default function EmbedChatPage() {
     window.addEventListener("message", handleEmbedAuth);
     return () => window.removeEventListener("message", handleEmbedAuth);
   }, [loadChat]);
+
+  useEffect(() => {
+    if (!signedIn || !sessionId) return;
+
+    const interval = window.setInterval(() => {
+      void loadChat(accessTokenRef.current, false);
+    }, 8000);
+
+    return () => window.clearInterval(interval);
+  }, [loadChat, sessionId, signedIn]);
 
   const signInWithGoogle = async () => {
     setAuthenticating(true);

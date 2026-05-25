@@ -47,6 +47,7 @@ async function authHeaders() {
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(path, {
     ...options,
+    credentials: "include",
     headers: {
       ...(await authHeaders()),
       ...options.headers,

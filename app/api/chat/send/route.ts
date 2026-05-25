@@ -245,9 +245,10 @@ export async function POST(request: NextRequest) {
     const user = await getAuthenticatedUser(request);
     await requireWorkspaceRole(session.workspace_id, user.id, ["owner", "admin"]);
 
-    // Fetch the bot token for this session
+    // Web embed conversations are delivered through the database and picked up
+    // by the visitor's embed page, so they do not need a platform token.
     let botToken: string | null = null;
-    if (session.bot_id) {
+    if (session.platform === "telegram" && session.bot_id) {
       const { data: agent, error: agentError } = await supabase
         .from("agents")
         .select("telegram_bot_token")
@@ -262,12 +263,12 @@ export async function POST(request: NextRequest) {
         );
       }
       botToken = agent.telegram_bot_token;
-    } else {
+    } else if (session.platform === "telegram") {
       // Fallback to env var for legacy sessions without bot_id
       botToken = process.env.TELEGRAM_BOT_TOKEN || null;
     }
 
-    if (!botToken) {
+    if (session.platform === "telegram" && !botToken) {
       console.error("No bot token available for session:", session_id);
       return NextResponse.json(
         { error: "No bot token configured" },
@@ -300,7 +301,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send message via appropriate platform
-    if (session.platform === "telegram") {
+    if (session.platform === "telegram" && botToken) {
       try {
         let telegramResponse;
         const primaryAttachment = attachments[0];

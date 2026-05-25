@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import Image from "next/image";
 import { useLanguage } from "@/lib/contexts/LanguageContext";
 import { type Conversation, type Message } from "@/lib/api/integrations";
-import { MessageSquare, Search, Info, ArrowLeft, Send, Bot, User, Zap, Image as ImageIcon, Video, File, Music, ChevronDown, Trash2, Loader2, Paperclip, X } from "lucide-react";
+import { MessageSquare, Search, Info, ArrowLeft, Send, Bot, User, Zap, Image as ImageIcon, Video, File, Music, ChevronDown, Trash2, Loader2, Paperclip, X, Globe2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { Attachment, ChatSession, ChatMessage, MessageType, TriggerWord } from "@/lib/types/chat";
 import { chatSystemAPI } from "@/lib/api/chat-system";
@@ -26,9 +26,14 @@ function getTriggerMediaIcon(type: string) {
   }
 }
 
-type ChannelType = "telegram" | "instagram";
+type ChannelType = "telegram" | "web";
 const MAX_MEDIA_SIZE_MB = 20;
 const MAX_DOCUMENT_SIZE_MB = 5;
+
+const CHANNELS: Array<{ id: ChannelType; label: string; shortLabel: string }> = [
+  { id: "telegram", label: "Telegram", shortLabel: "TG" },
+  { id: "web", label: "Web page", shortLabel: "Web" },
+];
 
 interface SessionWithLastMessage extends ChatSession {
   last_message?: string;
@@ -37,6 +42,36 @@ interface SessionWithLastMessage extends ChatSession {
 }
 
 type InboxMessage = Message & Pick<ChatMessage, "message_type" | "attachments">;
+
+function getChannelLabel(channel: ChannelType) {
+  return CHANNELS.find((item) => item.id === channel)?.label ?? channel;
+}
+
+function ChannelIcon({
+  channel,
+  className = "h-4 w-4",
+}: {
+  channel: ChannelType;
+  className?: string;
+}) {
+  if (channel === "telegram") {
+    return (
+      <Image
+        src="/yetti/telegram_logo.png"
+        alt="Telegram"
+        width={20}
+        height={20}
+        className={className}
+      />
+    );
+  }
+
+  if (channel === "web") {
+    return <Globe2 className={className} />;
+  }
+
+  return <MessageSquare className={className} />;
+}
 
 // Helper to check if user is online (active in last 5 minutes)
 const isUserOnline = (lastSeenAt?: string): boolean => {
@@ -216,12 +251,10 @@ export default function InboxPage() {
           return;
         }
         const response = await agentsAPI.list(activeWorkspace.id);
-        // Filter to only bots with telegram tokens
-        const telegramBots = response.agents.filter(bot => bot.telegram_username);
-        setBots(telegramBots);
+        setBots(response.agents);
         // Auto-select first bot if available
-        if (telegramBots.length > 0 && !selectedBot) {
-          setSelectedBot(telegramBots[0]);
+        if (response.agents.length > 0 && !selectedBot) {
+          setSelectedBot(response.agents[0]);
         }
       } catch (error) {
         console.error("Error fetching bots:", error);
@@ -498,7 +531,7 @@ export default function InboxPage() {
     };
   }, [selectedConversation]);
 
-  // Real-time subscription for new sessions only
+  // Real-time subscription for new sessions and presence updates
   useEffect(() => {
     if (!selectedBot) return;
 
@@ -507,13 +540,13 @@ export default function InboxPage() {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "chat_sessions",
           filter: `platform=eq.${selectedChannel}`,
         },
         (payload) => {
-          // Only reload if the new session belongs to the selected bot
+          // Only reload if the changed session belongs to the selected bot.
           const newSession = payload.new as { bot_id?: string };
           if (newSession.bot_id === selectedBot.id) {
             loadConversations();
@@ -792,7 +825,7 @@ export default function InboxPage() {
     if (conversations.length === 0) return;
 
     toast.warning(`Delete all conversations for ${selectedBot.name}?`, {
-      description: `This will remove all ${selectedChannel} conversations and cannot be undone.`,
+      description: `This will remove all ${getChannelLabel(selectedChannel)} conversations and cannot be undone.`,
       duration: 10000,
       action: {
         label: "Delete all",
@@ -882,13 +915,8 @@ export default function InboxPage() {
               className="w-full flex items-center justify-between gap-2 p-2.5 bg-dashboard-bg border border-dashboard-border rounded-xl text-sm font-medium text-slate-900 hover:bg-slate-50 transition-colors"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <div className="relative h-6 w-6 flex-shrink-0">
-                  <Image
-                    src="/yetti/telegram_logo.png"
-                    alt="Telegram"
-                    fill
-                    className="object-contain"
-                  />
+                <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-primary">
+                  <ChannelIcon channel={selectedChannel} className="h-4 w-4" />
                 </div>
                 <span className="truncate">
                   {selectedBot?.telegram_first_name || selectedBot?.name || "Select a bot"}
@@ -943,6 +971,24 @@ export default function InboxPage() {
               </div>
             )}
           </div>
+
+          <div className="mt-3 grid grid-cols-2 gap-1 rounded-xl border border-dashboard-border bg-dashboard-bg p-1">
+            {CHANNELS.map((channel) => (
+              <button
+                key={channel.id}
+                type="button"
+                onClick={() => setSelectedChannel(channel.id)}
+                className={`flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-colors ${
+                  selectedChannel === channel.id
+                    ? "bg-white text-teal-primary shadow-sm"
+                    : "text-slate-500 hover:bg-white/70 hover:text-slate-700"
+                }`}
+              >
+                <ChannelIcon channel={channel.id} className="h-3.5 w-3.5 shrink-0" />
+                <span className="truncate">{channel.shortLabel}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Search */}
@@ -993,20 +1039,14 @@ export default function InboxPage() {
                       onClick={() => handleConversationSelect(conversation)}
                       className="flex min-w-0 flex-1 items-start gap-2 sm:gap-3 text-left"
                     >
-                      <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 rounded-xl overflow-hidden bg-teal-primary/10 flex items-center justify-center shadow-sm">
-                        <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-teal-primary" />
+                      <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 rounded-xl overflow-hidden bg-teal-primary/10 flex items-center justify-center text-teal-primary shadow-sm">
+                        <ChannelIcon channel={selectedChannel} className="h-5 w-5 sm:h-6 sm:w-6" />
                         {/* Online indicator - green dot */}
                         {conversation.is_online && (
                           <div className="absolute top-0 right-0 h-3 w-3 sm:h-3.5 sm:w-3.5 bg-green-500 rounded-full border-2 border-white" />
                         )}
                         <div className="absolute bottom-0 right-0 h-3 w-3 sm:h-4 sm:w-4 bg-white rounded-full p-0.5">
-                          <Image
-                            src="/yetti/telegram_logo.png"
-                            alt="TG"
-                            width={12}
-                            height={12}
-                            className="w-full h-full"
-                          />
+                          <ChannelIcon channel={selectedChannel} className="h-full w-full" />
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
@@ -1090,8 +1130,8 @@ export default function InboxPage() {
                   <ArrowLeft className="h-5 w-5" />
                 </button>
 
-                <div className="relative h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 rounded-xl overflow-hidden bg-teal-primary/10 flex items-center justify-center shadow-sm">
-                  <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5 text-teal-primary" />
+                <div className="relative h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 rounded-xl overflow-hidden bg-teal-primary/10 flex items-center justify-center text-teal-primary shadow-sm">
+                  <ChannelIcon channel={selectedChannel} className="h-4 w-4 sm:h-5 sm:w-5" />
                   {/* Online indicator in header */}
                   {selectedConversation.is_online && (
                     <div className="absolute top-0 right-0 h-2.5 w-2.5 sm:h-3 sm:w-3 bg-green-500 rounded-full border-2 border-white" />
@@ -1103,7 +1143,7 @@ export default function InboxPage() {
                       {selectedConversation.participant_name}
                     </span>
                     <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider flex-shrink-0 bg-teal-primary/10 text-teal-primary border border-teal-primary/20">
-                      {t("inbox.telegram")}
+                      {getChannelLabel(selectedChannel)}
                     </span>
                   </h3>
                   <p className="text-xs text-slate-500 truncate flex items-center gap-1.5">
@@ -1443,16 +1483,11 @@ export default function InboxPage() {
             </p>
             <div className="flex gap-2 sm:gap-4">
               <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-dashboard-card rounded-full border border-dashboard-border shadow-sm text-xs sm:text-sm text-slate-600">
-                <div className="relative h-3 w-3 sm:h-4 sm:w-4">
-                  <Image
-                    src="/yetti/telegram_logo.png"
-                    alt="TG"
-                    fill
-                    className="object-contain"
-                  />
+                <div className="flex h-3 w-3 items-center justify-center text-teal-primary sm:h-4 sm:w-4">
+                  <ChannelIcon channel={selectedChannel} className="h-full w-full" />
                 </div>
-                <span className="hidden sm:inline">{t("inbox.telegram")}</span>
-                <span className="sm:hidden">{t("inbox.tg")}</span>
+                <span className="hidden sm:inline">{getChannelLabel(selectedChannel)}</span>
+                <span className="sm:hidden">{CHANNELS.find((channel) => channel.id === selectedChannel)?.shortLabel}</span>
               </div>
             </div>
           </div>

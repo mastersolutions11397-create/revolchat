@@ -45,14 +45,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: supabaseUser.email,
         user_metadata: supabaseUser.user_metadata ?? {},
       });
-    } else {
-      setUser(null);
+      setLoading(false);
+      return;
     }
+
+    try {
+      const response = await fetch("/api/auth/me", {
+        credentials: "include",
+      });
+      if (response.ok) {
+        const data = (await response.json()) as {
+          user?: AppUser | null;
+        };
+        if (data.user?.email) {
+          setUser(data.user);
+          setLoading(false);
+          return;
+        }
+      }
+    } catch {
+      // Fall through to logged-out state.
+    }
+
+    setUser(null);
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    refreshSession();
+    async function initializeSession() {
+      await refreshSession();
+    }
+
+    void initializeSession();
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -63,8 +87,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: sessionUser.email,
           user_metadata: sessionUser.user_metadata ?? {},
         });
-      } else {
-        setUser(null);
+    } else {
+        void refreshSession();
+        return;
       }
       setLoading(false);
     });

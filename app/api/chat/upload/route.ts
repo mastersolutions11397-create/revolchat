@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { cookies } from "next/headers";
-import { ADMIN_COOKIE_NAME, verifySignedCookie } from "@/lib/admin-auth";
+import { getAuthenticatedUser, jsonError } from "@/lib/api-auth";
 import type { MessageType } from "@/lib/types/chat";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -41,16 +40,6 @@ function isStorageUnsupportedMimeTypeError(error: { statusCode?: string; status?
   );
 }
 
-async function getUserIdFromCookie(): Promise<string | null> {
-  const cookieStore = await cookies();
-  const cookie = cookieStore.get(ADMIN_COOKIE_NAME);
-  if (!cookie?.value) {
-    return null;
-  }
-  const admin = verifySignedCookie(cookie.value);
-  return admin?.id || null;
-}
-
 function getMessageTypeFromMimeType(mimeType: string): MessageType {
   if (mimeType.startsWith("image/")) {
     return "image";
@@ -74,10 +63,7 @@ function formatMaxSizeLabel(messageType: MessageType): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = await getUserIdFromCookie();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const user = await getAuthenticatedUser(request);
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
@@ -111,7 +97,7 @@ export async function POST(request: NextRequest) {
     const fileExt = file.name.split(".").pop() || "bin";
     const timestamp = Date.now();
     const randomStr = Math.random().toString(36).slice(2, 8);
-    const fileName = `chat-media/${userId}/${timestamp}-${randomStr}.${fileExt}`;
+    const fileName = `chat-media/${user.id}/${timestamp}-${randomStr}.${fileExt}`;
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
@@ -156,9 +142,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error in chat upload:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return jsonError(error);
   }
 }

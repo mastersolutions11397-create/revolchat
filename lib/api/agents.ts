@@ -86,6 +86,7 @@ async function apiFetch<T>(
   );
   const res = await fetch(path, {
     ...options,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...(session?.access_token
@@ -134,6 +135,7 @@ async function apiFetchFormData<T>(
   const res = await fetch(path, {
     method: "POST",
     body: formData,
+    credentials: "include",
     headers: {
       ...(session?.access_token
         ? { Authorization: `Bearer ${session.access_token}` }
