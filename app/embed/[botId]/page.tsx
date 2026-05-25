@@ -165,8 +165,8 @@ export default function EmbedChatPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0d0f11] p-0 text-white">
-      <section className="mx-auto flex min-h-screen max-w-2xl flex-col overflow-hidden bg-[#111417] sm:min-h-[720px] sm:rounded-2xl sm:border sm:border-white/10">
+    <main className="h-screen w-screen overflow-hidden bg-[#0d0f11] p-0 text-white">
+      <section className="flex h-full w-full flex-col overflow-hidden bg-[#111417]">
         <header className="border-b border-white/10 bg-[#0f1214] px-4 py-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
@@ -209,11 +209,11 @@ export default function EmbedChatPage() {
         </header>
 
         {loading ? (
-          <div className="flex flex-1 items-center justify-center bg-[#15191d] text-zinc-500">
+          <div className="flex min-h-0 flex-1 items-center justify-center bg-[#15191d] text-zinc-500">
             <Loader2 className="h-7 w-7 animate-spin text-amber-400" />
           </div>
         ) : !signedIn ? (
-          <div className="flex flex-1 items-center justify-center bg-[#15191d] px-6">
+          <div className="flex min-h-0 flex-1 items-center justify-center bg-[#15191d] px-6">
             <div className="w-full max-w-sm rounded-2xl bg-[#1a1e22] p-5 text-center ring-1 ring-white/10">
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-400/10 text-amber-400">
                 <LogIn className="h-6 w-6" />
@@ -234,7 +234,7 @@ export default function EmbedChatPage() {
           </div>
         ) : (
           <>
-            <div className="flex-1 space-y-4 overflow-y-auto bg-[#15191d] px-4 py-5">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-[#15191d] px-4 py-5">
               <div className="mx-auto w-fit rounded-full bg-[#2a2f36] px-3 py-1 text-xs font-bold text-white">
                 Today
               </div>
