@@ -427,23 +427,23 @@ export default function EmbedChatPage() {
         </aside>
 
         <div className="flex min-h-0 min-w-0 flex-col bg-white">
-          <div className="flex min-h-16 items-center gap-3 border-b border-slate-100 px-3 py-3 sm:px-4 lg:hidden">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 text-amber-500">
+          <div className="flex min-h-[4.5rem] items-center gap-3 border-b border-slate-100 px-4 py-3 sm:min-h-16 lg:hidden">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 text-amber-500 sm:h-9 sm:w-9">
               {bot?.profile_picture_url ? (
                 <Image
                   src={bot.profile_picture_url}
                   alt={title}
-                  width={36}
-                  height={36}
+                  width={44}
+                  height={44}
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <Bot className="h-5 w-5" />
+                <Bot className="h-6 w-6 sm:h-5 sm:w-5" />
               )}
             </div>
             <div className="min-w-0">
-              <p className="truncate text-sm font-black text-slate-950">{title}</p>
-              <p className="text-xs text-emerald-600">Online</p>
+              <p className="truncate text-base font-black text-slate-950 sm:text-sm">{title}</p>
+              <p className="text-sm text-emerald-600 sm:text-xs">Online</p>
             </div>
           </div>
 
@@ -484,16 +484,16 @@ export default function EmbedChatPage() {
               </div>
             ) : (
               <>
-                <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4 sm:px-4 sm:py-6">
+                <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:py-6">
                   {messages.length === 0 ? (
                     <div className="mx-auto flex min-h-full max-w-3xl flex-col items-center justify-center px-2 text-center">
                       <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-50 text-sm font-black text-amber-600 sm:mb-5 sm:h-12 sm:w-12">
                         HI
                       </div>
-                      <h1 className="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
+                      <h1 className="text-[1.75rem] font-black leading-tight tracking-tight text-slate-950 sm:text-3xl">
                         Hi there! I am {title}.
                       </h1>
-                      <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-500 sm:text-base">
+                      <p className="mt-3 max-w-md text-base leading-relaxed text-slate-500">
                         I am here to help you find answers and guide you through anything you need.
                       </p>
                     </div>
@@ -510,7 +510,7 @@ export default function EmbedChatPage() {
                             className={`flex ${isUser ? "justify-end" : "justify-start"}`}
                           >
                             <div
-                              className={`max-w-[88%] overflow-hidden rounded-2xl px-3 py-2.5 text-sm leading-relaxed shadow-sm sm:max-w-[82%] sm:px-4 sm:py-3 ${
+                              className={`max-w-[88%] overflow-hidden rounded-2xl px-4 py-3 text-base leading-relaxed shadow-sm sm:max-w-[82%] sm:text-sm ${
                                 isUser
                                   ? "bg-slate-950 text-white"
                                   : "border border-slate-200 bg-white text-slate-800"
@@ -523,7 +523,7 @@ export default function EmbedChatPage() {
                       })}
                       {sending ? (
                         <div className="flex justify-start">
-                          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500 shadow-sm">
+                          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-500 shadow-sm sm:text-sm">
                             Typing...
                           </div>
                         </div>
@@ -533,13 +533,13 @@ export default function EmbedChatPage() {
                 </div>
 
                 {error ? (
-                  <div className="border-t border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700 sm:px-4">
+                  <div className="border-t border-red-100 bg-red-50 px-4 py-2 text-base text-red-700 sm:text-sm">
                     {error}
                   </div>
                 ) : null}
 
                 <form
-                  className="mx-auto w-full max-w-3xl px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-4 sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
+                  className="mx-auto w-full max-w-3xl px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
                   onSubmit={(event) => {
                     event.preventDefault();
                     sendMessage();
@@ -549,14 +549,14 @@ export default function EmbedChatPage() {
                     {pendingAttachment ? (
                       <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
                         <div className="flex min-w-0 items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-slate-500 shadow-sm">
-                            <File className="h-4 w-4" />
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-slate-500 shadow-sm sm:h-9 sm:w-9">
+                            <File className="h-5 w-5 sm:h-4 sm:w-4" />
                           </div>
                           <div className="min-w-0">
-                            <p className="truncate text-sm font-semibold text-slate-900">
+                            <p className="truncate text-base font-semibold text-slate-900 sm:text-sm">
                               {pendingAttachment.file.name}
                             </p>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-sm text-slate-500 sm:text-xs">
                               {(pendingAttachment.file.size / 1024 / 1024).toFixed(2)} MB
                               {pendingAttachment.type === "file"
                                 ? ` / ${MAX_DOCUMENT_SIZE_MB} MB max`
@@ -578,7 +578,7 @@ export default function EmbedChatPage() {
                       value={input}
                       onChange={(event) => setInput(event.target.value)}
                       placeholder="Ask me anything..."
-                      className="h-11 w-full min-w-0 bg-transparent px-1 text-base text-slate-950 outline-none placeholder:text-slate-400 sm:h-12"
+                      className="h-12 w-full min-w-0 bg-transparent px-1 text-base text-slate-950 outline-none placeholder:text-slate-400"
                     />
                     <div className="mt-3 flex items-center justify-between gap-2 sm:gap-3">
                       <input
@@ -592,21 +592,21 @@ export default function EmbedChatPage() {
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={sending}
-                        className="inline-flex min-w-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:px-4"
+                        className="inline-flex min-w-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 text-base font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:text-sm"
                       >
-                        <Paperclip className="h-4 w-4" />
+                        <Paperclip className="h-5 w-5 sm:h-4 sm:w-4" />
                         <span className="hidden sm:inline">Attach file</span>
                       </button>
                       <button
                         type="submit"
                         disabled={sending || (!input.trim() && !pendingAttachment)}
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50 sm:h-12 sm:w-12"
+                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
                         aria-label="Send message"
                       >
                         {sending ? (
                           <Loader2 className="h-5 w-5 animate-spin" />
                         ) : (
-                          <SendHorizontal className="h-5 w-5" />
+                          <SendHorizontal className="h-6 w-6 sm:h-5 sm:w-5" />
                         )}
                       </button>
                     </div>
@@ -622,7 +622,7 @@ export default function EmbedChatPage() {
                           key={example}
                           type="button"
                           onClick={() => setInput(example)}
-                          className="max-w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 sm:px-4 sm:py-3"
+                          className="max-w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 sm:text-sm"
                         >
                           {example}
                         </button>
