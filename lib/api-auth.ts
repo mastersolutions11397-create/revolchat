@@ -62,6 +62,15 @@ export function jsonError(error: unknown) {
       : error instanceof RouteAuthError
         ? error.status
         : 500;
-  const message = error instanceof Error ? error.message : "Request failed";
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === "object" &&
+          error &&
+          "message" in error &&
+          typeof (error as { message?: unknown }).message === "string" &&
+          (error as { message: string }).message
+        ? (error as { message: string }).message
+        : "Request failed";
   return Response.json({ error: message }, { status });
 }

@@ -59,7 +59,6 @@ async function findOrCreateWebSession(bot: {
   const { data: created, error } = await supabase
     .from("chat_sessions")
     .insert({
-      workspace_id: bot.workspace_id,
       user_id: user.id,
       external_user_id: user.id,
       external_username: user.email,
@@ -169,7 +168,6 @@ export async function POST(
       .from("chat_messages")
       .insert({
         session_id: session.id,
-        workspace_id: bot.workspace_id,
         message_text: messageText,
         message_type: "text",
         sender_type: "user",
@@ -196,7 +194,6 @@ export async function POST(
       .from("chat_messages")
       .insert({
         session_id: session.id,
-        workspace_id: bot.workspace_id,
         message_text: aiText,
         message_type: "text",
         sender_type: "ai",
