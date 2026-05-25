@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { Bot, Loader2, LogIn, SendHorizontal } from "lucide-react";
@@ -51,51 +51,45 @@ export default function EmbedChatPage() {
 
   const title = useMemo(() => bot?.name ?? "Yetti Chat", [bot?.name]);
 
-  useEffect(() => {
-    let cancelled = false;
+  const loadChat = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setSignedIn(Boolean(session));
 
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!cancelled) setSignedIn(Boolean(session));
-
-        const response = await fetch(`/api/embed/${encodeURIComponent(botId)}`, {
-          headers: await authHeaders(),
-        });
-        const data = (await response.json()) as EmbedResponse | { error?: string };
-        if (!response.ok) {
-          throw new Error("error" in data ? data.error : "Failed to load chat");
-        }
-        if (!("bot" in data)) {
-          throw new Error("Failed to load chat");
-        }
-        if (!cancelled) {
-          setBot(data.bot);
-          setMessages(data.messages ?? []);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load chat");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
+      const response = await fetch(`/api/embed/${encodeURIComponent(botId)}`, {
+        headers: await authHeaders(),
+      });
+      const data = (await response.json()) as EmbedResponse | { error?: string };
+      if (!response.ok) {
+        throw new Error("error" in data ? data.error : "Failed to load chat");
       }
+      if (!("bot" in data)) {
+        throw new Error("Failed to load chat");
+      }
+      setBot(data.bot);
+      setMessages(data.messages ?? []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load chat");
+    } finally {
+      setLoading(false);
     }
+  }, [botId]);
 
-    load();
+  useEffect(() => {
+    loadChat();
+
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => load());
+    } = supabase.auth.onAuthStateChange(() => loadChat());
 
     return () => {
-      cancelled = true;
       subscription.unsubscribe();
     };
-  }, [botId]);
+  }, [loadChat]);
 
   useEffect(() => {
     async function handleEmbedAuth(event: MessageEvent<EmbedAuthMessage>) {
@@ -110,13 +104,15 @@ export default function EmbedChatPage() {
       });
       if (sessionError) {
         setError(sessionError.message);
+      } else {
+        await loadChat();
       }
       setAuthenticating(false);
     }
 
     window.addEventListener("message", handleEmbedAuth);
     return () => window.removeEventListener("message", handleEmbedAuth);
-  }, []);
+  }, [loadChat]);
 
   const signInWithGoogle = async () => {
     setAuthenticating(true);
