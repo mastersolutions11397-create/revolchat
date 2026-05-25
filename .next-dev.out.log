@@ -75,3 +75,15 @@
  ✓ Compiled in 904ms
  ✓ Compiled in 79ms
  ✓ Compiled in 915ms
+ ✓ Compiled in 168ms
+ ✓ Compiled in 107ms
+ GET /embed/ed49f18d-09f4-4e00-a7c1-ef94393221f4 200 in 533ms (compile: 180ms, proxy.ts: 56ms, render: 297ms)
+ GET /api/embed/ed49f18d-09f4-4e00-a7c1-ef94393221f4 200 in 663ms (compile: 127ms, render: 536ms)
+ GET /api/embed/ed49f18d-09f4-4e00-a7c1-ef94393221f4 200 in 286ms (compile: 4ms, render: 283ms)
+ ✓ Compiled in 1304ms
+ GET /embed/ed49f18d-09f4-4e00-a7c1-ef94393221f4 200 in 488ms (compile: 230ms, proxy.ts: 6ms, render: 252ms)
+ GET /embed/ed49f18d-09f4-4e00-a7c1-ef94393221f4 200 in 132ms (compile: 24ms, proxy.ts: 5ms, render: 103ms)
+ GET /api/embed/ed49f18d-09f4-4e00-a7c1-ef94393221f4 200 in 370ms (compile: 19ms, render: 351ms)
+ GET /api/embed/ed49f18d-09f4-4e00-a7c1-ef94393221f4 200 in 354ms (compile: 9ms, render: 346ms)
+ ✓ Compiled in 80ms
+ ✓ Compiled in 1891ms

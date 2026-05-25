@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { AuthProvider } from "@/lib/auth-context";
 import { WorkspaceProvider } from "@/lib/workspace-context";
 import { LanguageProvider } from "@/lib/contexts/LanguageContext";
@@ -10,6 +11,13 @@ export default function ClientProviders({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isEmbedRoute = pathname?.startsWith("/embed/");
+
+  if (isEmbedRoute) {
+    return <AuthProvider>{children}</AuthProvider>;
+  }
+
   return (
     <AuthProvider>
       <WorkspaceProvider>
