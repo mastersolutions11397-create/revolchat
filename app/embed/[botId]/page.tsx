@@ -1,19 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import {
   Bot,
   CheckCircle2,
   Clock3,
+  File,
   Loader2,
   LogIn,
   Paperclip,
   SendHorizontal,
   ShieldCheck,
+  X,
 } from "lucide-react";
-import type { ChatMessage } from "@/lib/types/chat";
+import type { Attachment, ChatMessage, MessageType } from "@/lib/types/chat";
 
 type EmbedBot = {
   id: string;
@@ -37,6 +39,17 @@ type EmbedAuthMessage = {
   access_token: string;
   refresh_token: string;
 };
+
+type UploadResponse = {
+  url: string;
+  filename: string;
+  size: number;
+  mime_type: string;
+  message_type: MessageType;
+};
+
+const MAX_MEDIA_SIZE_MB = 20;
+const MAX_DOCUMENT_SIZE_MB = 5;
 
 function authHeaders(accessToken?: string | null): Record<string, string> {
   return {
@@ -81,12 +94,88 @@ function getInitials(name?: string | null, email?: string | null) {
     .toUpperCase() || "WV";
 }
 
+function getMessageTypeFromFile(file: globalThis.File): MessageType {
+  if (file.type.startsWith("image/")) return "image";
+  if (file.type.startsWith("video/")) return "video";
+  if (file.type.startsWith("audio/")) return "audio";
+  return "file";
+}
+
+function renderMessageContent(message: ChatMessage) {
+  const attachment = message.attachments?.[0];
+
+  if (message.message_type === "image" && attachment?.url) {
+    return (
+      <div className="space-y-2">
+        {attachment.url.startsWith("blob:") ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={attachment.url}
+            alt={attachment.filename || "Sent image"}
+            className="aspect-[4/3] w-full max-w-[min(16rem,70vw)] rounded-xl bg-slate-100 object-cover"
+          />
+        ) : (
+          <div className="relative aspect-[4/3] w-full max-w-[min(16rem,70vw)] overflow-hidden rounded-xl bg-slate-100">
+            <Image
+              src={attachment.url}
+              alt={attachment.filename || "Sent image"}
+              fill
+              className="object-cover"
+            />
+          </div>
+        )}
+        {message.message_text ? <p>{message.message_text}</p> : null}
+      </div>
+    );
+  }
+
+  if (message.message_type === "video" && attachment?.url) {
+    return (
+      <div className="space-y-2">
+        <video
+          src={attachment.url}
+          controls
+          className="max-h-56 w-full max-w-[min(16rem,70vw)] rounded-xl bg-black"
+        />
+        {message.message_text ? <p>{message.message_text}</p> : null}
+      </div>
+    );
+  }
+
+  if ((message.message_type === "audio" || message.message_type === "file") && attachment?.url) {
+    return (
+      <div className="space-y-2">
+        {message.message_type === "audio" ? (
+          <audio src={attachment.url} controls className="w-full max-w-[min(16rem,70vw)]" />
+        ) : (
+          <a
+            href={attachment.url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex max-w-full items-center gap-2 rounded-lg bg-black/5 px-3 py-2 underline-offset-2 hover:underline"
+          >
+            <File className="h-4 w-4" />
+            <span className="truncate">{attachment.filename || "Open file"}</span>
+          </a>
+        )}
+        {message.message_text ? <p>{message.message_text}</p> : null}
+      </div>
+    );
+  }
+
+  return <>{message.message_text}</>;
+}
+
 export default function EmbedChatPage() {
   const params = useParams<{ botId: string }>();
   const botId = params.botId;
   const [bot, setBot] = useState<EmbedBot | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
+  const [pendingAttachment, setPendingAttachment] = useState<{
+    file: globalThis.File;
+    type: MessageType;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [authenticating, setAuthenticating] = useState(false);
@@ -94,6 +183,7 @@ export default function EmbedChatPage() {
   const [visitor, setVisitor] = useState<EmbedResponse["visitor"]>(null);
   const [error, setError] = useState<string | null>(null);
   const accessTokenRef = useRef<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const title = useMemo(() => bot?.name ?? "AI Assistant", [bot?.name]);
 
@@ -172,34 +262,83 @@ export default function EmbedChatPage() {
     }, 500);
   };
 
+  const uploadAttachment = async (file: globalThis.File): Promise<UploadResponse> => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`/api/embed/${encodeURIComponent(botId)}/upload`, {
+      method: "POST",
+      headers: accessTokenRef.current
+        ? { Authorization: `Bearer ${accessTokenRef.current}` }
+        : undefined,
+      body: formData,
+    });
+    const data = (await response.json()) as UploadResponse | { error?: string };
+
+    if (!response.ok) {
+      throw new Error("error" in data ? data.error : "Failed to upload file");
+    }
+
+    return data as UploadResponse;
+  };
+
   const sendMessage = async () => {
     const text = input.trim();
-    if (!text || sending || !signedIn) return;
+    if ((!text && !pendingAttachment) || sending || !signedIn) return;
     setInput("");
     setSending(true);
     setError(null);
+
+    const attachmentPreview: Attachment[] = pendingAttachment
+      ? [
+          {
+            type: pendingAttachment.type,
+            url: URL.createObjectURL(pendingAttachment.file),
+            filename: pendingAttachment.file.name,
+            size: pendingAttachment.file.size,
+            mime_type: pendingAttachment.file.type,
+          },
+        ]
+      : [];
 
     const optimistic = {
       id: `local-${Date.now()}`,
       session_id: "",
       workspace_id: "",
       message_text: text,
-      message_type: "text" as const,
+      message_type: pendingAttachment?.type ?? ("text" as const),
       sender_type: "user" as const,
       sender_id: "",
       sender_name: "You",
       is_read: false,
-      attachments: [],
+      attachments: attachmentPreview,
       metadata: {},
       created_at: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, optimistic]);
 
     try {
+      let attachments: Attachment[] = [];
+      let messageType: MessageType | undefined;
+
+      if (pendingAttachment) {
+        const uploadResult = await uploadAttachment(pendingAttachment.file);
+        messageType = uploadResult.message_type;
+        attachments = [
+          {
+            type: uploadResult.message_type,
+            url: uploadResult.url,
+            filename: uploadResult.filename,
+            size: uploadResult.size,
+            mime_type: uploadResult.mime_type,
+          },
+        ];
+      }
+
       const response = await fetch(`/api/embed/${encodeURIComponent(botId)}`, {
         method: "POST",
         headers: authHeaders(accessTokenRef.current),
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, message_type: messageType, attachments }),
       });
       const data = (await response.json()) as { messages?: ChatMessage[]; error?: string };
       if (!response.ok) throw new Error(data.error || "Failed to send message");
@@ -207,6 +346,8 @@ export default function EmbedChatPage() {
         ...prev.filter((message) => message.id !== optimistic.id),
         ...(data.messages ?? []),
       ]);
+      setPendingAttachment(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send message");
       setMessages((prev) => prev.filter((message) => message.id !== optimistic.id));
@@ -216,10 +357,39 @@ export default function EmbedChatPage() {
     }
   };
 
+  const handleSelectAttachment = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const nextType = getMessageTypeFromFile(file);
+    const maxSizeBytes =
+      nextType === "file"
+        ? MAX_DOCUMENT_SIZE_MB * 1024 * 1024
+        : MAX_MEDIA_SIZE_MB * 1024 * 1024;
+
+    if (file.size > maxSizeBytes) {
+      setError(
+        nextType === "file"
+          ? `Document size must be ${MAX_DOCUMENT_SIZE_MB} MB or less.`
+          : `Media size must be ${MAX_MEDIA_SIZE_MB} MB or less.`
+      );
+      event.target.value = "";
+      return;
+    }
+
+    setError(null);
+    setPendingAttachment({ file, type: nextType });
+  };
+
+  const clearPendingAttachment = () => {
+    setPendingAttachment(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   return (
-    <main className="h-screen w-screen overflow-hidden bg-[#f6f3ee] p-2 text-slate-950">
-      <section className="grid h-full w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/70 lg:grid-cols-[290px_minmax(420px,1fr)] xl:grid-cols-[310px_minmax(520px,1fr)_330px]">
-        <aside className="hidden min-h-0 border-r border-slate-200 bg-white px-5 py-6 lg:flex lg:flex-col">
+    <main className="h-dvh w-screen overflow-hidden bg-[#f6f3ee] p-0 text-slate-950 sm:p-2">
+      <section className="grid h-full min-h-0 w-full overflow-hidden border border-slate-200 bg-white shadow-2xl shadow-slate-200/70 sm:rounded-3xl lg:grid-cols-[240px_minmax(0,1fr)] xl:grid-cols-[270px_minmax(0,1fr)_300px] 2xl:grid-cols-[310px_minmax(0,1fr)_330px]">
+        <aside className="hidden min-h-0 border-r border-slate-200 bg-white px-4 py-5 lg:flex lg:flex-col xl:px-5 xl:py-6">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-amber-200 bg-amber-50 text-amber-500">
               {bot?.profile_picture_url ? (
@@ -234,12 +404,12 @@ export default function EmbedChatPage() {
                 <Bot className="h-5 w-5" />
               )}
             </div>
-            <p className="truncate text-2xl font-black tracking-normal text-slate-950">
+            <p className="truncate text-lg font-black tracking-normal text-slate-950 xl:text-2xl">
               {title}
             </p>
           </div>
 
-          <div className="mt-auto rounded-2xl border border-slate-200 bg-white p-4">
+          <div className="mt-auto rounded-2xl border border-slate-200 bg-white p-3 xl:p-4">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-amber-100 text-sm font-black text-amber-700">
                 {getInitials(visitor?.name, visitor?.email)}
@@ -256,8 +426,8 @@ export default function EmbedChatPage() {
           </div>
         </aside>
 
-        <div className="flex min-h-0 flex-col bg-white">
-          <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3 lg:hidden">
+        <div className="flex min-h-0 min-w-0 flex-col bg-white">
+          <div className="flex min-h-16 items-center gap-3 border-b border-slate-100 px-3 py-3 sm:px-4 lg:hidden">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 text-amber-500">
               {bot?.profile_picture_url ? (
                 <Image
@@ -283,8 +453,8 @@ export default function EmbedChatPage() {
                 <Loader2 className="h-7 w-7 animate-spin text-amber-500" />
               </div>
             ) : !signedIn ? (
-              <div className="flex min-h-0 flex-1 items-center justify-center px-6">
-                <div className="w-full max-w-sm rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-xl shadow-slate-200/60">
+              <div className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto px-4 py-6 sm:px-6">
+                <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-xl shadow-slate-200/60 sm:rounded-3xl sm:p-6">
                   <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 text-amber-500">
                     <LogIn className="h-6 w-6" />
                   </div>
@@ -314,21 +484,21 @@ export default function EmbedChatPage() {
               </div>
             ) : (
               <>
-                <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6">
+                <div className="min-h-0 flex-1 overflow-y-auto px-3 py-4 sm:px-4 sm:py-6">
                   {messages.length === 0 ? (
-                    <div className="mx-auto flex h-full max-w-3xl flex-col items-center justify-center text-center">
-                      <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-sm font-black text-amber-600">
+                    <div className="mx-auto flex min-h-full max-w-3xl flex-col items-center justify-center px-2 text-center">
+                      <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-50 text-sm font-black text-amber-600 sm:mb-5 sm:h-12 sm:w-12">
                         HI
                       </div>
-                      <h1 className="text-3xl font-black tracking-tight text-slate-950">
+                      <h1 className="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
                         Hi there! I am {title}.
                       </h1>
-                      <p className="mt-3 max-w-md text-base leading-relaxed text-slate-500">
+                      <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-500 sm:text-base">
                         I am here to help you find answers and guide you through anything you need.
                       </p>
                     </div>
                   ) : (
-                    <div className="mx-auto max-w-3xl space-y-4">
+                    <div className="mx-auto w-full max-w-3xl space-y-4">
                       <div className="mx-auto w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-600">
                         Today
                       </div>
@@ -340,13 +510,13 @@ export default function EmbedChatPage() {
                             className={`flex ${isUser ? "justify-end" : "justify-start"}`}
                           >
                             <div
-                              className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
+                              className={`max-w-[88%] overflow-hidden rounded-2xl px-3 py-2.5 text-sm leading-relaxed shadow-sm sm:max-w-[82%] sm:px-4 sm:py-3 ${
                                 isUser
                                   ? "bg-slate-950 text-white"
                                   : "border border-slate-200 bg-white text-slate-800"
                               }`}
                             >
-                              {message.message_text}
+                              {renderMessageContent(message)}
                             </div>
                           </div>
                         );
@@ -363,37 +533,74 @@ export default function EmbedChatPage() {
                 </div>
 
                 {error ? (
-                  <div className="border-t border-red-100 bg-red-50 px-4 py-2 text-sm text-red-700">
+                  <div className="border-t border-red-100 bg-red-50 px-3 py-2 text-sm text-red-700 sm:px-4">
                     {error}
                   </div>
                 ) : null}
 
                 <form
-                  className="mx-auto w-full max-w-3xl px-4 pb-6"
+                  className="mx-auto w-full max-w-3xl px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-4 sm:pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
                   onSubmit={(event) => {
                     event.preventDefault();
                     sendMessage();
                   }}
                 >
-                  <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-200/70">
+                  <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-xl shadow-slate-200/70 sm:rounded-3xl sm:p-4">
+                    {pendingAttachment ? (
+                      <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-slate-500 shadow-sm">
+                            <File className="h-4 w-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-slate-900">
+                              {pendingAttachment.file.name}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {(pendingAttachment.file.size / 1024 / 1024).toFixed(2)} MB
+                              {pendingAttachment.type === "file"
+                                ? ` / ${MAX_DOCUMENT_SIZE_MB} MB max`
+                                : ` / ${MAX_MEDIA_SIZE_MB} MB max`}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={clearPendingAttachment}
+                          className="rounded-lg p-2 text-slate-400 transition hover:bg-white hover:text-slate-700"
+                          aria-label="Remove attachment"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : null}
                     <input
                       value={input}
                       onChange={(event) => setInput(event.target.value)}
                       placeholder="Ask me anything..."
-                      className="h-12 w-full min-w-0 bg-transparent px-1 text-base text-slate-950 outline-none placeholder:text-slate-400"
+                      className="h-11 w-full min-w-0 bg-transparent px-1 text-base text-slate-950 outline-none placeholder:text-slate-400 sm:h-12"
                     />
-                    <div className="mt-3 flex items-center justify-between gap-3">
+                    <div className="mt-3 flex items-center justify-between gap-2 sm:gap-3">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        onChange={handleSelectAttachment}
+                        accept=".pdf,.doc,.docx,.txt,image/*,video/*,audio/*"
+                        className="hidden"
+                      />
                       <button
                         type="button"
-                        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={sending}
+                        className="inline-flex min-w-0 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 sm:px-4"
                       >
                         <Paperclip className="h-4 w-4" />
-                        Attach file
+                        <span className="hidden sm:inline">Attach file</span>
                       </button>
                       <button
                         type="submit"
-                        disabled={sending || !input.trim()}
-                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        disabled={sending || (!input.trim() && !pendingAttachment)}
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50 sm:h-12 sm:w-12"
                         aria-label="Send message"
                       >
                         {sending ? (
@@ -405,7 +612,7 @@ export default function EmbedChatPage() {
                     </div>
                   </div>
                   {messages.length === 0 ? (
-                    <div className="mt-4 flex flex-wrap justify-center gap-2">
+                    <div className="mt-3 flex flex-wrap justify-center gap-2 sm:mt-4">
                       {[
                         "Tell me about your services",
                         "How can I get started?",
@@ -415,7 +622,7 @@ export default function EmbedChatPage() {
                           key={example}
                           type="button"
                           onClick={() => setInput(example)}
-                          className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                          className="max-w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 sm:px-4 sm:py-3"
                         >
                           {example}
                         </button>
@@ -428,7 +635,7 @@ export default function EmbedChatPage() {
           </div>
         </div>
 
-        <aside className="hidden min-h-0 overflow-y-auto border-l border-slate-200 bg-white px-5 py-6 xl:block">
+        <aside className="hidden min-h-0 overflow-y-auto border-l border-slate-200 bg-white px-4 py-5 xl:block 2xl:px-5 2xl:py-6">
           <div className="overflow-hidden rounded-3xl bg-slate-100">
             <div className="relative aspect-[1.05] bg-gradient-to-br from-amber-100 via-pink-100 to-violet-100">
               {bot?.profile_picture_url ? (
@@ -446,18 +653,18 @@ export default function EmbedChatPage() {
             </div>
           </div>
 
-          <div className="mt-7 flex items-center justify-between gap-3">
-            <h2 className="min-w-0 truncate text-2xl font-black text-slate-950">{title}</h2>
+          <div className="mt-6 flex items-center justify-between gap-3 2xl:mt-7">
+            <h2 className="min-w-0 truncate text-xl font-black text-slate-950 2xl:text-2xl">{title}</h2>
             <div className="flex shrink-0 items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-slate-700">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
               Online
             </div>
           </div>
-          <p className="mt-4 text-base leading-relaxed text-slate-700">
+          <p className="mt-4 text-sm leading-relaxed text-slate-700 2xl:text-base">
             I am your AI assistant. Ask me anything or explore examples to get started.
           </p>
 
-          <div className="mt-10 space-y-7">
+          <div className="mt-8 space-y-6 2xl:mt-10 2xl:space-y-7">
             <div className="flex items-start gap-4">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-500">
                 <CheckCircle2 className="h-5 w-5" />

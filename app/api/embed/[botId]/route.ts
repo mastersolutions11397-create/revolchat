@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getAuthenticatedUser, jsonError, type AuthenticatedUser } from "@/lib/api-auth";
+import type { Attachment, MessageType } from "@/lib/types/chat";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -168,9 +169,15 @@ export async function POST(
     const bot = await getBot(botId);
     const body = await request.json();
     const messageText = typeof body.message === "string" ? body.message.trim() : "";
+    const attachments: Attachment[] = Array.isArray(body.attachments) ? body.attachments : [];
+    const messageType: MessageType =
+      typeof body.message_type === "string" ? body.message_type : attachments[0]?.type || "text";
 
-    if (!messageText) {
-      return NextResponse.json({ error: "message is required" }, { status: 400 });
+    if (!messageText && attachments.length === 0) {
+      return NextResponse.json(
+        { error: "message or attachment is required" },
+        { status: 400 }
+      );
     }
 
     const session = await findOrCreateWebSession(bot, user);
@@ -180,10 +187,11 @@ export async function POST(
       .insert({
         session_id: session.id,
         message_text: messageText,
-        message_type: "text",
+        message_type: messageType,
         sender_type: "user",
         sender_id: user.id,
         sender_name: user.name || user.email || "Website visitor",
+        attachments,
         is_read: false,
         metadata: { source: "web_embed" },
       })
@@ -200,7 +208,8 @@ export async function POST(
       })
       .eq("id", session.id);
 
-    const aiText = await getAIResponse(messageText, bot.id, user.id);
+    const aiPrompt = messageText || `The visitor sent a ${messageType} attachment.`;
+    const aiText = await getAIResponse(aiPrompt, bot.id, user.id);
     const { data: aiMessage, error: aiMessageError } = await supabase
       .from("chat_messages")
       .insert({
