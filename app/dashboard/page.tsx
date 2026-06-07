@@ -23,6 +23,7 @@ import {
   AlertCircle,
   Bot,
 } from "lucide-react";
+import TrialNotificationsWidget from "@/components/dashboard/TrialNotificationsWidget";
 export default function DashboardPage() {
   const { user } = useAuth();
   const { activeWorkspace } = useWorkspace();
@@ -333,6 +334,8 @@ export default function DashboardPage() {
           </div>
         </Link>
       </div>
+
+      <TrialNotificationsWidget />
 
       {/* Platform Status Section */}
       <div className="rounded-2xl sm:rounded-3xl border border-dashboard-border bg-dashboard-card p-4 sm:p-6 md:p-8 shadow-sm">
