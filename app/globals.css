@@ -1,81 +1,130 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a; /* Slate 900 - Navy-ish */
-  --sky-500: #2d6695; /* Sky 500 */
-  --sky-500-light: #2d6695; /* Sky 400 */
-  --sky-500-dark: #2d6695; /* Sky 600 */
-  --secondary: #f8fafc; /* Slate 50 */
-  --accent: #68b4e4; /* Slate 900 */
-  --text-muted: #64748b; /* Slate 500 */
-  --border: #e2e8f0;
-  /* Dashboard: Teal + Soft Gray (business / non-tech) */
-  --teal-primary: #0F766E;
-  --teal-accent: #14B8A6;
-  --dashboard-bg: #F9FAFB;
-  --dashboard-card: #FFFFFF;
-  --dashboard-border: #E5E7EB;
-  /* Custom Navy & Sky Palette */
-  --sky-900: #0f172a;
-  --sky-800: #1e293b;
-  --sky-500: #2d6695;
-  --sky-100: #e0f2fe;
-  --sky-50: #f0f9ff;
-  --accent: 203 72% 66%;
-  --accent-foreground: 207 56% 25%;
+  /* ── Brand ───────────────────────────────────── */
+  --brand:        #0F766E;
+  --brand-light:  #14B8A6;
+  --brand-dark:   #0D6159;
+  --brand-ring:   rgba(15, 118, 110, 0.25);
 
-  /* shadcn tokens */
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --sky-500-foreground: #ffffff;
-  --secondary-foreground: #0f172a;
-  --accent-foreground: #0f172a;
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  --ring: #2d6695;
-  --input: #e2e8f0;
+  /* ── Surfaces ────────────────────────────────── */
+  --background:         #F9FAFB;
+  --surface:            #FFFFFF;
+  --surface-raised:     #FFFFFF;
+  --surface-overlay:    rgba(255, 255, 255, 0.9);
+
+  /* ── Text ────────────────────────────────────── */
+  --text-primary:     #111827;
+  --text-secondary:   #374151;
+  --text-muted:       #6B7280;
+  --text-placeholder: #9CA3AF;
+
+  /* ── Border ──────────────────────────────────── */
+  --border:        #E5E7EB;
+  --border-subtle: #F3F4F6;
+  --input:         #E5E7EB;
+
+  /* ── Semantic States ─────────────────────────── */
+  --success:          #059669;
+  --success-bg:       #ECFDF5;
+  --success-border:   #A7F3D0;
+  --success-text:     #065F46;
+
+  --error:            #DC2626;
+  --error-bg:         #FEF2F2;
+  --error-border:     #FECACA;
+  --error-text:       #991B1B;
+
+  --warning:          #D97706;
+  --warning-bg:       #FFFBEB;
+  --warning-border:   #FDE68A;
+  --warning-text:     #92400E;
+
+  /* ── Shadcn compat aliases ───────────────────── */
+  --foreground:             var(--text-primary);
+  --card:                   var(--surface);
+  --card-foreground:        var(--text-primary);
+  --muted:                  #F1F5F9;
+  --muted-foreground:       var(--text-muted);
+  --secondary:              #F8FAFC;
+  --secondary-foreground:   var(--text-primary);
+  --accent:                 var(--brand-light);
+  --accent-foreground:      var(--text-primary);
+  --destructive:            var(--error);
+  --destructive-foreground: #FFFFFF;
+  --ring:                   var(--brand);
+
+  /* ── Legacy dashboard aliases (keep for compat) ─ */
+  --teal-primary:     var(--brand);
+  --teal-accent:      var(--brand-light);
+  --dashboard-bg:     var(--background);
+  --dashboard-card:   var(--surface);
+  --dashboard-border: var(--border);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-sky-500: var(--sky-500);
-  --color-sky-500-light: var(--sky-500-light);
-  --color-secondary: var(--secondary);
-  --color-accent: var(--accent);
-  --color-text-muted: var(--text-muted);
-  /* shadcn tokens */
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-sky-500-foreground: var(--sky-500-foreground);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-teal-primary: var(--teal-primary);
-  --color-teal-accent: var(--teal-accent);
-  --color-dashboard-bg: var(--dashboard-bg);
-  --color-dashboard-card: var(--dashboard-card);
+  /* Brand */
+  --color-brand:       var(--brand);
+  --color-brand-light: var(--brand-light);
+  --color-brand-dark:  var(--brand-dark);
+
+  /* Surfaces */
+  --color-background:       var(--background);
+  --color-surface:          var(--surface);
+  --color-surface-raised:   var(--surface-raised);
+
+  /* Text */
+  --color-text-primary:     var(--text-primary);
+  --color-text-secondary:   var(--text-secondary);
+  --color-text-muted:       var(--text-muted);
+  --color-text-placeholder: var(--text-placeholder);
+
+  /* Border */
+  --color-border:        var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-input:         var(--input);
+
+  /* States */
+  --color-success:        var(--success);
+  --color-success-bg:     var(--success-bg);
+  --color-error:          var(--error);
+  --color-error-bg:       var(--error-bg);
+  --color-warning:        var(--warning);
+  --color-warning-bg:     var(--warning-bg);
+
+  /* Shadcn compat */
+  --color-foreground:            var(--foreground);
+  --color-card:                  var(--card);
+  --color-card-foreground:       var(--card-foreground);
+  --color-muted:                 var(--muted);
+  --color-muted-foreground:      var(--muted-foreground);
+  --color-secondary:             var(--secondary);
+  --color-secondary-foreground:  var(--secondary-foreground);
+  --color-accent:                var(--accent);
+  --color-accent-foreground:     var(--accent-foreground);
+  --color-destructive:           var(--destructive);
+  --color-destructive-foreground:var(--destructive-foreground);
+  --color-ring:                  var(--ring);
+
+  /* Legacy dashboard aliases */
+  --color-teal-primary:     var(--teal-primary);
+  --color-teal-accent:      var(--teal-accent);
+  --color-dashboard-bg:     var(--dashboard-bg);
+  --color-dashboard-card:   var(--dashboard-card);
   --color-dashboard-border: var(--dashboard-border);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* Typography */
+  --font-sans: var(--font-inter), system-ui, Arial, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", monospace;
 }
 
-/* Force light mode - removed dark mode media query */
-
-/* Responsive base: prevent horizontal scroll, support all viewports */
+/* ── Base ──────────────────────────────────────── */
 html {
   overflow-x: hidden;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
+
 html,
 body {
   min-height: 100vh;
@@ -86,48 +135,46 @@ body {
 
 body {
   background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
   overflow-x: hidden;
-  /* Safe area for notched devices */
   padding-left: env(safe-area-inset-left, 0);
   padding-right: env(safe-area-inset-right, 0);
 }
 
-/* Custom yetti-themed styles */
-.yetti-gradient {
-  background: linear-gradient(135deg, #2d6695 0%, #38bdf8 50%, #2d6695 100%);
-}
-
-.yetti-shadow {
-  box-shadow: 0 10px 30px rgba(14, 165, 233, 0.15);
-}
-
-/* Animations */
+/* ── Animations ───────────────────────────────── */
 @keyframes fade-in-up {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.animate-fade-in-up {
-  animation: fade-in-up 0.6s ease-out forwards;
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
 }
 
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
+.animate-fade-in-up   { animation: fade-in-up 0.5s ease-out forwards; }
+.animate-pulse-slow   { animation: pulse-slow 4s ease-in-out infinite; }
 
-/* Line clamp utility */
+.delay-100  { animation-delay: 100ms; }
+.delay-200  { animation-delay: 200ms; }
+.delay-300  { animation-delay: 300ms; }
+.delay-1000 { animation-delay: 1000ms; }
+
+/* ── Utilities ────────────────────────────────── */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  .animate-pulse-slow {
+    animation: none;
+  }
 }
