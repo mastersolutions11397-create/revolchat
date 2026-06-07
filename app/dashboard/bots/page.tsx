@@ -22,6 +22,7 @@ import {
   Send,
   Copy,
   Globe,
+  CreditCard,
 } from "lucide-react";
 import BotWizard from "@/components/bot-wizard/BotWizard";
 import { toast } from "sonner";
@@ -37,6 +38,9 @@ export type BotRecord = {
   telegramUsername: string | null;
   telegramFirstName: string | null;
   profilePictureUrl: string | null;
+  subscriptionEnabled: boolean;
+  endUserPriceCents: number;
+  trialDays: number;
 };
 
 const MODEL_PROVIDERS: AgentModel[] = ["openai", "deepseek", "gemini"];
@@ -63,6 +67,9 @@ function botFromAPI(a: Agent): BotRecord {
     telegramUsername: a.telegram_username ?? null,
     telegramFirstName: a.telegram_first_name ?? null,
     profilePictureUrl: a.profile_picture_url ?? null,
+    subscriptionEnabled: (a as any).subscription_enabled ?? false,
+    endUserPriceCents: (a as any).end_user_price_cents ?? 999,
+    trialDays: (a as any).trial_days ?? 30,
   };
 }
 
@@ -76,6 +83,11 @@ export default function BotsPage() {
   const [chatExpanded, setChatExpanded] = useState(false);
   const [editingBot, setEditingBot] = useState<BotRecord | null>(null);
   const [embedBot, setEmbedBot] = useState<BotRecord | null>(null);
+  const [monetizationBot, setMonetizationBot] = useState<BotRecord | null>(null);
+  const [subEnabled, setSubEnabled] = useState(false);
+  const [subPriceCents, setSubPriceCents] = useState(999);
+  const [subTrialDays, setSubTrialDays] = useState(30);
+  const [subSaving, setSubSaving] = useState(false);
 
   const getEmbedUrl = useCallback((botId: string) => {
     return `${getAppUrl()}/embed/${botId}`;
@@ -102,6 +114,30 @@ export default function BotsPage() {
   useEffect(() => {
     fetchBots();
   }, [fetchBots]);
+
+  const saveMonetization = useCallback(async () => {
+    if (!monetizationBot) return;
+    setSubSaving(true);
+    try {
+      const res = await fetch(`/api/bots/${monetizationBot.id}/subscription`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subscription_enabled: subEnabled,
+          end_user_price_cents: subPriceCents,
+          trial_days: subTrialDays,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to save");
+      toast.success("Monetization settings saved");
+      setMonetizationBot(null);
+      fetchBots();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Save failed");
+    } finally {
+      setSubSaving(false);
+    }
+  }, [monetizationBot, subEnabled, subPriceCents, subTrialDays, fetchBots]);
 
   const handleDeleteBot = useCallback(async (id: string) => {
     toast.warning("Delete this bot?", {
@@ -295,6 +331,19 @@ export default function BotsPage() {
                         <Edit3 className="h-4 w-4" />
                       </button>
                       <button
+                        onClick={() => {
+                          setMonetizationBot(bot);
+                          setSubEnabled(bot.subscriptionEnabled);
+                          setSubPriceCents(bot.endUserPriceCents);
+                          setSubTrialDays(bot.trialDays);
+                        }}
+                        className="p-2 rounded-lg text-text-muted hover:text-brand hover:bg-brand/10 transition-all cursor-pointer"
+                        title="Monetization settings"
+                        aria-label={`Configure monetization for ${bot.name}`}
+                      >
+                        <CreditCard className="w-4 h-4" />
+                      </button>
+                      <button
                         type="button"
                         onClick={() => handleDeleteBot(bot.id)}
                         className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -352,6 +401,105 @@ export default function BotsPage() {
         embedUrl={embedBot ? getEmbedUrl(embedBot.id) : ""}
         onClose={() => setEmbedBot(null)}
       />
+
+      {/* Monetization Modal */}
+      {monetizationBot && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-surface rounded-2xl shadow-card-md border border-border w-full max-w-md p-6 animate-fade-in-up">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-lg font-bold text-text-primary">Monetization</h2>
+              <button
+                onClick={() => setMonetizationBot(null)}
+                className="text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-5">
+              <label className="flex items-center justify-between cursor-pointer group">
+                <div>
+                  <div className="text-sm font-semibold text-text-primary">
+                    Enable end-user subscriptions
+                  </div>
+                  <div className="text-xs text-text-muted mt-0.5">
+                    Users get a free trial, then receive a payment link when it expires
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={subEnabled}
+                  onClick={() => setSubEnabled((v) => !v)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+                    subEnabled ? "bg-brand" : "bg-border"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                      subEnabled ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </label>
+
+              {subEnabled && (
+                <>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wide text-text-secondary mb-1.5">
+                      Monthly price (USD)
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted text-sm">$</span>
+                      <input
+                        type="number"
+                        min="1"
+                        step="0.01"
+                        value={(subPriceCents / 100).toFixed(2)}
+                        onChange={(e) =>
+                          setSubPriceCents(Math.round(parseFloat(e.target.value || "0") * 100))
+                        }
+                        className="w-full pl-7 pr-3 py-2.5 rounded-lg border border-border bg-background text-text-primary text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/25 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wide text-text-secondary mb-1.5">
+                      Free trial duration (days)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="365"
+                      value={subTrialDays}
+                      onChange={(e) => setSubTrialDays(parseInt(e.target.value || "30"))}
+                      className="w-full px-3 py-2.5 rounded-lg border border-border bg-background text-text-primary text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/25 transition-all"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setMonetizationBot(null)}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-border text-text-secondary hover:bg-background text-sm font-medium transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveMonetization}
+                disabled={subSaving}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-brand hover:bg-brand-dark text-white text-sm font-semibold shadow-brand transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {subSaving ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
