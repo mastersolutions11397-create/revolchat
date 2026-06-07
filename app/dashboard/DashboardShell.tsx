@@ -201,6 +201,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 tourId: null,
               },
               {
+                href: "/dashboard/crm",
+                icon: Users,
+                label: "CRM",
+                tourId: null,
+              },
+              {
                 href: "/dashboard/plans",
                 icon: CreditCard,
                 label: "Plans",

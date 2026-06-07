@@ -13,6 +13,13 @@ const PLAN_ICONS: Record<string, React.ElementType> = {
   enterprise: Shield,
 };
 
+const PLAN_FEATURES: Record<string, string[]> = {
+  starter:   ["Up to 3 AI bots", "2 channel integrations", "1,000 messages/month", "Email support"],
+  growth:    ["Up to 10 AI bots", "5 channel integrations", "5,000 messages/month", "Priority support"],
+  pro:       ["Up to 30 AI bots", "Unlimited integrations", "20,000 messages/month", "Priority support"],
+  enterprise:["Unlimited AI bots", "Unlimited integrations", "Unlimited messages", "Dedicated support"],
+};
+
 type UserPlan = {
   plan_name: string;
   status: string;
@@ -122,18 +129,12 @@ export default function PlansPage() {
               </div>
 
               <ul className="space-y-2 mb-6 flex-1">
-                <li className="flex items-center gap-2 text-sm text-text-secondary">
-                  <Check className="w-3.5 h-3.5 text-success shrink-0" />
-                  {plan.credits.toLocaleString()} credits/month
-                </li>
-                <li className="flex items-center gap-2 text-sm text-text-secondary">
-                  <Check className="w-3.5 h-3.5 text-success shrink-0" />
-                  All integrations
-                </li>
-                <li className="flex items-center gap-2 text-sm text-text-secondary">
-                  <Check className="w-3.5 h-3.5 text-success shrink-0" />
-                  Priority support
-                </li>
+                {(PLAN_FEATURES[key] ?? []).map((feature) => (
+                  <li key={feature} className="flex items-center gap-2 text-sm text-text-secondary">
+                    <Check className="w-3.5 h-3.5 text-success shrink-0" />
+                    {feature}
+                  </li>
+                ))}
               </ul>
 
               <button
