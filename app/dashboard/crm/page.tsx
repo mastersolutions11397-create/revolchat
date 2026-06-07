@@ -32,6 +32,40 @@ const STATUS_CONFIG = {
   cancelled:  { label: "Cancelled",       icon: XCircle,      color: "text-error",   bg: "bg-error/10"   },
 };
 
+function DaysLeftBadge({ trialEndAt, status }: { trialEndAt: string; status: Trial["status"] }) {
+  if (status === "subscribed") {
+    return <span className="text-xs text-text-muted">—</span>;
+  }
+  if (status === "cancelled") {
+    return <span className="text-xs text-text-muted">Cancelled</span>;
+  }
+
+  const now = Date.now();
+  const end = new Date(trialEndAt).getTime();
+  const daysLeft = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
+
+  if (status === "expired" || daysLeft <= 0) {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs font-semibold text-error">
+        Expired
+      </span>
+    );
+  }
+
+  const color =
+    daysLeft <= 3
+      ? "text-error bg-error-bg"
+      : daysLeft <= 7
+      ? "text-warning bg-warning-bg"
+      : "text-success bg-success-bg";
+
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${color}`}>
+      {daysLeft}d left
+    </span>
+  );
+}
+
 const PLATFORM_EMOJI: Record<string, string> = {
   telegram:  "✈️",
   instagram: "📸",
@@ -168,7 +202,7 @@ export default function CrmPage() {
                   <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wide">Bot</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wide">Status</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wide">Trial started</th>
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wide">Trial ends</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wide">Trial left</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -193,8 +227,8 @@ export default function CrmPage() {
                     <td className="px-4 py-3 text-text-muted">
                       {new Date(t.trial_start_at).toLocaleDateString()}
                     </td>
-                    <td className="px-4 py-3 text-text-muted">
-                      {new Date(t.trial_end_at).toLocaleDateString()}
+                    <td className="px-4 py-3">
+                      <DaysLeftBadge trialEndAt={t.trial_end_at} status={t.status} />
                     </td>
                   </tr>
                 ))}
