@@ -403,7 +403,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       </div>
 
       {onboardingOpen && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-2xl">
             <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
               <Building2 className="h-6 w-6" />
