@@ -47,7 +47,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   } = useWorkspace();
   const { t } = useLanguage();
   const pathname = usePathname();
-  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
@@ -108,6 +108,8 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside
+        onMouseEnter={() => setSidebarExpanded(true)}
+        onMouseLeave={() => setSidebarExpanded(false)}
         className={`fixed inset-y-0 left-0 z-50 bg-surface border-r border-border transition-all duration-300 ease-in-out shadow-sm ${
           // Mobile: always full width when open, hidden when closed
           mobileSidebarOpen ? "w-72 translate-x-0" : "-translate-x-full"
@@ -132,14 +134,6 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 <span className="text-lg font-bold text-text-primary truncate">BotHub</span>
               )}
             </Link>
-            {/* Desktop toggle */}
-            <button
-              onClick={() => setSidebarExpanded((v) => !v)}
-              className="hidden md:flex items-center justify-center w-7 h-7 rounded-lg text-text-muted hover:text-text-primary hover:bg-background transition-colors shrink-0 cursor-pointer"
-              aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-            >
-              {sidebarExpanded ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-            </button>
             {/* Mobile close */}
             {mobileSidebarOpen && (
               <button
