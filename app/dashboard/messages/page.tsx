@@ -646,7 +646,7 @@ export default function MessagesPage() {
                   : "text-slate-500 hover:text-slate-700"
               }`}
             >
-              <Bot className="h-5 w-5 text-teal-primary" />
+              <Bot className="h-5 w-5 text-brand" />
               Web
             </button>
           </div>
@@ -960,7 +960,7 @@ export default function MessagesPage() {
                   <div className="absolute bottom-full left-0 right-16 mb-2 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden z-10 max-h-64 overflow-y-auto">
                     <div className="p-2 border-b border-slate-100 bg-slate-50">
                       <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <Zap className="h-3 w-3 text-teal-primary" />
+                        <Zap className="h-3 w-3 text-brand" />
                         <span>Trigger Words</span>
                       </div>
                     </div>
@@ -973,13 +973,13 @@ export default function MessagesPage() {
                             onClick={() => handleSelectTrigger(trigger)}
                             className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors ${
                               index === selectedTriggerIndex
-                                ? "bg-teal-primary/10 text-teal-primary"
+                                ? "bg-brand/10 text-brand"
                                 : "hover:bg-slate-50 text-slate-700"
                             }`}
                           >
                             <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
                               index === selectedTriggerIndex
-                                ? "bg-teal-primary/20"
+                                ? "bg-brand/20"
                                 : "bg-slate-100"
                             }`}>
                               <MediaIcon className="h-4 w-4" />

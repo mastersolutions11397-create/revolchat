@@ -10,7 +10,7 @@
  */
 export default function UsagePage() {
   return (
-    <div className="flex min-h-[50vh] items-center justify-center rounded-2xl border border-dashboard-border bg-dashboard-card p-8">
+    <div className="flex min-h-[50vh] items-center justify-center rounded-2xl border border-border bg-surface p-8">
       <p className="text-slate-500">Usage — coming soon.</p>
     </div>
   );

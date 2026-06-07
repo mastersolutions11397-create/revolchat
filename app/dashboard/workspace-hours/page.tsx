@@ -18,7 +18,7 @@ export default function WorkspaceHoursPage() {
       </p>
       <Link
         href="/dashboard"
-        className="text-sm font-medium text-teal-primary hover:underline"
+        className="text-sm font-medium text-brand hover:underline"
       >
         Go to Dashboard
       </Link>
