@@ -27,12 +27,8 @@ CREATE TABLE IF NOT EXISTS public.end_user_trials (
     UNIQUE(bot_id, platform, platform_user_id)
 );
 
-CREATE INDEX IF NOT EXISTS end_user_trials_bot_id_idx
-    ON public.end_user_trials (bot_id);
 CREATE INDEX IF NOT EXISTS end_user_trials_status_idx
     ON public.end_user_trials (status);
-CREATE INDEX IF NOT EXISTS end_user_trials_bot_platform_idx
-    ON public.end_user_trials (bot_id, platform, platform_user_id);
 
 CREATE OR REPLACE FUNCTION public.set_end_user_trials_updated_at()
 RETURNS TRIGGER AS $$
@@ -48,9 +44,9 @@ CREATE TRIGGER end_user_trials_updated_at
 CREATE TABLE IF NOT EXISTS public.end_user_trial_notifications (
     id                UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     trial_id          UUID        NOT NULL REFERENCES public.end_user_trials(id) ON DELETE CASCADE,
-    bot_id            UUID        NOT NULL,
+    bot_id            UUID        NOT NULL REFERENCES public.agents(id) ON DELETE CASCADE,
     bot_name          TEXT        NOT NULL,
-    admin_user_id     TEXT        NOT NULL,
+    admin_user_id     TEXT        NOT NULL, -- matches agents.user_id TEXT; Supabase Auth UUID stored as text
     platform          TEXT        NOT NULL,
     platform_user_id  TEXT        NOT NULL,
     notification_type TEXT        NOT NULL CHECK (notification_type IN ('trial_expired', 'subscribed')),
