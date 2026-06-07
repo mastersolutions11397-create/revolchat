@@ -146,7 +146,7 @@ function renderInboxMessageContent(message: InboxMessage) {
   if (message.message_type === "image" && attachment?.url) {
     return (
       <div className="space-y-2">
-        <div className="relative h-64 w-full overflow-hidden rounded-xl bg-slate-100">
+        <div className="relative h-64 w-full overflow-hidden rounded-xl bg-background">
           <Image
             src={attachment.url}
             alt={attachment.filename || "Sent image"}
@@ -875,15 +875,15 @@ export default function InboxPage() {
   }, [showBotDropdown]);
 
   return (
-    <div className="flex flex-col md:flex-row h-[calc(100vh-5rem)] md:h-[calc(100vh-8rem)] overflow-hidden rounded-2xl border border-dashboard-border bg-dashboard-card shadow-xl">
+    <div className="flex flex-col md:flex-row h-[calc(100vh-5rem)] md:h-[calc(100vh-8rem)] overflow-hidden rounded-2xl border border-border bg-surface shadow-xl">
       {/* Sidebar - Channel Selection & Conversations */}
       <div
-        className={`${showChatView ? "hidden md:flex" : "flex"} w-full md:w-80 flex flex-col border-r border-dashboard-border bg-dashboard-bg`}
+        className={`${showChatView ? "hidden md:flex" : "flex"} w-full md:w-80 flex flex-col border-r border-border bg-background`}
       >
         {/* Header */}
-        <div className="p-3 sm:p-4 border-b border-dashboard-border bg-dashboard-card">
+        <div className="p-3 sm:p-4 border-b border-border bg-surface">
           <div className="mb-3 sm:mb-4 flex items-center justify-between gap-3">
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+            <h2 className="text-lg sm:text-xl font-bold text-text-primary">
               {t("inbox.chat")}
             </h2>
             <button
@@ -906,24 +906,24 @@ export default function InboxPage() {
           <div className="relative" data-bot-dropdown>
             <button
               onClick={() => setShowBotDropdown(!showBotDropdown)}
-              className="w-full flex items-center justify-between gap-2 p-2.5 bg-dashboard-bg border border-dashboard-border rounded-xl text-sm font-medium text-slate-900 hover:bg-slate-50 transition-colors"
+              className="w-full flex items-center justify-between gap-2 p-2.5 bg-background border border-border rounded-xl text-sm font-medium text-text-primary hover:bg-background transition-colors"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-primary">
+                <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg bg-teal-50 text-brand">
                   <ChannelIcon channel={selectedChannel} className="h-4 w-4" />
                 </div>
                 <span className="truncate">
                   {selectedBot?.telegram_first_name || selectedBot?.name || "Select a bot"}
                 </span>
               </div>
-              <ChevronDown className={`h-4 w-4 flex-shrink-0 text-slate-400 transition-transform ${showBotDropdown ? "rotate-180" : ""}`} />
+              <ChevronDown className={`h-4 w-4 flex-shrink-0 text-text-muted transition-transform ${showBotDropdown ? "rotate-180" : ""}`} />
             </button>
 
             {/* Dropdown menu */}
             {showBotDropdown && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-dashboard-border rounded-xl shadow-lg z-20 max-h-60 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-border rounded-xl shadow-lg z-20 max-h-60 overflow-y-auto">
                 {bots.length === 0 ? (
-                  <div className="p-3 text-center text-sm text-slate-500">
+                  <div className="p-3 text-center text-sm text-text-muted">
                     No bots configured
                   </div>
                 ) : (
@@ -934,8 +934,8 @@ export default function InboxPage() {
                         setSelectedBot(bot);
                         setShowBotDropdown(false);
                       }}
-                      className={`w-full flex items-center gap-2 p-2.5 text-left text-sm hover:bg-slate-50 transition-colors ${
-                        selectedBot?.id === bot.id ? "bg-teal-50 text-teal-700" : "text-slate-700"
+                      className={`w-full flex items-center gap-2 p-2.5 text-left text-sm hover:bg-background transition-colors ${
+                        selectedBot?.id === bot.id ? "bg-teal-50 text-teal-700" : "text-text-secondary"
                       }`}
                     >
                       <div className="relative h-6 w-6 flex-shrink-0 rounded-full overflow-hidden bg-teal-100 flex items-center justify-center">
@@ -953,7 +953,7 @@ export default function InboxPage() {
                       <div className="min-w-0 flex-1">
                         <p className="font-medium truncate">{bot.telegram_first_name || bot.name}</p>
                         {bot.telegram_username && (
-                          <p className="text-xs text-slate-400 truncate">@{bot.telegram_username}</p>
+                          <p className="text-xs text-text-muted truncate">@{bot.telegram_username}</p>
                         )}
                       </div>
                       {selectedBot?.id === bot.id && (
@@ -966,7 +966,7 @@ export default function InboxPage() {
             )}
           </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-1 rounded-xl border border-dashboard-border bg-dashboard-bg p-1">
+          <div className="mt-3 grid grid-cols-2 gap-1 rounded-xl border border-border bg-background p-1">
             {CHANNELS.map((channel) => (
               <button
                 key={channel.id}
@@ -974,8 +974,8 @@ export default function InboxPage() {
                 onClick={() => setSelectedChannel(channel.id)}
                 className={`flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold transition-colors ${
                   selectedChannel === channel.id
-                    ? "bg-white text-teal-primary shadow-sm"
-                    : "text-slate-500 hover:bg-white/70 hover:text-slate-700"
+                    ? "bg-white text-brand shadow-sm"
+                    : "text-text-muted hover:bg-white/70 hover:text-text-secondary"
                 }`}
               >
                 <ChannelIcon channel={channel.id} className="h-3.5 w-3.5 shrink-0" />
@@ -986,13 +986,13 @@ export default function InboxPage() {
         </div>
 
         {/* Search */}
-        <div className="p-3 sm:p-4 border-b border-dashboard-border bg-dashboard-card/50">
+        <div className="p-3 sm:p-4 border-b border-border bg-surface/50">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
             <input
               type="text"
               placeholder={t("inbox.search")}
-              className="w-full pl-9 pr-4 py-2 bg-dashboard-card border border-dashboard-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-primary/20 focus:border-teal-primary transition-all"
+              className="w-full pl-9 pr-4 py-2 bg-surface border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
             />
           </div>
         </div>
@@ -1002,28 +1002,28 @@ export default function InboxPage() {
           {!selectedBot ? (
             <div className="flex flex-col items-center justify-center h-40 gap-2 p-4 text-center">
               <Bot className="h-6 w-6 sm:h-8 sm:w-8 text-slate-300" />
-              <p className="text-slate-500 text-xs sm:text-sm">Select a bot to view conversations</p>
+              <p className="text-text-muted text-xs sm:text-sm">Select a bot to view conversations</p>
             </div>
           ) : loading && conversations.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 gap-3">
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-teal-primary border-t-transparent" />
-              <p className="text-slate-500 text-xs sm:text-sm">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+              <p className="text-text-muted text-xs sm:text-sm">
                 {t("inbox.loading")}
               </p>
             </div>
           ) : conversations.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 gap-2 p-4 text-center">
               <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8 text-slate-300" />
-              <p className="text-slate-500 text-xs sm:text-sm">{t("inbox.noChat")}</p>
+              <p className="text-text-muted text-xs sm:text-sm">{t("inbox.noChat")}</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
               {conversations.map((conversation) => (
                 <div
                   key={conversation.id}
-                  className={`group w-full p-3 sm:p-4 hover:bg-dashboard-card transition-all duration-200 ${
+                  className={`group w-full p-3 sm:p-4 hover:bg-surface transition-all duration-200 ${
                     selectedConversation?.id === conversation.id
-                      ? "bg-dashboard-card border-l-4 border-teal-primary shadow-sm"
+                      ? "bg-surface border-l-4 border-brand shadow-sm"
                       : "border-l-4 border-transparent"
                   }`}
                 >
@@ -1033,7 +1033,7 @@ export default function InboxPage() {
                       onClick={() => handleConversationSelect(conversation)}
                       className="flex min-w-0 flex-1 items-start gap-2 sm:gap-3 text-left"
                     >
-                      <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 rounded-xl overflow-hidden bg-teal-primary/10 flex items-center justify-center text-teal-primary shadow-sm">
+                      <div className="relative h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0 rounded-xl overflow-hidden bg-brand/10 flex items-center justify-center text-brand shadow-sm">
                         <ChannelIcon channel={selectedChannel} className="h-5 w-5 sm:h-6 sm:w-6" />
                         {/* Online indicator - green dot */}
                         {conversation.is_online && (
@@ -1048,14 +1048,14 @@ export default function InboxPage() {
                           <h4
                             className={`text-xs sm:text-sm font-semibold truncate ${
                               selectedConversation?.id === conversation.id
-                                ? "text-teal-primary"
-                                : "text-slate-900"
+                                ? "text-brand"
+                                : "text-text-primary"
                             }`}
                           >
                             {conversation.participant_name}
                           </h4>
                           {conversation.last_message_time && (
-                            <span className="text-[10px] sm:text-xs text-slate-400 flex-shrink-0 ml-2">
+                            <span className="text-[10px] sm:text-xs text-text-muted flex-shrink-0 ml-2">
                               {formatTime(conversation.last_message_time)}
                             </span>
                           )}
@@ -1064,8 +1064,8 @@ export default function InboxPage() {
                           className={`text-xs sm:text-sm truncate ${
                             conversation.unread_count &&
                             conversation.unread_count > 0
-                              ? "text-slate-900 font-medium"
-                              : "text-slate-500"
+                              ? "text-text-primary font-medium"
+                              : "text-text-muted"
                           }`}
                         >
                           {conversation.last_message || t("inbox.noMessage")}
@@ -1075,7 +1075,7 @@ export default function InboxPage() {
                     <div className="flex items-center gap-1 ml-1 sm:ml-2">
                       {(conversation.unread_count ?? 0) > 0 && (
                           <div className="flex flex-col justify-center h-full">
-                            <span className="flex items-center justify-center h-4 sm:h-5 min-w-[1rem] sm:min-w-[1.25rem] px-1 sm:px-1.5 text-[10px] font-bold text-white bg-teal-primary rounded-full shadow-sm shadow-teal-primary/20">
+                            <span className="flex items-center justify-center h-4 sm:h-5 min-w-[1rem] sm:min-w-[1.25rem] px-1 sm:px-1.5 text-[10px] font-bold text-white bg-brand rounded-full shadow-sm shadow-brand/20">
                               {conversation.unread_count}
                             </span>
                           </div>
@@ -1084,7 +1084,7 @@ export default function InboxPage() {
                         type="button"
                         onClick={() => void handleDeleteConversation(conversation)}
                         disabled={deletingAll || deletingConversationId === conversation.id}
-                        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50 md:opacity-0 md:group-hover:opacity-100"
+                        className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50 md:opacity-0 md:group-hover:opacity-100"
                         title="Delete conversation"
                       >
                         {deletingConversationId === conversation.id ? (
@@ -1104,7 +1104,7 @@ export default function InboxPage() {
 
       {/* Main Content Area - Chat Interface */}
       <div
-        className={`${!showChatView ? "hidden md:flex" : "flex"} flex-1 flex flex-col bg-dashboard-card relative`}
+        className={`${!showChatView ? "hidden md:flex" : "flex"} flex-1 flex flex-col bg-surface relative`}
       >
         {/* Background Pattern */}
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none" />
@@ -1112,18 +1112,18 @@ export default function InboxPage() {
         {selectedConversation ? (
           <>
             {/* Chat Header */}
-            <div className="h-16 sm:h-20 px-4 sm:px-6 border-b border-dashboard-border flex items-center justify-between bg-dashboard-card/80 backdrop-blur-sm sticky top-0 z-10">
+            <div className="h-16 sm:h-20 px-4 sm:px-6 border-b border-border flex items-center justify-between bg-surface/80 backdrop-blur-sm sticky top-0 z-10">
               <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
                 {/* Mobile Back Button */}
                 <button
                   onClick={() => setShowChatView(false)}
-                  className="md:hidden p-2 -ml-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
+                  className="md:hidden p-2 -ml-2 text-text-muted hover:text-text-muted hover:bg-background rounded-lg transition-colors"
                   aria-label={t("inbox.backToConversations")}
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </button>
 
-                <div className="relative h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 rounded-xl overflow-hidden bg-teal-primary/10 flex items-center justify-center text-teal-primary shadow-sm">
+                <div className="relative h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 rounded-xl overflow-hidden bg-brand/10 flex items-center justify-center text-brand shadow-sm">
                   <ChannelIcon channel={selectedChannel} className="h-4 w-4 sm:h-5 sm:w-5" />
                   {/* Online indicator in header */}
                   {selectedConversation.is_online && (
@@ -1131,15 +1131,15 @@ export default function InboxPage() {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2 truncate">
+                  <h3 className="text-sm sm:text-base font-bold text-text-primary flex items-center gap-2 truncate">
                     <span className="truncate">
                       {selectedConversation.participant_name}
                     </span>
-                    <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider flex-shrink-0 bg-teal-primary/10 text-teal-primary border border-teal-primary/20">
+                    <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider flex-shrink-0 bg-brand/10 text-brand border border-brand/20">
                       {getChannelLabel(selectedChannel)}
                     </span>
                   </h3>
-                  <p className="text-xs text-slate-500 truncate flex items-center gap-1.5">
+                  <p className="text-xs text-text-muted truncate flex items-center gap-1.5">
                     {selectedConversation.is_online && (
                       <>
                         <span className="flex h-2 w-2">
@@ -1161,7 +1161,7 @@ export default function InboxPage() {
                   type="button"
                   onClick={() => void handleDeleteConversation(selectedConversation)}
                   disabled={deletingAll || deletingConversationId === selectedConversation.id}
-                  className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  className="p-2 text-text-muted hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                   title="Delete conversation"
                 >
                   {deletingConversationId === selectedConversation.id ? (
@@ -1192,32 +1192,32 @@ export default function InboxPage() {
                     </>
                   )}
                 </button>
-                <button className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
+                <button className="p-2 text-text-muted hover:text-text-muted hover:bg-background rounded-lg transition-colors">
                   <Info className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
               </div>
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6 bg-dashboard-bg/50">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6 bg-background/50">
               {loading && messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
                   <div className="flex flex-col items-center gap-3">
-                    <div className="h-6 w-6 sm:h-8 sm:w-8 animate-spin rounded-full border-2 border-teal-primary border-t-transparent" />
-                    <p className="text-slate-400 text-xs sm:text-sm">
+                    <div className="h-6 w-6 sm:h-8 sm:w-8 animate-spin rounded-full border-2 border-brand border-t-transparent" />
+                    <p className="text-text-muted text-xs sm:text-sm">
                       {t("inbox.loadingMessages")}
                     </p>
                   </div>
                 </div>
               ) : messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center p-4">
-                  <div className="h-12 w-12 sm:h-16 sm:w-16 bg-slate-100 rounded-full flex items-center justify-center mb-3 sm:mb-4">
+                  <div className="h-12 w-12 sm:h-16 sm:w-16 bg-background rounded-full flex items-center justify-center mb-3 sm:mb-4">
                     <MessageSquare className="h-6 w-6 sm:h-8 sm:w-8 text-slate-300" />
                   </div>
-                  <h3 className="text-sm sm:text-base text-slate-900 font-medium mb-1">
+                  <h3 className="text-sm sm:text-base text-text-primary font-medium mb-1">
                     {t("inbox.noMessage")}
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-500 max-w-xs">
+                  <p className="text-xs sm:text-sm text-text-muted max-w-xs">
                     {t("inbox.startConversation")}
                   </p>
                 </div>
@@ -1241,8 +1241,8 @@ export default function InboxPage() {
                           className={`flex-shrink-0 w-6 sm:w-8 ${!showAvatar && "invisible"}`}
                         >
                           {showAvatar && (
-                            <div className="relative h-6 w-6 sm:h-8 sm:w-8 rounded-lg overflow-hidden bg-teal-primary/10 flex items-center justify-center shadow-sm">
-                              <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 text-teal-primary" />
+                            <div className="relative h-6 w-6 sm:h-8 sm:w-8 rounded-lg overflow-hidden bg-brand/10 flex items-center justify-center shadow-sm">
+                              <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 text-brand" />
                             </div>
                           )}
                         </div>
@@ -1267,8 +1267,8 @@ export default function InboxPage() {
                         <div
                           className={`px-3 sm:px-5 py-2 sm:py-3 shadow-sm ${
                             message.is_from_me
-                              ? "bg-teal-primary text-white rounded-2xl rounded-tr-sm"
-                              : "bg-dashboard-card border border-dashboard-border text-slate-800 rounded-2xl rounded-tl-sm"
+                              ? "bg-brand text-white rounded-2xl rounded-tr-sm"
+                              : "bg-surface border border-border text-text-secondary rounded-2xl rounded-tl-sm"
                           }`}
                         >
                           {renderInboxMessageContent(message)}
@@ -1276,8 +1276,8 @@ export default function InboxPage() {
                         <span
                           className={`text-[10px] mt-1 sm:mt-1.5 px-1 ${
                             message.is_from_me
-                              ? "text-slate-400"
-                              : "text-slate-400"
+                              ? "text-text-muted"
+                              : "text-text-muted"
                           }`}
                         >
                           {formatTime(message.timestamp)}
@@ -1291,26 +1291,26 @@ export default function InboxPage() {
             </div>
 
             {/* Message Input Area */}
-            <div className="border-t border-dashboard-border bg-dashboard-card/80 backdrop-blur-sm p-4">
+            <div className="border-t border-border bg-surface/80 backdrop-blur-sm p-4">
               {/* Trigger Words Hint */}
               {triggerWords.length > 0 && !messageInput && !selectedConversation.ai_mode ? (
-                <div className="mb-2 flex items-center gap-2 text-xs text-slate-500">
+                <div className="mb-2 flex items-center gap-2 text-xs text-text-muted">
                   <Zap className="h-3 w-3" />
                   <span>Type / to see available triggers</span>
                 </div>
               ) : null}
 
               {pendingAttachment && (
-                <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-border bg-background px-3 py-2">
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-slate-500 shadow-sm">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-text-muted shadow-sm">
                       <File className="h-4 w-4" />
                     </div>
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-slate-900">
+                      <p className="truncate text-sm font-medium text-text-primary">
                         {pendingAttachment.file.name}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-text-muted">
                         {(pendingAttachment.file.size / 1024 / 1024).toFixed(2)} MB
                         {pendingAttachment.type === "file"
                           ? ` / ${MAX_DOCUMENT_SIZE_MB} MB max`
@@ -1321,7 +1321,7 @@ export default function InboxPage() {
                   <button
                     type="button"
                     onClick={clearPendingAttachment}
-                    className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-white hover:text-slate-600"
+                    className="rounded-lg p-2 text-text-muted transition-colors hover:bg-white hover:text-text-muted"
                     title="Remove attachment"
                   >
                     <X className="h-4 w-4" />
@@ -1332,10 +1332,10 @@ export default function InboxPage() {
               <div className="flex items-end gap-3 relative">
                 {/* Trigger Suggestions Dropdown */}
                 {showTriggerSuggestions && filteredTriggers.length > 0 ? (
-                  <div className="absolute bottom-full left-0 right-16 mb-2 bg-white border border-dashboard-border rounded-xl shadow-lg overflow-hidden z-10 max-h-64 overflow-y-auto">
-                    <div className="p-2 border-b border-slate-100 bg-slate-50">
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <Zap className="h-3 w-3 text-teal-primary" />
+                  <div className="absolute bottom-full left-0 right-16 mb-2 bg-white border border-border rounded-xl shadow-lg overflow-hidden z-10 max-h-64 overflow-y-auto">
+                    <div className="p-2 border-b border-slate-100 bg-background">
+                      <div className="flex items-center gap-2 text-xs text-text-muted">
+                        <Zap className="h-3 w-3 text-brand" />
                         <span>Trigger Words</span>
                       </div>
                     </div>
@@ -1348,14 +1348,14 @@ export default function InboxPage() {
                             onClick={() => handleSelectTrigger(trigger)}
                             className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors ${
                               index === selectedTriggerIndex
-                                ? "bg-teal-primary/10 text-teal-primary"
-                                : "hover:bg-slate-50 text-slate-700"
+                                ? "bg-brand/10 text-brand"
+                                : "hover:bg-background text-text-secondary"
                             }`}
                           >
                             <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
                               index === selectedTriggerIndex
-                                ? "bg-teal-primary/20"
-                                : "bg-slate-100"
+                                ? "bg-brand/20"
+                                : "bg-background"
                             }`}>
                               <MediaIcon className="h-4 w-4" />
                             </div>
@@ -1364,13 +1364,13 @@ export default function InboxPage() {
                                 {trigger.trigger_word}
                               </p>
                               {trigger.description && (
-                                <p className="text-xs text-slate-500 truncate">
+                                <p className="text-xs text-text-muted truncate">
                                   {trigger.description}
                                 </p>
                               )}
                             </div>
                             {trigger.media_type === "image" && (
-                              <div className="relative h-8 w-8 rounded overflow-hidden bg-slate-100 shrink-0">
+                              <div className="relative h-8 w-8 rounded overflow-hidden bg-background shrink-0">
                                 <Image
                                   src={trigger.media_url}
                                   alt=""
@@ -1383,8 +1383,8 @@ export default function InboxPage() {
                         );
                       })}
                     </div>
-                    <div className="p-2 border-t border-slate-100 bg-slate-50">
-                      <p className="text-[10px] text-slate-400 text-center">
+                    <div className="p-2 border-t border-slate-100 bg-background">
+                      <p className="text-[10px] text-text-muted text-center">
                         Use ↑↓ to navigate, Enter to select, Esc to close
                       </p>
                     </div>
@@ -1402,7 +1402,7 @@ export default function InboxPage() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={selectedConversation.ai_mode || sending}
-                  className="p-3 border border-dashboard-border bg-dashboard-bg text-slate-500 rounded-xl hover:bg-slate-50 hover:text-slate-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="p-3 border border-border bg-background text-text-muted rounded-xl hover:bg-background hover:text-text-secondary transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   title="Attach file"
                 >
                   <Paperclip className="h-5 w-5" />
@@ -1439,11 +1439,11 @@ export default function InboxPage() {
                     }}
                     placeholder={selectedConversation.ai_mode ? "AI is responding..." : "Type your message..."}
                     disabled={selectedConversation.ai_mode || sending}
-                    className="w-full px-4 py-3 bg-dashboard-bg border border-dashboard-border rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-teal-primary/20 focus:border-teal-primary transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-4 py-3 bg-background border border-border rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     rows={2}
                   />
                   {selectedConversation.ai_mode && (
-                    <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
+                    <p className="text-xs text-text-muted mt-1 flex items-center gap-1.5">
                       <Bot className="h-3 w-3" />
                       AI mode is ON. Disable AI mode to send manual messages.
                     </p>
@@ -1452,7 +1452,7 @@ export default function InboxPage() {
                 <button
                   onClick={handleSendMessage}
                   disabled={(!messageInput.trim() && !pendingAttachment) || sending || selectedConversation.ai_mode}
-                  className="p-3 bg-teal-primary text-white rounded-xl hover:bg-teal-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="p-3 bg-brand text-white rounded-xl hover:bg-teal-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                 >
                   {sending ? (
                     <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -1464,19 +1464,19 @@ export default function InboxPage() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 text-center bg-dashboard-bg/50">
-            <div className="h-16 w-16 sm:h-24 sm:w-24 bg-dashboard-card rounded-full shadow-xl shadow-teal-primary/10 flex items-center justify-center mb-4 sm:mb-6 animate-in zoom-in duration-500">
-              <MessageSquare className="h-8 w-8 sm:h-10 sm:w-10 text-teal-primary" />
+          <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 text-center bg-background/50">
+            <div className="h-16 w-16 sm:h-24 sm:w-24 bg-surface rounded-full shadow-xl shadow-brand/10 flex items-center justify-center mb-4 sm:mb-6 animate-in zoom-in duration-500">
+              <MessageSquare className="h-8 w-8 sm:h-10 sm:w-10 text-brand" />
             </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-text-primary mb-2">
               {t("inbox.selectChat")}
             </h2>
-            <p className="text-sm sm:text-base text-slate-500 max-w-md mx-auto mb-6 sm:mb-8 px-4">
+            <p className="text-sm sm:text-base text-text-muted max-w-md mx-auto mb-6 sm:mb-8 px-4">
               {t("inbox.selectChatDesc")}
             </p>
             <div className="flex gap-2 sm:gap-4">
-              <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-dashboard-card rounded-full border border-dashboard-border shadow-sm text-xs sm:text-sm text-slate-600">
-                <div className="flex h-3 w-3 items-center justify-center text-teal-primary sm:h-4 sm:w-4">
+              <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-surface rounded-full border border-border shadow-sm text-xs sm:text-sm text-text-muted">
+                <div className="flex h-3 w-3 items-center justify-center text-brand sm:h-4 sm:w-4">
                   <ChannelIcon channel={selectedChannel} className="h-full w-full" />
                 </div>
                 <span className="hidden sm:inline">{getChannelLabel(selectedChannel)}</span>
