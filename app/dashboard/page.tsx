@@ -189,8 +189,8 @@ export default function DashboardPage() {
     return (
       <div className="flex h-96 items-center justify-center">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-teal-primary" />
-          <p className="text-slate-600 font-medium">{t("dashboard.loadingDashboard")}</p>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-brand" />
+          <p className="text-text-muted font-medium">{t("dashboard.loadingDashboard")}</p>
         </div>
       </div>
     );
@@ -198,40 +198,25 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6 md:space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-linear-to-br from-teal-primary via-[#0d6159] to-slate-800 p-4 sm:p-6 md:p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
-        <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-teal-accent/20 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-teal-accent/20 blur-3xl" />
-
-        <div className="relative z-10 flex flex-col gap-4 sm:gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3 sm:gap-5">
-            <div className="flex h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 items-center justify-center rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-md shadow-inner ring-1 ring-white/20 shrink-0">
-              <span className="text-2xl sm:text-3xl">👋</span>
-            </div>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white break-words">
-                {t("dashboard.welcomeBack")}, {getUserName()}
-              </h1>
-              <p className="mt-1 text-slate-300 text-sm sm:text-base md:text-lg">
-                {t("dashboard.welcomeMessage")}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row md:flex-col items-start sm:items-center md:items-end gap-3 mt-2 sm:mt-0">
-            <div className="flex items-center gap-2 rounded-full bg-white/5 px-3 sm:px-4 py-1.5 backdrop-blur-sm ring-1 ring-white/10 w-full sm:w-auto justify-center sm:justify-start">
-              <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse shrink-0" />
-              <span className="text-xs sm:text-sm font-medium text-slate-200 whitespace-nowrap">
-                {t("dashboard.systemOperational")}
-              </span>
-            </div>
-
-          </div>
+      {/* Welcome */}
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <h1 className="text-2xl font-bold text-text-primary">
+            {t("dashboard.welcomeBack")}, {getUserName()}
+          </h1>
+          <p className="text-sm text-text-muted mt-0.5">{t("dashboard.welcomeMessage")}</p>
         </div>
+        <Link
+          href="/dashboard/integrations"
+          className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-brand text-white text-sm font-semibold hover:bg-brand-dark transition-all shadow-brand cursor-pointer"
+        >
+          <Link2 className="w-4 h-4" />
+          Add Channel
+        </Link>
       </div>
 
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex items-center gap-2">
+        <div className="rounded-xl border border-error-border bg-error-bg p-4 text-sm text-error-text flex items-center gap-2">
           <AlertCircle className="h-5 w-5" />
           {error}
         </div>
@@ -242,11 +227,11 @@ export default function DashboardPage() {
         {/* Monthly Messages */}
         <Link
           href="/dashboard/inbox"
-          className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-teal-primary/30 block"
+          className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-border bg-surface p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-brand/30 block"
         >
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
-              <p className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">
+              <p className="text-xs sm:text-sm font-semibold text-text-muted uppercase tracking-wider">
                 {t("dashboard.totalMessages")}
               </p>
               {messageCountLoading ? (
@@ -254,12 +239,12 @@ export default function DashboardPage() {
                   <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-slate-400" />
                 </div>
               ) : (
-                <p className="mt-2 text-2xl sm:text-3xl font-bold text-slate-900">
+                <p className="mt-2 text-2xl sm:text-3xl font-bold text-text-primary">
                   {formatNumberInK(messageCount)}
                 </p>
               )}
             </div>
-            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-teal-primary/10 text-teal-primary transition-colors group-hover:bg-teal-primary group-hover:text-white shrink-0 ml-3">
+            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-brand/10 text-brand transition-colors group-hover:bg-brand group-hover:text-white shrink-0 ml-3">
               <MessageSquare className="h-5 w-5 sm:h-7 sm:w-7" />
             </div>
           </div>
@@ -268,18 +253,18 @@ export default function DashboardPage() {
               <ArrowUpRight className="h-3 w-3" />
               {dashboardData?.quick_stats?.this_week_interactions ?? 0}
             </span>
-            <span className="text-slate-500">{t("dashboard.newThisWeek")}</span>
+            <span className="text-text-muted">{t("dashboard.newThisWeek")}</span>
           </div>
         </Link>
 
         {/* Active Integrations */}
         <Link
           href="/dashboard/integrations"
-          className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-teal-primary/30 block"
+          className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-border bg-surface p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-brand/30 block"
         >
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
-              <p className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">
+              <p className="text-xs sm:text-sm font-semibold text-text-muted uppercase tracking-wider">
                 {t("dashboard.integrations")}
               </p>
               {integrationsLoading ? (
@@ -287,32 +272,32 @@ export default function DashboardPage() {
                   <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-slate-400" />
                 </div>
               ) : (
-                <p className="mt-2 text-2xl sm:text-3xl font-bold text-slate-900">
+                <p className="mt-2 text-2xl sm:text-3xl font-bold text-text-primary">
                   {integrationsCount}
                 </p>
               )}
             </div>
-            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-teal-primary/10 text-teal-primary transition-colors group-hover:bg-teal-primary group-hover:text-white shrink-0 ml-3">
+            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-brand/10 text-brand transition-colors group-hover:bg-brand group-hover:text-white shrink-0 ml-3">
               <Link2 className="h-5 w-5 sm:h-7 sm:w-7" />
             </div>
           </div>
           <div className="mt-3 sm:mt-4 flex items-center gap-2 text-xs sm:text-sm flex-wrap">
-            <span className="flex items-center gap-1 font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full whitespace-nowrap">
+            <span className="flex items-center gap-1 font-medium text-text-muted bg-background px-2 py-0.5 rounded-full whitespace-nowrap">
               <Activity className="h-3 w-3" />
               {t("dashboard.active")}
             </span>
-            <span className="text-slate-500">{t("dashboard.allSystemsOperational")}</span>
+            <span className="text-text-muted">{t("dashboard.allSystemsOperational")}</span>
           </div>
         </Link>
 
         {/* Total Agents */}
         <Link
           href="/dashboard/bots"
-          className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-teal-primary/30 block"
+          className="group relative overflow-hidden rounded-xl sm:rounded-2xl border border-border bg-surface p-4 sm:p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-brand/30 block"
         >
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
-              <p className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">
+              <p className="text-xs sm:text-sm font-semibold text-text-muted uppercase tracking-wider">
                 Total Agents
               </p>
               {agentsCountLoading ? (
@@ -320,17 +305,17 @@ export default function DashboardPage() {
                   <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-slate-400" />
                 </div>
               ) : (
-                <p className="mt-2 text-2xl sm:text-3xl font-bold text-slate-900">
+                <p className="mt-2 text-2xl sm:text-3xl font-bold text-text-primary">
                   {agentsCount}
                 </p>
               )}
             </div>
-            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-teal-primary/10 text-teal-primary transition-colors group-hover:bg-teal-primary group-hover:text-white shrink-0 ml-3">
+            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-brand/10 text-brand transition-colors group-hover:bg-brand group-hover:text-white shrink-0 ml-3">
               <Bot className="h-5 w-5 sm:h-7 sm:w-7" />
             </div>
           </div>
           <div className="mt-3 sm:mt-4 flex items-center gap-2 text-xs sm:text-sm flex-wrap">
-            <span className="text-slate-500">View and manage agents</span>
+            <span className="text-text-muted">View and manage agents</span>
           </div>
         </Link>
       </div>
@@ -338,19 +323,19 @@ export default function DashboardPage() {
       <TrialNotificationsWidget />
 
       {/* Platform Status Section */}
-      <div className="rounded-2xl sm:rounded-3xl border border-dashboard-border bg-dashboard-card p-4 sm:p-6 md:p-8 shadow-sm">
+      <div className="rounded-xl border border-border bg-surface p-4 sm:p-6 md:p-8 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
           <div className="min-w-0 flex-1">
-            <h3 className="text-lg sm:text-xl font-bold text-slate-900">
+            <h3 className="text-lg sm:text-xl font-bold text-text-primary">
               {t("dashboard.platformStatus")}
             </h3>
-            <p className="text-slate-500 text-xs sm:text-sm mt-1">
+            <p className="text-text-muted text-xs sm:text-sm mt-1">
               {t("dashboard.platformStatusDesc")}
             </p>
           </div>
           <Link
             href="/dashboard/integrations"
-            className="text-xs sm:text-sm font-semibold text-teal-primary hover:text-teal-accent hover:underline whitespace-nowrap shrink-0"
+            className="text-xs sm:text-sm font-semibold text-brand hover:text-brand-light hover:underline whitespace-nowrap shrink-0"
           >
             {t("dashboard.manageIntegrations")} &rarr;
           </Link>
@@ -361,16 +346,16 @@ export default function DashboardPage() {
             <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
           </div>
         ) : !instagramIntegration && !telegramBotInfo ? (
-          <div className="flex flex-col items-center justify-center py-12 rounded-2xl bg-dashboard-bg border border-dashed border-dashboard-border">
-            <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-              <Link2 className="h-6 w-6 text-slate-400" />
+          <div className="flex flex-col items-center justify-center py-12 rounded-2xl bg-background border border-dashed border-border">
+            <div className="h-12 w-12 rounded-full bg-background flex items-center justify-center mb-4">
+              <Link2 className="h-6 w-6 text-text-muted" />
             </div>
-            <p className="mb-4 text-slate-600 font-medium">
+            <p className="mb-4 text-text-muted font-medium">
               {t("dashboard.noIntegrations")}
             </p>
             <Link
               href="/dashboard/integrations"
-              className="inline-flex items-center justify-center rounded-xl bg-teal-primary px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-teal-accent hover:shadow-lg hover:shadow-teal-primary/20 active:scale-95"
+              className="inline-flex items-center justify-center rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white transition-all hover:bg-brand-light active:scale-95"
             >
               {t("dashboard.addIntegration")}
             </Link>
@@ -378,7 +363,7 @@ export default function DashboardPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {instagramIntegration && (
-              <div className="flex items-center justify-between rounded-lg sm:rounded-xl border border-dashboard-border bg-dashboard-bg p-3 sm:p-4 transition-all hover:bg-dashboard-card hover:shadow-md hover:border-dashboard-border">
+              <div className="flex items-center justify-between rounded-lg sm:rounded-xl border border-border bg-background p-3 sm:p-4 transition-all hover:bg-surface hover:shadow-md hover:border-border">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                   <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-emerald-50 shrink-0">
                     {instagramIntegration.profile_picture ? (
@@ -400,10 +385,10 @@ export default function DashboardPage() {
                     )}
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="font-semibold text-sm sm:text-base text-slate-700 truncate">
+                    <span className="font-semibold text-sm sm:text-base text-text-secondary truncate">
                       Instagram
                     </span>
-                    <span className="text-xs text-slate-500 truncate">
+                    <span className="text-xs text-text-muted truncate">
                       @{instagramIntegration.username}
                     </span>
                   </div>
@@ -417,7 +402,7 @@ export default function DashboardPage() {
               </div>
             )}
             {telegramBotInfo && (
-              <div className="flex items-center justify-between rounded-lg sm:rounded-xl border border-dashboard-border bg-dashboard-bg p-3 sm:p-4 transition-all hover:bg-dashboard-card hover:shadow-md hover:border-dashboard-border">
+              <div className="flex items-center justify-between rounded-lg sm:rounded-xl border border-border bg-background p-3 sm:p-4 transition-all hover:bg-surface hover:shadow-md hover:border-border">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                   <div className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-emerald-50 shrink-0">
                     <Image
@@ -429,10 +414,10 @@ export default function DashboardPage() {
                     />
                   </div>
                   <div className="flex flex-col min-w-0">
-                    <span className="font-semibold text-sm sm:text-base text-slate-700 truncate">
+                    <span className="font-semibold text-sm sm:text-base text-text-secondary truncate">
                       Telegram
                     </span>
-                    <span className="text-xs text-slate-500 truncate">
+                    <span className="text-xs text-text-muted truncate">
                       @{telegramBotInfo.username}
                     </span>
                   </div>
