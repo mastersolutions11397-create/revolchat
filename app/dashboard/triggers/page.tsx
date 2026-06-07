@@ -302,50 +302,39 @@ export default function TriggersPage() {
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6 w-full max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-br from-teal-primary via-[#0d6159] to-slate-800 p-4 sm:p-6 md:p-8 text-white shadow-xl overflow-visible">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-teal-accent/20 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-teal-accent/20 blur-3xl" />
-        <div className="relative z-10 flex flex-col gap-4 sm:gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 min-w-0">
-            <div className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20 shrink-0">
-              <Zap className="h-6 w-6 sm:h-8 sm:w-8 text-teal-accent" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white">
-                Trigger Words
-              </h1>
-              <p className="mt-1 sm:mt-2 text-sm sm:text-base md:text-lg text-white/80 max-w-xl">
-                Create shortcuts like /office-pic to quickly send media in your chats.
-                Type / in chat to see available triggers.
-              </p>
-            </div>
+      {/* Page Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center shrink-0">
+            <Zap className="w-5 h-5 text-brand" aria-hidden="true" />
           </div>
-          <div className="relative z-50 shrink-0">
-            <button
-              type="button"
-              onClick={openAddModal}
-              className="inline-flex items-center gap-2 rounded-xl bg-white text-slate-900 px-6 py-3 text-sm font-bold transition-all hover:bg-teal-primary/10 hover:text-teal-primary shadow-lg shadow-black/10 active:scale-[0.98]"
-            >
-              <Plus className="h-5 w-5" />
-              Add Trigger
-            </button>
+          <div>
+            <h1 className="text-xl font-bold text-text-primary">Triggers</h1>
+            <p className="text-sm text-text-muted">Keyword-based media and response automation</p>
           </div>
         </div>
+        <button
+          type="button"
+          onClick={openAddModal}
+          className="inline-flex items-center gap-2 rounded-xl bg-brand text-white px-4 py-2.5 text-sm font-bold transition-all hover:bg-brand/90 shadow-sm active:scale-[0.98]"
+        >
+          <Plus className="h-4 w-4" />
+          Add Trigger
+        </button>
       </div>
 
       {/* Search and Triggers List */}
       <div className="flex flex-col gap-4 sm:gap-6">
-        <div className="rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card shadow-lg overflow-hidden">
+        <div className="rounded-xl sm:rounded-2xl border border-border bg-surface shadow-lg overflow-hidden">
           {/* Search Bar */}
-          <div className="border-b border-dashboard-border bg-gradient-to-br from-dashboard-bg via-teal-primary/5 to-dashboard-bg px-4 sm:px-6 py-3 sm:py-4">
+          <div className="border-b border-border bg-background px-4 sm:px-6 py-3 sm:py-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
               <div>
-                <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                  <Hash className="h-5 w-5 text-teal-primary" />
+                <h3 className="text-xl font-bold text-text-primary flex items-center gap-2">
+                  <Hash className="h-5 w-5 text-brand" />
                   Your Triggers
                 </h3>
-                <p className="text-sm text-slate-600 mt-1">
+                <p className="text-sm text-text-muted mt-1">
                   {triggers.length === 0
                     ? selectedBotFilterId
                       ? "No triggers for this bot"
@@ -359,7 +348,7 @@ export default function TriggersPage() {
                 <select
                   value={selectedBotFilterId}
                   onChange={(e) => setSelectedBotFilterId(e.target.value)}
-                  className="w-full sm:w-56 px-3 py-2 bg-white border border-dashboard-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-primary/20 focus:border-teal-primary transition-all"
+                  className="w-full sm:w-56 px-3 py-2 bg-surface border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
                 >
                   <option value="">All bots</option>
                   {bots.map((bot) => (
@@ -370,13 +359,13 @@ export default function TriggersPage() {
                   ))}
                 </select>
                 <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search triggers..."
-                    className="w-full pl-9 pr-4 py-2 bg-white border border-dashboard-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-primary/20 focus:border-teal-primary transition-all"
+                    className="w-full pl-9 pr-4 py-2 bg-surface border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
                   />
                 </div>
               </div>
@@ -387,8 +376,8 @@ export default function TriggersPage() {
           <div className="min-h-[300px] max-h-[60vh] overflow-y-auto p-4">
             {loading ? (
               <div className="flex h-64 items-center justify-center">
-                <div className="flex flex-col items-center gap-3 text-slate-500">
-                  <Loader2 className="h-8 w-8 animate-spin text-teal-primary" />
+                <div className="flex flex-col items-center gap-3 text-text-muted">
+                  <Loader2 className="h-8 w-8 animate-spin text-brand" />
                   <p className="text-sm">Loading triggers...</p>
                 </div>
               </div>
@@ -398,14 +387,14 @@ export default function TriggersPage() {
                   <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-red-600">
                     <AlertCircle className="h-6 w-6" />
                   </div>
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p className="text-sm font-semibold text-text-primary">
                     Could not load triggers
                   </p>
-                  <p className="mt-1 text-xs text-slate-500">{error}</p>
+                  <p className="mt-1 text-xs text-text-muted">{error}</p>
                   <button
                     type="button"
                     onClick={() => fetchTriggers()}
-                    className="mt-3 text-sm font-medium text-teal-primary hover:underline"
+                    className="mt-3 text-sm font-medium text-brand hover:underline"
                   >
                     Try again
                   </button>
@@ -414,13 +403,13 @@ export default function TriggersPage() {
             ) : filteredTriggers.length === 0 ? (
               <div className="flex h-64 items-center justify-center">
                 <div className="text-center">
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-teal-primary/10 text-teal-primary">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
                     <Zap className="h-6 w-6" />
                   </div>
-                  <p className="text-sm font-semibold text-gray-900">
+                  <p className="text-sm font-semibold text-text-primary">
                     {searchQuery ? "No triggers found" : "No triggers yet"}
                   </p>
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-text-muted">
                     {searchQuery
                       ? "Try a different search term"
                       : selectedBotFilterId
@@ -437,25 +426,25 @@ export default function TriggersPage() {
                   return (
                     <div
                       key={trigger.id}
-                      className={`group relative flex flex-col rounded-xl border bg-white p-4 shadow-sm transition-all hover:shadow-md ${
+                      className={`group relative flex flex-col rounded-xl border bg-surface p-4 shadow-sm transition-all hover:shadow-md ${
                         trigger.is_active
-                          ? "border-dashboard-border hover:border-teal-primary/30"
-                          : "border-slate-200 bg-slate-50 opacity-60"
+                          ? "border-border hover:border-brand/30"
+                          : "border-border bg-background opacity-60"
                       }`}
                     >
                       {/* Header */}
                       <div className="flex items-start justify-between gap-2 mb-3">
                         <div className="flex items-center gap-2 min-w-0">
                           <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                            trigger.is_active ? "bg-teal-primary/10 text-teal-primary" : "bg-slate-200 text-slate-400"
+                            trigger.is_active ? "bg-brand/10 text-brand" : "bg-background text-text-muted"
                           }`}>
                             <MediaIcon className="h-4 w-4" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-bold text-slate-900 truncate">
+                            <p className="text-sm font-bold text-text-primary truncate">
                               {trigger.trigger_word}
                             </p>
-                            <p className="text-[10px] text-slate-500 capitalize truncate">
+                            <p className="text-[10px] text-text-muted capitalize truncate">
                               {trigger.media_type}
                               {bot ? ` - ${bot.name}` : ""}
                             </p>
@@ -467,8 +456,8 @@ export default function TriggersPage() {
                             onClick={() => handleToggleActive(trigger)}
                             className={`p-1.5 rounded-lg transition-colors ${
                               trigger.is_active
-                                ? "text-teal-primary hover:bg-teal-primary/10"
-                                : "text-slate-400 hover:bg-slate-100"
+                                ? "text-brand hover:bg-brand/10"
+                                : "text-text-muted hover:bg-background"
                             }`}
                             title={trigger.is_active ? "Disable" : "Enable"}
                           >
@@ -483,13 +472,13 @@ export default function TriggersPage() {
 
                       {/* Description */}
                       {trigger.description && (
-                        <p className="text-xs text-slate-600 mb-3 line-clamp-2">
+                        <p className="text-xs text-text-secondary mb-3 line-clamp-2">
                           {trigger.description}
                         </p>
                       )}
 
                       {/* Media Preview */}
-                      <div className="relative flex-1 min-h-[100px] rounded-lg overflow-hidden bg-slate-100 mb-3">
+                      <div className="relative flex-1 min-h-[100px] rounded-lg overflow-hidden bg-background mb-3">
                         {trigger.media_type === "image" ? (
                           <Image
                             src={trigger.media_url}
@@ -508,21 +497,21 @@ export default function TriggersPage() {
                           />
                         ) : (
                           <div className="flex h-full items-center justify-center">
-                            <MediaIcon className="h-8 w-8 text-slate-400" />
+                            <MediaIcon className="h-8 w-8 text-text-muted" />
                           </div>
                         )}
                       </div>
 
                       {/* Footer */}
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                        <span className="text-[10px] text-slate-400">
+                      <div className="flex items-center justify-between pt-2 border-t border-border">
+                        <span className="text-[10px] text-text-muted">
                           Used {trigger.usage_count} times
                         </span>
                         <div className="flex items-center gap-1">
                           <button
                             type="button"
                             onClick={() => openEditModal(trigger)}
-                            className="p-1.5 text-slate-400 hover:text-teal-primary hover:bg-teal-primary/10 rounded-lg transition-colors"
+                            className="p-1.5 text-text-muted hover:text-brand hover:bg-brand/10 rounded-lg transition-colors"
                             title="Edit"
                           >
                             <Edit2 className="h-4 w-4" />
@@ -530,7 +519,7 @@ export default function TriggersPage() {
                           <button
                             type="button"
                             onClick={() => handleDelete(trigger.id)}
-                            className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-1.5 text-text-muted hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Delete"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -548,19 +537,19 @@ export default function TriggersPage() {
 
       {/* Add/Edit Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="w-full max-h-[90vh] max-w-lg overflow-y-auto rounded-2xl border border-white/20 bg-white shadow-2xl ring-1 ring-black/5 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="w-full max-h-[90vh] max-w-lg overflow-y-auto rounded-2xl border border-border bg-surface shadow-2xl ring-1 ring-black/5 animate-in zoom-in-95 duration-200">
             <div className="p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-primary/10 text-teal-primary shadow-sm">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand shadow-sm">
                     <Zap className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900">
+                    <h3 className="text-lg font-bold text-text-primary">
                       {editingTrigger ? "Edit Trigger" : "Add Trigger"}
                     </h3>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-text-muted">
                       Create a shortcut for quick media access
                     </p>
                   </div>
@@ -571,7 +560,7 @@ export default function TriggersPage() {
                     resetForm();
                     setModalOpen(false);
                   }}
-                  className="rounded-lg p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
+                  className="rounded-lg p-2 text-text-muted hover:bg-background hover:text-text-secondary transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -587,13 +576,13 @@ export default function TriggersPage() {
               <div className="space-y-4">
                 {/* Trigger Word */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                  <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1.5 ml-1">
                     Bot
                   </label>
                   <select
                     value={selectedBotId}
                     onChange={(e) => setSelectedBotId(e.target.value)}
-                    className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-dashboard-border rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-primary/20 focus:border-teal-primary transition-all"
+                    className="w-full px-4 py-2.5 text-sm bg-background border border-border rounded-xl focus:bg-surface focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
                   >
                     <option value="">Select a bot...</option>
                     {bots.map((bot) => (
@@ -603,18 +592,18 @@ export default function TriggersPage() {
                       </option>
                     ))}
                   </select>
-                  <p className="text-[10px] text-slate-500 mt-1 ml-1">
+                  <p className="text-[10px] text-text-muted mt-1 ml-1">
                     Choose which bot this trigger belongs to
                   </p>
                 </div>
 
                 {/* Trigger Word */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                  <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1.5 ml-1">
                     Trigger Word
                   </label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted font-medium">
                       /
                     </span>
                     <input
@@ -622,17 +611,17 @@ export default function TriggersPage() {
                       value={triggerWord}
                       onChange={(e) => setTriggerWord(e.target.value.replace(/[^a-zA-Z0-9-_]/g, ""))}
                       placeholder="office-pic"
-                      className="w-full pl-8 pr-4 py-2.5 text-sm bg-slate-50 border border-dashboard-border rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-primary/20 focus:border-teal-primary transition-all placeholder:text-slate-400"
+                      className="w-full pl-8 pr-4 py-2.5 text-sm bg-background border border-border rounded-xl focus:bg-surface focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-text-muted"
                     />
                   </div>
-                  <p className="text-[10px] text-slate-500 mt-1 ml-1">
+                  <p className="text-[10px] text-text-muted mt-1 ml-1">
                     Only letters, numbers, hyphens, and underscores allowed
                   </p>
                 </div>
 
                 {/* Description */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                  <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1.5 ml-1">
                     Description (optional)
                   </label>
                   <input
@@ -640,13 +629,13 @@ export default function TriggersPage() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="e.g. Our office photo"
-                    className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-dashboard-border rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-primary/20 focus:border-teal-primary transition-all placeholder:text-slate-400"
+                    className="w-full px-4 py-2.5 text-sm bg-background border border-border rounded-xl focus:bg-surface focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-text-muted"
                   />
                 </div>
 
                 {/* Upload Mode Toggle */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                  <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1.5 ml-1">
                     Media Source
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -655,8 +644,8 @@ export default function TriggersPage() {
                       onClick={() => setUploadMode("upload")}
                       className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${
                         uploadMode === "upload"
-                          ? "border-teal-primary bg-teal-primary/10 text-teal-primary"
-                          : "border-dashboard-border bg-white text-slate-600 hover:border-teal-primary/30"
+                          ? "border-brand bg-brand/10 text-brand"
+                          : "border-border bg-surface text-text-secondary hover:border-brand/30"
                       }`}
                     >
                       <Upload className="h-4 w-4" />
@@ -667,8 +656,8 @@ export default function TriggersPage() {
                       onClick={() => setUploadMode("url")}
                       className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${
                         uploadMode === "url"
-                          ? "border-teal-primary bg-teal-primary/10 text-teal-primary"
-                          : "border-dashboard-border bg-white text-slate-600 hover:border-teal-primary/30"
+                          ? "border-brand bg-brand/10 text-brand"
+                          : "border-border bg-surface text-text-secondary hover:border-brand/30"
                       }`}
                     >
                       <Link className="h-4 w-4" />
@@ -680,7 +669,7 @@ export default function TriggersPage() {
                 {/* File Upload */}
                 {uploadMode === "upload" && (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                    <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1.5 ml-1">
                       Upload Media
                     </label>
                     <div className="relative">
@@ -695,22 +684,22 @@ export default function TriggersPage() {
                         htmlFor="file-upload"
                         className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
                           selectedFile
-                            ? "border-teal-primary bg-teal-primary/5"
-                            : "border-dashboard-border bg-slate-50 hover:border-teal-primary/50 hover:bg-slate-100"
+                            ? "border-brand bg-brand/5"
+                            : "border-border bg-background hover:border-brand/50 hover:bg-background"
                         }`}
                       >
                         {selectedFile ? (
-                          <div className="flex flex-col items-center gap-2 text-teal-primary">
+                          <div className="flex flex-col items-center gap-2 text-brand">
                             <File className="h-8 w-8" />
                             <span className="text-sm font-medium truncate max-w-[200px]">
                               {selectedFile.name}
                             </span>
-                            <span className="text-[10px] text-slate-500">
+                            <span className="text-[10px] text-text-muted">
                               {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                             </span>
                           </div>
                         ) : (
-                          <div className="flex flex-col items-center gap-2 text-slate-400">
+                          <div className="flex flex-col items-center gap-2 text-text-muted">
                             <Upload className="h-8 w-8" />
                             <span className="text-sm">Click to upload or drag and drop</span>
                             <span className="text-[10px]">Max 10MB - Images, Videos, Audio, PDF</span>
@@ -733,7 +722,7 @@ export default function TriggersPage() {
                 {/* Media URL */}
                 {uploadMode === "url" && (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                    <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1.5 ml-1">
                       Media URL
                     </label>
                     <input
@@ -741,12 +730,12 @@ export default function TriggersPage() {
                       value={mediaUrl}
                       onChange={(e) => setMediaUrl(e.target.value)}
                       placeholder="https://example.com/image.jpg"
-                      className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-dashboard-border rounded-xl focus:bg-white focus:ring-2 focus:ring-teal-primary/20 focus:border-teal-primary transition-all placeholder:text-slate-400"
+                      className="w-full px-4 py-2.5 text-sm bg-background border border-border rounded-xl focus:bg-surface focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-text-muted"
                     />
 
                     {/* Media Type for URL mode */}
                     <div className="mt-3">
-                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                      <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1.5 ml-1">
                         Media Type
                       </label>
                       <div className="grid grid-cols-4 gap-2">
@@ -757,8 +746,8 @@ export default function TriggersPage() {
                             onClick={() => setMediaType(option.value)}
                             className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all ${
                               mediaType === option.value
-                                ? "border-teal-primary bg-teal-primary/10 text-teal-primary"
-                                : "border-dashboard-border bg-white text-slate-600 hover:border-teal-primary/30"
+                                ? "border-brand bg-brand/10 text-brand"
+                                : "border-border bg-surface text-text-secondary hover:border-brand/30"
                             }`}
                           >
                             <option.icon className="h-4 w-4" />
@@ -773,10 +762,10 @@ export default function TriggersPage() {
                 {/* Preview */}
                 {uploadMode === "url" && mediaUrl && mediaType === "image" && (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                    <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1.5 ml-1">
                       Preview
                     </label>
-                    <div className="relative h-40 rounded-xl overflow-hidden bg-slate-100 border border-dashboard-border">
+                    <div className="relative h-40 rounded-xl overflow-hidden bg-background border border-border">
                       <Image
                         src={mediaUrl}
                         alt="Preview"
@@ -793,10 +782,10 @@ export default function TriggersPage() {
                 {/* File Preview for uploaded images */}
                 {uploadMode === "upload" && selectedFile && selectedFile.type.startsWith("image/") && (
                   <div>
-                    <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                    <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1.5 ml-1">
                       Preview
                     </label>
-                    <div className="relative h-40 rounded-xl overflow-hidden bg-slate-100 border border-dashboard-border">
+                    <div className="relative h-40 rounded-xl overflow-hidden bg-background border border-border">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={URL.createObjectURL(selectedFile)}
@@ -813,7 +802,7 @@ export default function TriggersPage() {
                   type="button"
                   onClick={handleSave}
                   disabled={saving || uploading}
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-teal-primary text-white px-4 py-3 text-sm font-bold shadow-lg shadow-teal-primary/25 hover:bg-teal-primary/90 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-brand text-white px-4 py-3 text-sm font-bold shadow-lg shadow-brand/25 hover:bg-brand/90 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {saving || uploading ? (
                     <>
@@ -832,7 +821,7 @@ export default function TriggersPage() {
                     resetForm();
                     setModalOpen(false);
                   }}
-                  className="px-4 py-3 border border-dashboard-border text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-all"
+                  className="px-4 py-3 border border-border text-text-secondary rounded-xl font-semibold text-sm hover:bg-background transition-all"
                 >
                   Cancel
                 </button>
