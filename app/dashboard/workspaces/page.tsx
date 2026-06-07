@@ -114,40 +114,41 @@ export default function WorkspacesPage() {
   };
 
   if (!activeWorkspace) {
-    return <div className="rounded-2xl border border-dashboard-border bg-white p-8 text-slate-600">Create a workspace to manage members.</div>;
+    return <div className="rounded-2xl border border-border bg-surface p-8 text-text-muted">Create a workspace to manage members.</div>;
   }
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
-      <div className="rounded-2xl bg-gradient-to-br from-teal-primary via-[#0d6159] to-slate-800 p-6 text-white shadow-xl">
-        <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
-            <Users className="h-7 w-7 text-teal-accent" />
+      {/* Page Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center shrink-0">
+            <Users className="w-5 h-5 text-brand" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Workspaces</h1>
-            <p className="text-sm text-white/75">Manage workspace members and bot access.</p>
+            <h1 className="text-xl font-bold text-text-primary">Workspaces</h1>
+            <p className="text-sm text-text-muted">Manage members, roles, and bot access</p>
           </div>
         </div>
       </div>
 
       {loading ? (
-        <div className="flex justify-center rounded-2xl border border-dashboard-border bg-white p-12">
-          <Loader2 className="h-7 w-7 animate-spin text-teal-primary" />
+        <div className="flex justify-center rounded-2xl border border-border bg-surface p-12">
+          <Loader2 className="h-7 w-7 animate-spin text-brand" />
         </div>
       ) : (
         <>
-          <div className="rounded-2xl border border-dashboard-border bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-900">Workspace details</h2>
+          <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-text-primary">Workspace details</h2>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row">
               <input
                 value={workspaceName}
                 onChange={(event) => setWorkspaceName(event.target.value)}
                 disabled={!canManage}
-                className="flex-1 rounded-xl border border-dashboard-border bg-dashboard-bg px-4 py-3 text-sm outline-none focus:border-teal-primary"
+                className="flex-1 rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-brand"
               />
               {canManage && (
-                <button onClick={saveWorkspaceName} className="inline-flex items-center justify-center gap-2 rounded-xl bg-teal-primary px-5 py-3 text-sm font-bold text-white">
+                <button onClick={saveWorkspaceName} className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white">
                   <Save className="h-4 w-4" />
                   Save
                 </button>
@@ -156,22 +157,22 @@ export default function WorkspacesPage() {
           </div>
 
           {canManage && (
-            <div className="rounded-2xl border border-dashboard-border bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-bold text-slate-900">Invite member</h2>
+            <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+              <h2 className="text-lg font-bold text-text-primary">Invite member</h2>
               <form onSubmit={inviteMember} className="mt-4 space-y-4">
                 <div className="grid gap-4 md:grid-cols-[1fr_180px]">
-                  <input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="teammate@example.com" className="rounded-xl border border-dashboard-border bg-dashboard-bg px-4 py-3 text-sm outline-none focus:border-teal-primary" />
-                  <select value={role} onChange={(event) => setRole(event.target.value as WorkspaceRole)} className="rounded-xl border border-dashboard-border bg-dashboard-bg px-4 py-3 text-sm outline-none focus:border-teal-primary">
+                  <input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="teammate@example.com" className="rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-brand" />
+                  <select value={role} onChange={(event) => setRole(event.target.value as WorkspaceRole)} className="rounded-xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-brand">
                     <option value="member">Member</option>
                     <option value="admin">Admin</option>
                   </select>
                 </div>
                 {role === "member" && (
                   <div>
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Bots this member can manage</p>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-text-muted">Bots this member can manage</p>
                     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                       {bots.map((bot) => (
-                        <label key={bot.id} className="flex items-center gap-2 rounded-xl border border-dashboard-border px-3 py-2 text-sm">
+                        <label key={bot.id} className="flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm">
                           <input type="checkbox" checked={selectedBotIds.includes(bot.id)} onChange={() => toggleBot(bot.id)} />
                           <span className="truncate">{bot.name}</span>
                         </label>
@@ -179,7 +180,7 @@ export default function WorkspacesPage() {
                     </div>
                   </div>
                 )}
-                <button className="inline-flex items-center gap-2 rounded-xl bg-teal-primary px-5 py-3 text-sm font-bold text-white">
+                <button className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white">
                   <Mail className="h-4 w-4" />
                   Create invite
                 </button>
@@ -190,9 +191,9 @@ export default function WorkspacesPage() {
                     navigator.clipboard.writeText(inviteUrl);
                     toast.success("Invite link copied");
                   }}
-                  className="mt-4 flex w-full items-center gap-2 rounded-xl border border-dashboard-border bg-slate-50 px-4 py-3 text-left text-sm text-slate-700"
+                  className="mt-4 flex w-full items-center gap-2 rounded-xl border border-border bg-background px-4 py-3 text-left text-sm text-text-secondary"
                 >
-                  <Copy className="h-4 w-4 shrink-0 text-teal-primary" />
+                  <Copy className="h-4 w-4 shrink-0 text-brand" />
                   <span className="truncate">{inviteUrl}</span>
                 </button>
               )}
@@ -200,19 +201,19 @@ export default function WorkspacesPage() {
           )}
 
           {canManage && (
-            <div className="rounded-2xl border border-dashboard-border bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-bold text-slate-900">Members</h2>
+            <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+              <h2 className="text-lg font-bold text-text-primary">Members</h2>
               <div className="mt-4 space-y-3">
                 {members.map((member) => (
-                  <div key={member.id} className="rounded-xl border border-dashboard-border p-4">
+                  <div key={member.id} className="rounded-xl border border-border p-4">
                     <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-semibold text-slate-900">{member.email ?? member.user_id}</p>
-                        <p className="text-xs uppercase text-slate-500">{member.role}</p>
+                        <p className="truncate font-semibold text-text-primary">{member.email ?? member.user_id}</p>
+                        <p className="text-xs uppercase text-text-muted">{member.role}</p>
                       </div>
                       {isOwner && member.role !== "owner" && (
                         <>
-                          <select value={member.role} onChange={(event) => updateMember(member, { role: event.target.value as WorkspaceRole })} className="rounded-lg border border-dashboard-border px-3 py-2 text-sm">
+                          <select value={member.role} onChange={(event) => updateMember(member, { role: event.target.value as WorkspaceRole })} className="rounded-lg border border-border px-3 py-2 text-sm">
                             <option value="member">Member</option>
                             <option value="admin">Admin</option>
                           </select>
@@ -237,7 +238,7 @@ export default function WorkspacesPage() {
                                     : [...member.allowed_bot_ids, bot.id],
                                 })
                               }
-                              className={`rounded-full px-3 py-1 text-xs font-semibold ${checked ? "bg-teal-primary/10 text-teal-primary" : "bg-slate-100 text-slate-500"}`}
+                              className={`rounded-full px-3 py-1 text-xs font-semibold ${checked ? "bg-brand/10 text-brand" : "bg-background text-text-muted"}`}
                             >
                               {bot.name}
                             </button>
@@ -252,13 +253,13 @@ export default function WorkspacesPage() {
           )}
 
           {invitations.length > 0 && (
-            <div className="rounded-2xl border border-dashboard-border bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-bold text-slate-900">Pending invitations</h2>
+            <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+              <h2 className="text-lg font-bold text-text-primary">Pending invitations</h2>
               <div className="mt-4 space-y-2">
                 {invitations.map((invite) => (
-                  <div key={invite.id} className="flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3 text-sm">
+                  <div key={invite.id} className="flex items-center justify-between rounded-xl bg-background px-4 py-3 text-sm">
                     <span>{invite.email}</span>
-                    <span className="text-slate-500">
+                    <span className="text-text-muted">
                       {invite.role}
                       {invite.allowed_bot_ids.length ? ` · ${invite.allowed_bot_ids.map((id) => botNameById.get(id) ?? "Bot").join(", ")}` : ""}
                     </span>
