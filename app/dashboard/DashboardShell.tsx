@@ -206,12 +206,6 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 label: "CRM",
                 tourId: null,
               },
-              {
-                href: "/dashboard/plans",
-                icon: CreditCard,
-                label: "Plans",
-                tourId: "plans-nav",
-              },
               // Billing - hidden for now
               // {
               //   href: "/dashboard/billing",
