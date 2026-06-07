@@ -167,49 +167,38 @@ export default function BotsPage() {
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6 w-full max-w-7xl mx-auto lg:min-h-[calc(100vh-8rem)]">
-      {/* Header */}
-      <div className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-br from-teal-primary via-[#0d6159] to-slate-800 p-4 sm:p-6 md:p-8 text-white shadow-xl overflow-visible">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-teal-accent/20 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-teal-accent/20 blur-3xl" />
-        <div className="relative z-10 flex flex-col gap-4 sm:gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 min-w-0">
-            <div className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20 shrink-0">
-              <Bot className="h-6 w-6 sm:h-8 sm:w-8 text-teal-accent" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white">
-                Your Bots
-              </h1>
-              <p className="mt-1 sm:mt-2 text-sm sm:text-base md:text-lg text-white/80 max-w-xl">
-                Create and manage AI bots connected to Telegram. Configure
-                system prompts, models, and test them in real-time.
-              </p>
-            </div>
+      {/* Page Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center shrink-0">
+            <Bot className="w-5 h-5 text-brand" aria-hidden="true" />
           </div>
-          <div className="relative z-50 shrink-0">
-            <button
-              type="button"
-              data-tour="add-bot-button"
-              onClick={() => setWizardOpen(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-white text-slate-900 px-6 py-3 text-sm font-bold transition-all hover:bg-teal-primary/10 hover:text-teal-primary shadow-lg shadow-black/10 active:scale-[0.98]"
-            >
-              <Plus className="h-5 w-5" />
-              Create Bot
-            </button>
+          <div>
+            <h1 className="text-xl font-bold text-text-primary">Bots</h1>
+            <p className="text-sm text-text-muted">Create and manage your AI chatbots</p>
           </div>
         </div>
+        <button
+          type="button"
+          data-tour="add-bot-button"
+          onClick={() => setWizardOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand text-white text-sm font-semibold hover:bg-brand-dark transition-all shadow-brand cursor-pointer"
+        >
+          <Plus className="w-4 h-4" />
+          New Bot
+        </button>
       </div>
 
       {/* Bots list + Test Chat */}
       <div className="flex flex-col gap-4 sm:gap-6 xl:flex-row xl:items-start">
-        <div className="flex min-h-[320px] h-[40vh] sm:h-[420px] xl:h-[522px] flex-1 flex-col overflow-hidden rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card shadow-lg min-w-0">
-          <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4 border-b border-dashboard-border bg-gradient-to-br from-dashboard-bg via-teal-primary/5 to-dashboard-bg px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex min-h-[320px] h-[40vh] sm:h-[420px] xl:h-[522px] flex-1 flex-col overflow-hidden rounded-xl sm:rounded-2xl border border-border bg-surface shadow-lg min-w-0">
+          <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4 border-b border-border bg-surface px-4 sm:px-6 py-3 sm:py-4">
             <div>
-              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                <Bot className="h-5 w-5 text-teal-primary" />
+              <h3 className="text-xl font-bold text-text-primary flex items-center gap-2">
+                <Bot className="h-5 w-5 text-brand" />
                 Your Bots
               </h3>
-              <p className="text-sm text-slate-600 mt-1">
+              <p className="text-sm text-text-muted mt-1">
                 {bots.length === 0
                   ? "No bots yet"
                   : bots.length === 1
@@ -221,8 +210,8 @@ export default function BotsPage() {
           <div className="flex-1 overflow-y-auto p-4">
             {botsLoading ? (
               <div className="flex h-full items-center justify-center">
-                <div className="flex flex-col items-center gap-3 text-slate-500">
-                  <Loader2 className="h-8 w-8 animate-spin text-teal-primary" />
+                <div className="flex flex-col items-center gap-3 text-text-muted">
+                  <Loader2 className="h-8 w-8 animate-spin text-brand" />
                   <p className="text-sm">Loading bots...</p>
                 </div>
               </div>
@@ -232,14 +221,14 @@ export default function BotsPage() {
                   <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-red-600">
                     <AlertCircle className="h-6 w-6" />
                   </div>
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p className="text-sm font-semibold text-text-primary">
                     Could not load bots
                   </p>
-                  <p className="mt-1 text-xs text-slate-500">{botsError}</p>
+                  <p className="mt-1 text-xs text-text-muted">{botsError}</p>
                   <button
                     type="button"
                     onClick={() => fetchBots()}
-                    className="mt-3 text-sm font-medium text-teal-primary hover:underline"
+                    className="mt-3 text-sm font-medium text-brand hover:underline"
                   >
                     Try again
                   </button>
@@ -248,7 +237,7 @@ export default function BotsPage() {
             ) : bots.length === 0 ? (
               <div className="flex h-full items-center justify-center">
                 <div className="text-center">
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-teal-primary/10 text-teal-primary">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
                     <Bot className="h-6 w-6" />
                   </div>
                   <p className="text-sm font-semibold text-gray-900">
@@ -264,10 +253,10 @@ export default function BotsPage() {
                 {bots.map((bot) => (
                   <div
                     key={bot.id}
-                    className="flex items-start gap-4 rounded-xl border border-dashboard-border bg-white p-4 shadow-sm hover:border-teal-primary/30 transition-colors"
+                    className="flex items-start gap-4 rounded-xl border border-border bg-white p-4 shadow-sm hover:border-brand/30 transition-colors"
                   >
                     {/* Profile picture */}
-                    <div className="h-12 w-12 rounded-full bg-teal-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <div className="h-12 w-12 rounded-full bg-brand/10 flex items-center justify-center overflow-hidden flex-shrink-0">
                       {bot.profilePictureUrl ? (
                         <Image
                           src={bot.profilePictureUrl}
@@ -277,14 +266,14 @@ export default function BotsPage() {
                           className="object-cover w-full h-full"
                         />
                       ) : (
-                        <Bot className="h-6 w-6 text-teal-primary" />
+                        <Bot className="h-6 w-6 text-brand" />
                       )}
                     </div>
 
                     {/* Bot info */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-semibold text-slate-900">
+                        <p className="text-sm font-semibold text-text-primary">
                           {bot.name}
                         </p>
                         {bot.telegramUsername && (
@@ -293,25 +282,25 @@ export default function BotsPage() {
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="text-xs text-text-muted mt-0.5">
                         {MODEL_LABELS[bot.modelId ?? ""] ??
                           bot.modelId ??
                           bot.model}
                       </p>
-                      <p className="text-xs text-slate-400 mt-1 truncate">
+                      <p className="text-xs text-text-muted mt-1 truncate">
                         {bot.systemPrompt.slice(0, 80)}
                         {bot.systemPrompt.length > 80 ? "..." : ""}
                       </p>
-                      <div className="mt-2 flex min-w-0 items-center gap-2 rounded-lg border border-teal-primary/15 bg-teal-primary/5 px-2 py-1.5 text-xs text-slate-600">
-                        <Globe className="h-3.5 w-3.5 flex-shrink-0 text-teal-primary" />
-                        <span className="font-medium text-teal-primary">Web Embed</span>
-                        <span className="min-w-0 flex-1 truncate text-slate-500">
+                      <div className="mt-2 flex min-w-0 items-center gap-2 rounded-lg border border-brand/15 bg-brand/5 px-2 py-1.5 text-xs text-text-muted">
+                        <Globe className="h-3.5 w-3.5 flex-shrink-0 text-brand" />
+                        <span className="font-medium text-brand">Web Embed</span>
+                        <span className="min-w-0 flex-1 truncate text-text-muted">
                           {getEmbedUrl(bot.id)}
                         </span>
                         <button
                           type="button"
                           onClick={() => setEmbedBot(bot)}
-                          className="inline-flex flex-shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-teal-primary transition hover:bg-white"
+                          className="inline-flex flex-shrink-0 items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-brand transition hover:bg-white"
                           title="Get embed code"
                         >
                           <Copy className="h-3.5 w-3.5" />
@@ -325,7 +314,7 @@ export default function BotsPage() {
                       <button
                         type="button"
                         onClick={() => setEditingBot(bot)}
-                        className="p-2 text-slate-400 hover:text-teal-primary hover:bg-teal-primary/10 rounded-lg transition-colors"
+                        className="p-2 text-text-muted hover:text-brand hover:bg-brand/10 rounded-lg transition-colors"
                         title="Edit bot"
                       >
                         <Edit3 className="h-4 w-4" />
@@ -346,7 +335,7 @@ export default function BotsPage() {
                       <button
                         type="button"
                         onClick={() => handleDeleteBot(bot.id)}
-                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="p-2 text-text-muted hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Delete bot"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -362,7 +351,7 @@ export default function BotsPage() {
         <div
           className={
             chatExpanded
-              ? "fixed inset-4 z-50 min-h-0 flex flex-col rounded-2xl shadow-2xl ring-2 ring-slate-200/50 bg-white"
+              ? "fixed inset-4 z-50 min-h-0 flex flex-col rounded-2xl shadow-2xl ring-2 ring-border/50 bg-white"
               : "min-h-[320px] h-[40vh] sm:h-[420px] xl:h-[520px] xl:w-[360px] xl:flex-shrink-0 min-w-0"
           }
         >
@@ -541,17 +530,17 @@ const floatingCode = `<div style="position: fixed; right: 24px; bottom: 24px; z-
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
-      <div className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+      <div className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-border bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <div>
-            <h3 className="text-base font-bold text-slate-950">Web Embed Code</h3>
-            <p className="text-sm text-slate-500">{bot.name}</p>
+            <h3 className="text-base font-bold text-text-primary">Web Embed Code</h3>
+            <p className="text-sm text-text-muted">{bot.name}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            className="rounded-lg p-2 text-text-muted transition hover:bg-background hover:text-text-secondary"
             aria-label="Close"
           >
             <X className="h-5 w-5" />
@@ -559,14 +548,14 @@ const floatingCode = `<div style="position: fixed; right: 24px; bottom: 24px; z-
         </div>
 
         <div className="space-y-4 overflow-y-auto p-5">
-          <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
+          <div className="grid grid-cols-2 gap-2 rounded-xl bg-background p-1">
             <button
               type="button"
               onClick={() => setMode("iframe")}
               className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
                 mode === "iframe"
-                  ? "bg-white text-slate-950 shadow-sm"
-                  : "text-slate-500 hover:text-slate-800"
+                  ? "bg-white text-text-primary shadow-sm"
+                  : "text-text-muted hover:text-text-secondary"
               }`}
             >
               Iframe
@@ -576,8 +565,8 @@ const floatingCode = `<div style="position: fixed; right: 24px; bottom: 24px; z-
               onClick={() => setMode("floating")}
               className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
                 mode === "floating"
-                  ? "bg-white text-slate-950 shadow-sm"
-                  : "text-slate-500 hover:text-slate-800"
+                  ? "bg-white text-text-primary shadow-sm"
+                  : "text-text-muted hover:text-text-secondary"
               }`}
             >
               Floating Widget
@@ -588,18 +577,18 @@ const floatingCode = `<div style="position: fixed; right: 24px; bottom: 24px; z-
             readOnly
             value={code}
             rows={mode === "iframe" ? 6 : 9}
-            className="w-full resize-none rounded-xl border border-slate-200 bg-slate-950 p-4 font-mono text-xs leading-relaxed text-slate-100 outline-none"
+            className="w-full resize-none rounded-xl border border-border bg-neutral-950 p-4 font-mono text-xs leading-relaxed text-neutral-100 outline-none"
           />
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <div className="rounded-xl border border-border bg-background p-4">
             <div className="mb-3 grid grid-cols-2 gap-2 rounded-lg bg-white p-1">
               <button
                 type="button"
                 onClick={() => setInstallGuide("website")}
                 className={`rounded-md px-3 py-2 text-xs font-bold transition ${
                   installGuide === "website"
-                    ? "bg-teal-primary text-white"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                    ? "bg-brand text-white"
+                    : "text-text-muted hover:bg-background hover:text-text-secondary"
                 }`}
               >
                 Website
@@ -609,8 +598,8 @@ const floatingCode = `<div style="position: fixed; right: 24px; bottom: 24px; z-
                 onClick={() => setInstallGuide("shopify")}
                 className={`rounded-md px-3 py-2 text-xs font-bold transition ${
                   installGuide === "shopify"
-                    ? "bg-teal-primary text-white"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+                    ? "bg-brand text-white"
+                    : "text-text-muted hover:bg-background hover:text-text-secondary"
                 }`}
               >
                 Shopify
@@ -618,10 +607,10 @@ const floatingCode = `<div style="position: fixed; right: 24px; bottom: 24px; z-
             </div>
 
             {installGuide === "website" ? (
-              <div className="space-y-3 text-sm text-slate-700">
+              <div className="space-y-3 text-sm text-text-secondary">
                 <div>
-                  <p className="font-bold text-slate-950">Install on a code-based website</p>
-                  <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                  <p className="font-bold text-text-primary">Install on a code-based website</p>
+                  <p className="mt-1 text-xs leading-relaxed text-text-muted">
                     Use Iframe for a full chat page. Use Floating Widget for a chat button/panel that stays in the corner.
                   </p>
                 </div>
@@ -633,10 +622,10 @@ const floatingCode = `<div style="position: fixed; right: 24px; bottom: 24px; z-
                 </ol>
               </div>
             ) : (
-              <div className="space-y-3 text-sm text-slate-700">
+              <div className="space-y-3 text-sm text-text-secondary">
                 <div>
-                  <p className="font-bold text-slate-950">Install on Shopify</p>
-                  <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                  <p className="font-bold text-text-primary">Install on Shopify</p>
+                  <p className="mt-1 text-xs leading-relaxed text-text-muted">
                     The Floating Widget is usually best for Shopify stores because it appears across product, cart, and checkout-adjacent pages.
                   </p>
                 </div>
@@ -651,13 +640,13 @@ const floatingCode = `<div style="position: fixed; right: 24px; bottom: 24px; z-
           </div>
 
           <div className="flex items-center justify-between gap-3">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-text-muted">
               Embed links use your deployed webchat domain.
             </p>
             <button
               type="button"
               onClick={copyCode}
-              className="inline-flex items-center gap-2 rounded-xl bg-teal-primary px-4 py-2 text-sm font-bold text-white transition hover:bg-teal-primary/90"
+              className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white transition hover:bg-brand/90"
             >
               <Copy className="h-4 w-4" />
               Copy Code
@@ -868,7 +857,7 @@ function ChatPanel({
               <button
                 type="button"
                 onClick={handleNewChat}
-                className="text-xs font-medium text-teal-primary hover:underline"
+                className="text-xs font-medium text-brand hover:underline"
               >
                 New chat
               </button>
@@ -877,7 +866,7 @@ function ChatPanel({
               <button
                 type="button"
                 onClick={onToggleExpand}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                className="p-2 text-text-muted hover:text-text-muted hover:bg-background rounded-lg transition-colors"
                 aria-label={expanded ? "Minimize chat" : "Expand chat"}
                 title={expanded ? "Minimize" : "Expand"}
               >
@@ -892,13 +881,13 @@ function ChatPanel({
         </div>
         {hasBots && (
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">
+            <label className="block text-xs font-medium text-text-muted mb-1">
               Bot
             </label>
             <select
               value={selectedBotId ?? ""}
               onChange={(e) => setSelectedBotId(e.target.value || null)}
-              className="w-full rounded-lg border border-dashboard-border bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-primary focus:ring-1 focus:ring-teal-primary"
+              className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-text-primary focus:border-brand focus:ring-1 focus:ring-brand"
             >
               <option value="">Select a bot...</option>
               {bots.map((b) => (
@@ -913,7 +902,7 @@ function ChatPanel({
         )}
       </div>
 
-      <div className="flex-1 min-h-0 relative bg-gradient-to-b from-transparent to-slate-50/20">
+      <div className="flex-1 min-h-0 relative">
         <div
           ref={listRef}
           className="h-full overflow-y-auto px-6 py-6 scroll-smooth space-y-4"
@@ -926,7 +915,7 @@ function ChatPanel({
               }`}
             >
               {message.role === "assistant" && (
-                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-teal-100 to-teal-200 p-1 shadow-sm ring-2 ring-teal-200/50 overflow-hidden">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-brand/10 p-1 shadow-sm ring-2 ring-brand/20 overflow-hidden">
                   {selectedBot?.profilePictureUrl ? (
                     <Image
                       src={selectedBot.profilePictureUrl}
@@ -936,7 +925,7 @@ function ChatPanel({
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <Bot className="h-4 w-4 text-teal-primary" />
+                    <Bot className="h-4 w-4 text-brand" />
                   )}
                 </div>
               )}
@@ -947,7 +936,7 @@ function ChatPanel({
                     ? "rounded-br-md bg-gradient-to-br from-sky-500 via-sky-500 to-sky-500 text-white shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/30"
                     : message.isError
                       ? "rounded-bl-md border-2 border-red-200 bg-red-50 text-red-900 shadow-sm"
-                      : "rounded-bl-md border border-dashboard-border bg-white text-slate-800 shadow-md hover:shadow-lg"
+                      : "rounded-bl-md border border-border bg-white text-text-secondary shadow-md hover:shadow-lg"
                 }`}
               >
                 {message.role === "assistant" ? (
@@ -959,15 +948,15 @@ function ChatPanel({
                       aria-label="Getting response..."
                     >
                       <span
-                        className="h-2 w-2 rounded-full bg-slate-400 animate-bounce"
+                        className="h-2 w-2 rounded-full bg-text-muted animate-bounce"
                         style={{ animationDelay: "0ms" }}
                       />
                       <span
-                        className="h-2 w-2 rounded-full bg-slate-400 animate-bounce"
+                        className="h-2 w-2 rounded-full bg-text-muted animate-bounce"
                         style={{ animationDelay: "150ms" }}
                       />
                       <span
-                        className="h-2 w-2 rounded-full bg-slate-400 animate-bounce"
+                        className="h-2 w-2 rounded-full bg-text-muted animate-bounce"
                         style={{ animationDelay: "300ms" }}
                       />
                     </div>
@@ -992,12 +981,12 @@ function ChatPanel({
                             <li className="ml-2">{children}</li>
                           ),
                           strong: ({ children }) => (
-                            <strong className="font-semibold text-slate-900">
+                            <strong className="font-semibold text-text-primary">
                               {children}
                             </strong>
                           ),
                           code: ({ children }) => (
-                            <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-mono text-teal-primary border border-dashboard-border">
+                            <code className="rounded bg-background px-1.5 py-0.5 text-xs font-mono text-brand border border-border">
                               {children}
                             </code>
                           ),
@@ -1013,7 +1002,7 @@ function ChatPanel({
               </div>
 
               {message.role === "user" && (
-                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 text-white shadow-sm">
+                <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-text-secondary text-white shadow-sm">
                   <span className="text-xs font-bold">You</span>
                 </div>
               )}
@@ -1024,14 +1013,14 @@ function ChatPanel({
         {disabledReason && (
           <div className="absolute inset-0 -z-10 bg-white/50 backdrop-blur-sm p-6 space-y-4 overflow-hidden">
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-slate-100 flex flex-col items-center gap-2 text-center max-w-xs">
-                <div className="h-10 w-10 rounded-full bg-teal-primary/10 flex items-center justify-center text-teal-primary mb-1">
+              <div className="bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-border flex flex-col items-center gap-2 text-center max-w-xs">
+                <div className="h-10 w-10 rounded-full bg-brand/10 flex items-center justify-center text-brand mb-1">
                   <FileText className="h-5 w-5" />
                 </div>
-                <p className="text-sm font-semibold text-slate-800">
+                <p className="text-sm font-semibold text-text-secondary">
                   {noItemsMessage ?? "No bots yet"}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-text-muted">
                   {useAddToStartMessage ?? "Create a bot to start testing."}
                 </p>
               </div>
@@ -1040,7 +1029,7 @@ function ChatPanel({
         )}
       </div>
 
-      <div className="flex-none border-t border-dashboard-border bg-gradient-to-br from-slate-50 via-sky-50/20 to-slate-50 px-6 py-4">
+      <div className="flex-none border-t border-border bg-background px-6 py-4">
         <div className="flex gap-3">
           <div className="relative flex-1">
             <textarea
@@ -1050,7 +1039,7 @@ function ChatPanel({
               placeholder="Type a message..."
               rows={1}
               disabled={!!disabledReason}
-              className="w-full resize-none rounded-xl border-2 border-dashboard-border bg-white px-4 py-3 pr-12 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 transition-all shadow-sm hover:border-slate-300"
+              className="w-full resize-none rounded-xl border-2 border-border bg-white px-4 py-3 pr-12 text-sm placeholder:text-text-muted focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-background disabled:text-text-muted transition-all shadow-sm hover:border-border"
               style={{ minHeight: "50px", maxHeight: "120px" }}
             />
           </div>
@@ -1134,12 +1123,12 @@ function EditBotModal({ bot, onClose, onSaved }: EditBotModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-white/20 bg-white shadow-2xl ring-1 ring-black/5">
-        <div className="flex items-center justify-between border-b border-dashboard-border px-6 py-4">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Edit Bot</h3>
-            <p className="text-xs text-slate-500">
+            <h3 className="text-lg font-bold text-text-primary">Edit Bot</h3>
+            <p className="text-xs text-text-muted">
               Update the bot prompt and model configuration.
             </p>
           </div>
@@ -1147,7 +1136,7 @@ function EditBotModal({ bot, onClose, onSaved }: EditBotModalProps) {
             type="button"
             onClick={onClose}
             disabled={saving}
-            className="rounded-lg p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
+            className="rounded-lg p-2 text-text-muted hover:bg-background hover:text-text-muted transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -1162,7 +1151,7 @@ function EditBotModal({ bot, onClose, onSaved }: EditBotModalProps) {
           )}
 
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-text-muted">
               Bot Name
             </label>
             <input
@@ -1170,12 +1159,12 @@ function EditBotModal({ bot, onClose, onSaved }: EditBotModalProps) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Support Bot"
-              className="w-full rounded-xl border border-dashboard-border bg-slate-50 px-4 py-2.5 text-sm transition-all placeholder:text-slate-400 focus:border-teal-primary focus:bg-white focus:ring-2 focus:ring-teal-primary/20"
+              className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm transition-all placeholder:text-text-muted focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20"
             />
           </div>
 
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-text-muted">
               System Prompt <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -1183,13 +1172,13 @@ function EditBotModal({ bot, onClose, onSaved }: EditBotModalProps) {
               onChange={(e) => setSystemPrompt(e.target.value)}
               rows={8}
               placeholder="You are a helpful assistant that..."
-              className="w-full resize-none rounded-xl border border-dashboard-border bg-slate-50 px-4 py-3 text-sm transition-all placeholder:text-slate-400 focus:border-teal-primary focus:bg-white focus:ring-2 focus:ring-teal-primary/20"
+              className="w-full resize-none rounded-xl border border-border bg-background px-4 py-3 text-sm transition-all placeholder:text-text-muted focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20"
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-text-muted">
                 Provider
               </label>
               <select
@@ -1199,7 +1188,7 @@ function EditBotModal({ bot, onClose, onSaved }: EditBotModalProps) {
                   setModelProvider(next);
                   setModelId(MODEL_IDS_BY_PROVIDER[next]?.[0] ?? "");
                 }}
-                className="w-full rounded-xl border border-dashboard-border bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-teal-primary focus:bg-white focus:ring-2 focus:ring-teal-primary/20"
+                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm transition-all focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20"
               >
                 {MODEL_PROVIDERS.map((provider) => (
                   <option key={provider} value={provider}>
@@ -1210,13 +1199,13 @@ function EditBotModal({ bot, onClose, onSaved }: EditBotModalProps) {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-text-muted">
                 Model
               </label>
               <select
                 value={modelId}
                 onChange={(e) => setModelId(e.target.value)}
-                className="w-full rounded-xl border border-dashboard-border bg-slate-50 px-4 py-2.5 text-sm transition-all focus:border-teal-primary focus:bg-white focus:ring-2 focus:ring-teal-primary/20"
+                className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm transition-all focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/20"
               >
                 {MODEL_IDS_BY_PROVIDER[modelProvider]?.map((id) => (
                   <option key={id} value={id}>
@@ -1228,12 +1217,12 @@ function EditBotModal({ bot, onClose, onSaved }: EditBotModalProps) {
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-3 border-t border-dashboard-border bg-slate-50 px-6 py-4">
+        <div className="flex items-center justify-end gap-3 border-t border-border bg-background px-6 py-4">
           <button
             type="button"
             onClick={onClose}
             disabled={saving}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-50"
+            className="rounded-lg px-4 py-2 text-sm font-medium text-text-muted transition-colors hover:bg-background disabled:opacity-50"
           >
             Cancel
           </button>
@@ -1241,7 +1230,7 @@ function EditBotModal({ bot, onClose, onSaved }: EditBotModalProps) {
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-xl bg-teal-primary px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-teal-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-2 text-sm font-bold text-white transition-colors hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             Save Changes
