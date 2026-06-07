@@ -22,6 +22,7 @@ import {
   Building2,
   Users,
   ChevronDown,
+  CreditCard,
 } from "lucide-react";
 
 function WorkspaceSelector() {
@@ -199,13 +200,12 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 label: "Triggers",
                 tourId: null,
               },
-              // Plans - hidden for now
-              // {
-              //   href: "/dashboard/plans",
-              //   icon: Crown,
-              //   label: t("dashboard.sidebar.plans"),
-              //   tourId: "plans-nav",
-              // },
+              {
+                href: "/dashboard/plans",
+                icon: CreditCard,
+                label: "Plans",
+                tourId: "plans-nav",
+              },
               // Billing - hidden for now
               // {
               //   href: "/dashboard/billing",
