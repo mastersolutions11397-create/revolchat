@@ -122,10 +122,58 @@ export async function POST(request: NextRequest) {
   }
 }
 
+async function handleEndUserTrialSubscription(session: Stripe.Checkout.Session) {
+  const { trial_id, bot_id, platform, platform_user_id } = session.metadata ?? {};
+  if (!trial_id) return;
+
+  // Fetch bot info for the CRM notification
+  const { data: bot } = await supabaseAdmin
+    .from("agents")
+    .select("name, user_id")
+    .eq("id", bot_id)
+    .single();
+
+  const updateData: Record<string, unknown> = {
+    status: "subscribed",
+    stripe_customer_id: session.customer as string,
+  };
+  if (session.subscription) {
+    updateData.stripe_subscription_id = session.subscription as string;
+  }
+
+  const { error } = await supabaseAdmin
+    .from("end_user_trials")
+    .update(updateData)
+    .eq("id", trial_id);
+
+  if (error) {
+    throw new Error(`Failed to update trial ${trial_id}: ${error.message}`);
+  }
+
+  // Insert "subscribed" CRM notification
+  await supabaseAdmin.from("end_user_trial_notifications").insert({
+    trial_id,
+    bot_id,
+    bot_name: bot?.name ?? "Bot",
+    admin_user_id: bot?.user_id ?? "",
+    platform,
+    platform_user_id,
+    notification_type: "subscribed",
+  });
+
+  console.log(`End-user trial ${trial_id} converted to subscription`);
+}
+
 async function handleCheckoutSessionCompleted(
   session: Stripe.Checkout.Session
 ) {
   try {
+    // Handle end-user trial subscriptions (different from admin plan payments)
+    if (session.metadata?.source === "end_user_trial") {
+      await handleEndUserTrialSubscription(session);
+      return;
+    }
+
     const { userId } = session.metadata || {};
 
     if (!userId) {
