@@ -25,6 +25,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CreditCard,
+  Brain,
 } from "lucide-react";
 
 function WorkspaceSelector() {
@@ -124,15 +125,11 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
               href="/"
               className={`flex items-center gap-2.5 min-w-0 flex-1 ${!sidebarExpanded && !mobileSidebarOpen ? "justify-center" : ""}`}
             >
-              <Image
-                src="/yetti/logo2.jpg"
-                alt="Yetti"
-                width={32}
-                height={32}
-                className="shrink-0 rounded-lg"
-              />
+              <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center shrink-0">
+                <Brain className="w-5 h-5 text-white" aria-hidden="true" />
+              </div>
               {(sidebarExpanded || mobileSidebarOpen) && (
-                <span className="text-lg font-bold text-text-primary truncate">Yetti</span>
+                <span className="text-lg font-bold text-text-primary truncate">BotHub</span>
               )}
             </Link>
             {/* Desktop toggle */}

@@ -12,41 +12,41 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Admin - AI Agent Integration Platform",
+  title: "BotHub — AI Bot Management Platform",
   description:
-    "Connect your AI chatbot to Telegram and more with Admin's integration platform. Transform your presence with AI-powered customer engagement.",
+    "Manage your AI chatbots, connect social channels, and automate customer conversations — all in one place.",
   keywords: ["AI chatbot", "Telegram bot", "social media automation", "customer engagement", "AI agent", "business automation"],
-  authors: [{ name: "Admin" }],
-  creator: "Admin",
-  publisher: "Admin",
+  authors: [{ name: "BotHub" }],
+  creator: "BotHub",
+  publisher: "BotHub",
   robots: "index, follow",
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://yetti.ai",
-    title: "Admin - AI Agent Integration Platform",
-    description: "Connect your AI chatbot to Telegram and more with Admin's integration platform.",
-    siteName: "Admin",
+    url: "https://bothub.ai",
+    title: "BotHub — AI Bot Management Platform",
+    description: "Manage AI chatbots and automate social media conversations.",
+    siteName: "BotHub",
     images: [
       {
         url: "/yetti/yetti_face.png",
         width: 1200,
         height: 630,
-        alt: "yetti AI - AI Agent Integration Platform",
+        alt: "BotHub - AI Agent Integration Platform",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "yetti AI - AI Agent Integration Platform",
-    description: "Connect your AI chatbot to Instagram, Telegram, and more platforms with yetti AI's powerful integration platform.",
+    title: "BotHub - AI Agent Integration Platform",
+    description: "Connect your AI chatbot to Instagram, Telegram, and more platforms with BotHub's powerful integration platform.",
     images: ["/yetti/yetti_face.png"],
-    creator: "@yetti_ai",
+    creator: "@bothub_ai",
   },
   icons: {
-    icon: "/yetti/logo2.jpg",
-    shortcut: "/yetti/logo2.jpg",
-    apple: "/yetti/logo2.jpg",
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
   },
   manifest: "/manifest.json",
 };
@@ -56,20 +56,20 @@ const structuredData = {
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://yetti.ai/#organization",
-      "name": "Yetti.ai",
-      "url": "https://yetti.ai"
+      "@id": "https://bothub.ai/#organization",
+      "name": "BotHub",
+      "url": "https://bothub.ai"
     },
     {
       "@type": "SoftwareApplication",
-      "@id": "https://yetti.ai/#app",
-      "name": "Yetti.ai",
-      "url": "https://yetti.ai",
+      "@id": "https://bothub.ai/#app",
+      "name": "BotHub",
+      "url": "https://bothub.ai",
       "applicationCategory": "MarketingAutomationApplication",
       "operatingSystem": "Web",
-      "description": "Yetti.ai is a social-media automation application that manages incoming messages, responds to customers, and handles conversations across supported platforms.",
+      "description": "BotHub is a social-media automation application that manages incoming messages, responds to customers, and handles conversations across supported platforms.",
       "provider": {
-        "@id": "https://yetti.ai/#organization"
+        "@id": "https://bothub.ai/#organization"
       },
       "featureList": [
         "Automated social media messaging workflows",
@@ -81,135 +81,135 @@ const structuredData = {
     },
     {
       "@type": "WebSite",
-      "@id": "https://yetti.ai/#website",
-      "url": "https://yetti.ai",
-      "name": "Yetti.ai",
+      "@id": "https://bothub.ai/#website",
+      "url": "https://bothub.ai",
+      "name": "BotHub",
       "publisher": {
-        "@id": "https://yetti.ai/#organization"
+        "@id": "https://bothub.ai/#organization"
       }
     },
     {
       "@type": "FAQPage",
-      "@id": "https://yetti.ai/#faq",
+      "@id": "https://bothub.ai/#faq",
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "What is Yetti.ai?",
+          "name": "What is BotHub?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yetti.ai is a social-media automation application that manages incoming messages, responds to customers, and handles conversations across supported platforms."
+            "text": "BotHub is a social-media automation application that manages incoming messages, responds to customers, and handles conversations across supported platforms."
           }
         },
         {
           "@type": "Question",
-          "name": "What does Yetti.ai help businesses do?",
+          "name": "What does BotHub help businesses do?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yetti.ai automates social media messaging workflows, captures leads, answers FAQs, handles online bookings, and can help sell products directly through chat."
+            "text": "BotHub automates social media messaging workflows, captures leads, answers FAQs, handles online bookings, and can help sell products directly through chat."
           }
         },
         {
           "@type": "Question",
-          "name": "Which platforms does Yetti.ai support?",
+          "name": "Which platforms does BotHub support?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yetti.ai works with Meta messaging channels and is a verified Meta developer approved for business messaging automation and commerce use cases."
+            "text": "BotHub works with Meta messaging channels and is a verified Meta developer approved for business messaging automation and commerce use cases."
           }
         },
         {
           "@type": "Question",
-          "name": "How does Yetti.ai capture leads?",
+          "name": "How does BotHub capture leads?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yetti.ai can connect to Google Sheets and automatically store lead data collected from conversations and social media message flows."
+            "text": "BotHub can connect to Google Sheets and automatically store lead data collected from conversations and social media message flows."
           }
         },
         {
           "@type": "Question",
-          "name": "Can Yetti.ai be used to sell products?",
+          "name": "Can BotHub be used to sell products?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes, Yetti.ai can guide customers through product selections and support conversational sales flows to help sell products via chat."
+            "text": "Yes, BotHub can guide customers through product selections and support conversational sales flows to help sell products via chat."
           }
         },
         {
           "@type": "Question",
-          "name": "Does Yetti.ai handle appointment bookings?",
+          "name": "Does BotHub handle appointment bookings?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes, Yetti.ai can manage online bookings by helping customers schedule appointments or reservations directly within chat."
+            "text": "Yes, BotHub can manage online bookings by helping customers schedule appointments or reservations directly within chat."
           }
         },
         {
           "@type": "Question",
-          "name": "Can Yetti.ai respond to frequently asked questions?",
+          "name": "Can BotHub respond to frequently asked questions?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes, businesses can configure FAQs and automated responses so Yetti.ai can answer common customer questions instantly, 24/7."
+            "text": "Yes, businesses can configure FAQs and automated responses so BotHub can answer common customer questions instantly, 24/7."
           }
         },
         {
           "@type": "Question",
-          "name": "Who is Yetti.ai designed for?",
+          "name": "Who is BotHub designed for?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yetti.ai is designed for businesses and creators who receive a high volume of social-media messages and want to automate customer communication and workflows."
+            "text": "BotHub is designed for businesses and creators who receive a high volume of social-media messages and want to automate customer communication and workflows."
           }
         },
         {
           "@type": "Question",
-          "name": "Is Yetti.ai easy to set up?",
+          "name": "Is BotHub easy to set up?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes, Yetti.ai is beginner-friendly, with a simple onboarding flow that makes it easy to start automating messages quickly."
+            "text": "Yes, BotHub is beginner-friendly, with a simple onboarding flow that makes it easy to start automating messages quickly."
           }
         },
         {
           "@type": "Question",
-          "name": "Does Yetti.ai offer different plans or pricing tiers?",
+          "name": "Does BotHub offer different plans or pricing tiers?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes, Yetti.ai offers multiple subscription plans so businesses can choose a package that fits their messaging volume and automation needs."
+            "text": "Yes, BotHub offers multiple subscription plans so businesses can choose a package that fits their messaging volume and automation needs."
           }
         },
         {
           "@type": "Question",
-          "name": "What makes Yetti.ai different from a basic chatbot?",
+          "name": "What makes BotHub different from a basic chatbot?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Unlike simple chatbots, Yetti.ai is workflow-driven and can integrate with tools like Google Sheets to execute real operational tasks such as lead capture and order handling."
+            "text": "Unlike simple chatbots, BotHub is workflow-driven and can integrate with tools like Google Sheets to execute real operational tasks such as lead capture and order handling."
           }
         },
         {
           "@type": "Question",
-          "name": "How does Yetti.ai benefit businesses?",
+          "name": "How does BotHub benefit businesses?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yetti.ai saves time, reduces manual message handling, improves response speed, and ensures customers receive consistent and accurate replies."
+            "text": "BotHub saves time, reduces manual message handling, improves response speed, and ensures customers receive consistent and accurate replies."
           }
         },
         {
           "@type": "Question",
-          "name": "Can Yetti.ai integrate with external tools?",
+          "name": "Can BotHub integrate with external tools?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes, Yetti.ai can integrate with external tools such as Google Sheets to sync lead data and support automated workflows."
+            "text": "Yes, BotHub can integrate with external tools such as Google Sheets to sync lead data and support automated workflows."
           }
         },
         {
           "@type": "Question",
-          "name": "Is Yetti.ai approved for Meta messaging automation?",
+          "name": "Is BotHub approved for Meta messaging automation?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes, Yetti.ai is a verified Meta developer and is approved for social-media messaging automation and commerce-related use cases."
+            "text": "Yes, BotHub is a verified Meta developer and is approved for social-media messaging automation and commerce-related use cases."
           }
         },
         {
           "@type": "Question",
-          "name": "Is Yetti.ai suitable for small and growing businesses?",
+          "name": "Is BotHub suitable for small and growing businesses?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes, Yetti.ai is suitable for small and growing businesses and is designed to scale as messaging volume and automation needs increase."
+            "text": "Yes, BotHub is suitable for small and growing businesses and is designed to scale as messaging volume and automation needs increase."
           }
         }
       ]

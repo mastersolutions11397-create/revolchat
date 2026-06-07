@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://yetti.ai";
 
     await resend.emails.send({
-      from: "Yetti AI <notifications@yetti.ai>",
+      from: "BotHub <notifications@yetti.ai>",
       to: user.email,
       subject: `A user's trial on "${bot_name}" has expired`,
       html: `
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
             </a>
           </div>
           <p style="color:#6B7280;font-size:13px;">
-            Yetti AI — trial expiry notification
+            BotHub — trial expiry notification
           </p>
         </div>
       `,

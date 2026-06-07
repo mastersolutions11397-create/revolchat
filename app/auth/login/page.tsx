@@ -93,7 +93,7 @@ export default function LoginPage() {
             <Link href="/" className="inline-block hover:opacity-80 transition-opacity" aria-label="Go to homepage">
               <Image
                 src="/yetti/logo2.jpg"
-                alt="Yetti"
+                alt="BotHub"
                 width={120}
                 height={40}
                 className="h-8 w-auto object-contain"
@@ -224,7 +224,7 @@ export default function LoginPage() {
 
           <div className="relative z-10 text-center text-white">
             <div className="w-20 h-20 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center mx-auto mb-6 ring-1 ring-white/20">
-              <Image src="/yetti/logo2.jpg" alt="Yetti" width={48} height={48} className="object-contain rounded-xl" />
+              <Image src="/yetti/logo2.jpg" alt="BotHub" width={48} height={48} className="object-contain rounded-xl" />
             </div>
             <h2 className="text-2xl font-bold mb-3">Automate your conversations</h2>
             <p className="text-white/75 text-sm leading-relaxed max-w-xs">
