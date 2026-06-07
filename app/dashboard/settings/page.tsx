@@ -413,22 +413,15 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6 sm:space-y-8 w-full max-w-7xl mx-auto animate-fade-in-up px-0">
-      {/* Banner */}
-      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-teal-primary via-[#0d6159] to-slate-800 p-4 sm:p-6 md:p-8 text-white shadow-2xl shadow-slate-200/50 ring-1 ring-slate-900/5">
-        <div className="absolute top-0 right-0 -mt-20 -mr-20 h-96 w-96 rounded-full bg-teal-accent/20 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-80 w-80 rounded-full bg-teal-accent/20 blur-3xl" />
-
-        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5">
-          <div className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-md shadow-inner ring-1 ring-white/20 shrink-0">
-            <SettingsIcon className="h-6 w-6 sm:h-8 sm:w-8 text-teal-accent" />
+      {/* Page Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center shrink-0">
+            <SettingsIcon className="w-5 h-5 text-brand" aria-hidden="true" />
           </div>
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white">
-              {t("settings.title")}
-            </h1>
-            <p className="mt-1 text-slate-300 text-sm sm:text-base md:text-lg">
-              {t("settings.subtitle")}
-            </p>
+          <div>
+            <h1 className="text-xl font-bold text-text-primary">{t("settings.title")}</h1>
+            <p className="text-sm text-text-muted">Manage your account and preferences</p>
           </div>
         </div>
       </div>
@@ -436,35 +429,35 @@ export default function SettingsPage() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         <div className="lg:col-span-3 space-y-8">
           {/* Profile Section */}
-          <div className="rounded-2xl border border-dashboard-border bg-dashboard-card overflow-hidden shadow-sm">
-            <div className="bg-gradient-to-br from-dashboard-bg via-teal-primary/5 to-dashboard-bg px-8 py-6 border-b border-dashboard-border">
+          <div className="rounded-2xl border border-border bg-surface overflow-hidden shadow-sm">
+            <div className="bg-gradient-to-br from-background via-brand/5 to-background px-8 py-6 border-b border-border">
               <div className="flex items-center gap-5">
                 {/* Avatar */}
                 <div className="relative">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-teal-primary text-2xl font-bold text-white shadow-lg ring-4 ring-white">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-brand text-2xl font-bold text-white shadow-lg ring-4 ring-white">
                     {getInitials()}
                   </div>
                 </div>
 
                 {/* Name and Email */}
                 <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-slate-900">
+                  <h2 className="text-2xl font-bold text-text-primary">
                     {getUserName()}
                   </h2>
                   <div className="flex items-center gap-2 mt-1">
-                    <Mail className="h-4 w-4 text-slate-500" />
-                    <p className="text-slate-600">{profileData.email}</p>
+                    <Mail className="h-4 w-4 text-text-muted" />
+                    <p className="text-text-secondary">{profileData.email}</p>
                   </div>
                 </div>
 
                 {/* Account Badge */}
                 <div className="hidden sm:flex flex-col items-end gap-2">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-teal-primary/10 px-4 py-1.5 text-sm font-bold text-teal-primary border border-teal-primary/20">
-                    <div className="h-2 w-2 rounded-full bg-teal-primary animate-pulse"></div>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-brand/10 px-4 py-1.5 text-sm font-bold text-brand border border-brand/20">
+                    <div className="h-2 w-2 rounded-full bg-brand animate-pulse"></div>
                     {t("settings.profile.active")}
                   </div>
                   {user && (
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                    <div className="flex items-center gap-1.5 text-xs text-text-muted">
                       <Calendar className="h-3.5 w-3.5" />
                       <span>
                         {t("settings.profile.since")}{" "}
@@ -482,20 +475,20 @@ export default function SettingsPage() {
             <div className="p-8">
               {profileLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-8 w-8 animate-spin text-teal-primary" />
+                  <Loader2 className="h-8 w-8 animate-spin text-brand" />
                 </div>
               ) : (
                 <div className="space-y-6">
                   <div>
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="p-2 bg-teal-primary/10 rounded-lg text-teal-primary">
+                      <div className="p-2 bg-brand/10 rounded-lg text-brand">
                         <UserCircle2 className="h-5 w-5" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-slate-900">
+                        <h3 className="text-lg font-bold text-text-primary">
                           {t("settings.profile.title")}
                         </h3>
-                        <p className="text-sm text-slate-500">
+                        <p className="text-sm text-text-muted">
                           {t("settings.profile.subtitle")}
                         </p>
                       </div>
@@ -503,7 +496,7 @@ export default function SettingsPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        <label className="block text-sm font-semibold text-text-secondary mb-2">
                           {t("settings.profile.firstName")}
                         </label>
                         <input
@@ -515,13 +508,13 @@ export default function SettingsPage() {
                               first_name: e.target.value,
                             })
                           }
-                          className="w-full rounded-xl border border-dashboard-border bg-dashboard-bg px-4 py-3 text-slate-900 transition-all hover:border-teal-accent focus:border-teal-primary focus:bg-dashboard-card focus:outline-none focus:ring-4 focus:ring-teal-primary/10"
+                          className="w-full rounded-xl border border-border bg-background px-4 py-3 text-text-primary transition-all hover:border-brand-light focus:border-brand focus:bg-surface focus:outline-none focus:ring-4 focus:ring-brand/10"
                           placeholder={t("settings.profile.enterFirstName")}
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        <label className="block text-sm font-semibold text-text-secondary mb-2">
                           {t("settings.profile.lastName")}
                         </label>
                         <input
@@ -533,14 +526,14 @@ export default function SettingsPage() {
                               last_name: e.target.value,
                             })
                           }
-                          className="w-full rounded-xl border border-dashboard-border bg-dashboard-bg px-4 py-3 text-slate-900 transition-all hover:border-teal-accent focus:border-teal-primary focus:bg-dashboard-card focus:outline-none focus:ring-4 focus:ring-teal-primary/10"
+                          className="w-full rounded-xl border border-border bg-background px-4 py-3 text-text-primary transition-all hover:border-brand-light focus:border-brand focus:bg-surface focus:outline-none focus:ring-4 focus:ring-brand/10"
                           placeholder={t("settings.profile.enterLastName")}
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
-                          <Building2 className="h-4 w-4 text-slate-500" />
+                        <label className="block text-sm font-semibold text-text-secondary mb-2 flex items-center gap-2">
+                          <Building2 className="h-4 w-4 text-text-muted" />
                           {t("settings.profile.company")}
                         </label>
                         <input
@@ -552,14 +545,14 @@ export default function SettingsPage() {
                               company: e.target.value,
                             })
                           }
-                          className="w-full rounded-xl border border-dashboard-border bg-dashboard-bg px-4 py-3 text-slate-900 transition-all hover:border-teal-accent focus:border-teal-primary focus:bg-dashboard-card focus:outline-none focus:ring-4 focus:ring-teal-primary/10"
+                          className="w-full rounded-xl border border-border bg-background px-4 py-3 text-text-primary transition-all hover:border-brand-light focus:border-brand focus:bg-surface focus:outline-none focus:ring-4 focus:ring-brand/10"
                           placeholder={t("settings.profile.enterCompanyName")}
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-slate-500" />
+                        <label className="block text-sm font-semibold text-text-secondary mb-2 flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-text-muted" />
                           {t("settings.profile.phone")}
                         </label>
                         <input
@@ -571,30 +564,30 @@ export default function SettingsPage() {
                               phone: e.target.value,
                             })
                           }
-                          className="w-full rounded-xl border border-dashboard-border bg-dashboard-bg px-4 py-3 text-slate-900 transition-all hover:border-teal-accent focus:border-teal-primary focus:bg-dashboard-card focus:outline-none focus:ring-4 focus:ring-teal-primary/10"
+                          className="w-full rounded-xl border border-border bg-background px-4 py-3 text-text-primary transition-all hover:border-brand-light focus:border-brand focus:bg-surface focus:outline-none focus:ring-4 focus:ring-brand/10"
                           placeholder={t("settings.profile.enterPhoneNumber")}
                         />
                       </div>
 
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-slate-500" />
+                        <label className="block text-sm font-semibold text-text-secondary mb-2 flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-text-muted" />
                           {t("settings.profile.email")}
                         </label>
                         <input
                           type="email"
                           value={profileData.email}
                           disabled
-                              className="w-full rounded-xl border border-dashboard-border bg-dashboard-bg px-4 py-3 text-slate-600 cursor-not-allowed"
+                              className="w-full rounded-xl border border-border bg-background px-4 py-3 text-text-secondary cursor-not-allowed"
                         />
-                        <p className="text-xs text-slate-500 mt-2">
+                        <p className="text-xs text-text-muted mt-2">
                           {t("settings.profile.emailCannotChange")}
                         </p>
                       </div>
 
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
-                          <Ticket className="h-4 w-4 text-slate-500" />
+                        <label className="block text-sm font-semibold text-text-secondary mb-2 flex items-center gap-2">
+                          <Ticket className="h-4 w-4 text-text-muted" />
                           {t("settings.profile.referralCode")}
                         </label>
                         <div className="flex gap-3">
@@ -609,10 +602,10 @@ export default function SettingsPage() {
                               placeholder={t(
                                 "settings.profile.enterReferralCode"
                               )}
-                              className={`w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-900 transition-all ${
+                              className={`w-full rounded-xl border border-border px-4 py-3 text-text-primary transition-all ${
                                 referralCodeUsed
-                                  ? "bg-slate-100 text-slate-600 cursor-not-allowed"
-                                  : "bg-dashboard-bg hover:border-teal-accent focus:border-teal-primary focus:bg-dashboard-card focus:outline-none focus:ring-4 focus:ring-teal-primary/10"
+                                  ? "bg-background text-text-secondary cursor-not-allowed"
+                                  : "bg-background hover:border-brand-light focus:border-brand focus:bg-surface focus:outline-none focus:ring-4 focus:ring-brand/10"
                               }`}
                             />
                             {referralCodeUsed && (
@@ -639,7 +632,7 @@ export default function SettingsPage() {
                               disabled={
                                 referralLinking || !newReferralCode.trim()
                               }
-                              className="px-6 py-3 bg-teal-primary text-white rounded-xl font-bold text-sm hover:bg-teal-accent transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                              className="px-6 py-3 bg-brand text-white rounded-xl font-bold text-sm hover:bg-brand-light transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                               {referralLinking && (
                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -648,7 +641,7 @@ export default function SettingsPage() {
                             </button>
                           )}
                         </div>
-                        <p className="text-xs text-slate-500 mt-2">
+                        <p className="text-xs text-text-muted mt-2">
                           {referralCodeUsed
                             ? t("settings.profile.referralApplied")
                             : t("settings.profile.referralInstructions")}
@@ -657,11 +650,11 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  <div className="flex justify-end pt-6 border-t border-dashboard-border">
+                  <div className="flex justify-end pt-6 border-t border-border">
                     <button
                       onClick={handleSaveProfile}
                       disabled={profileSaving}
-                      className="inline-flex items-center gap-2 rounded-xl bg-teal-primary px-8 py-3.5 text-sm font-bold text-white transition-all hover:bg-teal-accent hover:shadow-lg hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                      className="inline-flex items-center gap-2 rounded-xl bg-brand px-8 py-3.5 text-sm font-bold text-white transition-all hover:bg-brand-light hover:shadow-lg hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
                     >
                       {profileSaving && (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -675,23 +668,23 @@ export default function SettingsPage() {
           </div>
 
           {/* Notification Settings */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="rounded-2xl border border-border bg-surface p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 bg-amber-50 rounded-lg text-amber-600">
                 <Bell className="h-5 w-5" />
               </div>
-              <h2 className="text-xl font-bold text-slate-900">
+              <h2 className="text-xl font-bold text-text-primary">
                 {t("settings.notifications.title")}
               </h2>
             </div>
 
-            <div className="space-y-6 divide-y divide-slate-100">
+            <div className="space-y-6 divide-y divide-border">
               <div className="flex items-center justify-between pt-2">
                 <div>
-                  <h3 className="text-base font-semibold text-slate-900">
+                  <h3 className="text-base font-semibold text-text-primary">
                     {t("settings.notifications.email")}
                   </h3>
-                  <p className="text-slate-500 text-sm mt-0.5">
+                  <p className="text-text-muted text-sm mt-0.5">
                     {t("settings.notifications.emailDesc")}
                   </p>
                 </div>
@@ -713,10 +706,10 @@ export default function SettingsPage() {
 
               <div className="flex items-center justify-between pt-6">
                 <div>
-                  <h3 className="text-base font-semibold text-slate-900">
+                  <h3 className="text-base font-semibold text-text-primary">
                     {t("settings.notifications.sms")}
                   </h3>
-                  <p className="text-slate-500 text-sm mt-0.5">
+                  <p className="text-text-muted text-sm mt-0.5">
                     {t("settings.notifications.smsDesc")}
                   </p>
                 </div>
@@ -738,10 +731,10 @@ export default function SettingsPage() {
 
               <div className="flex items-center justify-between pt-6">
                 <div>
-                  <h3 className="text-base font-semibold text-slate-900">
+                  <h3 className="text-base font-semibold text-text-primary">
                     {t("settings.notifications.push")}
                   </h3>
-                  <p className="text-slate-500 text-sm mt-0.5">
+                  <p className="text-text-muted text-sm mt-0.5">
                     {t("settings.notifications.pushDesc")}
                   </p>
                 </div>
@@ -764,12 +757,12 @@ export default function SettingsPage() {
           </div>
 
           {/* Account Actions */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="rounded-2xl border border-border bg-surface p-8 shadow-sm">
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-slate-100 rounded-lg text-slate-600">
+              <div className="p-2 bg-background rounded-lg text-text-secondary">
                 <Shield className="h-5 w-5" />
               </div>
-              <h2 className="text-xl font-bold text-slate-900">
+              <h2 className="text-xl font-bold text-text-primary">
                 {t("settings.account.title")}
               </h2>
             </div>
