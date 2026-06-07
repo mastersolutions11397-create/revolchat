@@ -178,52 +178,29 @@ export default function AgentsPage() {
 
   return (
     <div className="flex flex-col gap-4 sm:gap-6 w-full max-w-7xl mx-auto lg:min-h-[calc(100vh-8rem)]">
-      {/* Header */}
-      <div className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-br from-teal-primary via-[#0d6159] to-slate-800 p-4 sm:p-6 md:p-8 text-white shadow-xl overflow-visible">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 rounded-full bg-teal-accent/20 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 rounded-full bg-teal-accent/20 blur-3xl" />
-        <div className="relative z-10 flex flex-col gap-4 sm:gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 min-w-0">
-            <div className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-xl sm:rounded-2xl bg-white/10 backdrop-blur-md shadow-inner border border-white/20 shrink-0">
-              <Bot className="h-6 w-6 sm:h-8 sm:w-8 text-teal-accent" />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white">
-                AI Agents
-              </h1>
-              <p className="mt-1 sm:mt-2 text-sm sm:text-base md:text-lg text-white/80 max-w-xl">
-                Create and manage your agents. Configure system prompts, models,
-                and API keys then test them in the chat
-              </p>
-            </div>
+      {/* Page Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center shrink-0">
+            <FileText className="w-5 h-5 text-brand" aria-hidden="true" />
           </div>
-          <div className="relative z-50 shrink-0">
-            <button
-              type="button"
-              data-tour="add-agent-button"
-              onClick={() => {
-                resetAddAgentForm();
-                setAddAgentModalOpen(true);
-              }}
-              className="inline-flex items-center gap-2 rounded-xl bg-white text-slate-900 px-6 py-3 text-sm font-bold transition-all hover:bg-teal-primary/10 hover:text-teal-primary shadow-lg shadow-black/10 active:scale-[0.98]"
-            >
-              <Plus className="h-5 w-5" />
-              Add Agent
-            </button>
+          <div>
+            <h1 className="text-xl font-bold text-text-primary">Knowledge Base</h1>
+            <p className="text-sm text-text-muted">Train your bots with documents and FAQs</p>
           </div>
         </div>
       </div>
 
       {/* Agents list + Test Chat */}
       <div className="flex flex-col gap-4 sm:gap-6 xl:flex-row xl:items-start">
-        <div className="flex min-h-[320px] h-[40vh] sm:h-[420px] xl:h-[522px] flex-1 flex-col overflow-hidden rounded-xl sm:rounded-2xl border border-dashboard-border bg-dashboard-card shadow-lg min-w-0">
-          <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4 border-b border-dashboard-border bg-gradient-to-br from-dashboard-bg via-teal-primary/5 to-dashboard-bg px-4 sm:px-6 py-3 sm:py-4">
+        <div className="flex min-h-[320px] h-[40vh] sm:h-[420px] xl:h-[522px] flex-1 flex-col overflow-hidden rounded-xl sm:rounded-2xl border border-border bg-surface shadow-lg min-w-0">
+          <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4 border-b border-border bg-gradient-to-br from-background via-brand/5 to-background px-4 sm:px-6 py-3 sm:py-4">
             <div>
-              <h3 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                <Bot className="h-5 w-5 text-teal-primary" />
+              <h3 className="text-xl font-bold text-text-primary flex items-center gap-2">
+                <Bot className="h-5 w-5 text-brand" />
                 Your Agents
               </h3>
-              <p className="text-sm text-slate-600 mt-1">
+              <p className="text-sm text-text-muted mt-1">
                 {agents.length === 0
                   ? "No agents yet"
                   : agents.length === 1
@@ -235,8 +212,8 @@ export default function AgentsPage() {
           <div className="flex-1 overflow-y-auto p-4">
             {agentsLoading ? (
               <div className="flex h-full items-center justify-center">
-                <div className="flex flex-col items-center gap-3 text-slate-500">
-                  <Loader2 className="h-8 w-8 animate-spin text-teal-primary" />
+                <div className="flex flex-col items-center gap-3 text-text-muted">
+                  <Loader2 className="h-8 w-8 animate-spin text-brand" />
                   <p className="text-sm">Loading agents…</p>
                 </div>
               </div>
@@ -246,14 +223,14 @@ export default function AgentsPage() {
                   <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-red-600">
                     <AlertCircle className="h-6 w-6" />
                   </div>
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p className="text-sm font-semibold text-text-primary">
                     Could not load agents
                   </p>
-                  <p className="mt-1 text-xs text-slate-500">{agentsError}</p>
+                  <p className="mt-1 text-xs text-text-muted">{agentsError}</p>
                   <button
                     type="button"
                     onClick={() => fetchAgents()}
-                    className="mt-3 text-sm font-medium text-teal-primary hover:underline"
+                    className="mt-3 text-sm font-medium text-brand hover:underline"
                   >
                     Try again
                   </button>
@@ -262,13 +239,13 @@ export default function AgentsPage() {
             ) : agents.length === 0 ? (
               <div className="flex h-full items-center justify-center">
                 <div className="text-center">
-                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-teal-primary/10 text-teal-primary">
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-brand/10 text-brand">
                     <Bot className="h-6 w-6" />
                   </div>
-                  <p className="text-sm font-semibold text-gray-900">
+                  <p className="text-sm font-semibold text-text-primary">
                     No agents yet
                   </p>
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-text-muted">
                     Use “Add Agent” to create your first agent.
                   </p>
                 </div>
@@ -278,27 +255,27 @@ export default function AgentsPage() {
                 {agents.map((agent) => (
                   <div
                     key={agent.id}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-dashboard-border bg-white p-4 shadow-sm hover:border-teal-primary/30 transition-colors"
+                    className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface p-4 shadow-sm hover:border-brand/30 transition-colors"
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-slate-900 truncate">
+                      <p className="text-sm font-semibold text-text-primary truncate">
                         {agent.name}
                       </p>
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="text-xs text-text-muted mt-0.5">
                         {MODEL_LABELS[agent.modelId ?? ""] ?? agent.modelId ?? agent.model}
                       </p>
-                      <p className="text-xs text-slate-400 mt-1 truncate">
+                      <p className="text-xs text-text-muted mt-1 truncate">
                         {agent.systemPrompt.slice(0, 60)}
                         {agent.systemPrompt.length > 60 ? "…" : ""}
                       </p>
-                      <p className="text-[10px] text-slate-400 mt-1 font-mono">
+                      <p className="text-[10px] text-text-muted mt-1 font-mono">
                         API key: {maskApiKey(agent.apiKey)}
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => handleDeleteAgent(agent.id)}
-                      className="flex-shrink-0 p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="flex-shrink-0 p-2 text-text-muted hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       title="Remove agent"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -313,7 +290,7 @@ export default function AgentsPage() {
         <div
           className={
             chatExpanded
-              ? "fixed inset-4 z-50 min-h-0 flex flex-col rounded-2xl shadow-2xl ring-2 ring-slate-200/50 bg-white"
+              ? "fixed inset-4 z-50 min-h-0 flex flex-col rounded-2xl shadow-2xl ring-2 ring-slate-200/50 bg-surface"
               : "min-h-[320px] h-[40vh] sm:h-[420px] xl:h-[520px] xl:w-[360px] xl:flex-shrink-0 min-w-0"
           }
         >
@@ -332,19 +309,19 @@ export default function AgentsPage() {
 
       {/* Add Agent Modal */}
       {addAgentModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="w-full max-h-[90vh] max-w-2xl overflow-y-auto rounded-2xl border border-white/20 bg-white shadow-2xl ring-1 ring-black/5 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="w-full max-h-[90vh] max-w-2xl overflow-y-auto rounded-2xl border border-white/20 bg-surface shadow-2xl ring-1 ring-black/5 animate-in zoom-in-95 duration-200">
             <div className="p-6 space-y-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-primary/10 text-teal-primary shadow-sm">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand shadow-sm">
                     <Bot className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900">
+                    <h3 className="text-lg font-bold text-text-primary">
                       Add Agent
                     </h3>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-text-muted">
                       Configure system prompt, model, and API key.
                     </p>
                   </div>
@@ -355,7 +332,7 @@ export default function AgentsPage() {
                     resetAddAgentForm();
                     setAddAgentModalOpen(false);
                   }}
-                  className="rounded-lg p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
+                  className="rounded-lg p-2 text-text-muted hover:bg-background hover:text-text-secondary transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -370,7 +347,7 @@ export default function AgentsPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                  <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1.5 ml-1">
                     Agent name (optional)
                   </label>
                   <input
@@ -378,12 +355,12 @@ export default function AgentsPage() {
                     value={agentName}
                     onChange={(e) => setAgentName(e.target.value)}
                     placeholder="e.g. Support Bot, Sales Assistant"
-                    className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-dashboard-border rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all placeholder:text-slate-400"
+                    className="w-full px-4 py-2.5 text-sm bg-background border border-border rounded-xl focus:bg-surface focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all placeholder:text-text-muted"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                  <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1.5 ml-1">
                     System prompt
                   </label>
                   <textarea
@@ -391,12 +368,12 @@ export default function AgentsPage() {
                     onChange={(e) => setAgentSystemPrompt(e.target.value)}
                     placeholder="You are a helpful assistant. You..."
                     rows={5}
-                    className="w-full px-4 py-3 text-sm bg-slate-50 border border-dashboard-border rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all resize-none placeholder:text-slate-400"
+                    className="w-full px-4 py-3 text-sm bg-background border border-border rounded-xl focus:bg-surface focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all resize-none placeholder:text-text-muted"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                  <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1.5 ml-1">
                     Provider
                   </label>
                   <select
@@ -407,7 +384,7 @@ export default function AgentsPage() {
                       const ids = MODEL_IDS_BY_PROVIDER[next];
                       setAgentModelId(ids?.[0] ?? "");
                     }}
-                    className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-dashboard-border rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                    className="w-full px-4 py-2.5 text-sm bg-background border border-border rounded-xl focus:bg-surface focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
                   >
                     {MODEL_PROVIDERS.map((m) => (
                       <option key={m} value={m}>
@@ -417,13 +394,13 @@ export default function AgentsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                  <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1.5 ml-1">
                     Model ID (optional)
                   </label>
                   <select
                     value={agentModelId}
                     onChange={(e) => setAgentModelId(e.target.value)}
-                    className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-dashboard-border rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                    className="w-full px-4 py-2.5 text-sm bg-background border border-border rounded-xl focus:bg-surface focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
                   >
                     {MODEL_IDS_BY_PROVIDER[agentModel]?.map((id) => (
                       <option key={id} value={id}>
@@ -434,7 +411,7 @@ export default function AgentsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5 ml-1">
+                  <label className="block text-xs font-semibold text-text-muted uppercase tracking-wider mb-1.5 ml-1">
                     API key
                   </label>
                   <input
@@ -442,10 +419,10 @@ export default function AgentsPage() {
                     value={agentApiKey}
                     onChange={(e) => setAgentApiKey(e.target.value)}
                     placeholder="sk-... or your provider API key"
-                    className="w-full px-4 py-2.5 text-sm bg-slate-50 border border-dashboard-border rounded-xl focus:bg-white focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all placeholder:text-slate-400"
+                    className="w-full px-4 py-2.5 text-sm bg-background border border-border rounded-xl focus:bg-surface focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all placeholder:text-text-muted"
                     autoComplete="off"
                   />
-                  <p className="text-[10px] text-slate-500 mt-1 ml-1">
+                  <p className="text-[10px] text-text-muted mt-1 ml-1">
                     Stored locally in this browser. Never shared with our
                     servers.
                   </p>
@@ -457,7 +434,7 @@ export default function AgentsPage() {
                   type="button"
                   onClick={handleAddAgent}
                   disabled={addAgentSaving}
-                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-teal-primary text-white px-4 py-3 text-sm font-bold shadow-lg shadow-teal-primary/25 hover:bg-teal-primary/90 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-brand text-white px-4 py-3 text-sm font-bold shadow-lg shadow-brand/25 hover:bg-brand/90 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {addAgentSaving ? (
                     <>
@@ -474,7 +451,7 @@ export default function AgentsPage() {
                     resetAddAgentForm();
                     setAddAgentModalOpen(false);
                   }}
-                  className="px-4 py-3 border border-dashboard-border text-slate-600 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-all"
+                  className="px-4 py-3 border border-border text-text-secondary rounded-xl font-semibold text-sm hover:bg-background transition-all"
                 >
                   Cancel
                 </button>
@@ -678,19 +655,19 @@ function ChatPanel({
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
       <div
-        className="flex-none border-b border-gray-200 px-4 py-3 sm:px-6 sm:py-4 space-y-3"
+        className="flex-none border-b border-border px-4 py-3 sm:px-6 sm:py-4 space-y-3"
         data-tour="test-chat-section"
       >
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-xl font-semibold text-gray-900">Test Chat</h3>
+          <h3 className="text-xl font-semibold text-text-primary">Test Chat</h3>
           <div className="flex items-center gap-1">
             {hasKnowledge && conversationId && (
               <button
                 type="button"
                 onClick={handleNewChat}
-                className="text-xs font-medium text-teal-primary hover:underline"
+                className="text-xs font-medium text-brand hover:underline"
               >
                 New chat
               </button>
@@ -699,7 +676,7 @@ function ChatPanel({
               <button
                 type="button"
                 onClick={onToggleExpand}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                className="p-2 text-text-muted hover:text-text-secondary hover:bg-background rounded-lg transition-colors"
                 aria-label={expanded ? "Minimize chat" : "Expand chat"}
                 title={expanded ? "Minimize" : "Expand"}
               >
@@ -714,13 +691,13 @@ function ChatPanel({
         </div>
         {hasKnowledge && (
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">
+            <label className="block text-xs font-medium text-text-muted mb-1">
               Agent
             </label>
             <select
               value={selectedAgentId ?? ""}
               onChange={(e) => setSelectedAgentId(e.target.value || null)}
-              className="w-full rounded-lg border border-dashboard-border bg-white px-3 py-2 text-sm text-slate-900 focus:border-teal-primary focus:ring-1 focus:ring-teal-primary"
+              className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text-primary focus:border-brand focus:ring-1 focus:ring-brand"
             >
               <option value="">Select an agent…</option>
               {agents.map((a) => (
@@ -763,7 +740,7 @@ function ChatPanel({
                     ? "rounded-br-md bg-gradient-to-br from-sky-500 via-sky-500 to-sky-500 text-white shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/30"
                     : message.isError
                       ? "rounded-bl-md border-2 border-red-200 bg-red-50 text-red-900 shadow-sm"
-                      : "rounded-bl-md border border-dashboard-border bg-white text-slate-800 shadow-md hover:shadow-lg"
+                      : "rounded-bl-md border border-border bg-surface text-text-secondary shadow-md hover:shadow-lg"
                 }`}
               >
                 {message.role === "assistant" ? (
@@ -772,15 +749,15 @@ function ChatPanel({
                   !message.content.trim() ? (
                     <div className="flex items-center gap-1 py-1" aria-label="Getting response…">
                       <span
-                        className="h-2 w-2 rounded-full bg-slate-400 animate-bounce"
+                        className="h-2 w-2 rounded-full bg-text-muted animate-bounce"
                         style={{ animationDelay: "0ms" }}
                       />
                       <span
-                        className="h-2 w-2 rounded-full bg-slate-400 animate-bounce"
+                        className="h-2 w-2 rounded-full bg-text-muted animate-bounce"
                         style={{ animationDelay: "150ms" }}
                       />
                       <span
-                        className="h-2 w-2 rounded-full bg-slate-400 animate-bounce"
+                        className="h-2 w-2 rounded-full bg-text-muted animate-bounce"
                         style={{ animationDelay: "300ms" }}
                       />
                     </div>
@@ -816,7 +793,7 @@ function ChatPanel({
                             <h3 className="mb-2 text-xs font-bold">{children}</h3>
                           ),
                           strong: ({ children }) => (
-                            <strong className="font-semibold text-slate-900">
+                            <strong className="font-semibold text-text-primary">
                               {children}
                             </strong>
                           ),
@@ -824,7 +801,7 @@ function ChatPanel({
                             <em className="italic">{children}</em>
                           ),
                           code: ({ children }) => (
-                            <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs font-mono text-teal-primary border border-dashboard-border">
+                            <code className="rounded bg-background px-1.5 py-0.5 text-xs font-mono text-brand border border-border">
                               {children}
                             </code>
                           ),
@@ -851,31 +828,31 @@ function ChatPanel({
         </div>
 
         {disabledReason && (
-          <div className="absolute inset-0 -z-10 bg-white/50 backdrop-blur-sm p-6 space-y-4 overflow-hidden">
+          <div className="absolute inset-0 -z-10 bg-surface/50 backdrop-blur-sm p-6 space-y-4 overflow-hidden">
             {hasGoogleSheet ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-slate-100 flex flex-col items-center gap-2 text-center max-w-xs">
+                <div className="bg-surface/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-border flex flex-col items-center gap-2 text-center max-w-xs">
                   <div className="h-10 w-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500 mb-1">
                     <FileSpreadsheet className="h-5 w-5" />
                   </div>
-                  <p className="text-sm font-semibold text-slate-800">
+                  <p className="text-sm font-semibold text-text-secondary">
                     {t("knowledgeBase.chatDisabled")}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-text-muted">
                     {t("knowledgeBase.chatNotAvailableWithSheet")}
                   </p>
                 </div>
               </div>
             ) : !hasKnowledge ? (
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-slate-100 flex flex-col items-center gap-2 text-center max-w-xs">
-                  <div className="h-10 w-10 rounded-full bg-teal-primary/10 flex items-center justify-center text-teal-primary mb-1">
+                <div className="bg-surface/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl border border-border flex flex-col items-center gap-2 text-center max-w-xs">
+                  <div className="h-10 w-10 rounded-full bg-brand/10 flex items-center justify-center text-brand mb-1">
                     <FileText className="h-5 w-5" />
                   </div>
-                  <p className="text-sm font-semibold text-slate-800">
+                  <p className="text-sm font-semibold text-text-secondary">
                     {noItemsMessage ?? t("knowledgeBase.noKnowledgeYet")}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-text-muted">
                     {useAddToStartMessage ??
                       t("knowledgeBase.useAddKnowledgeToStart")}
                   </p>
@@ -885,22 +862,22 @@ function ChatPanel({
               <>
                 <div className="flex flex-col gap-4 opacity-50">
                   <div className="flex justify-start">
-                    <div className="h-10 w-3/4 rounded-2xl rounded-tl-none bg-slate-100 animate-pulse" />
+                    <div className="h-10 w-3/4 rounded-2xl rounded-tl-none bg-background animate-pulse" />
                   </div>
                   <div className="flex justify-end">
-                    <div className="h-16 w-2/3 rounded-2xl rounded-tr-none bg-teal-primary/10 animate-pulse" />
+                    <div className="h-16 w-2/3 rounded-2xl rounded-tr-none bg-brand/10 animate-pulse" />
                   </div>
                   <div className="flex justify-start">
-                    <div className="h-12 w-1/2 rounded-2xl rounded-tl-none bg-slate-100 animate-pulse" />
+                    <div className="h-12 w-1/2 rounded-2xl rounded-tl-none bg-background animate-pulse" />
                   </div>
                   <div className="flex justify-end">
-                    <div className="h-8 w-1/3 rounded-2xl rounded-tr-none bg-teal-primary/10 animate-pulse" />
+                    <div className="h-8 w-1/3 rounded-2xl rounded-tr-none bg-brand/10 animate-pulse" />
                   </div>
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-white/90 backdrop-blur-md px-6 py-3 rounded-full shadow-xl border border-slate-100 flex items-center gap-3">
-                    <Loader2 className="h-5 w-5 text-teal-primary animate-spin" />
-                    <span className="text-sm font-medium text-slate-600">
+                  <div className="bg-surface/90 backdrop-blur-md px-6 py-3 rounded-full shadow-xl border border-border flex items-center gap-3">
+                    <Loader2 className="h-5 w-5 text-brand animate-spin" />
+                    <span className="text-sm font-medium text-text-muted">
                       {t("knowledgeBase.loadingChat")}
                     </span>
                   </div>
@@ -911,7 +888,7 @@ function ChatPanel({
         )}
       </div>
 
-      <div className="flex-none border-t border-dashboard-border bg-gradient-to-br from-slate-50 via-sky-50/20 to-slate-50 px-6 py-4">
+      <div className="flex-none border-t border-border bg-gradient-to-br from-background via-sky-50/20 to-background px-6 py-4">
         <div className="flex gap-3">
           <div className="relative flex-1">
             <textarea
@@ -921,7 +898,7 @@ function ChatPanel({
               placeholder={t("knowledgeBase.typeMessage")}
               rows={1}
               disabled={!!disabledReason}
-              className="w-full resize-none rounded-xl border-2 border-dashboard-border bg-white px-4 py-3 pr-12 text-sm placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 transition-all shadow-sm hover:border-slate-300"
+              className="w-full resize-none rounded-xl border-2 border-border bg-surface px-4 py-3 pr-12 text-sm placeholder:text-text-muted focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-500/20 disabled:cursor-not-allowed disabled:bg-background disabled:text-text-muted transition-all shadow-sm hover:border-border"
               style={{ minHeight: "50px", maxHeight: "120px" }}
             />
           </div>
