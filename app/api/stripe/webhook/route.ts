@@ -5,31 +5,6 @@ import { PLAN_CONFIGS, PlanConfig } from "@/lib/stripe";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 import Stripe from "stripe";
 
-// Helper function to get current balance from Supabase
-async function getCurrentBalance(userId: string): Promise<number> {
-  try {
-    const { data: latestTransaction, error: balanceError } = await supabaseAdmin
-      .from("user_credits")
-      .select("balance")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (balanceError && balanceError.code !== "PGRST116") {
-      // PGRST116 is "no rows returned" which is fine for new users
-      console.error("Error fetching balance:", balanceError);
-      return 0;
-    }
-
-    // If no transactions exist, balance is 0
-    return latestTransaction?.balance ?? 0;
-  } catch (error) {
-    console.error("Error fetching balance:", error);
-    return 0;
-  }
-}
-
 export async function POST(request: NextRequest) {
   try {
     // Get the raw body as Uint8Array for proper signature verification
@@ -206,60 +181,9 @@ async function handleCheckoutSessionCompleted(
       }
     }
 
-    // Check if this is a one-time payment (credits purchase) or subscription
-    if (session.mode === "payment") {
-      // Handle one-time credits purchase
-      const planConfig: PlanConfig | undefined = (
-        Object.values(PLAN_CONFIGS) as PlanConfig[]
-      ).find(
-        (config) => config.priceId === session.line_items?.data[0]?.price?.id
-      );
+    // Subscription checkout — plan activation handled by invoice.payment_succeeded
+    console.log(`Subscription checkout completed for user ${userId}`);
 
-      if (planConfig && planConfig.name === "Yetti Credits") {
-        // Get current balance and calculate new balance
-        const currentBalance = await getCurrentBalance(userId);
-        const newBalance = currentBalance + planConfig.credits;
-
-        // Get invoice PDF URL if invoice exists
-        let invoiceUrl: string | null = null;
-        if (session.invoice) {
-          try {
-            const invoice = await stripe.invoices.retrieve(
-              session.invoice as string
-            );
-            invoiceUrl = invoice.invoice_pdf || null;
-          } catch (error) {
-            console.error("Error fetching invoice PDF:", error);
-          }
-        }
-
-        // Create credit transaction via Supabase
-        const { error: creditError } = await supabaseAdmin
-          .from("user_credits")
-          .insert({
-            user_id: userId,
-            transaction_type: "credit",
-            credits: planConfig.credits,
-            balance: newBalance,
-            description: `Purchased ${planConfig.credits} credits`,
-            source: "stripe_checkout",
-            invoice: invoiceUrl,
-          });
-
-        if (creditError) {
-          throw new Error(`Failed to credit credits: ${creditError.message}`);
-        }
-
-        console.log(
-          `Credited ${planConfig.credits} credits to user ${userId}, new balance: ${newBalance}`
-        );
-      }
-    } else if (session.mode === "subscription") {
-      // Handle subscription - this will be handled by the invoice.payment_succeeded event
-      console.log(
-        "Subscription checkout completed, waiting for invoice payment"
-      );
-    }
   } catch (error: unknown) {
     console.error("Error in handleCheckoutSessionCompleted:", {
       message: error instanceof Error ? error.message : "Unknown error",
@@ -447,33 +371,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
       userPlanId = newPlan.id;
     }
 
-    // Get current balance and calculate new balance
-    const currentBalance = await getCurrentBalance(userId);
-    const newBalance = currentBalance + planConfig.credits;
-
-    // Get invoice PDF URL
-    const invoiceUrl = invoice.invoice_pdf || null;
-
-    // Credit the monthly credits via Supabase
-    const { error: creditError } = await supabaseAdmin
-      .from("user_credits")
-      .insert({
-        user_id: userId,
-        transaction_type: "credit",
-        credits: planConfig.credits,
-        balance: newBalance,
-        description: `Monthly credits for ${planConfig.name} plan`,
-        source: "stripe_subscription",
-        invoice: invoiceUrl,
-      });
-
-    if (creditError) {
-      throw new Error(`Failed to credit credits: ${creditError.message}`);
-    }
-
-    console.log(
-      `Processed subscription payment for user ${userId}, plan ${planConfig.name}`
-    );
+    console.log(`Subscription payment processed for user ${userId}, plan ${planConfig.name}`);
 
     // Process referral commission
     await processReferralCommission({

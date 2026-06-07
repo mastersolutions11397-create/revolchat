@@ -51,10 +51,7 @@ export async function POST(request: NextRequest) {
           quantity: 1,
         },
       ],
-      mode:
-        priceId === process.env.STRIPE_PRICE_YETTI_CREDITS
-          ? "payment"
-          : "subscription",
+      mode: "subscription",
       customer: customerId, // Use existing customer if available
       customer_email: customerId ? undefined : userEmail, // Only set email if no customer
       metadata: {

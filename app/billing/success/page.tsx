@@ -70,7 +70,7 @@ function BillingSuccessContent() {
             Payment Successful!
           </h1>
           <p className="text-lg text-slate-600 max-w-md mx-auto">
-            Thank you for your purchase. Your credits have been added to your account.
+            Thank you for subscribing. Your plan is now active and you have full access to Yetti.
           </p>
         </div>
 
@@ -128,7 +128,7 @@ function BillingSuccessContent() {
         {/* Additional Info */}
         <div className="mt-8 text-center">
           <p className="text-sm text-slate-500">
-            Your credits are now available in your account. You can start using Yetti right away!
+            Your subscription is active. You can start using Yetti right away — no limits.
           </p>
         </div>
       </div>
