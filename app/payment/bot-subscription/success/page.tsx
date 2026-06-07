@@ -29,6 +29,15 @@ export default function BotSubscriptionSuccessPage() {
           </ul>
         </div>
 
+        <div className="bg-border-subtle rounded-xl p-4 mb-4 text-left">
+          <p className="text-xs font-semibold text-text-secondary mb-1">Managing your subscription</p>
+          <p className="text-xs text-text-muted leading-relaxed">
+            Stripe will email you a receipt with a link to manage or cancel your
+            subscription at any time. Your bot access continues as long as your
+            subscription is active.
+          </p>
+        </div>
+
         <p className="text-xs text-text-muted">
           Questions?{" "}
           <Link

@@ -87,6 +87,12 @@ export async function POST(request: NextRequest) {
         );
         break;
 
+      case "invoice.payment_failed":
+        await handleInvoicePaymentFailed(
+          event.data.object as Stripe.Invoice
+        );
+        break;
+
       case "customer.subscription.created":
         await handleSubscriptionCreated(
           event.data.object as Stripe.Subscription
@@ -264,11 +270,60 @@ async function handleCheckoutSessionCompleted(
   }
 }
 
+async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
+  try {
+    if (!invoice.subscription) return;
+
+    // Check if this is an end-user trial subscription
+    const { data: trial } = await supabaseAdmin
+      .from("end_user_trials")
+      .select("id")
+      .eq("stripe_subscription_id", invoice.subscription as string)
+      .maybeSingle();
+
+    if (trial) {
+      await supabaseAdmin
+        .from("end_user_trials")
+        .update({ status: "expired" })
+        .eq("id", trial.id);
+      console.log(`End-user trial ${trial.id} marked expired due to payment failure`);
+      return; // Don't process as admin plan
+    }
+
+    // Admin plan payment failure — log for visibility
+    console.warn("Admin plan invoice payment failed:", invoice.id);
+  } catch (error: unknown) {
+    console.error("Error in handleInvoicePaymentFailed:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      invoiceId: invoice?.id,
+    });
+  }
+}
+
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   try {
     if (!invoice.subscription) {
       console.log("Invoice without subscription, skipping");
       return;
+    }
+
+    // Handle end-user trial subscription renewal
+    const { data: trial } = await supabaseAdmin
+      .from("end_user_trials")
+      .select("id, status")
+      .eq("stripe_subscription_id", invoice.subscription as string)
+      .maybeSingle();
+
+    if (trial) {
+      // Keep/restore subscribed status on successful renewal
+      if (trial.status !== "subscribed") {
+        await supabaseAdmin
+          .from("end_user_trials")
+          .update({ status: "subscribed" })
+          .eq("id", trial.id);
+      }
+      console.log(`End-user trial ${trial.id} renewed successfully`);
+      return; // Don't process as admin plan
     }
 
     // Get the subscription details
@@ -730,6 +785,22 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   try {
+    // Check if this is an end-user trial subscription first
+    const { data: trial } = await supabaseAdmin
+      .from("end_user_trials")
+      .select("id")
+      .eq("stripe_subscription_id", subscription.id)
+      .maybeSingle();
+
+    if (trial) {
+      await supabaseAdmin
+        .from("end_user_trials")
+        .update({ status: "cancelled" })
+        .eq("id", trial.id);
+      console.log(`End-user trial ${trial.id} cancelled`);
+      return; // Don't process as admin plan
+    }
+
     const customer = (await stripe.customers.retrieve(
       subscription.customer as string
     )) as Stripe.Customer;
