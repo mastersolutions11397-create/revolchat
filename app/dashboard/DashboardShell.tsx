@@ -131,7 +131,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                 <Brain className="w-5 h-5 text-white" aria-hidden="true" />
               </div>
               {(sidebarExpanded || mobileSidebarOpen) && (
-                <span className="text-lg font-bold text-text-primary truncate">BotHub</span>
+                <span className="text-lg font-bold text-text-primary truncate">Revolchat</span>
               )}
             </Link>
             {/* Mobile close */}

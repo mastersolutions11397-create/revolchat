@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://yetti.ai";
 
     await resend.emails.send({
-      from: "BotHub <notifications@yetti.ai>",
+      from: "Revolchat <notifications@revolchat.com>",
       to: user.email,
       subject: `A user's trial on "${bot_name}" has expired`,
       html: `
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
             </a>
           </div>
           <p style="color:#6B7280;font-size:13px;">
-            BotHub — trial expiry notification
+            Revolchat — trial expiry notification
           </p>
         </div>
       `,

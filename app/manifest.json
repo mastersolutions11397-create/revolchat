@@ -1,7 +1,7 @@
 {
-  "name": "Admin - AI Agent Integration Platform",
-  "short_name": "Admin",
-  "description": "Connect your AI chatbot to Telegram and more with Admin's integration platform.",
+  "name": "Revolchat - AI Agent Integration Platform",
+  "short_name": "Revolchat",
+  "description": "Connect your AI chatbot to Telegram and more with Revolchat's integration platform.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

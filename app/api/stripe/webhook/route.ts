@@ -589,7 +589,7 @@ async function sendReferralCommissionEmail({
           : "third month";
 
     await resend.emails.send({
-      from: "BotHub <onboarding@resend.dev>",
+      from: "Revolchat <onboarding@resend.dev>",
       to: user.email,
       subject: `🎉 You earned $${commissionAmount.toFixed(2)} in referral commission!`,
       html: `
@@ -603,7 +603,7 @@ async function sendReferralCommissionEmail({
           </div>
           <p>Your commission will be available for cashout once processed. You can view your earnings in your <a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://yetti.ai"}/dashboard/referrals">Referrals Dashboard</a>.</p>
           <p>Keep sharing your referral link to earn more!</p>
-          <p>Best regards,<br>The BotHub Team</p>
+          <p>Best regards,<br>The Revolchat Team</p>
         </div>
       `,
     });
