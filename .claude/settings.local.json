@@ -2,7 +2,23 @@
   "permissions": {
     "allow": [
       "Bash(git add:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(python3 *)",
+      "Read(//Users/affanzahir/code/tg-server/**)",
+      "Bash(git commit -m ' *)",
+      "Bash(git -C /Users/affanzahir/code/yetti-clone log --oneline -3)",
+      "Bash(git -C /Users/affanzahir/code/tg-server log --oneline -3)",
+      "Bash(python3.11 -c \"import stripe; from app.settings import settings; print\\('stripe OK, key set:', bool\\(settings.stripe_secret_key\\)\\)\")",
+      "Bash(/opt/homebrew/bin/python3.11 -c \"import stripe; from app.settings import settings; print\\('stripe OK, key set:', bool\\(settings.stripe_secret_key\\)\\)\")",
+      "Bash(/opt/homebrew/bin/python3.11 -c \"import stripe; print\\('stripe version:', stripe.__version__\\); from app.settings import settings; print\\('stripe OK, key set:', bool\\(settings.stripe_secret_key\\)\\)\")",
+      "Bash(/opt/homebrew/bin/python3.11 -c \"import stripe; print\\('stripe version:', stripe._version.VERSION\\); from app.settings import settings; print\\('stripe OK, key set:', bool\\(settings.stripe_secret_key\\)\\)\")",
+      "Read(//opt/homebrew/bin/**)",
+      "Read(//usr/local/bin/**)",
+      "Bash(/opt/homebrew/bin/python3.11 *)",
+      "Bash(npx tsc *)",
+      "Bash(git *)",
+      "Bash(git commit:*)",
+      "WebSearch"
     ]
   }
 }
