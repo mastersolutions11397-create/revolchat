@@ -16,9 +16,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ plan: plan ?? null });
   } catch (err: unknown) {
-    const status = err instanceof Error && "status" in err
-      ? (err as { status: number }).status
-      : 500;
+    const status = err instanceof Error && "status" in err ? (err as { status: number }).status : 500;
     const message = err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json({ error: message }, { status });
   }
