@@ -1,165 +1,330 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { getStripe, PLAN_CONFIGS } from "@/lib/stripe";
-import { Check, Loader2, Zap, Shield, Star, Crown } from "lucide-react";
+import { getStripe } from "@/lib/stripe";
+import { supabase } from "@/lib/supabase";
+import {
+  Check, Loader2, Zap, CreditCard, ExternalLink,
+  Receipt, AlertCircle, RefreshCw,
+} from "lucide-react";
 import { toast } from "sonner";
 
-const PLAN_ICONS: Record<string, React.ElementType> = {
-  starter: Zap,
-  growth: Star,
-  pro: Crown,
-  enterprise: Shield,
-};
-
-const PLAN_FEATURES: Record<string, string[]> = {
-  starter:   ["Up to 3 AI bots", "2 channel integrations", "1,000 messages/month", "Email support"],
-  growth:    ["Up to 10 AI bots", "5 channel integrations", "5,000 messages/month", "Priority support"],
-  pro:       ["Up to 30 AI bots", "Unlimited integrations", "20,000 messages/month", "Priority support"],
-  enterprise:["Unlimited AI bots", "Unlimited integrations", "Unlimited messages", "Dedicated support"],
-};
+const STARTER_PRICE = 29;
+const STARTER_FEATURES = [
+  "Up to 3 AI bots",
+  "2 channel integrations",
+  "1,000 messages/month",
+  "Email support",
+  "1-month free trial",
+];
 
 type UserPlan = {
   plan_name: string;
   status: string;
+  current_period_start: string | null;
   current_period_end: string | null;
+  stripe_customer_id: string | null;
 };
+
+type Invoice = {
+  id: string;
+  date: number;
+  amount: number;
+  currency: string;
+  status: string | null;
+  pdf: string | null;
+  description: string;
+};
+
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, { label: string; cls: string }> = {
+    active:   { label: "Active",    cls: "bg-success/10 text-success"  },
+    past_due: { label: "Past due",  cls: "bg-warning/10 text-warning"  },
+    canceled: { label: "Cancelled", cls: "bg-error/10 text-error"      },
+  };
+  const cfg = map[status] ?? { label: status, cls: "bg-surface text-text-muted" };
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.cls}`}>
+      <span className="w-1.5 h-1.5 rounded-full bg-current" />
+      {cfg.label}
+    </span>
+  );
+}
+
+async function getToken(): Promise<string | null> {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.access_token ?? null;
+}
 
 export default function PlansPage() {
   const { user } = useAuth();
-  const [userPlan, setUserPlan] = useState<UserPlan | null>(null);
-  const [planLoading, setPlanLoading] = useState(true);
-  const [checkingOut, setCheckingOut] = useState<string | null>(null);
+  const [plan, setPlan]                       = useState<UserPlan | null>(null);
+  const [invoices, setInvoices]               = useState<Invoice[]>([]);
+  const [planLoading, setPlanLoading]         = useState(true);
+  const [invoicesLoading, setInvoicesLoading] = useState(true);
+  const [checkingOut, setCheckingOut]         = useState(false);
+  const [portalLoading, setPortalLoading]     = useState(false);
 
-  useEffect(() => {
+  const fetchPlan = useCallback(async () => {
     if (!user) return;
-    fetch("/api/yetti/me")
-      .then((r) => r.json())
-      .then((data) => setUserPlan(data.plan ?? null))
-      .catch(() => null)
-      .finally(() => setPlanLoading(false));
+    setPlanLoading(true);
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const res = await fetch("/api/stripe/plan", {
+        headers: { authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPlan(data.plan ?? null);
+      }
+    } catch { /* silently fail */ }
+    finally { setPlanLoading(false); }
   }, [user]);
 
-  const handleSubscribe = async (planKey: string) => {
+  const fetchInvoices = useCallback(async () => {
     if (!user) return;
-    const plan = PLAN_CONFIGS[planKey];
-    if (!plan) return;
+    setInvoicesLoading(true);
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const res = await fetch("/api/stripe/invoices", {
+        headers: { authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setInvoices(data.invoices ?? []);
+      }
+    } catch { /* silently fail */ }
+    finally { setInvoicesLoading(false); }
+  }, [user]);
 
-    setCheckingOut(planKey);
+  useEffect(() => {
+    fetchPlan();
+    fetchInvoices();
+  }, [fetchPlan, fetchInvoices]);
+
+  const handleSubscribe = async () => {
+    if (!user) return;
+    setCheckingOut(true);
     try {
       const res = await fetch("/api/stripe/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          priceId: plan.priceId,
-          userId: user.id,
+          priceId:   process.env.NEXT_PUBLIC_STRIPE_PRICE_STARTER,
+          userId:    user.id,
           userEmail: user.email,
         }),
       });
       const { sessionId, error } = await res.json();
       if (error || !sessionId) throw new Error(error ?? "Failed to start checkout");
-
       const stripe = await getStripe();
       await stripe?.redirectToCheckout({ sessionId });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Checkout failed");
     } finally {
-      setCheckingOut(null);
+      setCheckingOut(false);
     }
   };
 
-  const plans = Object.entries(PLAN_CONFIGS).filter(([k]) => k !== "yetti_credits");
+  const handleManageBilling = async () => {
+    if (!user) return;
+    setPortalLoading(true);
+    try {
+      const token = await getToken();
+      const res = await fetch("/api/stripe/portal", {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}` },
+      });
+      const { url, error } = await res.json();
+      if (error || !url) throw new Error(error ?? "Failed to open billing portal");
+      window.location.href = url;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not open billing portal");
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
+  const isActive = plan?.status === "active";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-3xl">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-text-primary">Plans</h1>
+        <h1 className="text-2xl font-bold text-text-primary">Billing & Plan</h1>
         <p className="text-text-muted mt-1 text-sm">
-          Choose the plan that fits your usage.
+          Manage your Starter subscription and view payment history.
         </p>
       </div>
 
-      {!planLoading && userPlan && (
-        <div className="bg-brand/10 border border-brand/20 rounded-xl px-4 py-3 flex items-center gap-2">
-          <Check className="w-4 h-4 text-brand shrink-0" />
-          <span className="text-sm text-brand font-medium">
-            Current plan:{" "}
-            <strong>{userPlan.plan_name}</strong>
-            {userPlan.current_period_end && (
-              <span className="text-brand/70 font-normal">
-                {" "}· renews {new Date(userPlan.current_period_end).toLocaleDateString()}
-              </span>
+      {/* Plan Card */}
+      <div className="bg-surface border border-border rounded-2xl p-6">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-brand/10 flex items-center justify-center">
+              <Zap className="w-6 h-6 text-brand" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-text-primary">Starter Plan</h2>
+                {!planLoading && plan && <StatusBadge status={plan.status} />}
+              </div>
+              <p className="text-text-muted text-sm mt-0.5">
+                <span className="text-2xl font-bold text-text-primary">${STARTER_PRICE}</span>
+                <span className="text-sm">/month</span>
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {planLoading ? (
+              <Loader2 className="w-5 h-5 animate-spin text-text-muted" />
+            ) : isActive ? (
+              <button
+                onClick={handleManageBilling}
+                disabled={portalLoading}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border text-sm font-semibold text-text-secondary hover:bg-background transition-all cursor-pointer disabled:opacity-50"
+              >
+                {portalLoading
+                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                  : <CreditCard className="w-4 h-4" />}
+                Manage Billing
+              </button>
+            ) : (
+              <button
+                onClick={handleSubscribe}
+                disabled={checkingOut}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand hover:bg-brand-dark text-white text-sm font-semibold shadow-brand hover:shadow-brand-lg hover:-translate-y-0.5 transition-all cursor-pointer disabled:opacity-60 disabled:transform-none"
+              >
+                {checkingOut
+                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                  : <Zap className="w-4 h-4" />}
+                Subscribe — ${STARTER_PRICE}/mo
+              </button>
             )}
-          </span>
+          </div>
+        </div>
+
+        {/* Billing period */}
+        {plan?.current_period_end && (
+          <p className="mt-4 text-xs text-text-muted flex items-center gap-1.5">
+            <Check className="w-3.5 h-3.5 text-success" />
+            {isActive
+              ? `Renews on ${new Date(plan.current_period_end).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`
+              : `Expires on ${new Date(plan.current_period_end).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`}
+          </p>
+        )}
+
+        {/* Features */}
+        <ul className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-4">
+          {STARTER_FEATURES.map((f) => (
+            <li key={f} className="flex items-center gap-2 text-sm text-text-secondary">
+              <Check className="w-3.5 h-3.5 text-success shrink-0" />
+              {f}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* No subscription notice */}
+      {!planLoading && !plan && (
+        <div className="flex items-start gap-3 bg-warning/5 border border-warning/20 rounded-xl p-4">
+          <AlertCircle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-text-primary">No active subscription</p>
+            <p className="text-xs text-text-muted mt-0.5">
+              Subscribe to keep your bots running after the free trial ends.
+            </p>
+          </div>
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {plans.map(([key, plan]) => {
-          const Icon = PLAN_ICONS[key] ?? Zap;
-          const isCurrent =
-            userPlan?.plan_name.toLowerCase() === plan.name.toLowerCase();
-          const isLoading = checkingOut === key;
+      {/* Invoice History */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
+            <Receipt className="w-4 h-4 text-text-muted" />
+            Payment History
+          </h2>
+          <button
+            onClick={fetchInvoices}
+            disabled={invoicesLoading}
+            className="flex items-center gap-1.5 text-xs text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${invoicesLoading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+        </div>
 
-          return (
-            <div
-              key={key}
-              className={`relative bg-surface border rounded-2xl p-5 flex flex-col transition-shadow hover:shadow-card-md ${
-                isCurrent ? "border-brand ring-2 ring-brand/20" : "border-border"
-              }`}
-            >
-              {isCurrent && (
-                <span className="absolute -top-2.5 left-4 bg-brand text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
-                  Current
-                </span>
-              )}
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-9 h-9 rounded-xl bg-brand/10 flex items-center justify-center">
-                  <Icon className="w-5 h-5 text-brand" aria-hidden="true" />
-                </div>
-                <span className="font-bold text-text-primary">{plan.name}</span>
-              </div>
-
-              <div className="mb-4">
-                <span className="text-3xl font-bold text-text-primary">
-                  ${plan.price}
-                </span>
-                <span className="text-text-muted text-sm">/mo</span>
-              </div>
-
-              <ul className="space-y-2 mb-6 flex-1">
-                {(PLAN_FEATURES[key] ?? []).map((feature) => (
-                  <li key={feature} className="flex items-center gap-2 text-sm text-text-secondary">
-                    <Check className="w-3.5 h-3.5 text-success shrink-0" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              <button
-                onClick={() => !isCurrent && handleSubscribe(key)}
-                disabled={isCurrent || isLoading}
-                className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
-                  isCurrent
-                    ? "bg-brand/10 text-brand cursor-default"
-                    : "bg-brand hover:bg-brand-dark text-white shadow-brand hover:shadow-brand-lg hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
-                }`}
-              >
-                {isLoading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Loading…
-                  </span>
-                ) : isCurrent ? (
-                  "Active"
-                ) : (
-                  `Subscribe — $${plan.price}/mo`
-                )}
-              </button>
+        <div className="bg-surface border border-border rounded-xl overflow-hidden">
+          {invoicesLoading ? (
+            <div className="flex items-center justify-center h-28">
+              <Loader2 className="w-5 h-5 animate-spin text-text-muted" />
             </div>
-          );
-        })}
+          ) : invoices.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-28 gap-2">
+              <Receipt className="w-7 h-7 text-border" />
+              <p className="text-sm text-text-muted">No payments yet.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-background">
+                    {["Date", "Description", "Amount", "Status", "Receipt"].map((h) => (
+                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-text-muted uppercase tracking-wide">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {invoices.map((inv) => (
+                    <tr key={inv.id} className="hover:bg-background/50 transition-colors">
+                      <td className="px-4 py-3 text-text-secondary">
+                        {new Date(inv.date * 1000).toLocaleDateString("en-US", {
+                          month: "short", day: "numeric", year: "numeric",
+                        })}
+                      </td>
+                      <td className="px-4 py-3 text-text-primary font-medium">{inv.description}</td>
+                      <td className="px-4 py-3 text-text-primary font-semibold">
+                        ${(inv.amount / 100).toFixed(2)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${
+                          inv.status === "paid"
+                            ? "bg-success/10 text-success"
+                            : inv.status === "open"
+                            ? "bg-warning/10 text-warning"
+                            : "bg-error/10 text-error"
+                        }`}>
+                          {inv.status === "paid" ? "Paid" : inv.status === "open" ? "Pending" : "Failed"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {inv.pdf ? (
+                          <a
+                            href={inv.pdf}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs text-brand hover:text-brand-dark transition-colors"
+                          >
+                            PDF <ExternalLink className="w-3 h-3" />
+                          </a>
+                        ) : (
+                          <span className="text-xs text-text-muted">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

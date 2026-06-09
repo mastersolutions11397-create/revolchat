@@ -26,13 +26,10 @@ export async function POST(request: NextRequest) {
     let event: Stripe.Event;
 
     try {
-      const webhookSecret =
-        process.env.STRIPE_WEBHOOK_SECRET ||
-        "whsec_0FJxMd7eFuSAbBIOQeOjC9Igrms5ATBO";
+      const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
       if (!webhookSecret) {
-        throw new Error(
-          "STRIPE_WEBHOOK_SECRET environment variable is not set"
-        );
+        console.error("STRIPE_WEBHOOK_SECRET is not set");
+        return NextResponse.json({ error: "Webhook not configured" }, { status: 500 });
       }
 
       event = stripe.webhooks.constructEvent(bodyString, sig, webhookSecret);
